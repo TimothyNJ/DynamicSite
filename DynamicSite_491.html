@@ -1,0 +1,709 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dynamic Site 2</title>
+
+<style>
+/* GLOBAL RULES */
+	html, body { 
+	    height: 100%; /* Ensures everything fills the entire viewport */
+        width: 100%; /* Ensures everything fills the entire viewport */
+	}
+	
+    :root {
+    --side-buffer-width: 2vw; /* Default value */
+    }
+
+    :root {
+        --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.2)), 30vw);
+    }
+
+	/* Site Outer Padding Elimination */
+	* { /* "*" is a universal selector */
+	    margin: 0; /* Removes default margins applied by browsers */
+	    padding: 0; /* Removes default padding applied by browsers */
+	    box-sizing: border-box; /* Includes padding and borders within the declared width and height. */	
+	}
+	
+	body, h1, h2, h3, p, button, span, a {
+	    white-space: nowrap; /* Prevent wrapping by keeping all content on a single line */
+	    overflow: hidden; /* Hide overflowing content */
+	    text-overflow: ellipsis; /* Add ellipsis (...) for overflowed text */
+		max-width: 100%; /* Limits the width of the element to the container’s width. */
+		max-height: 100%; /* Limits the height of the element to the container’s height. */
+		box-sizing: border-box; /* Ensure padding and border are included in the size limit */
+	}
+
+/* FONT */
+	h1, h2, h3, p {
+	    font-family: Helvetica, Tahoma, sans-serif; /* Default font preferrence order */
+    	}
+	
+	h1 {
+    	font-size: clamp(.7rem, 1.6vw, 2.5rem);
+		margin: calc(0.03vw + 0.03vh);
+    	font-weight: bold;
+	}
+
+	h2 {
+        font-size: clamp(.6rem, 1.4vw, 2.4rem);
+	    margin: calc(0.03vw + 0.03vh);
+	    font-weight: bold; /* Explicit bold styling */
+	}
+
+	h3 {
+        font-size: clamp(.5rem, 1.2vw, 2.3rem);
+	    margin: calc(0.03vw + 0.03vh);
+	    font-weight: bold; /* Explicit bold styling */
+	}
+
+	p {
+	    font-size: clamp(.5rem, 1.2vw, 2.3rem);
+	    margin: calc(0.03vw + 0.03vh);
+	    font-weight: normal; /* Explicit normal styling */
+	}
+
+/* FULL SITE CONTAINER */
+.site-container {
+        font-size: inherit; /* Ensure H1/H2/H3/P inherit */
+        display: flex;
+        flex-direction: column; /* Stack child elements vertically */
+        width: 100%;
+        height: 100%;
+        overflow: auto; /* Ensure content is scrollable if necessary */
+        border: 2px solid royalblue; /* Border for visibility */
+  }
+
+
+/* NAVBAR */
+	/* Navbar Primary Container */
+		.nav-bar {
+        font-size: inherit; /* Ensure H1/H2/H3/P inherit */
+        display: flex;
+		justify-content: center; /* Center contents */
+		align-items: center; /* Center contents */
+		gap: 0; /* Eliminate any implicit gaps between flex items */
+		background-color: black; /* Background Colour */
+		border: 2px solid yellow; /* Border Colour */
+		color: white; /* White Text */
+	    }
+
+        /* Navbar Buffer Containers 1 & 5 */
+.nav-bar .nav-container:nth-child(1),
+.nav-bar .nav-container:nth-child(5) {
+    border: 2px solid rgb(94, 255, 0); /* Border Colour */
+}
+
+	/* Navbar Container 2 */
+	    .nav-bar .nav-container:nth-child(2) {
+	        justify-content: flex-start; /* Justify contents to the left */
+	        flex: 0 1 auto; /* Flex size based on content */
+	        border: 2px solid green; /* Retain visible border */
+	    }
+	
+	/* Navbar Container 3 */
+	    .nav-bar .nav-container:nth-child(3) {
+	        display: flex; /* Ensure it's visible */
+	        justify-content: center; /* Center contents */
+	        align-items: center; /* Align contents */
+	        border: 2px solid orange; /* Ensure visible border */
+	        flex: 1; /* Allow it to grow and shrink */
+	        min-width: 2vw; /* Stop shrinking below the navbar buffer width */
+	    }
+
+	/* Navbar Container 4 */
+        .nav-bar .nav-container:nth-child(4) {
+            font-size: inherit; /* Ensure H1/H2/H3/P inherit */
+            display: flex; /* Ensure it's visible */
+            justify-content: flex-end; /* Justify contents to the right */
+            align-items: center; /* Align contents */
+            flex: 0 1 auto; /* Flex size based on content */
+            border: 2px solid purple; /* Ensure visible border */
+            position: relative; /* Add this line to establish positioning context */
+        }
+
+
+/* Global Button Styles */
+.nav-bar button,
+.collapsed-menu button {
+    font-size: inherit;
+    flex: 0 1 auto;
+    background-color: black;
+    color: white;
+    border: 1px solid #333333ba;
+    padding: 2px 2px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Global Hover Effect for all buttons */
+.nav-bar button:hover,
+.collapsed-menu button:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    cursor: pointer;
+    border: 1px solid royalblue;
+}
+
+/* Hover and Dropdown Interaction */
+@media (max-width: 800px) {
+    .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
+    .collapsed-menu:hover:not(.show) {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+	    .nav-bar .nav-container:nth-child(4) button.active {
+	        background-color: royalblue; /* Active button color */
+	        color: white; /* Make active button text white */
+	    }
+        
+
+    /* Collapsed Navbar */
+        .collapsed-navbar {
+            display: none;
+            background-color: black;
+            color: white;
+            border: 1px solid #333333ba;
+            padding: 2px 2px;
+            border-radius: 5px;
+        }
+    
+/* Show collapsed button and hide inactive buttons below 800px */
+@media (max-width: 800px) {
+    .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
+        display: none; /* Hide inactive buttons */
+    }
+    .nav-bar .nav-container:nth-child(4) {
+    flex: 0 0 auto; /* Prevents shrinking beyond calculated size */
+    width: calc(50vw + 10px); /* Dynamically adjusts with viewport */
+    min-width: 20px; /* Ensures a reasonable minimum width */
+    flex-basis: content; /* trying to shrink the navbar4 when buttons are hidden */
+}
+
+.collapsed-menu {
+    width: calc(50vw + 10px); /* Keep width in sync with navbar4 */
+}
+
+    .nav-container:nth-child(4) .collapsed-navbar {
+    display: flex; /* Show collapsed navbar button */
+    margin: calc(0.03vw + 0.03vh);
+    padding: 0;
+    background-color: black;
+    color: white;
+}
+}
+
+/* Hide the collapsed navbar button above 800px */
+@media (min-width: 801px) {
+    .nav-container:nth-child(4) .collapsed-navbar,
+    .collapsed-menu {
+        display: none !important; /* ✅ Hide dropdown when navbar expands */
+    }
+}
+
+
+.collapsed-menu button {
+    display: flex !important;
+    text-align: right;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%; 
+    flex: 0 1 auto; /* Match navbar button behavior */
+    padding: 2px 2px;
+    background-color: black;
+    color: white;
+    border: 1px solid #333333ba;
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: visible !important;
+    font-size: inherit;
+    max-width: none !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+.collapsed-menu {
+    display: none;
+    flex-direction: column !important;
+    text-align: right;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: black;
+    color: white;
+    border: 1px solid #333333ba;
+    border-radius: 5px;
+    padding: 0;
+    width: fit-content;
+    z-index: 9999;
+    overflow: visible;
+    font-size: inherit;
+}
+
+.collapsed-menu button {
+    width: 100%;
+    text-align: right;
+    justify-content: flex-end;
+    white-space: nowrap;
+}
+
+/* CONTENT AREA */
+	
+    /* Full content area with Buffers */
+        .content-wrapper {
+            display: flex;
+            flex: 1; /* Allow content-wrapper to grow */
+            width: 100%;
+            overflow: auto; /* Scrollable if necessary */
+            border: 2px solid rgb(181, 58, 230);
+        }
+
+        /* Content Buffers */
+		.content-buffer {
+            flex: 0 0 auto; /* Changed to prevent growing/shrinking */
+            width: var(--side-buffer-width);
+            top: 0;
+            bottom: 0;
+			border: 2px solid rgb(94, 255, 0); /* Border Colour */
+            display: flex; /* Enable Flexbox */
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            text-align: center; /* Ensure text alignment */
+		}
+
+    /* Content Area */
+        .content-container {
+            font-size: inherit; /* Ensure H1/H2/H3/P are inhereted */
+            flex: 1; /* Allow main content to grow and shrink */
+            border: 2px solid green; /* Green border for distinction */
+            background-color: transparent; /* Remove background color */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+        }
+
+
+/* VIRTUAL PAGES */
+
+.virtual-page {
+    display: none; /* Default state is hidden */
+}
+
+.virtual-page.active {
+    display: flex; /* Show the active page */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+/* Border Toggle Button */
+.border-toggle-btn {
+    margin: 10px;
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.border-toggle-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Class for hiding borders but not button borders */
+.borders-hidden *:not(button):not(.nav-bar button) {
+    border-color: transparent !important;
+}
+
+
+</style>
+
+
+<script>
+
+// Create ResizeObserver to sync buffer widths (content drives navbar)
+const bufferResizeObserver = new ResizeObserver(entries => {
+    entries.forEach(entry => {
+        const leftContentBuffer = document.querySelector('.content-wrapper .content-buffer:first-child');
+        const rightContentBuffer = document.querySelector('.content-wrapper .content-buffer:last-child');
+        const navbarBuffer1 = document.querySelector('.nav-bar .nav-container:nth-child(1)');
+        const navbarBuffer5 = document.querySelector('.nav-bar .nav-container:nth-child(5)');
+
+        if (leftContentBuffer && navbarBuffer1) {
+            navbarBuffer1.style.width = getComputedStyle(leftContentBuffer).width;
+        }
+        if (rightContentBuffer && navbarBuffer5) {
+            navbarBuffer5.style.width = getComputedStyle(rightContentBuffer).width;
+        }
+    });
+});
+
+// Start observing content buffers after DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const contentBuffers = document.querySelectorAll('.content-wrapper .content-buffer');
+    contentBuffers.forEach(buffer => bufferResizeObserver.observe(buffer));
+});
+
+
+// Force reflow on page load to ensure proper layout calculations
+window.addEventListener('load', () => {
+    document.body.style.display = 'none'; // Temporarily hide body
+    document.body.offsetHeight; // Trigger reflow
+    document.body.style.display = ''; // Show body again
+});
+
+
+  function switchPage(pageId) {
+      // Hide all virtual pages
+      const pages = document.querySelectorAll('.virtual-page');
+      pages.forEach(page => page.classList.remove('active'));
+
+      // Show the selected page
+      const targetPage = document.getElementById(pageId);
+      if (targetPage) targetPage.classList.add('active');
+
+      // Update nav button styles
+      document.querySelectorAll('.nav-bar .nav-container:nth-child(4) button').forEach(button => button.classList.remove('active'));
+      const activeButton = Array.from(document.querySelectorAll('.nav-bar .nav-container:nth-child(4) button')).find(button => button.textContent === pageId);
+      if (activeButton) activeButton.classList.add('active');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const collapsedNavbar = document.querySelector('.collapsed-navbar');
+    const collapsedMenu = document.querySelector('.collapsed-menu');
+    window.isMenuOpenedByClick = false;
+
+    window.addEventListener('resize', () => {
+    const collapsedMenu = document.querySelector('.collapsed-menu');
+    if (window.innerWidth > 800) {
+        if (collapsedMenu) {
+            collapsedMenu.style.display = 'none';
+            collapsedMenu.style.removeProperty('display'); // Remove inline style completely
+            window.isMenuOpenedByClick = false;
+        }
+    }
+});
+
+    if (collapsedNavbar && collapsedMenu) {
+        // Handle hover events
+        collapsedNavbar.addEventListener('mouseenter', () => {
+            if (!window.isMenuOpenedByClick) {
+                updateMenuContent();
+                collapsedMenu.style.display = 'flex';
+            }
+        });
+
+        collapsedNavbar.addEventListener('mouseleave', () => {
+            if (!window.isMenuOpenedByClick) {
+                setTimeout(() => {
+                    if (!collapsedMenu.matches(':hover')) {
+                        collapsedMenu.style.display = 'none';
+                    }
+                }, 100);
+            }
+        });
+
+        collapsedMenu.addEventListener('mouseleave', () => {
+            if (!window.isMenuOpenedByClick) {
+                collapsedMenu.style.display = 'none';
+            }
+        });
+
+        // Handle click events
+        collapsedNavbar.addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (window.isMenuOpenedByClick) {
+                collapsedMenu.style.display = 'none';
+                window.isMenuOpenedByClick = false;
+            } else {
+                updateMenuContent();
+                collapsedMenu.style.display = 'flex';
+                window.isMenuOpenedByClick = true;
+            }
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (event) => {
+            if (window.isMenuOpenedByClick && !event.target.closest('.collapsed-menu')) {
+                collapsedMenu.style.display = 'none';
+                window.isMenuOpenedByClick = false;
+            }
+        });
+
+        // Function to update menu content
+        function updateMenuContent() {
+            collapsedMenu.innerHTML = '';
+            const navContainer = document.querySelector('.nav-container:nth-child(4)');
+            const allButtons = navContainer.querySelectorAll('button:not(.collapsed-navbar)');
+            
+            allButtons.forEach(button => {
+                if (!button.classList.contains('active')) {
+                    const buttonText = button.querySelector('h3').textContent;
+                    const menuButton = document.createElement('button');
+                    const h3Element = document.createElement('h3');
+                    h3Element.textContent = buttonText;
+                    menuButton.appendChild(h3Element);
+                    menuButton.onclick = () => {
+    switchPage(buttonText);
+    setTimeout(() => {
+        updateMenuContent();
+        collapsedMenu.style.display = 'flex';
+    }, 0);
+    window.isMenuOpenedByClick = false;
+};
+                    collapsedMenu.appendChild(menuButton);
+                }
+            });
+        }
+
+        // Initial menu setup
+        updateMenuContent();
+    }
+});
+
+
+
+
+</script>
+  
+</head>
+
+
+<script>
+  
+// Force a reflow on page load to ensure proper layout calculations
+window.addEventListener('load', () => {
+    document.body.style.display = 'none'; // Temporarily hide body
+    document.body.offsetHeight; // Trigger reflow
+    document.body.style.display = ''; // Restore body display
+    updateDimensions(); // Call updateDimensions after reflow
+});
+
+window.addEventListener('resize', updateDimensions);
+
+
+
+
+
+
+  </script>
+  <script>
+    // Force a reflow on page load to ensure proper layout calculations
+    window.addEventListener('load', () => {
+      document.body.style.display = 'none'; // Temporarily hide body
+      document.body.offsetHeight; // Trigger reflow
+      document.body.style.display = ''; // Restore body display
+      updateDimensions(); // Call updateDimensions after reflow
+    });
+  
+    window.addEventListener('resize', updateDimensions);
+  </script>
+  
+  <script>
+    function updateDimensions() {
+    // Get navbar3 container dimensions
+    const navbar3 = document.querySelector('.nav-bar .nav-container:nth-child(3)');
+    const navbar3Dimensions = document.getElementById('navbar3-dimensions');
+
+    if (navbar3 && navbar3Dimensions) {
+        const navbar3Width = navbar3.offsetWidth;
+        const navbar3Height = navbar3.offsetHeight;
+        navbar3Dimensions.textContent = `${navbar3Width}px x ${navbar3Height}px`;
+    }
+
+    // Get Home virtual page dimensions
+    const homePage = document.getElementById('Home');
+    const homeDimensions = document.getElementById('home-dimensions');
+
+    if (homePage && homeDimensions) {
+        const homeWidth = homePage.offsetWidth;
+        const homeHeight = homePage.offsetHeight;
+        homeDimensions.textContent = `${homeWidth}px x ${homeHeight}px`;
+    }
+
+    // Get Navbar Buffer 1 dimensions
+    const navbarBuffer1 = document.querySelector('.nav-bar .nav-container:nth-child(1)');
+    const navbarBuffer1Dimensions = document.getElementById('navbar-buffer1-dimensions');
+    if (navbarBuffer1 && navbarBuffer1Dimensions) {
+        const buffer1Width = navbarBuffer1.offsetWidth;
+        const buffer1Height = navbarBuffer1.offsetHeight;
+        navbarBuffer1Dimensions.textContent = `${buffer1Width}px x ${buffer1Height}px`;
+    }
+
+    // Get Navbar Buffer 5 dimensions
+    const navbarBuffer5 = document.querySelector('.nav-bar .nav-container:nth-child(5)');
+    const navbarBuffer5Dimensions = document.getElementById('navbar-buffer5-dimensions');
+    if (navbarBuffer5 && navbarBuffer5Dimensions) {
+        const buffer5Width = navbarBuffer5.offsetWidth;
+        const buffer5Height = navbarBuffer5.offsetHeight;
+        navbarBuffer5Dimensions.textContent = `${buffer5Width}px x ${buffer5Height}px`;
+    }
+
+    // Get Content Buffer dimensions
+    const contentBuffer = document.querySelector('.content-buffer');
+    const contentBufferDimensions = document.getElementById('content-buffer-dimensions');
+    if (contentBuffer && contentBufferDimensions) {
+        const bufferWidth = contentBuffer.offsetWidth;
+        const bufferHeight = contentBuffer.offsetHeight;
+        contentBufferDimensions.textContent = `${bufferWidth}px x ${bufferHeight}px`;
+    }
+
+    // Get navbar4 container
+    const navbar4 = document.querySelector('.nav-bar .nav-container:nth-child(4)');
+    const navbar = document.querySelector('.nav-bar'); // ✅ Add navbar selection
+    const collapsedButton = navbar4.querySelector('.collapsed-navbar');
+
+    // Check if collapsed button is displayed (which happens on smaller screens)
+    const isCollapsedButtonVisible = window.getComputedStyle(collapsedButton).display !== 'none';
+    if (window.innerWidth > 800) {
+    const collapsedMenu = document.querySelector('.collapsed-menu'); 
+    if (collapsedMenu) {
+        collapsedMenu.style.display = 'none'; // ✅ Hide dropdown
+        collapsedMenu.classList.remove('show'); // ✅ Remove any active state
+    }
+    window.isMenuOpenedByClick = false; // ✅ Ensure dropdown stays toggled off
+}
+
+
+    if (isCollapsedButtonVisible) {
+    // Create temporary container
+    const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.visibility = 'hidden';
+        document.body.appendChild(tempContainer);
+
+        // Get ALL buttons including collapsed navbar
+        const allButtons = navbar4.querySelectorAll('button');
+        let maxButtonWidth = 0;
+        let widestButton = null;
+
+        // First clone and measure the collapsed navbar button
+        const collapsedClone = collapsedButton.cloneNode(true);
+        collapsedClone.style.display = 'block';
+        collapsedClone.classList.add('active');
+        tempContainer.appendChild(collapsedClone);
+        const collapsedButtonWidth = collapsedClone.offsetWidth;
+
+        // Then clone and measure all other buttons
+        allButtons.forEach(button => {
+            if (button !== collapsedButton) { // Skip the original collapsed button as we already measured its clone
+                const clone = button.cloneNode(true);
+                clone.style.display = 'block'; // Ensure button is measurable
+                clone.classList.add('active');
+                tempContainer.appendChild(clone);
+                const buttonWidth = clone.offsetWidth;
+                if (buttonWidth > maxButtonWidth) {
+                    maxButtonWidth = buttonWidth;
+                    widestButton = button;
+                }
+            }
+        });
+
+        // Clean up temporary container
+        document.body.removeChild(tempContainer);
+
+        // Calculate total width by ADDING widest button and collapsed button widths
+        const totalWidth = maxButtonWidth + collapsedButtonWidth + 4; // 2px border on each side
+        // Set data attribute and class for minimum width
+        navbar4.dataset.minWidth = `${totalWidth}px`;
+        navbar4.classList.add('enforce-min-width');
+        
+        // Directly apply the minimum width
+        navbar4.style.minWidth = `${totalWidth}px`;
+        navbar.style.minWidth = `${totalWidth + 20}px`; // ✅ Apply same width to entire navbar
+
+
+        // Log both widths and total for debugging
+        console.log('Widest regular button:', widestButton ? widestButton.querySelector('h3').textContent : 'none', 'Width:', maxButtonWidth);
+        console.log('Collapsed button width:', collapsedButtonWidth);
+        console.log('Total width needed:', totalWidth);
+    } else {
+        // Remove data attribute and class when not needed
+        delete navbar4.dataset.minWidth;
+        navbar4.classList.remove('enforce-min-width');
+        navbar4.style.minWidth = '';
+        navbar.style.minWidth = ''; // ✅ Reset navbar width when dropdown is hidden
+    }
+}
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleButton = document.getElementById('border-toggle');
+        const siteContainer = document.querySelector('.site-container');
+        
+        toggleButton.addEventListener('click', function() {
+            siteContainer.classList.toggle('borders-hidden');
+            // Find all elements containing dimension text
+            const dimensionElements = document.querySelectorAll('[id$="-dimensions"]');
+            dimensionElements.forEach(element => {
+                element.style.display = element.style.display === 'none' ? '' : 'none';
+            });
+        });
+    });
+    </script>
+  <body>
+  
+
+<body>
+	<div class="site-container">
+	<div class="nav-bar">
+	<div class="nav-container"><p id="navbar-buffer1-dimensions"></p></div> <!-- Left buffer -->
+	<div class="nav-container"><h1 class="site-title">Dynamic Site Template</h1></div> <!-- NavLeft as Site Title -->
+	<div class="nav-container"><p id="navbar3-dimensions"></p> </div> <!-- NavCentre -->
+	<div class="nav-container"> <!-- NavRight -->
+	<button class="active" onclick="switchPage('Home')"><h3>Home</h3></button>
+	<button onclick="switchPage('Create Vendor Request')"><h3>Create Vendor Request</h3></button>
+	<button onclick="switchPage('Data Entry Forms')"><h3>Data Entry Forms</h3></button>
+	<button onclick="switchPage('Progress View')"><h3>Progress View</h3></button>
+    <button class="collapsed-navbar">☰</button>
+    <div class="collapsed-menu"></div>
+</div>
+	<div class="nav-container"><p id="navbar-buffer5-dimensions"></p></div> <!-- Right buffer -->
+	</div>
+	<div class="content-wrapper">
+	<div class="content-buffer"><p id="content-buffer-dimensions"></p></div> <!-- Left content buffer -->
+	<div class="content-container">
+	<div class="virtual-pages">
+	<div class="virtual-page active" id="Home">
+    <p id="home-dimensions"></p>
+    <h1>H1 Font</h1>
+	<h2>H2 Font</h2>
+	<h3>H3 Font</h3>
+	<p>P Font</p>
+	</div>
+	<div class="virtual-page" id="Create Vendor Request">
+	<h1>Create Vendor Request</h1>
+	</div>
+	<div class="virtual-page" id="Data Entry Forms">
+	<h1>Data Entry Forms</h1>
+    </div>
+	<div class="virtual-page" id="Progress View">
+        <button id="border-toggle" class="border-toggle-btn"><h3>Toggle Size Guides and Borders</h3></button>
+        <h1>Progress View</h1>
+	</div>
+	</div>
+	</div>
+	<div class="content-buffer"><p id="content-buffer-dimensions"></p></div> <!-- Right content buffer -->
+	</div>
+	</div>
+
+
+</body>
+
+</html>
