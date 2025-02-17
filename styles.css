@@ -154,7 +154,7 @@ p {
 }
 
 /* Hover and Dropdown Interaction */
-@media (max-width: $collapse-breakpoint) {
+@media (max-width: var(--collapse-breakpoint)) {
   .nav-container:nth-child(4)
     .collapsed-navbar:hover
     + .collapsed-menu:not(.show),
@@ -201,7 +201,7 @@ p {
   }
 }
 /* Hide the collapsed navbar button above 800px */
-@media (min-width: $collapse-breakpoint + 1) {
+@media (min-width: calc(var(--collapse-breakpoint) + 1px)) {
   .nav-container:nth-child(4) .collapsed-navbar,
   .collapsed-menu {
     display: none !important; /* ✅ Hide dropdown when navbar expands */
