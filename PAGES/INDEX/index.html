@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Dynamic Site</title>
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
+  <body>
+    <div class="site-container">
+      <div class="nav-bar">
+        <div class="nav-container"><p id="navbar-buffer1-dimensions"></p></div>
+        <div class="nav-container">
+          <h1 class="site-title">Dynamic Site Template</h1>
+        </div>
+        <div class="nav-container"><p id="navbar3-dimensions"></p></div>
+        <div class="nav-container">
+          <button class="active" onclick="switchPage('Home')">
+            <h3>Home</h3>
+          </button>
+          <button onclick="switchPage('Create Vendor Request')">
+            <h3>Create Vendor Request</h3>
+          </button>
+          <button onclick="switchPage('Data Entry Forms')">
+            <h3>Data Entry Forms</h3>
+          </button>
+          <button onclick="switchPage('Progress View')">
+            <h3>Progress View</h3>
+          </button>
+          <button class="collapsed-navbar">☰</button>
+          <div class="collapsed-menu"></div>
+        </div>
+        <div class="nav-container"><p id="navbar-buffer5-dimensions"></p></div>
+      </div>
+      <div class="content-wrapper">
+        <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
+        <div class="content-container">
+          <!-- Page content will be loaded here -->
+        </div>
+        <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
+      </div>
+    </div>
+
+    <script>
+      // Create ResizeObserver to sync buffer widths (content drives navbar)
+      const bufferResizeObserver = new ResizeObserver((entries) => {
+        entries.forEach((entry) => {
+          const leftContentBuffer = document.querySelector(
+            ".content-wrapper .content-buffer:first-child"
+          );
+          const rightContentBuffer = document.querySelector(
+            ".content-wrapper .content-buffer:last-child"
+          );
+          const navbarBuffer1 = document.querySelector(
+            ".nav-bar .nav-container:nth-child(1)"
+          );
+          const navbarBuffer5 = document.querySelector(
+            ".nav-bar .nav-container:nth-child(5)"
+          );
+
+          if (leftContentBuffer && navbarBuffer1) {
+            navbarBuffer1.style.width =
+              getComputedStyle(leftContentBuffer).width;
+          }
+          if (rightContentBuffer && navbarBuffer5) {
+            navbarBuffer5.style.width =
+              getComputedStyle(rightContentBuffer).width;
+          }
+        });
+      });
+
+      // Start observing content buffers after DOM is loaded
+      document.addEventListener("DOMContentLoaded", () => {
+        const contentBuffers = document.querySelectorAll(
+          ".content-wrapper .content-buffer"
+        );
+        contentBuffers.forEach((buffer) =>
+          bufferResizeObserver.observe(buffer)
+        );
+      });
+
+      // Updated switchPage function to load content from files
+      async function switchPage(pageId) {
+        // Update nav button styles
+        document
+          .querySelectorAll(".nav-bar .nav-container:nth-child(4) button")
+          .forEach((button) => button.classList.remove("active"));
+        const activeButton = Array.from(
+          document.querySelectorAll(
+            ".nav-bar .nav-container:nth-child(4) button"
+          )
+        ).find((button) => button.textContent === pageId);
+        if (activeButton) activeButton.classList.add("active");
+
+        // Get the content container
+        const contentContainer = document.querySelector(".content-container");
+
+        try {
+          // Convert pageId to path
+          let pagePath;
+          switch (pageId) {
+            case "Home":
+              pagePath = "pages/home/index.html";
+              break;
+            case "Create Vendor Request":
+              pagePath = "pages/vendor-request/index.html";
+              break;
+            case "Data Entry Forms":
+              pagePath = "pages/data-entry/index.html";
+              break;
+            case "Progress View":
+              pagePath = "pages/progress/index.html";
+              break;
+            default:
+              pagePath = "pages/home/index.html";
+          }
+
+          // Fetch the page content
+          const response = await fetch(pagePath);
+          if (!response.ok)
+            throw new Error(`HTTP error! status: ${response.status}`);
+          const content = await response.text();
+
+          // Update the content area
+          contentContainer.innerHTML = content;
+
+          // Update dimensions display
+          updateDimensions();
+        } catch (error) {
+          console.error("Error loading page:", error);
+          contentContainer.innerHTML = "<h1>Error loading page content</h1>";
+        }
+      }
+
+      // Collapsed menu functionality
+      document.addEventListener("DOMContentLoaded", () => {
+        const collapsedNavbar = document.querySelector(".collapsed-navbar");
+        const collapsedMenu = document.querySelector(".collapsed-menu");
+        window.isMenuOpenedByClick = false;
+
+        window.addEventListener("resize", () => {
+          const collapsedMenu = document.querySelector(".collapsed-menu");
+          if (window.innerWidth > 800) {
+            if (collapsedMenu) {
+              collapsedMenu.style.display = "none";
+              collapsedMenu.style.removeProperty("display");
+              window.isMenuOpenedByClick = false;
+            }
+          }
+        });
+
+        if (collapsedNavbar && collapsedMenu) {
+          // Handle hover events
+          collapsedNavbar.addEventListener("mouseenter", () => {
+            if (!window.isMenuOpenedByClick) {
+              updateMenuContent();
+              collapsedMenu.style.display = "flex";
+            }
+          });
+
+          collapsedNavbar.addEventListener("mouseleave", () => {
+            if (!window.isMenuOpenedByClick) {
+              setTimeout(() => {
+                if (!collapsedMenu.matches(":hover")) {
+                  collapsedMenu.style.display = "none";
+                }
+              }, 100);
+            }
+          });
+
+          collapsedMenu.addEventListener("mouseleave", () => {
+            if (!window.isMenuOpenedByClick) {
+              collapsedMenu.style.display = "none";
+            }
+          });
+
+          // Handle click events
+          collapsedNavbar.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (window.isMenuOpenedByClick) {
+              collapsedMenu.style.display = "none";
+              window.isMenuOpenedByClick = false;
+            } else {
+              updateMenuContent();
+              collapsedMenu.style.display = "flex";
+              window.isMenuOpenedByClick = true;
+            }
+          });
+
+          // Close menu when clicking outside
+          document.addEventListener("click", (event) => {
+            if (
+              window.isMenuOpenedByClick &&
+              !event.target.closest(".collapsed-menu")
+            ) {
+              collapsedMenu.style.display = "none";
+              window.isMenuOpenedByClick = false;
+            }
+          });
+
+          function updateMenuContent() {
+            collapsedMenu.innerHTML = "";
+            const navContainer = document.querySelector(
+              ".nav-container:nth-child(4)"
+            );
+            const allButtons = navContainer.querySelectorAll(
+              "button:not(.collapsed-navbar)"
+            );
+
+            allButtons.forEach((button) => {
+              if (!button.classList.contains("active")) {
+                const buttonText = button.querySelector("h3").textContent;
+                const menuButton = document.createElement("button");
+                const h3Element = document.createElement("h3");
+                h3Element.textContent = buttonText;
+                menuButton.appendChild(h3Element);
+                menuButton.onclick = () => {
+                  switchPage(buttonText);
+                  setTimeout(() => {
+                    updateMenuContent();
+                    collapsedMenu.style.display = "flex";
+                  }, 0);
+                  window.isMenuOpenedByClick = false;
+                };
+                collapsedMenu.appendChild(menuButton);
+              }
+            });
+          }
+
+          // Initial menu setup
+          updateMenuContent();
+        }
+      });
+
+      function updateDimensions() {
+        // Get navbar3 container dimensions
+        const navbar3 = document.querySelector(
+          ".nav-bar .nav-container:nth-child(3)"
+        );
+        const navbar3Dimensions = document.getElementById("navbar3-dimensions");
+
+        if (navbar3 && navbar3Dimensions) {
+          const navbar3Width = navbar3.offsetWidth;
+          const navbar3Height = navbar3.offsetHeight;
+          navbar3Dimensions.textContent = `${navbar3Width}px x ${navbar3Height}px`;
+        }
+
+        // Get content container dimensions
+        const contentContainer = document.querySelector(".content-container");
+        const homeDimensions = document.getElementById("home-dimensions");
+
+        if (contentContainer && homeDimensions) {
+          const containerWidth = contentContainer.offsetWidth;
+          const containerHeight = contentContainer.offsetHeight;
+          homeDimensions.textContent = `${containerWidth}px x ${containerHeight}px`;
+        }
+
+        // Buffer dimensions
+        const contentBuffer = document.querySelector(".content-buffer");
+        const contentBufferDimensions = document.getElementById(
+          "content-buffer-dimensions"
+        );
+        if (contentBuffer && contentBufferDimensions) {
+          const bufferWidth = contentBuffer.offsetWidth;
+          const bufferHeight = contentBuffer.offsetHeight;
+          contentBufferDimensions.textContent = `${bufferWidth}px x ${bufferHeight}px`;
+        }
+
+        // Navbar dimensions handling
+        const navbar4 = document.querySelector(
+          ".nav-bar .nav-container:nth-child(4)"
+        );
+        const navbar = document.querySelector(".nav-bar");
+        const collapsedButton = navbar4.querySelector(".collapsed-navbar");
+        const isCollapsedButtonVisible =
+          window.getComputedStyle(collapsedButton).display !== "none";
+
+        if (window.innerWidth > 800) {
+          const collapsedMenu = document.querySelector(".collapsed-menu");
+          if (collapsedMenu) {
+            collapsedMenu.style.display = "none";
+            collapsedMenu.classList.remove("show");
+          }
+          window.isMenuOpenedByClick = false;
+        }
+
+        if (isCollapsedButtonVisible) {
+          const tempContainer = document.createElement("div");
+          tempContainer.style.position = "absolute";
+          tempContainer.style.left = "-9999px";
+          tempContainer.style.visibility = "hidden";
+          document.body.appendChild(tempContainer);
+
+          const allButtons = navbar4.querySelectorAll("button");
+          let maxButtonWidth = 0;
+          let widestButton = null;
+
+          const collapsedClone = collapsedButton.cloneNode(true);
+          collapsedClone.style.display = "block";
+          collapsedClone.classList.add("active");
+          tempContainer.appendChild(collapsedClone);
+          const collapsedButtonWidth = collapsedClone.offsetWidth;
+
+          allButtons.forEach((button) => {
+            if (button !== collapsedButton) {
+              const clone = button.cloneNode(true);
+              clone.style.display = "block";
+              clone.classList.add("active");
+              tempContainer.appendChild(clone);
+              const buttonWidth = clone.offsetWidth;
+              if (buttonWidth > maxButtonWidth) {
+                maxButtonWidth = buttonWidth;
+                widestButton = button;
+              }
+            }
+          });
+
+          document.body.removeChild(tempContainer);
+
+          const totalWidth = maxButtonWidth + collapsedButtonWidth + 4;
+          navbar4.dataset.minWidth = `${totalWidth}px`;
+          navbar4.classList.add("enforce-min-width");
+          navbar4.style.minWidth = `${totalWidth}px`;
+          navbar.style.minWidth = `${totalWidth + 20}px`;
+        } else {
+          delete navbar4.dataset.minWidth;
+          navbar4.classList.remove("enforce-min-width");
+          navbar4.style.minWidth = "";
+          navbar.style.minWidth = "";
+        }
+      }
+
+      // Initial page load
+      document.addEventListener("DOMContentLoaded", () => {
+        switchPage("Home");
+      });
+
+      // Force reflow and update dimensions on load
+      window.addEventListener("load", () => {
+        document.body.style.display = "none";
+        document.body.offsetHeight;
+        document.body.style.display = "";
+        updateDimensions();
+      });
+
+      window.addEventListener("resize", updateDimensions);
+    </script>
+  </body>
+</html>
