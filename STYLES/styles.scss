@@ -297,7 +297,7 @@ p {
   }
 }
 
-@media (min-width: $collapse-breakpoint + 1) {
+@media (min-width: #{$collapse-breakpoint + 1px}) {
   .nav-container:nth-child(4) .collapsed-navbar,
   .collapsed-menu {
     display: none !important;
