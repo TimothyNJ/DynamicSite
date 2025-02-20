@@ -1,6 +1,6 @@
 // router.js
 import { updateDimensions } from "../layout/dimensions.js";
-import { updateMenuContent } from "./navbar.js";
+import { updateMenuContent } from "../navbar.js";
 
 export async function switchPage(pageId) {
   // Update nav button styles
