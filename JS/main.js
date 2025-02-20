@@ -1,5 +1,3 @@
-// main.js
-// Import required modules
 import { initializeBuffers } from "./layout/buffers.js";
 import { initializeNavbar } from "./navigation/navbar.js";
 import { switchPage } from "./navigation/router.js";
@@ -22,5 +20,3 @@ window.addEventListener("load", () => {
 
 // Handle window resize
 window.addEventListener("resize", updateDimensions);
-
-// ------------------------------------------------

@@ -1,4 +1,3 @@
-// dimensions.js
 export function updateDimensions() {
   updateNavbarDimensions();
   updateContentDimensions();

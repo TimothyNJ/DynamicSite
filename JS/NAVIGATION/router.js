@@ -1,6 +1,4 @@
-// router.js
 import { updateDimensions } from "../layout/dimensions.js";
-import { updateMenuContent } from "../navbar.js";
 
 export async function switchPage(pageId) {
   // Update nav button styles
@@ -50,5 +48,3 @@ export async function switchPage(pageId) {
     contentContainer.innerHTML = "<h1>Error loading page content</h1>";
   }
 }
-
-// ------------------------------------------------

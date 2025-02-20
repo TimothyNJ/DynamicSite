@@ -1,4 +1,3 @@
-// buffers.js
 export function initializeBuffers() {
   // Create ResizeObserver to sync buffer widths (content drives navbar)
   const bufferResizeObserver = new ResizeObserver((entries) => {
@@ -31,5 +30,3 @@ export function initializeBuffers() {
   );
   contentBuffers.forEach((buffer) => bufferResizeObserver.observe(buffer));
 }
-
-// ------------------------------------------------
