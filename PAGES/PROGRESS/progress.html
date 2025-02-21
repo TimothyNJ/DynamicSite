@@ -1,6 +1,56 @@
-<div class="virtual-page" id="Progress View">
-  <button id="border-toggle" class="border-toggle-btn">
-    <h3>Toggle Size Guides and Borders</h3>
-  </button>
-  <h1>Progress View</h1>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Progress View - Dynamic Site</title>
+    <link rel="stylesheet" href="../../styles/styles.css" />
+  </head>
+  <body>
+    <div class="site-container">
+      <!-- Navigation Bar -->
+      <div class="nav-bar">
+        <div class="nav-container"><p id="navbar-buffer1-dimensions"></p></div>
+        <div class="nav-container">
+          <h1 class="site-title">Dynamic Site Template</h1>
+        </div>
+        <div class="nav-container"><p id="navbar3-dimensions"></p></div>
+        <div class="nav-container">
+          <a href="../HOME/home.html"><h3>Home</h3></a>
+          <a href="../VENDOR-REQUEST/vendor-request.html"
+            ><h3>Create Vendor Request</h3></a
+          >
+          <a href="../DATA-ENTRY/data-entry.html"><h3>Data Entry Forms</h3></a>
+          <a class="active" href="../PROGRESS/progress.html"
+            ><h3>Progress View</h3></a
+          >
+          <button class="collapsed-navbar">☰</button>
+          <div class="collapsed-menu"></div>
+        </div>
+        <div class="nav-container"><p id="navbar-buffer5-dimensions"></p></div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="content-wrapper">
+        <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
+        <div class="content-container">
+          <h1>Progress View</h1>
+          <button id="border-toggle" class="border-toggle-btn">
+            <h3>Toggle Size Guides and Borders</h3>
+          </button>
+
+          <!-- Example Progress Bar -->
+          <div class="progress-bar-container">
+            <div class="progress-bar">
+              <div class="progress" style="width: 50%"></div>
+            </div>
+            <p>50% Complete</p>
+          </div>
+        </div>
+        <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
+      </div>
+    </div>
+
+    <script type="module" src="../../js/main.js"></script>
+  </body>
+</html>
