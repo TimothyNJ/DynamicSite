@@ -1,5 +1,3 @@
-$collapse-breakpoint: 800px;
-
 /* GLOBAL RULES */
 html,
 body {
@@ -131,7 +129,7 @@ p {
   flex: 0 1 auto;
   background-color: black;
   color: white;
-  border: 1px solid #333333ba;
+  border: 1px solid rgba(51, 51, 51, 0.7294117647);
   padding: 2px 2px;
   border-radius: 5px;
   cursor: pointer;
@@ -158,36 +156,30 @@ p {
   display: none;
   background-color: black;
   color: white;
-  border: 1px solid #333333ba;
+  border: 1px solid rgba(51, 51, 51, 0.7294117647);
   padding: 2px 2px;
   border-radius: 5px;
 }
 
 /* Media queries */
-@media (max-width: $collapse-breakpoint) {
-  .nav-container:nth-child(4)
-    .collapsed-navbar:hover
-    + .collapsed-menu:not(.show),
+@media (max-width: 800px) {
+  .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
   .collapsed-menu:hover:not(.show) {
     display: flex;
     flex-direction: column;
   }
-
   .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
     display: none;
   }
-
   .nav-bar .nav-container:nth-child(4) {
     flex: 0 0 auto;
     width: calc(50vw + 10px);
     min-width: 20px;
     flex-basis: content;
   }
-
   .collapsed-menu {
     width: calc(50vw + 10px);
   }
-
   .nav-container:nth-child(4) .collapsed-navbar {
     display: flex;
     margin: calc(0.03vw + 0.03vh);
@@ -196,14 +188,12 @@ p {
     color: white;
   }
 }
-
-@media (min-width: #{$collapse-breakpoint + 1px}) {
+@media (min-width: 801px) {
   .nav-container:nth-child(4) .collapsed-navbar,
   .collapsed-menu {
     display: none !important;
   }
 }
-
 .collapsed-menu {
   display: none;
   flex-direction: column !important;
@@ -213,9 +203,10 @@ p {
   right: 0;
   background-color: black;
   color: white;
-  border: 1px solid #333333ba;
+  border: 1px solid rgba(51, 51, 51, 0.7294117647);
   border-radius: 5px;
   padding: 0;
+  width: -moz-fit-content;
   width: fit-content;
   z-index: 9999;
   overflow: visible;
@@ -232,7 +223,7 @@ p {
   padding: 2px 2px;
   background-color: black;
   color: white;
-  border: 1px solid #333333ba;
+  border: 1px solid rgba(51, 51, 51, 0.7294117647);
   border-radius: 5px;
   cursor: pointer;
   white-space: nowrap;
@@ -302,4 +293,4 @@ p {
 /* Class for hiding borders */
 .borders-hidden *:not(button):not(.nav-bar button) {
   border-color: transparent !important;
-}
+}/*# sourceMappingURL=temp.css.map */
