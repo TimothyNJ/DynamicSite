@@ -1,3 +1,69 @@
-<div class="virtual-page" id="Data Entry Forms">
-  <h1>Data Entry Forms</h1>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Data Entry Forms - Dynamic Site</title>
+    <link rel="stylesheet" href="../../styles/styles.css" />
+  </head>
+  <body>
+    <div class="site-container">
+      <!-- Navigation Bar -->
+      <div class="nav-bar">
+        <div class="nav-container"><p id="navbar-buffer1-dimensions"></p></div>
+        <div class="nav-container">
+          <h1 class="site-title">Dynamic Site Template</h1>
+        </div>
+        <div class="nav-container"><p id="navbar3-dimensions"></p></div>
+        <div class="nav-container">
+          <a href="../HOME/home.html"><h3>Home</h3></a>
+          <a href="../VENDOR-REQUEST/vendor-request.html"
+            ><h3>Create Vendor Request</h3></a
+          >
+          <a class="active" href="../DATA-ENTRY/data-entry.html"
+            ><h3>Data Entry Forms</h3></a
+          >
+          <a href="../PROGRESS/progress.html"><h3>Progress View</h3></a>
+          <button class="collapsed-navbar">☰</button>
+          <div class="collapsed-menu"></div>
+        </div>
+        <div class="nav-container"><p id="navbar-buffer5-dimensions"></p></div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="content-wrapper">
+        <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
+        <div class="content-container">
+          <h1>Data Entry Forms</h1>
+          <p>Fill in the form below to submit data.</p>
+
+          <form id="data-entry-form">
+            <label for="entry-name">Full Name:</label>
+            <input type="text" id="entry-name" name="entry-name" required />
+
+            <label for="entry-email">Email:</label>
+            <input type="email" id="entry-email" name="entry-email" required />
+
+            <label for="entry-date">Date of Entry:</label>
+            <input type="date" id="entry-date" name="entry-date" />
+
+            <label for="entry-category">Category:</label>
+            <select id="entry-category" name="entry-category">
+              <option value="general">General</option>
+              <option value="finance">Finance</option>
+              <option value="operations">Operations</option>
+            </select>
+
+            <label for="entry-comments">Comments:</label>
+            <textarea id="entry-comments" name="entry-comments"></textarea>
+
+            <button type="submit">Submit Entry</button>
+          </form>
+        </div>
+        <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
+      </div>
+    </div>
+
+    <script type="module" src="../../js/main.js"></script>
+  </body>
+</html>
