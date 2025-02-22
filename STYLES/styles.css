@@ -1,11 +1,71 @@
-/* Global Reset */
+/* GLOBAL RULES */
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+:root {
+  --side-buffer-width: 2vw;
+  --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.2)), 30vw);
+}
+
+/* Site Outer Padding Elimination */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Full Site Container */
+body,
+h1,
+h2,
+h3,
+p,
+button,
+span,
+a {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+}
+
+/* FONT */
+h1,
+h2,
+h3,
+p {
+  font-family: Helvetica, Tahoma, sans-serif;
+}
+
+h1 {
+  font-size: clamp(0.7rem, 1.6vw, 2.5rem);
+  margin: calc(0.03vw + 0.03vh);
+  font-weight: bold;
+}
+
+h2 {
+  font-size: clamp(0.6rem, 1.4vw, 2.4rem);
+  margin: calc(0.03vw + 0.03vh);
+  font-weight: bold;
+}
+
+h3 {
+  font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  margin: calc(0.03vw + 0.03vh);
+  font-weight: bold;
+}
+
+p {
+  font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  margin: calc(0.03vw + 0.03vh);
+  font-weight: normal;
+}
+
+/* FULL SITE CONTAINER */
 .site-container {
   font-size: inherit;
   display: flex;
@@ -16,9 +76,7 @@
   border: 2px solid royalblue;
 }
 
-/* ---------------- NAVBAR STYLING ---------------- */
-
-/* Navbar Primary Container */
+/* NAVBAR */
 .nav-bar {
   font-size: inherit;
   display: flex;
@@ -29,22 +87,14 @@
   border: 2px solid yellow;
   color: white;
 }
-
-/* Navbar Buffer Containers (Spacing Adjustments) */
-.nav-bar .nav-container:nth-child(1),
-.nav-bar .nav-container:nth-child(5) {
-  flex: 1 1 auto;
+.nav-bar .nav-container:nth-child(1), .nav-bar .nav-container:nth-child(5) {
   border: 2px solid rgb(94, 255, 0);
 }
-
-/* Navbar Left (Site Title) */
 .nav-bar .nav-container:nth-child(2) {
   justify-content: flex-start;
   flex: 0 1 auto;
   border: 2px solid green;
 }
-
-/* Navbar Center */
 .nav-bar .nav-container:nth-child(3) {
   display: flex;
   justify-content: center;
@@ -53,8 +103,6 @@
   flex: 1;
   min-width: 2vw;
 }
-
-/* Navbar Right (Navigation Links & Collapsed Menu) */
 .nav-bar .nav-container:nth-child(4) {
   font-size: inherit;
   display: flex;
@@ -64,95 +112,86 @@
   border: 2px solid purple;
   position: relative;
 }
-
-/* Navigation Links */
-.nav-container a {
-  text-decoration: none;
-  color: white;
-  font-size: 18px;
-  margin: 0 15px;
-  padding: 10px;
-  transition: background 0.3s;
-}
-
-.nav-container a:hover {
-  background: #555;
-  border-radius: 5px;
-}
-
-/* Active Button */
-.nav-container button.active {
+.nav-bar .nav-container:nth-child(4) button.active {
   background-color: royalblue;
   color: white;
 }
 
-/* Collapsed Navbar Button */
+/* Global Button Styles */
+.nav-bar button,
+.collapsed-menu button {
+  font-size: inherit;
+  flex: 0 1 auto;
+  background-color: black;
+  color: white;
+  border: 1px solid rgba(51, 51, 51, 0.7294117647);
+  padding: 2px 2px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Global Hover Effect */
+.nav-bar button:hover,
+.collapsed-menu button:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  cursor: pointer;
+  border: 1px solid royalblue;
+}
+
+/* Collapsed Navbar */
 .collapsed-navbar {
   display: none;
   background-color: black;
   color: white;
-  border: 1px solid #333333ba;
+  border: 1px solid rgba(51, 51, 51, 0.7294117647);
   padding: 2px 2px;
   border-radius: 5px;
 }
 
-/* Collapsed Menu */
+/* Collapsed Menu Styles */
 .collapsed-menu {
   display: none;
-  flex-direction: column;
+  flex-direction: column !important;
   text-align: right;
   position: absolute;
   top: 100%;
   right: 0;
   background-color: black;
   color: white;
-  border: 1px solid #333333ba;
+  border: 1px solid rgba(51, 51, 51, 0.7294117647);
   border-radius: 5px;
   padding: 0;
+  width: -moz-fit-content;
   width: fit-content;
   z-index: 9999;
+  overflow: visible;
+  font-size: inherit;
 }
-
-/* Collapsed Menu Button */
 .collapsed-menu button {
-  width: 100%;
+  display: flex !important;
   text-align: right;
   justify-content: flex-end;
-  padding: 10px;
+  align-items: center;
+  width: 100%;
+  flex: 0 1 auto;
+  padding: 2px 2px;
   background-color: black;
   color: white;
-  border: 1px solid #333333ba;
+  border: 1px solid rgba(51, 51, 51, 0.7294117647);
+  border-radius: 5px;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: visible !important;
+  font-size: inherit;
+  max-width: none !important;
+  text-overflow: clip !important;
 }
 
-/* Responsive Navbar for Mobile */
-@media (max-width: 800px) {
-  .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
-    display: none;
-  }
-
-  .collapsed-navbar {
-    display: flex;
-  }
-
-  .collapsed-navbar:hover + .collapsed-menu,
-  .collapsed-menu:hover {
-    display: flex;
-    flex-direction: column;
-  }
-}
-
-/* Hide collapsed navbar button on larger screens */
-@media (min-width: 801px) {
-  .collapsed-navbar,
-  .collapsed-menu {
-    display: none !important;
-  }
-}
-
-/* ---------------- CONTENT AREA ---------------- */
-
-/* Content Wrapper */
+/* CONTENT AREA */
 .content-wrapper {
   display: flex;
   flex: 1;
@@ -161,7 +200,6 @@
   border: 2px solid rgb(181, 58, 230);
 }
 
-/* Content Buffers */
 .content-buffer {
   flex: 0 0 auto;
   width: var(--side-buffer-width);
@@ -175,7 +213,6 @@
   text-align: center;
 }
 
-/* Content Container */
 .content-container {
   font-size: inherit;
   flex: 1;
@@ -187,75 +224,8 @@
   align-items: center;
 }
 
-/* ---------------- BUTTON STYLES ---------------- */
-
-button {
-  font-size: inherit;
-  padding: 10px 15px;
-  background-color: royalblue;
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background-color: navy;
-}
-
-/* ---------------- FORMS ---------------- */
-
-form {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 600px;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-input,
-select,
-textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-textarea {
-  height: 100px;
-}
-
-/* ---------------- PROGRESS BAR ---------------- */
-
-.progress-bar-container {
-  width: 100%;
-  max-width: 500px;
-  margin-top: 20px;
-}
-
-.progress-bar {
-  width: 100%;
-  background-color: #ccc;
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.progress {
-  height: 20px;
-  background-color: royalblue;
-  width: 0%;
-  transition: width 0.5s ease-in-out;
-}
-
-/* ----------------- VIRTUAL PAGE SUPPORT ----------------- */
-
-.virtual-page {
-  display: none;
-}
-
-.virtual-page.active {
+/* PAGE CONTENT */
+.page-content {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -273,12 +243,45 @@ textarea {
   cursor: pointer;
   transition: background-color 0.3s;
 }
-
 .border-toggle-btn:hover {
   background-color: #0056b3;
 }
 
-/* Hide borders except for button borders */
+/* Class for hiding borders */
 .borders-hidden *:not(button):not(.nav-bar button) {
   border-color: transparent !important;
 }
+
+/* Media Queries */
+@media (max-width: 800px) {
+  .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
+  .nav-container:nth-child(4) .collapsed-menu:hover:not(.show) {
+    display: flex;
+    flex-direction: column;
+  }
+  .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
+    display: none;
+  }
+  .nav-container:nth-child(4) .collapsed-navbar {
+    display: flex;
+    margin: calc(0.03vw + 0.03vh);
+    padding: 0;
+    background-color: black;
+    color: white;
+  }
+  .nav-bar .nav-container:nth-child(4) {
+    flex: 0 0 auto;
+    width: calc(50vw + 10px);
+    min-width: 20px;
+    flex-basis: content;
+  }
+  .collapsed-menu {
+    width: calc(50vw + 10px);
+  }
+}
+@media (min-width: 801px) {
+  .nav-container:nth-child(4) .collapsed-navbar,
+  .collapsed-menu {
+    display: none !important;
+  }
+}/*# sourceMappingURL=styles.css.map */
