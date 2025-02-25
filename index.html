@@ -8,7 +8,6 @@
   </head>
   <body>
     <div class="site-container">
-      <!-- Navigation Bar -->
       <div class="nav-bar">
         <div class="nav-container"><p id="navbar-buffer1-dimensions"></p></div>
         <div class="nav-container">
@@ -16,26 +15,27 @@
         </div>
         <div class="nav-container"><p id="navbar3-dimensions"></p></div>
         <div class="nav-container">
-          <a class="active" href="PAGES/HOME/home.html"><h3>Home</h3></a>
-          <a href="PAGES/VENDOR-REQUEST/vendor-request.html"
-            ><h3>Create Vendor Request</h3></a
-          >
-          <a href="PAGES/DATA-ENTRY/data-entry.html"
-            ><h3>Data Entry Forms</h3></a
-          >
-          <a href="PAGES/PROGRESS/progress.html"><h3>Progress View</h3></a>
+          <button class="active" onclick="switchPage('Home')">
+            <h3>Home</h3>
+          </button>
+          <button onclick="switchPage('Create Vendor Request')">
+            <h3>Create Vendor Request</h3>
+          </button>
+          <button onclick="switchPage('Data Entry Forms')">
+            <h3>Data Entry Forms</h3>
+          </button>
+          <button onclick="switchPage('Progress View')">
+            <h3>Progress View</h3>
+          </button>
           <button class="collapsed-navbar">☰</button>
           <div class="collapsed-menu"></div>
         </div>
         <div class="nav-container"><p id="navbar-buffer5-dimensions"></p></div>
       </div>
-
-      <!-- Main Content (Actual Homepage Content) -->
       <div class="content-wrapper">
         <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
         <div class="content-container">
-          <h1>Welcome to the Dynamic Site</h1>
-          <p>This is the home page of your modular site.</p>
+          <!-- Page content will be loaded here -->
         </div>
         <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
       </div>
