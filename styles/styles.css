@@ -8,9 +8,6 @@ body {
 
 :root {
   --side-buffer-width: 2vw; /* Default value */
-}
-
-:root {
   --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.2)), 30vw);
 }
 
@@ -33,8 +30,8 @@ a {
   white-space: nowrap; /* Prevent wrapping by keeping all content on a single line */
   overflow: hidden; /* Hide overflowing content */
   text-overflow: ellipsis; /* Add ellipsis (...) for overflowed text */
-  max-width: 100%; /* Limits the width of the element to the container’s width. */
-  max-height: 100%; /* Limits the height of the element to the container’s height. */
+  max-width: 100%; /* Limits the width of the element to the container's width. */
+  max-height: 100%; /* Limits the height of the element to the container's height. */
   box-sizing: border-box; /* Ensure padding and border are included in the size limit */
 }
 
@@ -154,10 +151,8 @@ p {
 }
 
 /* Hover and Dropdown Interaction */
-@media (max-width: var(--collapse-breakpoint)) {
-  .nav-container:nth-child(4)
-    .collapsed-navbar:hover
-    + .collapsed-menu:not(.show),
+@media (max-width: 800px) {
+  .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
   .collapsed-menu:hover:not(.show) {
     display: flex;
     flex-direction: column;
@@ -178,7 +173,7 @@ p {
   border-radius: 5px;
 }
 
-/* Show collapsed button and hide inactive buttons below 800px */
+/* Show collapsed button and hide inactive buttons below collapse-breakpoint */
 @media (max-width: 800px) {
   .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
     display: none; /* Hide inactive buttons */
@@ -200,8 +195,8 @@ p {
     color: white;
   }
 }
-/* Hide the collapsed navbar button above 800px */
-@media (min-width: calc(var(--collapse-breakpoint) + 1px)) {
+/* Hide the collapsed navbar button above collapse-breakpoint */
+@media (min-width: 801px) {
   .nav-container:nth-child(4) .collapsed-navbar,
   .collapsed-menu {
     display: none !important; /* ✅ Hide dropdown when navbar expands */
@@ -302,6 +297,14 @@ p {
   align-items: center;
 }
 
+/* For loaded pages - equivalent to virtual-page.active */
+.page-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Border Toggle Button */
 .border-toggle-btn {
   margin: 10px;
@@ -321,4 +324,4 @@ p {
 /* Class for hiding borders but not button borders */
 .borders-hidden *:not(button):not(.nav-bar button) {
   border-color: transparent !important;
-} /*# sourceMappingURL=styles.css.map */
+}/*# sourceMappingURL=styles.css.map */
