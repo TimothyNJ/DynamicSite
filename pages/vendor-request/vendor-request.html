@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Create Vendor Request - Dynamic Site</title>
+    <link rel="stylesheet" href="../../styles/styles.css" />
+  </head>
+  <body>
+    <div class="site-container">
+      <!-- Navigation Bar -->
+      <div class="nav-bar">
+        <div class="nav-container"><p id="navbar-buffer1-dimensions"></p></div>
+        <div class="nav-container">
+          <h1 class="site-title">Dynamic Site Template</h1>
+        </div>
+        <div class="nav-container"><p id="navbar3-dimensions"></p></div>
+        <div class="nav-container">
+          <a href="../HOME/home.html"><h3>Home</h3></a>
+          <a class="active" href="../VENDOR-REQUEST/vendor-request.html"
+            ><h3>Create Vendor Request</h3></a
+          >
+          <a href="../DATA-ENTRY/data-entry.html"><h3>Data Entry Forms</h3></a>
+          <a href="../PROGRESS/progress.html"><h3>Progress View</h3></a>
+          <button class="collapsed-navbar">☰</button>
+          <div class="collapsed-menu"></div>
+        </div>
+        <div class="nav-container"><p id="navbar-buffer5-dimensions"></p></div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="content-wrapper">
+        <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
+        <div class="content-container">
+          <h1>Create Vendor Request</h1>
+          <p>Fill out the form below to request a new vendor.</p>
+
+          <form id="vendor-request-form">
+            <label for="vendor-name">Vendor Name:</label>
+            <input type="text" id="vendor-name" name="vendor-name" required />
+
+            <label for="vendor-email">Vendor Email:</label>
+            <input
+              type="email"
+              id="vendor-email"
+              name="vendor-email"
+              required
+            />
+
+            <label for="vendor-phone">Vendor Phone:</label>
+            <input type="tel" id="vendor-phone" name="vendor-phone" />
+
+            <label for="vendor-type">Vendor Type:</label>
+            <select id="vendor-type" name="vendor-type">
+              <option value="supplier">Supplier</option>
+              <option value="contractor">Contractor</option>
+              <option value="service-provider">Service Provider</option>
+            </select>
+
+            <label for="vendor-notes">Additional Notes:</label>
+            <textarea id="vendor-notes" name="vendor-notes"></textarea>
+
+            <button type="submit">Submit Request</button>
+          </form>
+        </div>
+        <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
+      </div>
+    </div>
+
+    <script type="module" src="../../js/main.js"></script>
+  </body>
+</html>
