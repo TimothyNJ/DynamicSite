@@ -1,22 +1,13 @@
-import { initializeBuffers } from "./layout/buffers.js";
-import { initializeNavbar } from "./navigation/navbar.js";
-import { switchPage } from "./navigation/router.js";
-import { updateDimensions } from "./layout/dimensions.js";
+// js/main.js
+import { initRouter } from "./navigation/router.js";
+import { initBuffers } from "./layout/buffers.js";
+import { initDimensions } from "./layout/dimensions.js";
+import { initNavbar } from "./navigation/navbar.js";
 
-// Initialize everything when DOM is loaded
+// Initialize all modules when the DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  initializeBuffers();
-  initializeNavbar();
-  switchPage("Home"); // Load initial page
+  initRouter();
+  initBuffers();
+  initDimensions();
+  initNavbar();
 });
-
-// Force reflow and update dimensions on load
-window.addEventListener("load", () => {
-  document.body.style.display = "none";
-  document.body.offsetHeight;
-  document.body.style.display = "";
-  updateDimensions();
-});
-
-// Handle window resize
-window.addEventListener("resize", updateDimensions);
