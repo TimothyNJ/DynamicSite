@@ -1,50 +1,105 @@
-import { updateDimensions } from "../layout/dimensions.js";
+// js/navigation/router.js
 
-export async function switchPage(pageId) {
-  // Update nav button styles
-  document
-    .querySelectorAll(".nav-bar .nav-container:nth-child(4) button")
-    .forEach((button) => button.classList.remove("active"));
-  const activeButton = Array.from(
-    document.querySelectorAll(".nav-bar .nav-container:nth-child(4) button")
-  ).find((button) => button.textContent === pageId);
-  if (activeButton) activeButton.classList.add("active");
+// Map page names to their file paths
+const pagePathMap = {
+  home: "pages/home/index.html",
+  "vendor-request": "pages/vendor-request/data-entry.html",
+  "data-entry": "pages/data-entry/data-entry.html",
+  progress: "pages/progress/progress.html",
+};
 
-  // Get the content container
-  const contentContainer = document.querySelector(".content-container");
+// Store the active page to avoid reloading the same page
+let activePage = null;
+
+// Initialize the router
+export function initRouter() {
+  // Set up click handlers for navigation buttons
+  document.querySelectorAll("[data-page]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      const pageName = button.getAttribute("data-page");
+      navigateToPage(pageName);
+    });
+  });
+
+  // Load the initial page (either from URL or default to home)
+  const initialPage = getPageFromURL() || "home";
+  navigateToPage(initialPage);
+
+  // Handle browser back/forward navigation
+  window.addEventListener("popstate", (event) => {
+    const pageName = event.state?.page || getPageFromURL() || "home";
+    navigateToPage(pageName, false); // Don't push state on popstate events
+  });
+}
+
+// Get the page name from the URL (for bookmarking support)
+function getPageFromURL() {
+  // Extract page from URL hash (e.g., #home)
+  const hash = window.location.hash.substring(1);
+  return hash || null;
+}
+
+// Navigate to a specific page
+export async function navigateToPage(pageName, pushState = true) {
+  if (
+    !pageName ||
+    (pageName === activePage && document.querySelector(`#${pageName}`))
+  ) {
+    return; // Already on this page
+  }
 
   try {
-    // Convert pageId to path
-    let pagePath;
-    switch (pageId) {
-      case "Home":
-        pagePath = "pages/home/index.html";
-        break;
-      case "Create Vendor Request":
-        pagePath = "pages/vendor-request/index.html";
-        break;
-      case "Data Entry Forms":
-        pagePath = "pages/data-entry/index.html";
-        break;
-      case "Progress View":
-        pagePath = "pages/progress/index.html";
-        break;
-      default:
-        pagePath = "pages/home/index.html";
+    // Update active button state
+    document.querySelectorAll("[data-page]").forEach((button) => {
+      if (button.getAttribute("data-page") === pageName) {
+        button.classList.add("active");
+      } else {
+        button.classList.remove("active");
+      }
+    });
+
+    // Get the content container
+    const contentContainer = document.querySelector(".content-container");
+    if (!contentContainer) {
+      console.error("Content container not found");
+      return;
+    }
+
+    // Get the page content
+    const pagePath = pagePathMap[pageName];
+    if (!pagePath) {
+      console.error(`No path defined for page: ${pageName}`);
+      return;
     }
 
     // Fetch the page content
     const response = await fetch(pagePath);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const content = await response.text();
+    if (!response.ok) {
+      throw new Error(
+        `Failed to load page: ${response.status} ${response.statusText}`
+      );
+    }
 
-    // Update the content area
-    contentContainer.innerHTML = content;
+    const html = await response.text();
 
-    // Update dimensions after content loads
-    updateDimensions();
+    // Update the content container
+    contentContainer.innerHTML = html;
+
+    // Update active page tracking
+    activePage = pageName;
+
+    // Update URL for bookmarking (if this isn't from a popstate event)
+    if (pushState) {
+      window.history.pushState({ page: pageName }, "", `#${pageName}`);
+    }
+
+    // Trigger any page-specific initialization
+    const pageLoadEvent = new CustomEvent("pageLoaded", {
+      detail: { pageName },
+    });
+    document.dispatchEvent(pageLoadEvent);
   } catch (error) {
     console.error("Error loading page:", error);
-    contentContainer.innerHTML = "<h1>Error loading page content</h1>";
+    // Optionally show an error message to the user
   }
 }
