@@ -15,16 +15,16 @@
         </div>
         <div class="nav-container"><p id="navbar3-dimensions"></p></div>
         <div class="nav-container">
-          <button class="active" onclick="switchPage('Home')">
+          <button class="active" data-page="home">
             <h3>Home</h3>
           </button>
-          <button onclick="switchPage('Create Vendor Request')">
+          <button data-page="vendor-request">
             <h3>Create Vendor Request</h3>
           </button>
-          <button onclick="switchPage('Data Entry Forms')">
+          <button data-page="data-entry">
             <h3>Data Entry Forms</h3>
           </button>
-          <button onclick="switchPage('Progress View')">
+          <button data-page="progress">
             <h3>Progress View</h3>
           </button>
           <button class="collapsed-navbar">☰</button>
@@ -34,7 +34,7 @@
       </div>
       <div class="content-wrapper">
         <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
-        <div class="content-container">
+        <div class="content-container" id="page-content">
           <!-- Page content will be loaded here -->
         </div>
         <div class="content-buffer"><p id="content-buffer-dimensions"></p></div>
