@@ -3,9 +3,9 @@
 // Map page names to their file paths
 const pagePathMap = {
   home: "pages/home/index.html",
-  "vendor-request": "pages/vendor-request/data-entry.html",
-  "data-entry": "pages/data-entry/data-entry.html",
-  progress: "pages/progress/progress.html",
+  "vendor-request": "pages/vendor-request/index.html",
+  "data-entry": "pages/data-entry/index.html",
+  progress: "pages/progress/index.html",
 };
 
 // Store the active page to avoid reloading the same page
