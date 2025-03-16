@@ -162,9 +162,10 @@ function handleCollapsedNavbar() {
     navbar4.dataset.minWidth = `${totalWidth}px`;
     navbar4.classList.add("enforce-min-width");
 
-    // Directly apply the minimum width
+    // Only apply minimum width to the buttons container, not the entire navbar
     navbar4.style.minWidth = `${totalWidth}px`;
-    navbar.style.minWidth = `${totalWidth + 20}px`; // Apply same width to entire navbar
+    // Don't set a minimum width for the entire navbar
+    navbar.style.minWidth = "";
   } else {
     // Remove data attribute and class when not needed
     delete navbar4.dataset.minWidth;
