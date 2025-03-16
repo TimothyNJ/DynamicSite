@@ -330,8 +330,8 @@ p {
 .bottom-buffer-bar {
   width: 100%;
   height: var(--navbar-height);
-  background-color: black;
-  color: white;
+  background-color: transparent;
+  color: black;
   border: 2px solid yellow;
   display: flex;
   justify-content: center;
