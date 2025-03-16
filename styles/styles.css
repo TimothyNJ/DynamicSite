@@ -9,7 +9,7 @@ body {
 :root {
   --side-buffer-width: 2vw;
   --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.2)), 30vw);
-  --collapse-breakpoint: 800px;
+  --collapse-breakpoint: 800pxpx;
 }
 
 /* Site Outer Padding Elimination */
@@ -165,9 +165,7 @@ p {
 
 /* Hover and Dropdown Interaction */
 @media (max-width: 800px) {
-  .nav-container:nth-child(4)
-    .collapsed-navbar:hover
-    + .collapsed-menu:not(.show),
+  .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
   .collapsed-menu:hover:not(.show) {
     display: flex;
     flex-direction: column;
@@ -339,4 +337,4 @@ p {
 /* Class for hiding borders but not button borders */
 .borders-hidden *:not(button):not(.nav-bar button) {
   border-color: transparent !important;
-} /*# sourceMappingURL=styles.css.map */
+}/*# sourceMappingURL=styles.css.map */

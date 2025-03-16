@@ -82,14 +82,7 @@ function handleCollapsedNavbar() {
   const isCollapsedButtonVisible =
     window.getComputedStyle(collapsedButton).display !== "none";
 
-  if (
-    window.innerWidth >
-    parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue(
-        "--collapse-breakpoint"
-      )
-    )
-  ) {
+  if (window.innerWidth > 800) {
     const collapsedMenu = document.querySelector(".collapsed-menu");
     if (collapsedMenu) {
       collapsedMenu.style.display = "none";
