@@ -21,6 +21,9 @@ export function initializeBuffers() {
       if (rightContentBuffer && navbarBuffer5) {
         navbarBuffer5.style.width = getComputedStyle(rightContentBuffer).width;
       }
+
+      // Update buffer-min-height when side buffer width changes
+      updateBufferMinHeight();
     });
   });
 
@@ -36,19 +39,48 @@ export function initializeBuffers() {
         `${navbarHeight}px`
       );
 
+      // Update buffer-min-height
+      updateBufferMinHeight();
+
       // Update bottom buffer dimensions display if it exists
-      const bottomBufferDimensions = document.getElementById(
-        "bottom-buffer-dimensions"
-      );
-      if (bottomBufferDimensions) {
-        const bottomBufferBar = document.querySelector(".bottom-buffer-bar");
-        if (bottomBufferBar) {
-          const width = bottomBufferBar.offsetWidth;
-          const height = bottomBufferBar.offsetHeight;
-          bottomBufferDimensions.textContent = `${width}px x ${height}px`;
-        }
-      }
+      updateBottomBufferDimensions();
     });
+  });
+
+  // Function to update buffer min height
+  function updateBufferMinHeight() {
+    const navbarBuffer1 = document.querySelector(
+      ".nav-bar .nav-container:nth-child(1)"
+    );
+
+    if (navbarBuffer1) {
+      const bufferWidth = navbarBuffer1.offsetWidth;
+      document.documentElement.style.setProperty(
+        "--buffer-min-height",
+        `${bufferWidth}px`
+      );
+    }
+  }
+
+  // Function to update bottom buffer dimensions display
+  function updateBottomBufferDimensions() {
+    const bottomBufferDimensions = document.getElementById(
+      "bottom-buffer-dimensions"
+    );
+    if (bottomBufferDimensions) {
+      const bottomBufferBar = document.querySelector(".bottom-buffer-bar");
+      if (bottomBufferBar) {
+        const width = bottomBufferBar.offsetWidth;
+        const height = bottomBufferBar.offsetHeight;
+        bottomBufferDimensions.textContent = `${width}px x ${height}px`;
+      }
+    }
+  }
+
+  // Add window resize listener for media query changes
+  window.addEventListener("resize", () => {
+    updateBufferMinHeight();
+    updateBottomBufferDimensions();
   });
 
   // Start observing content buffers
@@ -62,4 +94,7 @@ export function initializeBuffers() {
   if (navbar) {
     navbarResizeObserver.observe(navbar);
   }
+
+  // Initial setup
+  updateBufferMinHeight();
 }
