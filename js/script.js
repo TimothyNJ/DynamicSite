@@ -13,17 +13,19 @@ window.addEventListener("load", () => {
 
 // Function to toggle borders for debugging
 function toggleBorders() {
-  document.querySelector(".site-container").classList.toggle("borders-hidden");
+  const siteContainer = document.querySelector(".site-container");
+  siteContainer.classList.toggle("borders-hidden");
 
-  // Find all dimension elements - including the home dimensions
-  const dimensionElements = document.querySelectorAll(
-    '[id$="-dimensions"], .dimension-container'
-  );
+  const isHidden = siteContainer.classList.contains("borders-hidden");
 
-  // Set display for all elements
-  const newDisplay = document.querySelector(".borders-hidden") ? "none" : "";
-  dimensionElements.forEach((element) => {
-    element.style.display = newDisplay;
+  // Select all dimension elements throughout the document
+  document.querySelectorAll('[id$="-dimensions"]').forEach((el) => {
+    el.style.display = isHidden ? "none" : "";
+  });
+
+  // Also select dimension containers
+  document.querySelectorAll(".dimension-container").forEach((el) => {
+    el.style.display = isHidden ? "none" : "";
   });
 }
 
