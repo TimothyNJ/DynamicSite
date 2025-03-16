@@ -9,7 +9,7 @@ body {
 :root {
   --side-buffer-width: 2vw;
   --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.2)), 30vw);
-  --collapse-breakpoint: 500px;
+  --collapse-breakpoint: 600px;
 }
 
 /* Site Outer Padding Elimination */
@@ -164,7 +164,7 @@ p {
 }
 
 /* Hover and Dropdown Interaction */
-@media (max-width: 500px) {
+@media (max-width: 600px) {
   .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
   .collapsed-menu:hover:not(.show) {
     display: flex;
@@ -187,7 +187,7 @@ p {
 }
 
 /* Show collapsed button and hide inactive buttons below collapse-breakpoint */
-@media (max-width: 500px) {
+@media (max-width: 600px) {
   .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
     display: none; /* Hide inactive buttons */
   }
@@ -209,7 +209,7 @@ p {
   }
 }
 /* Hide the collapsed navbar button above collapse-breakpoint */
-@media (min-width: 501px) {
+@media (min-width: 601px) {
   .nav-container:nth-child(4) .collapsed-navbar,
   .collapsed-menu {
     display: none !important; /* ✅ Hide dropdown when navbar expands */
