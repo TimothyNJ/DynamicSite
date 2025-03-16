@@ -1,5 +1,9 @@
 <h1>Progress View</h1>
-<button id="border-toggle" class="border-toggle-btn">
+<button
+  id="border-toggle"
+  class="border-toggle-btn"
+  onclick="window.toggleBorders()"
+>
   <h3>Toggle Size Guides and Borders</h3>
 </button>
 
@@ -10,12 +14,3 @@
   </div>
   <p>50% Complete</p>
 </div>
-
-<script>
-  // Add event listener for the border toggle button
-  document
-    .getElementById("border-toggle")
-    .addEventListener("click", function () {
-      document.body.classList.toggle("borders-hidden");
-    });
-</script>
