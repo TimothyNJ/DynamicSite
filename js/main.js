@@ -13,5 +13,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavbar();
 
   // Explicitly load the home page by default on initial page load
-  loadPage("pages/home.html");
+  loadPage("pages/home/index.html");
 });
