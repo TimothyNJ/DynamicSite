@@ -24,9 +24,42 @@ export function initializeBuffers() {
     });
   });
 
+  // Create ResizeObserver to sync navbar height with bottom buffer
+  const navbarResizeObserver = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      const navbar = document.querySelector(".nav-bar");
+      const navbarHeight = navbar.offsetHeight;
+
+      // Set CSS variable for navbar height
+      document.documentElement.style.setProperty(
+        "--navbar-height",
+        `${navbarHeight}px`
+      );
+
+      // Update bottom buffer dimensions display if it exists
+      const bottomBufferDimensions = document.getElementById(
+        "bottom-buffer-dimensions"
+      );
+      if (bottomBufferDimensions) {
+        const bottomBufferBar = document.querySelector(".bottom-buffer-bar");
+        if (bottomBufferBar) {
+          const width = bottomBufferBar.offsetWidth;
+          const height = bottomBufferBar.offsetHeight;
+          bottomBufferDimensions.textContent = `${width}px x ${height}px`;
+        }
+      }
+    });
+  });
+
   // Start observing content buffers
   const contentBuffers = document.querySelectorAll(
     ".content-wrapper .content-buffer"
   );
   contentBuffers.forEach((buffer) => bufferResizeObserver.observe(buffer));
+
+  // Start observing navbar for height changes
+  const navbar = document.querySelector(".nav-bar");
+  if (navbar) {
+    navbarResizeObserver.observe(navbar);
+  }
 }
