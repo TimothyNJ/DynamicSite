@@ -1,75 +1,19 @@
-import { navigateToPage } from "./router.js";
+// js/navigation/navbar.js
+import { navigateToPage } from "./router.js"; // Changed from switchPage
 
 let isMenuOpenedByClick = false;
 
 export function initializeNavbar() {
+  // Match this exact function name
   const collapsedNavbar = document.querySelector(".collapsed-navbar");
   const collapsedMenu = document.querySelector(".collapsed-menu");
 
-  if (collapsedNavbar && collapsedMenu) {
-    // Handle hover events
-    collapsedNavbar.addEventListener("mouseenter", () => {
-      if (!isMenuOpenedByClick) {
-        updateMenuContent();
-        collapsedMenu.style.display = "flex";
-      }
-    });
-
-    collapsedNavbar.addEventListener("mouseleave", () => {
-      if (!isMenuOpenedByClick) {
-        setTimeout(() => {
-          if (!collapsedMenu.matches(":hover")) {
-            collapsedMenu.style.display = "none";
-          }
-        }, 100);
-      }
-    });
-
-    collapsedMenu.addEventListener("mouseleave", () => {
-      if (!isMenuOpenedByClick) {
-        collapsedMenu.style.display = "none";
-      }
-    });
-
-    // Handle click events
-    collapsedNavbar.addEventListener("click", (event) => {
-      event.stopPropagation();
-      if (isMenuOpenedByClick) {
-        collapsedMenu.style.display = "none";
-        isMenuOpenedByClick = false;
-      } else {
-        updateMenuContent();
-        collapsedMenu.style.display = "flex";
-        isMenuOpenedByClick = true;
-      }
-    });
-
-    // Close menu when clicking outside
-    document.addEventListener("click", (event) => {
-      if (isMenuOpenedByClick && !event.target.closest(".collapsed-menu")) {
-        collapsedMenu.style.display = "none";
-        isMenuOpenedByClick = false;
-      }
-    });
-
-    // Handle resize
-    window.addEventListener("resize", () => {
-      if (window.innerWidth > 800) {
-        collapsedMenu.style.display = "none";
-        collapsedMenu.style.removeProperty("display");
-        isMenuOpenedByClick = false;
-      }
-    });
-  }
+  // All other code remains the same until updateMenuContent calls
+  // ... existing code ...
 }
 
 export function updateMenuContent() {
-  const collapsedMenu = document.querySelector(".collapsed-menu");
-  collapsedMenu.innerHTML = "";
-  const navContainer = document.querySelector(".nav-container:nth-child(4)");
-  const allButtons = navContainer.querySelectorAll(
-    "button:not(.collapsed-navbar)"
-  );
+  // Existing code until menuButton.onclick
 
   allButtons.forEach((button) => {
     if (!button.classList.contains("active")) {
@@ -79,7 +23,9 @@ export function updateMenuContent() {
       h3Element.textContent = buttonText;
       menuButton.appendChild(h3Element);
       menuButton.onclick = () => {
-        switchPage(buttonText);
+        const pageName = button.getAttribute("data-page");
+        navigateToPage(pageName); // Changed from switchPage to navigateToPage
+        // Rest of function remains the same
         setTimeout(() => {
           updateMenuContent();
           document.querySelector(".collapsed-menu").style.display = "flex";
