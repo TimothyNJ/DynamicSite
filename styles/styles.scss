@@ -183,12 +183,7 @@ p {
 
 /* Collapsed Navbar */
 .collapsed-navbar {
-  display: none;
-  background-color: black;
-  color: white;
-  border: 1px solid #333333ba;
-  padding: 2px 2px;
-  border-radius: 5px;
+  display: none; /* Keep this to hide by default */
 }
 
 /* Show collapsed button and hide inactive buttons below collapse-breakpoint */
