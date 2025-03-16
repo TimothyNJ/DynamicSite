@@ -57,11 +57,29 @@ export function initializeNavbar() {
     window.addEventListener("resize", () => {
       if (window.innerWidth > 800) {
         collapsedMenu.style.display = "none";
-        collapsedMenu.style.removeProperty("display");
         isMenuOpenedByClick = false;
       }
     });
   }
+
+  // Setup navigation for all buttons (desktop and mobile)
+  setupButtonNavigation();
+
+  // Initial menu setup
+  updateMenuContent();
+}
+
+function setupButtonNavigation() {
+  // Setup click handlers for all navigation buttons
+  const navButtons = document.querySelectorAll(
+    ".nav-container button[data-page]:not(.collapsed-navbar)"
+  );
+  navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const pageName = button.getAttribute("data-page");
+      navigateToPage(pageName);
+    });
+  });
 }
 
 export function updateMenuContent() {
@@ -77,19 +95,21 @@ export function updateMenuContent() {
   allButtons.forEach((button) => {
     if (!button.classList.contains("active")) {
       const buttonText = button.querySelector("h3").textContent;
+      const pageName = button.getAttribute("data-page");
+
       const menuButton = document.createElement("button");
+      menuButton.setAttribute("data-page", pageName);
+
       const h3Element = document.createElement("h3");
       h3Element.textContent = buttonText;
       menuButton.appendChild(h3Element);
+
       menuButton.onclick = () => {
-        const pageName = button.getAttribute("data-page");
         navigateToPage(pageName);
-        setTimeout(() => {
-          updateMenuContent();
-          document.querySelector(".collapsed-menu").style.display = "flex";
-        }, 0);
+        collapsedMenu.style.display = "none";
         isMenuOpenedByClick = false;
       };
+
       collapsedMenu.appendChild(menuButton);
     }
   });
