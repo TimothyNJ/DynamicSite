@@ -32,7 +32,13 @@ function toggleBorders() {
 // Function to update corner rounding based on screen width
 function updateCornerRounding() {
   const siteContainer = document.querySelector(".site-container");
-  if (window.innerWidth > 800) {
+  const breakpoint = parseInt(
+    getComputedStyle(document.documentElement).getPropertyValue(
+      "--collapse-breakpoint"
+    )
+  );
+
+  if (window.innerWidth > breakpoint) {
     // Same breakpoint used for collapsed navbar
     siteContainer.classList.add("round-bottom");
   } else {
