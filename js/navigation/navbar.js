@@ -89,7 +89,7 @@ export function updateMenuContent() {
   collapsedMenu.innerHTML = "";
   const navContainer = document.querySelector(".nav-container:nth-child(4)");
   const allButtons = navContainer.querySelectorAll(
-    "button:not(.collapsed-navbar)"
+    "button[data-page]:not(.collapsed-navbar)"
   );
 
   allButtons.forEach((button) => {
