@@ -6,6 +6,9 @@ window.addEventListener("load", () => {
   document.body.style.display = "none"; // Temporarily hide body
   document.body.offsetHeight; // Trigger reflow
   document.body.style.display = ""; // Restore body display
+
+  // Apply initial corner rounding
+  updateCornerRounding();
 });
 
 // Function to toggle borders for debugging
@@ -18,6 +21,20 @@ function toggleBorders() {
     element.style.display = element.style.display === "none" ? "" : "none";
   });
 }
+
+// Function to update corner rounding based on screen width
+function updateCornerRounding() {
+  const siteContainer = document.querySelector(".site-container");
+  if (window.innerWidth > 800) {
+    // Same breakpoint used for collapsed navbar
+    siteContainer.classList.add("round-bottom");
+  } else {
+    siteContainer.classList.remove("round-bottom");
+  }
+}
+
+// Update corner rounding when window is resized
+window.addEventListener("resize", updateCornerRounding);
 
 // Expose to global scope for inline event handlers
 window.toggleBorders = toggleBorders;
