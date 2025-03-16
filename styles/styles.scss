@@ -186,6 +186,11 @@ p {
   display: none; /* Keep this to hide by default */
 }
 
+.collapsed-navbar h3 {
+  font-size: 120%; /* Makes the icon slightly larger */
+  line-height: 0.9; /* Keeps button height consistent */
+}
+
 /* Show collapsed button and hide inactive buttons below collapse-breakpoint */
 @media (max-width: $collapse-breakpoint) {
   .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
