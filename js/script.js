@@ -15,7 +15,7 @@ window.addEventListener("load", () => {
 function toggleBorders() {
   document.querySelector(".site-container").classList.toggle("borders-hidden");
 
-  // Find all elements containing dimension text
+  // Find all elements containing dimension text (including home-dimensions)
   const dimensionElements = document.querySelectorAll('[id$="-dimensions"]');
   dimensionElements.forEach((element) => {
     element.style.display = element.style.display === "none" ? "" : "none";
