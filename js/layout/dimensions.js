@@ -17,6 +17,16 @@ function updateNavbarDimensions() {
     const navbar3Height = navbar3.offsetHeight;
     navbar3Dimensions.textContent = `${navbar3Width}px x ${navbar3Height}px`;
   }
+
+  // Update navbar height CSS variable
+  const navbar = document.querySelector(".nav-bar");
+  if (navbar) {
+    const navbarHeight = navbar.offsetHeight;
+    document.documentElement.style.setProperty(
+      "--navbar-height",
+      `${navbarHeight}px`
+    );
+  }
 }
 
 function updateContentDimensions() {
@@ -66,6 +76,17 @@ function updateBufferDimensions() {
     const bufferWidth = contentBuffer.offsetWidth;
     const bufferHeight = contentBuffer.offsetHeight;
     contentBufferDimensions.textContent = `${bufferWidth}px x ${bufferHeight}px`;
+  }
+
+  // Get Bottom Buffer dimensions
+  const bottomBuffer = document.querySelector(".bottom-buffer-bar");
+  const bottomBufferDimensions = document.getElementById(
+    "bottom-buffer-dimensions"
+  );
+  if (bottomBuffer && bottomBufferDimensions) {
+    const bufferWidth = bottomBuffer.offsetWidth;
+    const bufferHeight = bottomBuffer.offsetHeight;
+    bottomBufferDimensions.textContent = `${bufferWidth}px x ${bufferHeight}px`;
   }
 }
 
