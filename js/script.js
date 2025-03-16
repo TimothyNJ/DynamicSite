@@ -15,12 +15,15 @@ window.addEventListener("load", () => {
 function toggleBorders() {
   document.querySelector(".site-container").classList.toggle("borders-hidden");
 
-  // Find all dimension elements by their container or ID pattern
+  // Find all dimension elements - including the home dimensions
   const dimensionElements = document.querySelectorAll(
     '[id$="-dimensions"], .dimension-container'
   );
+
+  // Set display for all elements
+  const newDisplay = document.querySelector(".borders-hidden") ? "none" : "";
   dimensionElements.forEach((element) => {
-    element.style.display = element.style.display === "none" ? "" : "none";
+    element.style.display = newDisplay;
   });
 }
 
