@@ -3,13 +3,14 @@ $collapse-breakpoint: 800px;
 /* GLOBAL RULES */
 html,
 body {
-  height: 100%; /* Ensures everything fills the entire viewport */
-  width: 100%; /* Ensures everything fills the entire viewport */
+  height: 100%;
+  width: 100%;
 }
 
 :root {
-  --side-buffer-width: 2vw; /* Default value */
+  --side-buffer-width: 2vw;
   --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.2)), 30vw);
+  --collapse-breakpoint: #{$collapse-breakpoint}px;
 }
 
 /* Site Outer Padding Elimination */
