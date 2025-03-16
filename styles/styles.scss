@@ -1,4 +1,4 @@
-$collapse-breakpoint: 800px;
+$collapse-breakpoint: 600px;
 
 /* GLOBAL RULES */
 html,
@@ -83,8 +83,8 @@ p {
 
 /* Rounded bottom corners for desktop */
 .site-container.round-bottom {
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
 
 /* Dimension container styling */

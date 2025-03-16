@@ -9,7 +9,7 @@ body {
 :root {
   --side-buffer-width: 2vw;
   --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.2)), 30vw);
-  --collapse-breakpoint: 800px;
+  --collapse-breakpoint: 600px;
   --navbar-height: auto;
 }
 
@@ -82,8 +82,8 @@ p {
 
 /* Rounded bottom corners for desktop */
 .site-container.round-bottom {
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
 
 /* Dimension container styling */
@@ -165,7 +165,7 @@ p {
 }
 
 /* Hover and Dropdown Interaction */
-@media (max-width: 800px) {
+@media (max-width: 600px) {
   .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
   .collapsed-menu:hover:not(.show) {
     display: flex;
@@ -188,7 +188,7 @@ p {
 }
 
 /* Show collapsed button and hide inactive buttons below collapse-breakpoint */
-@media (max-width: 800px) {
+@media (max-width: 600px) {
   .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
     display: none; /* Hide inactive buttons */
   }
@@ -210,7 +210,7 @@ p {
   }
 }
 /* Hide the collapsed navbar button above collapse-breakpoint */
-@media (min-width: 801px) {
+@media (min-width: 601px) {
   .nav-container:nth-child(4) .collapsed-navbar,
   .collapsed-menu {
     display: none !important; /* ✅ Hide dropdown when navbar expands */
