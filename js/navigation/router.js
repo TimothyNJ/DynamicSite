@@ -41,10 +41,7 @@ function getPageFromURL() {
 
 // Navigate to a specific page
 export async function navigateToPage(pageName, pushState = true) {
-  if (
-    !pageName ||
-    (pageName === activePage && document.querySelector(`#${pageName}`))
-  ) {
+  if (!pageName || pageName === activePage) {
     return; // Already on this page
   }
 
@@ -59,7 +56,7 @@ export async function navigateToPage(pageName, pushState = true) {
     });
 
     // Get the content container
-    const contentContainer = document.querySelector(".content-container");
+    const contentContainer = document.querySelector("#page-content");
     if (!contentContainer) {
       console.error("Content container not found");
       return;
@@ -100,6 +97,5 @@ export async function navigateToPage(pageName, pushState = true) {
     document.dispatchEvent(pageLoadEvent);
   } catch (error) {
     console.error("Error loading page:", error);
-    // Optionally show an error message to the user
   }
 }
