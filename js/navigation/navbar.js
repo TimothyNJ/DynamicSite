@@ -53,15 +53,24 @@ export function initializeNavbar() {
       }
     });
 
+    // Get collapse breakpoint from CSS variable
+    const getCollapseBreakpoint = () => {
+      return parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--collapse-breakpoint"
+        )
+      );
+    };
+
     // Handle resize
     window.addEventListener("resize", () => {
-      if (window.innerWidth > 800) {
+      const collapseBreakpoint = getCollapseBreakpoint();
+      if (window.innerWidth > collapseBreakpoint) {
         collapsedMenu.style.display = "none";
         isMenuOpenedByClick = false;
       }
     });
   }
-
 
   // Setup navigation for all buttons (desktop and mobile)
   setupButtonNavigation();
