@@ -15,8 +15,10 @@ window.addEventListener("load", () => {
 function toggleBorders() {
   document.querySelector(".site-container").classList.toggle("borders-hidden");
 
-  // Find all elements containing dimension text (including home-dimensions)
-  const dimensionElements = document.querySelectorAll('[id$="-dimensions"]');
+  // Find all dimension elements by their container or ID pattern
+  const dimensionElements = document.querySelectorAll(
+    '[id$="-dimensions"], .dimension-container'
+  );
   dimensionElements.forEach((element) => {
     element.style.display = element.style.display === "none" ? "" : "none";
   });
