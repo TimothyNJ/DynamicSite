@@ -183,12 +183,12 @@ p {
 
 /* Collapsed Navbar */
 .collapsed-navbar {
-  display: none;
-  background-color: black;
-  color: white;
-  border: 1px solid #333333ba;
-  padding: 2px 2px;
-  border-radius: 5px;
+  display: none; /* Keep this to hide by default */
+}
+
+.collapsed-navbar h3 {
+  font-size: 80%; /* Makes the icon slightly larger */
+  line-height: 0.9; /* Keeps button height consistent */
 }
 
 /* Show collapsed button and hide inactive buttons below collapse-breakpoint */
@@ -197,12 +197,14 @@ p {
     display: none; /* Hide inactive buttons */
   }
   .nav-bar .nav-container:nth-child(4) {
-    flex: 0 1 auto; /* Allow shrinking */
+    flex: 0 0 auto; /* Prevents shrinking beyond calculated size */
+    width: calc(50vw + 10px); /* Dynamically adjusts with viewport */
+    min-width: 20px; /* Ensures a reasonable minimum width */
+    flex-basis: content; /* trying to shrink the navbar4 when buttons are hidden */
   }
 
   .collapsed-menu {
-    width: auto; /* Allow natural sizing */
-    min-width: fit-content; /* Ensure menu can fit content */
+    width: calc(50vw + 10px); /* Keep width in sync with navbar4 */
   }
 
   .nav-container:nth-child(4) .collapsed-navbar {
@@ -335,20 +337,6 @@ p {
   justify-content: center;
   align-items: center;
   text-align: center;
-}
-
-/* Adjust bottom buffer height on small screens */
-@media (max-width: 500px) {
-  .bottom-buffer-bar {
-    height: var(--buffer-min-height, var(--navbar-height));
-  }
-}
-
-/* Adjust bottom buffer height on small screens */
-@media (max-width: 500px) {
-  .bottom-buffer-bar {
-    height: var(--buffer-min-height, var(--navbar-height));
-  }
 }
 
 /* Border Toggle Button */
