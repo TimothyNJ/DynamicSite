@@ -62,6 +62,7 @@ window.addEventListener("resize", () => {
   }
 });
 
+
   // Setup navigation for all buttons (desktop and mobile)
   setupButtonNavigation();
 
