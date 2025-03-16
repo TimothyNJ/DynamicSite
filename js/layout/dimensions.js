@@ -1,3 +1,15 @@
+// js/layout/dimensions.js
+export function initDimensions() {
+  // Initial update
+  updateDimensions();
+
+  // Add resize listener
+  window.addEventListener("resize", updateDimensions);
+
+  // Also update dimensions when a page loads
+  document.addEventListener("pageLoaded", updateDimensions);
+}
+
 export function updateDimensions() {
   updateNavbarDimensions();
   updateContentDimensions();
