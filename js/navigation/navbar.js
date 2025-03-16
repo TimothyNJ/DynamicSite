@@ -53,14 +53,14 @@ export function initializeNavbar() {
       }
     });
 
-    // Handle resize
-    window.addEventListener("resize", () => {
-      if (window.innerWidth > 800) {
-        collapsedMenu.style.display = "none";
-        isMenuOpenedByClick = false;
-      }
-    });
+// Handle resize
+window.addEventListener("resize", () => {
+  const breakpoint = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--collapse-breakpoint'));
+  if (window.innerWidth > breakpoint) {
+    collapsedMenu.style.display = "none";
+    isMenuOpenedByClick = false;
   }
+});
 
   // Setup navigation for all buttons (desktop and mobile)
   setupButtonNavigation();
