@@ -1,4 +1,4 @@
-import { switchPage } from "./router.js";
+import { navigateToPage } from "./router.js";
 
 let isMenuOpenedByClick = false;
 
