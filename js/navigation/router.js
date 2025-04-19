@@ -6,7 +6,7 @@ const pagePathMap = {
   "vendor-request": "pages/vendor-request/index.html",
   "data-entry": "pages/data-entry/index.html",
   progress: "pages/progress/index.html",
-  users: "pages/users/index.html",
+  users: "pages/settings/index.html",
 };
 
 // Store the active page to avoid reloading the same page
