@@ -1,995 +1,1036 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Theme Selector</title>
-    <style>
-      :root {
-        /* Light theme page range */
-        --light-page-start: #4b5b62;
-        --light-page-end: #ffffff;
+<h1>Theme Settings</h1>
+<p>
+  Change the appearance of the site by selecting your preferred theme option.
+</p>
 
-        /* Dark theme page range */
-        --dark-page-start: #000000;
-        --dark-page-end: #96b7c4;
+<style>
+  :root {
+    /* Light theme page range */
+    --light-page-start: #4b5b62;
+    --light-page-end: #ffffff;
 
-        /* Light theme slider container range */
-        --light-slider-start: #7c8e94; /* 34% of range between #4b5b62 and #ffffff */
-        --light-slider-end: #a0b2b8; /* 68% of range between #4b5b62 and #ffffff */
+    /* Dark theme page range */
+    --dark-page-start: #000000;
+    --dark-page-end: #96b7c4;
 
-        /* Dark theme slider container range */
-        --dark-slider-start: #384c59; /* 34% of range between #000000 and #96b7c4 */
-        --dark-slider-end: #6c7f8b; /* 68% of range between #000000 and #96b7c4 */
+    /* Light theme slider container range */
+    --light-slider-start: #7c8e94; /* 34% of range between #4b5b62 and #ffffff */
+    --light-slider-end: #a0b2b8; /* 68% of range between #4b5b62 and #ffffff */
 
-        /* Active button gradient colors */
-        --active-button-start: #6a0dad; /* Purple */
-        --active-button-end: #4169e1; /* Royal Blue */
+    /* Dark theme slider container range */
+    --dark-slider-start: #384c59; /* 34% of range between #000000 and #96b7c4 */
+    --dark-slider-end: #6c7f8b; /* 68% of range between #000000 and #96b7c4 */
 
-        /* Store percentage values for JavaScript to read */
-        --light-slider-start-percent: 34;
-        --light-slider-end-percent: 68;
-        --dark-slider-start-percent: 34;
-        --dark-slider-end-percent: 68;
-      }
+    /* Active button gradient colors */
+    --active-button-start: #6a0dad; /* Purple */
+    --active-button-end: #4169e1; /* Royal Blue */
 
-      *,
-      *:before,
-      *:after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+    /* Store percentage values for JavaScript to read */
+    --light-slider-start-percent: 34;
+    --light-slider-end-percent: 68;
+    --dark-slider-start-percent: 34;
+    --dark-slider-end-percent: 68;
+  }
 
-      body {
-        --def: #96b7c4;
-        --inv: #ffffff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        width: 100%;
-        font-family: Helvetica, Tahoma, sans-serif;
-      }
+  *,
+  *:before,
+  *:after {
+    box-sizing: border-box;
+  }
 
-      h3 {
-        font-family: Helvetica, Tahoma, sans-serif;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-        max-height: 100%;
-        box-sizing: border-box;
-        color: var(--inv);
-        font-size: clamp(0.5rem, 1.2vw, 2.3rem);
-        margin: 0;
-        font-weight: bold;
-      }
+  /* Variables for theme */
+  body {
+    --def: #96b7c4;
+    --inv: #ffffff;
+  }
 
-      /* Override to prevent truncation in theme selector */
-      .theme-selector .option h3 {
-        white-space: nowrap;
-        overflow: visible;
-        text-overflow: clip;
-        max-width: none;
-      }
+  /* Container for theme selector */
+  .theme-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 0;
+    margin: 20px 0;
+  }
 
-      .theme-selector {
-        display: inline-flex;
-        position: relative;
-        height: auto;
-        border-radius: 9999px;
-        background: linear-gradient(
-          -25deg,
-          var(--light-slider-start) 0%,
-          var(--light-slider-end) 100%
-        ); /* Light theme slider container */
-        overflow: visible; /* Allow natural content flow */
-        padding: 0; /* Removed padding */
-        gap: 4px; /* Kept the 4px gap as requested */
-      }
+  /* Override to prevent truncation in theme selector */
+  .theme-selector .option h3 {
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
+  }
 
-      /* Dark theme slider container */
-      body[data-theme="dark"] .theme-selector {
-        background: linear-gradient(
-          -25deg,
-          var(--dark-slider-start) 0%,
-          var(--dark-slider-end) 100%
-        );
-      }
+  .theme-selector {
+    display: inline-flex;
+    position: relative;
+    height: auto;
+    border-radius: 9999px;
+    background: linear-gradient(
+      -25deg,
+      var(--light-slider-start) 0%,
+      var(--light-slider-end) 100%
+    );
+    overflow: visible;
+    padding: 0;
+    gap: 4px;
+  }
 
-      /* Container border animation */
-      .theme-selector .border-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 1;
-        /* Add clip-path to match the container's shape */
-        clip-path: inset(0 0 0 0 round 9999px);
-      }
+  /* Dark theme slider container */
+  body[data-theme="dark"] .theme-selector {
+    background: linear-gradient(
+      -25deg,
+      var(--dark-slider-start) 0%,
+      var(--dark-slider-end) 100%
+    );
+  }
 
-      /* Border segments */
-      .border-segment {
-        position: absolute;
-        background: linear-gradient(
-          to right,
-          var(--active-button-start),
-          var(--active-button-end)
-        );
-        opacity: 1;
-        transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1);
-      }
+  /* Container border animation */
+  .theme-selector .border-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    clip-path: inset(0 0 0 0 round 9999px);
+  }
 
-      /* Top and bottom segments only */
-      .border-top,
-      .border-bottom {
-        height: 1px;
-        width: 100px; /* Default width, will be set in JS */
-      }
+  /* Border segments */
+  .border-segment {
+    position: absolute;
+    background: linear-gradient(
+      to right,
+      var(--active-button-start),
+      var(--active-button-end)
+    );
+    opacity: 1;
+    transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1);
+  }
 
-      .border-top {
-        top: 0;
-      }
+  /* Top and bottom segments only */
+  .border-top,
+  .border-bottom {
+    height: 1px;
+    width: 100px; /* Default width, will be set in JS */
+  }
 
-      .border-bottom {
-        bottom: 0;
-      }
+  .border-top {
+    top: 0;
+  }
 
-      .option {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-        cursor: pointer;
-        z-index: 1;
-        transition: color 0.5s ease;
-        padding: 0; /* Removed padding */
-        border-radius: 9999px;
-        overflow: visible; /* Allow natural content flow */
-      }
+  .border-bottom {
+    bottom: 0;
+  }
 
-      .option h3 {
-        position: relative;
-        z-index: 3;
-        transition: color 0.5s ease;
-        padding: 2px 8px; /* Added padding to text instead of button */
-      }
+  .option {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    z-index: 1;
+    transition: color 0.5s ease;
+    padding: 0;
+    border-radius: 9999px;
+    overflow: visible;
+  }
 
-      .option.active h3 {
-        color: #ffffff;
-      }
+  .option h3 {
+    position: relative;
+    z-index: 3;
+    transition: color 0.5s ease;
+    padding: 2px 8px;
+  }
 
-      .selector-background {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        height: 100%;
-        border-radius: 9999px;
-        background: linear-gradient(
-          145deg,
-          var(--active-button-start),
-          var(--active-button-end)
-        );
-        z-index: 0;
-      }
+  .option.active h3 {
+    color: #ffffff;
+  }
 
-      /* Range slider controls */
-      .controls-wrapper {
-        position: fixed;
-        top: 0;
-        left: 10px;
-        display: flex;
-        flex-direction: column;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-        z-index: 100;
-      }
+  .selector-background {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(
+      145deg,
+      var(--active-button-start),
+      var(--active-button-end)
+    );
+    z-index: 0;
+  }
 
-      .slider-container {
-        display: flex;
-        align-items: center;
-        margin: 0;
-      }
+  /* Range slider controls */
+  .controls-wrapper {
+    position: fixed;
+    top: 0;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    z-index: 100;
+  }
 
-      .slider-label {
-        font-size: 10px;
-        color: #fff;
-        text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-        width: 150px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+  .slider-container {
+    display: flex;
+    align-items: center;
+    margin: 0;
+  }
 
-      .range-slider {
-        width: 100px;
-        margin: 0;
-      }
+  .slider-label {
+    font-size: 10px;
+    color: #fff;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-      .slider-value {
-        font-size: 10px;
-        color: #fff;
-        text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-        width: 25px;
-        text-align: right;
-      }
+  .range-slider {
+    width: 100px;
+    margin: 0;
+  }
 
-      .toggle-controls,
-      .test-toggle-theme {
-        width: 100%;
-        font-size: 10px;
-        background: rgba(0, 0, 0, 0.2);
-        color: #fff;
-        border: none;
-        cursor: pointer;
-        margin: 0;
-        padding: 2px 0;
-      }
+  .slider-value {
+    font-size: 10px;
+    color: #fff;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    width: 25px;
+    text-align: right;
+  }
 
-      .toggle-controls:hover,
-      .test-toggle-theme:hover {
-        background: rgba(0, 0, 0, 0.3);
-      }
+  .toggle-controls,
+  .test-toggle-theme {
+    width: 100%;
+    font-size: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    margin: 0;
+    padding: 2px 0;
+  }
 
-      /* Add color theme control slider */
-      .active-button-container {
-        display: flex;
-        flex-direction: column;
-        margin-top: 5px;
-        padding-top: 5px;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-      }
+  .toggle-controls:hover,
+  .test-toggle-theme:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
 
-      .active-button-title {
-        font-size: 10px;
-        color: #fff;
-        text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-        width: 100%;
-        text-align: center;
-        margin-bottom: 3px;
-      }
+  /* Add color theme control slider */
+  .active-button-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
 
-      .color-preview {
-        width: 100%;
-        height: 15px;
-        border-radius: 3px;
-        margin-bottom: 3px;
-        background: linear-gradient(
-          145deg,
-          var(--active-button-start),
-          var(--active-button-end)
-        );
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Range slider controls -->
-    <div class="controls-wrapper" id="controlsWrapper">
-      <div class="slider-container">
-        <span class="slider-label">Light Slider Start %</span>
-        <input
-          type="range"
-          class="range-slider"
-          id="lightSliderStart"
-          min="0"
-          max="100"
-          value="34"
-        />
-        <span class="slider-value" id="lightSliderStartValue">34%</span>
-      </div>
-      <div class="slider-container">
-        <span class="slider-label">Light Slider End %</span>
-        <input
-          type="range"
-          class="range-slider"
-          id="lightSliderEnd"
-          min="0"
-          max="100"
-          value="68"
-        />
-        <span class="slider-value" id="lightSliderEndValue">68%</span>
-      </div>
-      <div class="slider-container">
-        <span class="slider-label">Dark Slider Start %</span>
-        <input
-          type="range"
-          class="range-slider"
-          id="darkSliderStart"
-          min="0"
-          max="100"
-          value="34"
-        />
-        <span class="slider-value" id="darkSliderStartValue">34%</span>
-      </div>
-      <div class="slider-container">
-        <span class="slider-label">Dark Slider End %</span>
-        <input
-          type="range"
-          class="range-slider"
-          id="darkSliderEnd"
-          min="0"
-          max="100"
-          value="68"
-        />
-        <span class="slider-value" id="darkSliderEndValue">68%</span>
-      </div>
-      <!-- Active Button Color Controls -->
-      <div class="active-button-container">
-        <div class="active-button-title">Active Button Colors</div>
-        <div class="color-preview" id="activeButtonPreview"></div>
-        <div class="slider-container">
-          <span class="slider-label">Start Color</span>
-          <input type="color" id="activeButtonStart" value="#6a0dad" />
-        </div>
-        <div class="slider-container">
-          <span class="slider-label">End Color</span>
-          <input type="color" id="activeButtonEnd" value="#4169e1" />
-        </div>
-      </div>
-      <button class="test-toggle-theme" id="testToggleTheme">
-        Toggle Light/Dark Theme
-      </button>
-      <button class="toggle-controls" id="toggleControls">Hide Controls</button>
+  .active-button-title {
+    font-size: 10px;
+    color: #fff;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    text-align: center;
+    margin-bottom: 3px;
+  }
+
+  .color-preview {
+    width: 100%;
+    height: 15px;
+    border-radius: 3px;
+    margin-bottom: 3px;
+    background: linear-gradient(
+      145deg,
+      var(--active-button-start),
+      var(--active-button-end)
+    );
+  }
+</style>
+
+<!-- Range slider controls -->
+<div class="controls-wrapper" id="controlsWrapper">
+  <div class="slider-container">
+    <span class="slider-label">Light Slider Start %</span>
+    <input
+      type="range"
+      class="range-slider"
+      id="lightSliderStart"
+      min="0"
+      max="100"
+      value="34"
+    />
+    <span class="slider-value" id="lightSliderStartValue">34%</span>
+  </div>
+  <div class="slider-container">
+    <span class="slider-label">Light Slider End %</span>
+    <input
+      type="range"
+      class="range-slider"
+      id="lightSliderEnd"
+      min="0"
+      max="100"
+      value="68"
+    />
+    <span class="slider-value" id="lightSliderEndValue">68%</span>
+  </div>
+  <div class="slider-container">
+    <span class="slider-label">Dark Slider Start %</span>
+    <input
+      type="range"
+      class="range-slider"
+      id="darkSliderStart"
+      min="0"
+      max="100"
+      value="34"
+    />
+    <span class="slider-value" id="darkSliderStartValue">34%</span>
+  </div>
+  <div class="slider-container">
+    <span class="slider-label">Dark Slider End %</span>
+    <input
+      type="range"
+      class="range-slider"
+      id="darkSliderEnd"
+      min="0"
+      max="100"
+      value="68"
+    />
+    <span class="slider-value" id="darkSliderEndValue">68%</span>
+  </div>
+  <!-- Active Button Color Controls -->
+  <div class="active-button-container">
+    <div class="active-button-title">Active Button Colors</div>
+    <div class="color-preview" id="activeButtonPreview"></div>
+    <div class="slider-container">
+      <span class="slider-label">Start Color</span>
+      <input type="color" id="activeButtonStart" value="#6a0dad" />
+    </div>
+    <div class="slider-container">
+      <span class="slider-label">End Color</span>
+      <input type="color" id="activeButtonEnd" value="#4169e1" />
+    </div>
+  </div>
+  <button class="test-toggle-theme" id="testToggleTheme">
+    Toggle Light/Dark Theme
+  </button>
+  <button class="toggle-controls" id="toggleControls">Hide Controls</button>
+</div>
+
+<div class="theme-container">
+  <div class="theme-selector">
+    <div class="border-container">
+      <div class="border-segment border-top"></div>
+      <div class="border-segment border-bottom"></div>
     </div>
 
-    <div class="theme-container">
-      <div class="theme-selector">
-        <div class="border-container">
-          <div class="border-segment border-top"></div>
-          <div class="border-segment border-bottom"></div>
-        </div>
+    <div class="selector-background"></div>
 
-        <div class="selector-background"></div>
-
-        <div class="option" data-position="1" onclick="setActiveOption(this)">
-          <h3>Light Theme</h3>
-        </div>
-
-        <div
-          class="option active"
-          data-position="2"
-          onclick="setActiveOption(this)"
-        >
-          <h3>System Theme</h3>
-        </div>
-
-        <div class="option" data-position="3" onclick="setActiveOption(this)">
-          <h3>Dark Theme</h3>
-        </div>
-      </div>
+    <div class="option" data-position="1" onclick="setActiveOption(this)">
+      <h3>Light Theme</h3>
     </div>
 
-    <script>
-      // Utility functions for border calculations
-      function calculateBorderWidth() {
-        return sliderState.shortestTextWidth * 0.9;
-      }
-
-      function calculateBorderPosition(hoveredOption, selectorRect) {
-        const hoveredRect = hoveredOption.getBoundingClientRect();
-        const buttonLeft = hoveredRect.left - selectorRect.left;
-        const buttonCenter = buttonLeft + hoveredRect.width / 2;
-        return buttonCenter - calculateBorderWidth() / 2;
-      }
-
-      function updateBorderTransform(leftPosition) {
-        const transformValue = `translateX(${leftPosition}px)`;
-        borderTop.style.transform = transformValue;
-        borderBottom.style.transform = transformValue;
-      }
-
-      // Utility function for border transitions
-      function setBorderTransition(immediate = false) {
-        borderTop.style.transition = immediate
-          ? "none"
-          : "transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)";
-        borderBottom.style.transition = immediate
-          ? "none"
-          : "transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)";
-
-        if (immediate) {
-          // Force reflow to apply instant position change
-          void borderTop.offsetWidth;
-        }
-      }
-
-      // Utility function for theme application
-      function applyThemeByName(themeName, skipThemeDetection = false) {
-        const body = document.body;
-
-        if (themeName === "light") {
-          body.setAttribute("data-theme", "light");
-          body.style.backgroundImage =
-            "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
-          themeSelector.style.background =
-            "linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)";
-        } else if (themeName === "dark") {
-          body.setAttribute("data-theme", "dark");
-          body.style.backgroundImage =
-            "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
-          themeSelector.style.background =
-            "linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)";
-        } else if (themeName === "system" && !skipThemeDetection) {
-          const prefersDark =
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches;
-          applyThemeByName(prefersDark ? "dark" : "light", true);
-        }
-      }
-
-      // Get slider elements
-      const themeSelector = document.querySelector(".theme-selector");
-      const selectorBackground = document.querySelector(".selector-background");
-      const options = document.querySelectorAll(".option");
-      const borderTop = document.querySelector(".border-top");
-      const borderBottom = document.querySelector(".border-bottom");
-
-      // Range slider controls
-      const lightSliderStart = document.getElementById("lightSliderStart");
-      const lightSliderEnd = document.getElementById("lightSliderEnd");
-      const darkSliderStart = document.getElementById("darkSliderStart");
-      const darkSliderEnd = document.getElementById("darkSliderEnd");
-      const lightSliderStartValue = document.getElementById(
-        "lightSliderStartValue"
-      );
-      const lightSliderEndValue = document.getElementById(
-        "lightSliderEndValue"
-      );
-      const darkSliderStartValue = document.getElementById(
-        "darkSliderStartValue"
-      );
-      const darkSliderEndValue = document.getElementById("darkSliderEndValue");
-      const controlsWrapper = document.getElementById("controlsWrapper");
-      const toggleControls = document.getElementById("toggleControls");
-      const testToggleTheme = document.getElementById("testToggleTheme");
-
-      // Active button color controls
-      const activeButtonStart = document.getElementById("activeButtonStart");
-      const activeButtonEnd = document.getElementById("activeButtonEnd");
-      const activeButtonPreview = document.getElementById(
-        "activeButtonPreview"
-      );
-
-      // Function to get CSS variable value from root
-      function getCSSVariable(name) {
-        return getComputedStyle(document.documentElement)
-          .getPropertyValue(name)
-          .trim();
-      }
-
-      // Function to initialize sliders from CSS variables
-      function initializeSlidersFromCSS() {
-        // Get values from CSS variables
-        const lightStartPercent =
-          parseInt(getCSSVariable("--light-slider-start-percent")) || 34;
-        const lightEndPercent =
-          parseInt(getCSSVariable("--light-slider-end-percent")) || 68;
-        const darkStartPercent =
-          parseInt(getCSSVariable("--dark-slider-start-percent")) || 34;
-        const darkEndPercent =
-          parseInt(getCSSVariable("--dark-slider-end-percent")) || 68;
-
-        // Set slider values
-        lightSliderStart.value = lightStartPercent;
-        lightSliderEnd.value = lightEndPercent;
-        darkSliderStart.value = darkStartPercent;
-        darkSliderEnd.value = darkEndPercent;
-
-        // Update display values
-        lightSliderStartValue.textContent = `${lightStartPercent}%`;
-        lightSliderEndValue.textContent = `${lightEndPercent}%`;
-        darkSliderStartValue.textContent = `${darkStartPercent}%`;
-        darkSliderEndValue.textContent = `${darkEndPercent}%`;
-
-        // Initialize active button color inputs
-        const activeStartColor =
-          getCSSVariable("--active-button-start") || "#6a0dad";
-        const activeEndColor =
-          getCSSVariable("--active-button-end") || "#4169e1";
-
-        activeButtonStart.value = activeStartColor;
-        activeButtonEnd.value = activeEndColor;
-
-        // Update the preview
-        updateActiveButtonPreview();
-      }
-
-      // Function to update active button colors
-      function updateActiveButtonColors() {
-        const root = document.documentElement;
-        const startColor = activeButtonStart.value;
-        const endColor = activeButtonEnd.value;
-
-        // Update CSS variables
-        root.style.setProperty("--active-button-start", startColor);
-        root.style.setProperty("--active-button-end", endColor);
-
-        // Update preview and selector background
-        updateActiveButtonPreview();
-
-        // Update selector background gradient
-        selectorBackground.style.background = `linear-gradient(145deg, ${startColor}, ${endColor})`;
-      }
-
-      // Function to update active button preview
-      function updateActiveButtonPreview() {
-        const startColor = getCSSVariable("--active-button-start");
-        const endColor = getCSSVariable("--active-button-end");
-        activeButtonPreview.style.background = `linear-gradient(145deg, ${startColor}, ${endColor})`;
-      }
-
-      // Add event listeners for active button color controls
-      activeButtonStart.addEventListener("input", updateActiveButtonColors);
-      activeButtonEnd.addEventListener("input", updateActiveButtonColors);
-
-      // Toggle controls visibility
-      let controlsVisible = true;
-      toggleControls.addEventListener("click", () => {
-        const sliders = document.querySelectorAll(".slider-container");
-        const activeButtonContainer = document.querySelector(
-          ".active-button-container"
-        );
-        sliders.forEach((slider) => {
-          slider.style.display = controlsVisible ? "none" : "flex";
-        });
-        activeButtonContainer.style.display = controlsVisible ? "none" : "flex";
-        controlsVisible = !controlsVisible;
-        toggleControls.textContent = controlsVisible
-          ? "Hide Controls"
-          : "Show Controls";
-      });
-
-      // Add test toggle theme functionality
-      let testThemeIsDark = false;
-      testToggleTheme.addEventListener("click", () => {
-        testThemeIsDark = !testThemeIsDark;
-        applyThemeByName(testThemeIsDark ? "dark" : "light");
-
-        // Update button text
-        testToggleTheme.textContent = testThemeIsDark
-          ? "Switch to Light Theme"
-          : "Switch to Dark Theme";
-      });
-
-      // Helper function to interpolate colors based on percentage
-      function interpolateColor(color1, color2, percentage) {
-        // Convert hex to rgb
-        const r1 = parseInt(color1.slice(1, 3), 16);
-        const g1 = parseInt(color1.slice(3, 5), 16);
-        const b1 = parseInt(color1.slice(5, 7), 16);
-
-        const r2 = parseInt(color2.slice(1, 3), 16);
-        const g2 = parseInt(color2.slice(3, 5), 16);
-        const b2 = parseInt(color2.slice(5, 7), 16);
-
-        // Calculate interpolated values
-        const r = Math.round(r1 + (r2 - r1) * (percentage / 100));
-        const g = Math.round(g1 + (g2 - g1) * (percentage / 100));
-        const b = Math.round(b1 + (b2 - b1) * (percentage / 100));
-
-        // Convert back to hex
-        return `#${r.toString(16).padStart(2, "0")}${g
-          .toString(16)
-          .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
-      }
-
-      // Update CSS variables based on slider values
-      function updateCSSVariables() {
-        const root = document.documentElement;
-
-        // Light theme values
-        const lightStart = parseInt(lightSliderStart.value);
-        const lightEnd = parseInt(lightSliderEnd.value);
-
-        // Dark theme values
-        const darkStart = parseInt(darkSliderStart.value);
-        const darkEnd = parseInt(darkSliderEnd.value);
-
-        // Calculate and set new colors
-        const lightStartColor = interpolateColor(
-          "#4b5b62",
-          "#ffffff",
-          lightStart
-        );
-        const lightEndColor = interpolateColor("#4b5b62", "#ffffff", lightEnd);
-        const darkStartColor = interpolateColor(
-          "#000000",
-          "#96b7c4",
-          darkStart
-        );
-        const darkEndColor = interpolateColor("#000000", "#96b7c4", darkEnd);
-
-        // Update CSS variables
-        root.style.setProperty("--light-slider-start", lightStartColor);
-        root.style.setProperty("--light-slider-end", lightEndColor);
-        root.style.setProperty("--dark-slider-start", darkStartColor);
-        root.style.setProperty("--dark-slider-end", darkEndColor);
-
-        // Update percentage variables
-        root.style.setProperty("--light-slider-start-percent", lightStart);
-        root.style.setProperty("--light-slider-end-percent", lightEnd);
-        root.style.setProperty("--dark-slider-start-percent", darkStart);
-        root.style.setProperty("--dark-slider-end-percent", darkEnd);
-
-        // Update displayed values
-        lightSliderStartValue.textContent = `${lightStart}%`;
-        lightSliderEndValue.textContent = `${lightEnd}%`;
-        darkSliderStartValue.textContent = `${darkStart}%`;
-        darkSliderEndValue.textContent = `${darkEnd}%`;
-
-        // Update current theme appearance
-        const body = document.body;
-        if (body.getAttribute("data-theme") === "dark") {
-          themeSelector.style.background = `linear-gradient(-25deg, ${darkStartColor} 0%, ${darkEndColor} 100%)`;
-        } else {
-          themeSelector.style.background = `linear-gradient(-25deg, ${lightStartColor} 0%, ${lightEndColor} 100%)`;
-        }
-      }
-
-      // Add event listeners to sliders
-      lightSliderStart.addEventListener("input", updateCSSVariables);
-      lightSliderEnd.addEventListener("input", updateCSSVariables);
-      darkSliderStart.addEventListener("input", updateCSSVariables);
-      darkSliderEnd.addEventListener("input", updateCSSVariables);
-
-      // Global mouse position tracker
-      let globalMouseX = 0;
-      let globalMouseY = 0;
-
-      // Slider state
-      const sliderState = {
-        activePosition: 2,
-        currentHoveredOption: null,
-        isAnimating: false,
-        mouseEnteredFromRight: null,
-        entryDirection: null,
-        buttonWidth: 0,
-        insideSlider: false,
-        lastCheckTime: 0,
-        shortestTextWidth: 0,
-        buttonJustSelected: false,
-      };
-
-      // Animation duration
-      const ANIMATION_DURATION = 800;
-
-      // Continuous monitoring interval (milliseconds)
-      const MONITOR_INTERVAL = 100; // Check 10 times per second
-
-      // Calculate shortest text width from all buttons
-      function calculateShortestTextWidth() {
-        let shortestWidth = Infinity;
-
-        // Create a temporary span to measure text width
-        const tempSpan = document.createElement("span");
-        tempSpan.style.visibility = "hidden";
-        tempSpan.style.position = "absolute";
-        tempSpan.style.whiteSpace = "nowrap";
-        tempSpan.style.font = getComputedStyle(
-          document.querySelector(".option h3")
-        ).font;
-        document.body.appendChild(tempSpan);
-
-        // Measure each text width
-        options.forEach((option) => {
-          const text = option.querySelector("h3").textContent;
-          tempSpan.textContent = text;
-          const width = tempSpan.offsetWidth;
-          shortestWidth = Math.min(shortestWidth, width);
-        });
-
-        // Remove the temporary element
-        document.body.removeChild(tempSpan);
-
-        // Store the result
-        sliderState.shortestTextWidth = shortestWidth;
-
-        return shortestWidth;
-      }
-
-      // Define the applySystemTheme function to check system preference and apply the appropriate theme
-      function applySystemTheme() {
-        // Find the system theme option
-        const systemOption = document.querySelector(
-          '.option[data-position="2"]'
-        );
-
-        // Make sure system option is active
-        if (!systemOption.classList.contains("active")) {
-          // Programmatically activate the system option
-          setActiveOption(systemOption, true);
-        } else {
-          // Apply the system theme directly since the option is already active
-          applyThemeByName("system");
-        }
-      }
-
-      // Listen for system theme changes
-      if (window.matchMedia) {
-        window
-          .matchMedia("(prefers-color-scheme: dark)")
-          .addEventListener("change", applySystemTheme);
-      }
-
-      // Track mouse position globally and check if we need to update
-      document.addEventListener("mousemove", (e) => {
-        globalMouseX = e.clientX;
-        globalMouseY = e.clientY;
-
-        // Update mouse position every move
-        handleMousePositionUpdate();
-      });
-
-      // Initialize continuous monitoring
-      function startContinuousMonitoring() {
-        // Check mouse position every interval
-        setInterval(() => {
-          handleMousePositionUpdate();
-        }, MONITOR_INTERVAL);
-      }
-
-      // Handle mouse position updates
-      function handleMousePositionUpdate() {
-        // Skip if we just checked recently
-        const now = Date.now();
-        if (now - sliderState.lastCheckTime < MONITOR_INTERVAL) {
-          return;
-        }
-
-        sliderState.lastCheckTime = now;
-
-        // Check if mouse is inside the slider
-        const rect = themeSelector.getBoundingClientRect();
-        const isInside =
-          globalMouseX >= rect.left &&
-          globalMouseX <= rect.right &&
-          globalMouseY >= rect.top &&
-          globalMouseY <= rect.bottom;
-
-        // Update slider state if mouse state has changed
-        if (isInside !== sliderState.insideSlider) {
-          updateSliderState(isInside);
-        } else if (isInside) {
-          // When inside, keep updating border position based on mouse
-          if (!sliderState.isAnimating) {
-            // Get the hovered option to check if we should enable animations
-            const hoveredOption = findHoveredOption(globalMouseX);
-
-            // If a button was just selected and we're hovering the active button,
-            // don't trigger the animation
-            if (
-              sliderState.buttonJustSelected &&
-              hoveredOption &&
-              hoveredOption.classList.contains("active")
-            ) {
-              return;
-            }
-
-            // Reset the buttonJustSelected flag if we hover over a non-active button
-            if (hoveredOption && !hoveredOption.classList.contains("active")) {
-              sliderState.buttonJustSelected = false;
-            }
-
-            updateBorderPosition(globalMouseX);
-          }
-        }
-      }
-
-      // Set all buttons to equal width based on widest content
-      function equalizeButtonWidths() {
-        let maxWidth = 0;
-
-        // First reset any previously set widths to get natural content width
-        options.forEach((option) => {
-          option.style.width = "auto";
-        });
-
-        // Measure natural width of each button
-        options.forEach((option) => {
-          const width = option.offsetWidth;
-          maxWidth = Math.max(maxWidth, width);
-        });
-
-        // Set all buttons to the max width
-        options.forEach((option) => {
-          option.style.width = `${maxWidth}px`;
-        });
-
-        // Calculate shortest text width after setting button widths
-        calculateShortestTextWidth();
-
-        return maxWidth;
-      }
-
-      // Initialize selector
-      function initializeSelector() {
-        // Set all buttons to equal width
-        const buttonWidth = equalizeButtonWidths();
-
-        // Get the active option
-        const activeOption = document.querySelector(".option.active");
-        const selectorRect = themeSelector.getBoundingClientRect();
-        const optionRect = activeOption.getBoundingClientRect();
-
-        // Set width and position of the background without animation
-        const leftPosition = optionRect.left - selectorRect.left;
-        selectorBackground.style.width = optionRect.width + "px";
-        selectorBackground.style.left = leftPosition + "px";
-
-        // Set active position based on data-position
-        sliderState.activePosition = parseInt(
-          activeOption.getAttribute("data-position")
-        );
-
-        // Initial position of borders off-screen
-        resetBorderAnimation();
-      }
-
-      // Reset border animation by moving borders off-screen
-      function resetBorderAnimation() {
-        const selectorRect = themeSelector.getBoundingClientRect();
-
-        // Determine the direction to position borders off-screen
-        const direction = sliderState.entryDirection || "left";
-
-        // Instantly position off-screen (no animation)
-        setBorderTransition(true);
-
-        if (direction === "left") {
-          borderTop.style.transform = "translateX(-100%)";
-          borderBottom.style.transform = "translateX(-100%)";
-        } else {
-          borderTop.style.transform = `translateX(${selectorRect.width}px)`;
-          borderBottom.style.transform = `translateX(${selectorRect.width}px)`;
-        }
-
-        // Restore transition
-        setBorderTransition(false);
-
-        sliderState.currentHoveredOption = null;
-        sliderState.isAnimating = false;
-        sliderState.buttonWidth = 0;
-      }
-
-      // Determine animation direction based on active option and mouse position
-      function getAnimationDirection() {
-        // If the right button is active (position 3), animation always starts from the right
-        if (sliderState.activePosition === 3) {
-          return "right";
-        }
-        // If the left button is active (position 1), animation always starts from the left
-        else if (sliderState.activePosition === 1) {
-          return "left";
-        }
-        // If the center button is active (position 2), determine based on mouse entry
-        else {
-          return sliderState.mouseEnteredFromRight ? "right" : "left";
-        }
-      }
-
-      // Find which option the mouse is over
-      function findHoveredOption(mouseX) {
-        let hoveredOption = null;
-
-        options.forEach((option) => {
-          const rect = option.getBoundingClientRect();
-          if (mouseX >= rect.left && mouseX <= rect.right) {
-            hoveredOption = option;
-          }
-        });
-
-        return hoveredOption;
-      }
-
-      // Animation to move borders in from edge
-      function animateBordersIn(hoveredOption, fromDirection) {
-        if (!hoveredOption || sliderState.isAnimating) {
-          return;
-        }
+    <div
+      class="option active"
+      data-position="2"
+      onclick="setActiveOption(this)"
+    >
+      <h3>System Theme</h3>
+    </div>
+
+    <div class="option" data-position="3" onclick="setActiveOption(this)">
+      <h3>Dark Theme</h3>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Utility functions for border calculations
+  function calculateBorderWidth() {
+    return sliderState.shortestTextWidth * 0.9;
+  }
+
+  function calculateBorderPosition(hoveredOption, selectorRect) {
+    const hoveredRect = hoveredOption.getBoundingClientRect();
+    const buttonLeft = hoveredRect.left - selectorRect.left;
+    const buttonCenter = buttonLeft + hoveredRect.width / 2;
+    return buttonCenter - calculateBorderWidth() / 2;
+  }
+
+  function updateBorderTransform(leftPosition) {
+    const transformValue = `translateX(${leftPosition}px)`;
+    borderTop.style.transform = transformValue;
+    borderBottom.style.transform = transformValue;
+  }
+
+  // Utility function for border transitions
+  function setBorderTransition(immediate = false) {
+    borderTop.style.transition = immediate
+      ? "none"
+      : "transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)";
+    borderBottom.style.transition = immediate
+      ? "none"
+      : "transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)";
+
+    if (immediate) {
+      // Force reflow to apply instant position change
+      void borderTop.offsetWidth;
+    }
+  }
+
+  // Utility function for theme application
+  function applyThemeByName(themeName, skipThemeDetection = false) {
+    const body = document.body;
+
+    if (themeName === "light") {
+      body.setAttribute("data-theme", "light");
+      body.style.backgroundImage =
+        "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
+      themeSelector.style.background =
+        "linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)";
+    } else if (themeName === "dark") {
+      body.setAttribute("data-theme", "dark");
+      body.style.backgroundImage =
+        "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
+      themeSelector.style.background =
+        "linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)";
+    } else if (themeName === "system" && !skipThemeDetection) {
+      const prefersDark =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+      applyThemeByName(prefersDark ? "dark" : "light", true);
+    }
+
+    // Store theme preference in localStorage for persistence
+    localStorage.setItem("themePreference", themeName);
+  }
+
+  // Get slider elements
+  const themeSelector = document.querySelector(".theme-selector");
+  const selectorBackground = document.querySelector(".selector-background");
+  const options = document.querySelectorAll(".option");
+  const borderTop = document.querySelector(".border-top");
+  const borderBottom = document.querySelector(".border-bottom");
+
+  // Range slider controls
+  const lightSliderStart = document.getElementById("lightSliderStart");
+  const lightSliderEnd = document.getElementById("lightSliderEnd");
+  const darkSliderStart = document.getElementById("darkSliderStart");
+  const darkSliderEnd = document.getElementById("darkSliderEnd");
+  const lightSliderStartValue = document.getElementById(
+    "lightSliderStartValue"
+  );
+  const lightSliderEndValue = document.getElementById("lightSliderEndValue");
+  const darkSliderStartValue = document.getElementById("darkSliderStartValue");
+  const darkSliderEndValue = document.getElementById("darkSliderEndValue");
+  const controlsWrapper = document.getElementById("controlsWrapper");
+  const toggleControls = document.getElementById("toggleControls");
+  const testToggleTheme = document.getElementById("testToggleTheme");
+
+  // Active button color controls
+  const activeButtonStart = document.getElementById("activeButtonStart");
+  const activeButtonEnd = document.getElementById("activeButtonEnd");
+  const activeButtonPreview = document.getElementById("activeButtonPreview");
+
+  // Function to get CSS variable value from root
+  function getCSSVariable(name) {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(name)
+      .trim();
+  }
+
+  // Function to initialize sliders from CSS variables
+  function initializeSlidersFromCSS() {
+    // Get values from CSS variables
+    const lightStartPercent =
+      parseInt(getCSSVariable("--light-slider-start-percent")) || 34;
+    const lightEndPercent =
+      parseInt(getCSSVariable("--light-slider-end-percent")) || 68;
+    const darkStartPercent =
+      parseInt(getCSSVariable("--dark-slider-start-percent")) || 34;
+    const darkEndPercent =
+      parseInt(getCSSVariable("--dark-slider-end-percent")) || 68;
+
+    // Set slider values
+    lightSliderStart.value = lightStartPercent;
+    lightSliderEnd.value = lightEndPercent;
+    darkSliderStart.value = darkStartPercent;
+    darkSliderEnd.value = darkEndPercent;
+
+    // Update display values
+    lightSliderStartValue.textContent = `${lightStartPercent}%`;
+    lightSliderEndValue.textContent = `${lightEndPercent}%`;
+    darkSliderStartValue.textContent = `${darkStartPercent}%`;
+    darkSliderEndValue.textContent = `${darkEndPercent}%`;
+
+    // Initialize active button color inputs
+    const activeStartColor =
+      getCSSVariable("--active-button-start") || "#6a0dad";
+    const activeEndColor = getCSSVariable("--active-button-end") || "#4169e1";
+
+    activeButtonStart.value = activeStartColor;
+    activeButtonEnd.value = activeEndColor;
+
+    // Update the preview
+    updateActiveButtonPreview();
+  }
+
+  // Function to update active button colors
+  function updateActiveButtonColors() {
+    const root = document.documentElement;
+    const startColor = activeButtonStart.value;
+    const endColor = activeButtonEnd.value;
+
+    // Update CSS variables
+    root.style.setProperty("--active-button-start", startColor);
+    root.style.setProperty("--active-button-end", endColor);
+
+    // Update preview and selector background
+    updateActiveButtonPreview();
+
+    // Update selector background gradient
+    selectorBackground.style.background = `linear-gradient(145deg, ${startColor}, ${endColor})`;
+  }
+
+  // Function to update active button preview
+  function updateActiveButtonPreview() {
+    const startColor = getCSSVariable("--active-button-start");
+    const endColor = getCSSVariable("--active-button-end");
+    activeButtonPreview.style.background = `linear-gradient(145deg, ${startColor}, ${endColor})`;
+  }
+
+  // Add event listeners for active button color controls
+  activeButtonStart.addEventListener("input", updateActiveButtonColors);
+  activeButtonEnd.addEventListener("input", updateActiveButtonColors);
+
+  // Toggle controls visibility
+  let controlsVisible = true;
+  toggleControls.addEventListener("click", () => {
+    const sliders = document.querySelectorAll(".slider-container");
+    const activeButtonContainer = document.querySelector(
+      ".active-button-container"
+    );
+    sliders.forEach((slider) => {
+      slider.style.display = controlsVisible ? "none" : "flex";
+    });
+    activeButtonContainer.style.display = controlsVisible ? "none" : "flex";
+    controlsVisible = !controlsVisible;
+    toggleControls.textContent = controlsVisible
+      ? "Hide Controls"
+      : "Show Controls";
+  });
+
+  // Add test toggle theme functionality
+  let testThemeIsDark = false;
+  testToggleTheme.addEventListener("click", () => {
+    testThemeIsDark = !testThemeIsDark;
+    applyThemeByName(testThemeIsDark ? "dark" : "light");
+
+    // Update button text
+    testToggleTheme.textContent = testThemeIsDark
+      ? "Switch to Light Theme"
+      : "Switch to Dark Theme";
+  });
+
+  // Helper function to interpolate colors based on percentage
+  function interpolateColor(color1, color2, percentage) {
+    // Convert hex to rgb
+    const r1 = parseInt(color1.slice(1, 3), 16);
+    const g1 = parseInt(color1.slice(3, 5), 16);
+    const b1 = parseInt(color1.slice(5, 7), 16);
+
+    const r2 = parseInt(color2.slice(1, 3), 16);
+    const g2 = parseInt(color2.slice(3, 5), 16);
+    const b2 = parseInt(color2.slice(5, 7), 16);
+
+    // Calculate interpolated values
+    const r = Math.round(r1 + (r2 - r1) * (percentage / 100));
+    const g = Math.round(g1 + (g2 - g1) * (percentage / 100));
+    const b = Math.round(b1 + (b2 - b1) * (percentage / 100));
+
+    // Convert back to hex
+    return `#${r.toString(16).padStart(2, "0")}${g
+      .toString(16)
+      .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+  }
+
+  // Update CSS variables based on slider values
+  function updateCSSVariables() {
+    const root = document.documentElement;
+
+    // Light theme values
+    const lightStart = parseInt(lightSliderStart.value);
+    const lightEnd = parseInt(lightSliderEnd.value);
+
+    // Dark theme values
+    const darkStart = parseInt(darkSliderStart.value);
+    const darkEnd = parseInt(darkSliderEnd.value);
+
+    // Calculate and set new colors
+    const lightStartColor = interpolateColor("#4b5b62", "#ffffff", lightStart);
+    const lightEndColor = interpolateColor("#4b5b62", "#ffffff", lightEnd);
+    const darkStartColor = interpolateColor("#000000", "#96b7c4", darkStart);
+    const darkEndColor = interpolateColor("#000000", "#96b7c4", darkEnd);
+
+    // Update CSS variables
+    root.style.setProperty("--light-slider-start", lightStartColor);
+    root.style.setProperty("--light-slider-end", lightEndColor);
+    root.style.setProperty("--dark-slider-start", darkStartColor);
+    root.style.setProperty("--dark-slider-end", darkEndColor);
+
+    // Update percentage variables
+    root.style.setProperty("--light-slider-start-percent", lightStart);
+    root.style.setProperty("--light-slider-end-percent", lightEnd);
+    root.style.setProperty("--dark-slider-start-percent", darkStart);
+    root.style.setProperty("--dark-slider-end-percent", darkEnd);
+
+    // Update displayed values
+    lightSliderStartValue.textContent = `${lightStart}%`;
+    lightSliderEndValue.textContent = `${lightEnd}%`;
+    darkSliderStartValue.textContent = `${darkStart}%`;
+    darkSliderEndValue.textContent = `${darkEnd}%`;
+
+    // Update current theme appearance
+    const body = document.body;
+    if (body.getAttribute("data-theme") === "dark") {
+      themeSelector.style.background = `linear-gradient(-25deg, ${darkStartColor} 0%, ${darkEndColor} 100%)`;
+    } else {
+      themeSelector.style.background = `linear-gradient(-25deg, ${lightStartColor} 0%, ${lightEndColor} 100%)`;
+    }
+  }
+
+  // Add event listeners to sliders
+  lightSliderStart.addEventListener("input", updateCSSVariables);
+  lightSliderEnd.addEventListener("input", updateCSSVariables);
+  darkSliderStart.addEventListener("input", updateCSSVariables);
+  darkSliderEnd.addEventListener("input", updateCSSVariables);
+
+  // Global mouse position tracker
+  let globalMouseX = 0;
+  let globalMouseY = 0;
+
+  // Slider state
+  const sliderState = {
+    activePosition: 2,
+    currentHoveredOption: null,
+    isAnimating: false,
+    mouseEnteredFromRight: null,
+    entryDirection: null,
+    buttonWidth: 0,
+    insideSlider: false,
+    lastCheckTime: 0,
+    shortestTextWidth: 0,
+    buttonJustSelected: false,
+  };
+
+  // Animation duration
+  const ANIMATION_DURATION = 800;
+
+  // Continuous monitoring interval (milliseconds)
+  const MONITOR_INTERVAL = 100; // Check 10 times per second
+
+  // Calculate shortest text width from all buttons
+  function calculateShortestTextWidth() {
+    let shortestWidth = Infinity;
+
+    // Create a temporary span to measure text width
+    const tempSpan = document.createElement("span");
+    tempSpan.style.visibility = "hidden";
+    tempSpan.style.position = "absolute";
+    tempSpan.style.whiteSpace = "nowrap";
+    tempSpan.style.font = getComputedStyle(
+      document.querySelector(".option h3")
+    ).font;
+    document.body.appendChild(tempSpan);
+
+    // Measure each text width
+    options.forEach((option) => {
+      const text = option.querySelector("h3").textContent;
+      tempSpan.textContent = text;
+      const width = tempSpan.offsetWidth;
+      shortestWidth = Math.min(shortestWidth, width);
+    });
+
+    // Remove the temporary element
+    document.body.removeChild(tempSpan);
+
+    // Store the result
+    sliderState.shortestTextWidth = shortestWidth;
+
+    return shortestWidth;
+  }
+
+  // Define the applySystemTheme function to check system preference and apply the appropriate theme
+  function applySystemTheme() {
+    // Find the system theme option
+    const systemOption = document.querySelector('.option[data-position="2"]');
+
+    // Make sure system option is active
+    if (!systemOption.classList.contains("active")) {
+      // Programmatically activate the system option
+      setActiveOption(systemOption, true);
+    } else {
+      // Apply the system theme directly since the option is already active
+      applyThemeByName("system");
+    }
+  }
+
+  // Listen for system theme changes
+  if (window.matchMedia) {
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", applySystemTheme);
+  }
+
+  // Track mouse position globally and check if we need to update
+  document.addEventListener("mousemove", (e) => {
+    globalMouseX = e.clientX;
+    globalMouseY = e.clientY;
+
+    // Update mouse position every move
+    handleMousePositionUpdate();
+  });
+
+  // Initialize continuous monitoring
+  function startContinuousMonitoring() {
+    // Check mouse position every interval
+    setInterval(() => {
+      handleMousePositionUpdate();
+    }, MONITOR_INTERVAL);
+  }
+
+  // Handle mouse position updates
+  function handleMousePositionUpdate() {
+    // Skip if we just checked recently
+    const now = Date.now();
+    if (now - sliderState.lastCheckTime < MONITOR_INTERVAL) {
+      return;
+    }
+
+    sliderState.lastCheckTime = now;
+
+    // Check if mouse is inside the slider
+    const rect = themeSelector.getBoundingClientRect();
+    const isInside =
+      globalMouseX >= rect.left &&
+      globalMouseX <= rect.right &&
+      globalMouseY >= rect.top &&
+      globalMouseY <= rect.bottom;
+
+    // Update slider state if mouse state has changed
+    if (isInside !== sliderState.insideSlider) {
+      updateSliderState(isInside);
+    } else if (isInside) {
+      // When inside, keep updating border position based on mouse
+      if (!sliderState.isAnimating) {
+        // Get the hovered option to check if we should enable animations
+        const hoveredOption = findHoveredOption(globalMouseX);
 
         // If a button was just selected and we're hovering the active button,
         // don't trigger the animation
         if (
           sliderState.buttonJustSelected &&
+          hoveredOption &&
           hoveredOption.classList.contains("active")
         ) {
           return;
         }
 
-        sliderState.isAnimating = true;
-        sliderState.entryDirection = fromDirection;
+        // Reset the buttonJustSelected flag if we hover over a non-active button
+        if (hoveredOption && !hoveredOption.classList.contains("active")) {
+          sliderState.buttonJustSelected = false;
+        }
 
-        // Get dimensions
-        const selectorRect = themeSelector.getBoundingClientRect();
+        updateBorderPosition(globalMouseX);
+      }
+    }
+  }
 
-        // Calculate border width and position
-        const borderWidth = calculateBorderWidth();
-        const borderLeft = calculateBorderPosition(hoveredOption, selectorRect);
+  // Set all buttons to equal width based on widest content
+  function equalizeButtonWidths() {
+    let maxWidth = 0;
 
-        // Store calculated button width for later
-        sliderState.buttonWidth = borderWidth;
+    // First reset any previously set widths to get natural content width
+    options.forEach((option) => {
+      option.style.width = "auto";
+    });
 
-        // Set the border width to the shortest text width
-        borderTop.style.width = `${borderWidth}px`;
-        borderBottom.style.width = `${borderWidth}px`;
+    // Measure natural width of each button
+    options.forEach((option) => {
+      const width = option.offsetWidth;
+      maxWidth = Math.max(maxWidth, width);
+    });
 
-        // Make sure borders are positioned off-screen first
-        resetBorderAnimation();
+    // Set all buttons to the max width
+    options.forEach((option) => {
+      option.style.width = `${maxWidth}px`;
+    });
 
-        // Now animate to centered position
-        updateBorderTransform(borderLeft);
+    // Calculate shortest text width after setting button widths
+    calculateShortestTextWidth();
 
-        // After animation completes
-        setTimeout(() => {
-          sliderState.isAnimating = false;
+    return maxWidth;
+  }
 
-          // If mouse has moved to a different button during animation
-          if (sliderState.insideSlider) {
-            const currentHoveredOption = findHoveredOption(globalMouseX);
+  // Initialize selector
+  function initializeSelector() {
+    // Set all buttons to equal width
+    const buttonWidth = equalizeButtonWidths();
 
-            if (
-              currentHoveredOption &&
-              currentHoveredOption !== hoveredOption
-            ) {
-              // Animate to the current position
-              updateBorderPosition(globalMouseX);
-            }
-          } else {
-            // If mouse is no longer in the slider, animate out
-            animateBordersOut();
+    // Get the active option
+    const activeOption = document.querySelector(".option.active");
+    const selectorRect = themeSelector.getBoundingClientRect();
+    const optionRect = activeOption.getBoundingClientRect();
+
+    // Set width and position of the background without animation
+    const leftPosition = optionRect.left - selectorRect.left;
+    selectorBackground.style.width = optionRect.width + "px";
+    selectorBackground.style.left = leftPosition + "px";
+
+    // Set active position based on data-position
+    sliderState.activePosition = parseInt(
+      activeOption.getAttribute("data-position")
+    );
+
+    // Initial position of borders off-screen
+    resetBorderAnimation();
+  }
+
+  // Reset border animation by moving borders off-screen
+  function resetBorderAnimation() {
+    const selectorRect = themeSelector.getBoundingClientRect();
+
+    // Determine the direction to position borders off-screen
+    const direction = sliderState.entryDirection || "left";
+
+    // Instantly position off-screen (no animation)
+    setBorderTransition(true);
+
+    if (direction === "left") {
+      borderTop.style.transform = "translateX(-100%)";
+      borderBottom.style.transform = "translateX(-100%)";
+    } else {
+      borderTop.style.transform = `translateX(${selectorRect.width}px)`;
+      borderBottom.style.transform = `translateX(${selectorRect.width}px)`;
+    }
+
+    // Restore transition
+    setBorderTransition(false);
+
+    sliderState.currentHoveredOption = null;
+    sliderState.isAnimating = false;
+    sliderState.buttonWidth = 0;
+  }
+
+  // Determine animation direction based on active option and mouse position
+  function getAnimationDirection() {
+    // If the right button is active (position 3), animation always starts from the right
+    if (sliderState.activePosition === 3) {
+      return "right";
+    }
+    // If the left button is active (position 1), animation always starts from the left
+    else if (sliderState.activePosition === 1) {
+      return "left";
+    }
+    // If the center button is active (position 2), determine based on mouse entry
+    else {
+      return sliderState.mouseEnteredFromRight ? "right" : "left";
+    }
+  }
+
+  // Find which option the mouse is over
+  function findHoveredOption(mouseX) {
+    let hoveredOption = null;
+
+    options.forEach((option) => {
+      const rect = option.getBoundingClientRect();
+      if (mouseX >= rect.left && mouseX <= rect.right) {
+        hoveredOption = option;
+      }
+    });
+
+    return hoveredOption;
+  }
+
+  // Animation to move borders in from edge
+  function animateBordersIn(hoveredOption, fromDirection) {
+    if (!hoveredOption || sliderState.isAnimating) {
+      return;
+    }
+
+    // If a button was just selected and we're hovering the active button,
+    // don't trigger the animation
+    if (
+      sliderState.buttonJustSelected &&
+      hoveredOption.classList.contains("active")
+    ) {
+      return;
+    }
+
+    sliderState.isAnimating = true;
+    sliderState.entryDirection = fromDirection;
+
+    // Get dimensions
+    const selectorRect = themeSelector.getBoundingClientRect();
+
+    // Calculate border width and position
+    const borderWidth = calculateBorderWidth();
+    const borderLeft = calculateBorderPosition(hoveredOption, selectorRect);
+
+    // Store calculated button width for later
+    sliderState.buttonWidth = borderWidth;
+
+    // Set the border width to the shortest text width
+    borderTop.style.width = `${borderWidth}px`;
+    borderBottom.style.width = `${borderWidth}px`;
+
+    // Make sure borders are positioned off-screen first
+    resetBorderAnimation();
+
+    // Now animate to centered position
+    updateBorderTransform(borderLeft);
+
+    // After animation completes
+    setTimeout(() => {
+      sliderState.isAnimating = false;
+
+      // If mouse has moved to a different button during animation
+      if (sliderState.insideSlider) {
+        const currentHoveredOption = findHoveredOption(globalMouseX);
+
+        if (currentHoveredOption && currentHoveredOption !== hoveredOption) {
+          // Animate to the current position
+          updateBorderPosition(globalMouseX);
+        }
+      } else {
+        // If mouse is no longer in the slider, animate out
+        animateBordersOut();
+      }
+    }, ANIMATION_DURATION);
+
+    // Save current hovered option
+    sliderState.currentHoveredOption = hoveredOption;
+  }
+
+  // Animation to move borders out to edge
+  function animateBordersOut() {
+    if (sliderState.isAnimating) {
+      return;
+    }
+
+    sliderState.isAnimating = true;
+
+    const direction = sliderState.entryDirection;
+    const selectorRect = themeSelector.getBoundingClientRect();
+
+    // Animate borders off-screen in the same direction they came from
+    if (direction === "left") {
+      borderTop.style.transform = "translateX(-100%)";
+      borderBottom.style.transform = "translateX(-100%)";
+    } else {
+      borderTop.style.transform = `translateX(${selectorRect.width}px)`;
+      borderBottom.style.transform = `translateX(${selectorRect.width}px)`;
+    }
+
+    // After animation completes
+    setTimeout(() => {
+      sliderState.isAnimating = false;
+      sliderState.currentHoveredOption = null;
+    }, ANIMATION_DURATION);
+  }
+
+  // Update border position based on mouse
+  function updateBorderPosition(mouseX) {
+    // If animating, don't update position
+    if (sliderState.isAnimating) {
+      return;
+    }
+
+    const selectorRect = themeSelector.getBoundingClientRect();
+
+    // Find which button the mouse is over
+    let hoveredOption = findHoveredOption(mouseX);
+
+    if (!hoveredOption) return;
+
+    // If a button was just selected and we're hovering the active button,
+    // don't update border position
+    if (
+      sliderState.buttonJustSelected &&
+      hoveredOption.classList.contains("active")
+    ) {
+      return;
+    }
+
+    // If we've moved to a different button
+    if (hoveredOption !== sliderState.currentHoveredOption) {
+      // Update the current hovered option
+      sliderState.currentHoveredOption = hoveredOption;
+
+      // Calculate new border position
+      const borderLeft = calculateBorderPosition(hoveredOption, selectorRect);
+
+      // Apply transform immediately without animation
+      updateBorderTransform(borderLeft);
+      return;
+    }
+
+    // For mouse following within the same button we'll center the border
+    // instead of following the mouse to keep it clean
+    const borderLeft = calculateBorderPosition(hoveredOption, selectorRect);
+
+    // Apply transform to move borders
+    updateBorderTransform(borderLeft);
+  }
+
+  // Update mouse state based on position
+  function updateSliderState(isInside) {
+    sliderState.insideSlider = isInside;
+
+    if (isInside) {
+      const selectorRect = themeSelector.getBoundingClientRect();
+      const selectorMidpoint = selectorRect.left + selectorRect.width / 2;
+      sliderState.mouseEnteredFromRight = globalMouseX > selectorMidpoint;
+
+      // If borders are not animating and not visible
+      if (!sliderState.isAnimating && !sliderState.currentHoveredOption) {
+        const hoveredOption = findHoveredOption(globalMouseX);
+        if (hoveredOption) {
+          // Skip animation if a button was just selected and we're hovering the active button
+          if (
+            sliderState.buttonJustSelected &&
+            hoveredOption.classList.contains("active")
+          ) {
+            return;
           }
-        }, ANIMATION_DURATION);
 
-        // Save current hovered option
-        sliderState.currentHoveredOption = hoveredOption;
+          const fromDirection = getAnimationDirection();
+          animateBordersIn(hoveredOption, fromDirection);
+        }
       }
-
-      // Animation to move borders out to edge
-      function animateBordersOut() {
-        if (sliderState.isAnimating) {
-          return;
-        }
-
-        sliderState.isAnimating = true;
-
-        const direction = sliderState.entryDirection;
-        const selectorRect = themeSelector.getBoundingClientRect();
-
-        // Animate borders off-screen in the same direction they came from
-        if (direction === "left") {
-          borderTop.style.transform = "translateX(-100%)";
-          borderBottom.style.transform = "translateX(-100%)";
-        } else {
-          borderTop.style.transform = `translateX(${selectorRect.width}px)`;
-          borderBottom.style.transform = `translateX(${selectorRect.width}px)`;
-        }
-
-        // After animation completes
-        setTimeout(() => {
-          sliderState.isAnimating = false;
-          sliderState.currentHoveredOption = null;
-        }, ANIMATION_DURATION);
+    } else {
+      // If mouse left the slider and borders are visible but not animating
+      if (!sliderState.isAnimating && sliderState.currentHoveredOption) {
+        animateBordersOut();
       }
+    }
+  }
 
-      // Update border position based on mouse
-      function updateBorderPosition(mouseX) {
-        // If animating, don't update position
-        if (sliderState.isAnimating) {
-          return;
-        }
+  // Set up mouse events for the slider
+  function setupMouseEvents() {
+    // Track mouse entry to the selector
+    themeSelector.addEventListener("mouseenter", () => {
+      // Update slider state
+      updateSliderState(true);
 
-        const selectorRect = themeSelector.getBoundingClientRect();
+      // Find which option the mouse is over
+      const hoveredOption = findHoveredOption(globalMouseX);
 
-        // Find which button the mouse is over
-        let hoveredOption = findHoveredOption(mouseX);
-
-        if (!hoveredOption) return;
-
-        // If a button was just selected and we're hovering the active button,
-        // don't update border position
+      if (hoveredOption && !sliderState.isAnimating) {
+        // Skip animation if a button was just selected and we're hovering the active button
         if (
           sliderState.buttonJustSelected &&
           hoveredOption.classList.contains("active")
@@ -997,282 +1038,263 @@
           return;
         }
 
-        // If we've moved to a different button
-        if (hoveredOption !== sliderState.currentHoveredOption) {
-          // Update the current hovered option
-          sliderState.currentHoveredOption = hoveredOption;
-
-          // Calculate new border position
-          const borderLeft = calculateBorderPosition(
-            hoveredOption,
-            selectorRect
-          );
-
-          // Apply transform immediately without animation
-          updateBorderTransform(borderLeft);
-          return;
-        }
-
-        // For mouse following within the same button we'll center the border
-        // instead of following the mouse to keep it clean
-        const borderLeft = calculateBorderPosition(hoveredOption, selectorRect);
-
-        // Apply transform to move borders
-        updateBorderTransform(borderLeft);
+        // Determine animation direction and start animation
+        const fromDirection = getAnimationDirection();
+        animateBordersIn(hoveredOption, fromDirection);
       }
+    });
 
-      // Update mouse state based on position
-      function updateSliderState(isInside) {
-        sliderState.insideSlider = isInside;
+    // Track mouse movements over the entire selector
+    themeSelector.addEventListener("mousemove", () => {
+      // Update border position based on mouse
+      if (sliderState.insideSlider && !sliderState.isAnimating) {
+        const hoveredOption = findHoveredOption(globalMouseX);
 
-        if (isInside) {
-          const selectorRect = themeSelector.getBoundingClientRect();
-          const selectorMidpoint = selectorRect.left + selectorRect.width / 2;
-          sliderState.mouseEnteredFromRight = globalMouseX > selectorMidpoint;
-
-          // If borders are not animating and not visible
-          if (!sliderState.isAnimating && !sliderState.currentHoveredOption) {
-            const hoveredOption = findHoveredOption(globalMouseX);
-            if (hoveredOption) {
-              // Skip animation if a button was just selected and we're hovering the active button
-              if (
-                sliderState.buttonJustSelected &&
-                hoveredOption.classList.contains("active")
-              ) {
-                return;
-              }
-
-              const fromDirection = getAnimationDirection();
-              animateBordersIn(hoveredOption, fromDirection);
-            }
-          }
-        } else {
-          // If mouse left the slider and borders are visible but not animating
-          if (!sliderState.isAnimating && sliderState.currentHoveredOption) {
-            animateBordersOut();
-          }
-        }
-      }
-
-      // Set up mouse events for the slider
-      function setupMouseEvents() {
-        // Track mouse entry to the selector
-        themeSelector.addEventListener("mouseenter", () => {
-          // Update slider state
-          updateSliderState(true);
-
-          // Find which option the mouse is over
-          const hoveredOption = findHoveredOption(globalMouseX);
-
-          if (hoveredOption && !sliderState.isAnimating) {
-            // Skip animation if a button was just selected and we're hovering the active button
-            if (
-              sliderState.buttonJustSelected &&
-              hoveredOption.classList.contains("active")
-            ) {
-              return;
-            }
-
-            // Determine animation direction and start animation
-            const fromDirection = getAnimationDirection();
-            animateBordersIn(hoveredOption, fromDirection);
-          }
-        });
-
-        // Track mouse movements over the entire selector
-        themeSelector.addEventListener("mousemove", () => {
-          // Update border position based on mouse
-          if (sliderState.insideSlider && !sliderState.isAnimating) {
-            const hoveredOption = findHoveredOption(globalMouseX);
-
-            // Always check if we're hovering a non-active button to reset the flag
-            if (hoveredOption && !hoveredOption.classList.contains("active")) {
-              sliderState.buttonJustSelected = false;
-            }
-
-            updateBorderPosition(globalMouseX);
-          }
-        });
-
-        // Handle mouse leave
-        themeSelector.addEventListener("mouseleave", () => {
-          // Update slider state
-          updateSliderState(false);
-
-          // Reset the buttonJustSelected flag when mouse leaves the slider
+        // Always check if we're hovering a non-active button to reset the flag
+        if (hoveredOption && !hoveredOption.classList.contains("active")) {
           sliderState.buttonJustSelected = false;
-        });
+        }
+
+        updateBorderPosition(globalMouseX);
       }
+    });
 
-      // Modified to accept a skipAnimation parameter for programmatic calls
-      function setActiveOption(option, skipAnimation = false) {
-        if (option.classList.contains("active")) {
-          return; // Already active, no change needed
-        }
+    // Handle mouse leave
+    themeSelector.addEventListener("mouseleave", () => {
+      // Update slider state
+      updateSliderState(false);
 
-        // If border is visible, make it instantly disappear instead of animating out
-        if (sliderState.currentHoveredOption && !sliderState.isAnimating) {
-          // Instantly remove borders (no animation)
-          setBorderTransition(true);
-          borderTop.style.transform = "translateX(-9999px)";
-          borderBottom.style.transform = "translateX(-9999px)";
+      // Reset the buttonJustSelected flag when mouse leaves the slider
+      sliderState.buttonJustSelected = false;
+    });
+  }
 
-          // Reset state
-          sliderState.currentHoveredOption = null;
-          sliderState.isAnimating = false;
+  // Modified to accept a skipAnimation parameter for programmatic calls
+  function setActiveOption(option, skipAnimation = false) {
+    if (option.classList.contains("active")) {
+      return; // Already active, no change needed
+    }
 
-          // Restore transition
-          setBorderTransition(false);
-        }
+    // If border is visible, make it instantly disappear instead of animating out
+    if (sliderState.currentHoveredOption && !sliderState.isAnimating) {
+      // Instantly remove borders (no animation)
+      setBorderTransition(true);
+      borderTop.style.transform = "translateX(-9999px)";
+      borderBottom.style.transform = "translateX(-9999px)";
 
-        // Remove active class from all options
-        options.forEach((opt) => {
-          opt.classList.remove("active");
-        });
+      // Reset state
+      sliderState.currentHoveredOption = null;
+      sliderState.isAnimating = false;
 
-        // Add active class to clicked option
-        option.classList.add("active");
+      // Restore transition
+      setBorderTransition(false);
+    }
 
-        // Update active position
-        sliderState.activePosition = parseInt(
-          option.getAttribute("data-position")
-        );
+    // Remove active class from all options
+    options.forEach((opt) => {
+      opt.classList.remove("active");
+    });
 
-        // Move the selector background
-        const optionRect = option.getBoundingClientRect();
-        const selectorRect = themeSelector.getBoundingClientRect();
+    // Add active class to clicked option
+    option.classList.add("active");
 
-        // Calculate the left position relative to the selector
-        const leftPosition = optionRect.left - selectorRect.left;
+    // Update active position
+    sliderState.activePosition = parseInt(option.getAttribute("data-position"));
 
-        // Skip animation for programmatic calls if requested
-        if (skipAnimation) {
-          selectorBackground.style.transition = "none";
-        } else {
-          // Use fixed animation timing for background slide
-          selectorBackground.style.transition =
-            "left 0.5s cubic-bezier(0.77, 0, 0.175, 1), width 0.5s cubic-bezier(0.77, 0, 0.175, 1)";
-        }
+    // Move the selector background
+    const optionRect = option.getBoundingClientRect();
+    const selectorRect = themeSelector.getBoundingClientRect();
 
-        // Since all buttons are equal width, we can reuse the stored width
-        selectorBackground.style.width = optionRect.width + "px";
-        selectorBackground.style.left = leftPosition + "px";
+    // Calculate the left position relative to the selector
+    const leftPosition = optionRect.left - selectorRect.left;
 
-        // Force reflow when skipping animation
-        if (skipAnimation) {
-          void selectorBackground.offsetWidth;
+    // Skip animation for programmatic calls if requested
+    if (skipAnimation) {
+      selectorBackground.style.transition = "none";
+    } else {
+      // Use fixed animation timing for background slide
+      selectorBackground.style.transition =
+        "left 0.5s cubic-bezier(0.77, 0, 0.175, 1), width 0.5s cubic-bezier(0.77, 0, 0.175, 1)";
+    }
 
-          // Restore transition after applying changes
-          setTimeout(() => {
-            selectorBackground.style.transition =
-              "left 0.5s cubic-bezier(0.77, 0, 0.175, 1), width 0.5s cubic-bezier(0.77, 0, 0.175, 1)";
-          }, 0);
-        }
+    // Since all buttons are equal width, we can reuse the stored width
+    selectorBackground.style.width = optionRect.width + "px";
+    selectorBackground.style.left = leftPosition + "px";
 
-        // Set button just selected flag
-        sliderState.buttonJustSelected = true;
+    // Force reflow when skipping animation
+    if (skipAnimation) {
+      void selectorBackground.offsetWidth;
 
-        // Get the theme name
-        const themeName = option
-          .querySelector("h3")
-          .textContent.toLowerCase()
-          .replace(" theme", "");
-
-        // Apply the selected theme
-        applyThemeByName(themeName);
-
-        // Recalculate shortest text width when text content changes
-        calculateShortestTextWidth();
-      }
-
-      // Handle window resize to re-equalize button widths
-      window.addEventListener("resize", () => {
-        // Re-equalize button widths
-        equalizeButtonWidths();
-
-        // Update the active button background
-        const activeOption = document.querySelector(".option.active");
-        const selectorRect = themeSelector.getBoundingClientRect();
-        const optionRect = activeOption.getBoundingClientRect();
-
-        selectorBackground.style.transition = "none";
-        selectorBackground.style.width = optionRect.width + "px";
-        selectorBackground.style.left =
-          optionRect.left - selectorRect.left + "px";
-
-        // Force reflow
-        void selectorBackground.offsetWidth;
-
-        // Restore transition
+      // Restore transition after applying changes
+      setTimeout(() => {
         selectorBackground.style.transition =
           "left 0.5s cubic-bezier(0.77, 0, 0.175, 1), width 0.5s cubic-bezier(0.77, 0, 0.175, 1)";
+      }, 0);
+    }
+
+    // Set button just selected flag
+    sliderState.buttonJustSelected = true;
+
+    // Get the theme name
+    const themeName = option
+      .querySelector("h3")
+      .textContent.toLowerCase()
+      .replace(" theme", "");
+
+    // Apply the selected theme
+    applyThemeByName(themeName);
+
+    // Recalculate shortest text width when text content changes
+    calculateShortestTextWidth();
+  }
+
+  // Handle window resize to re-equalize button widths
+  window.addEventListener("resize", () => {
+    // Re-equalize button widths
+    equalizeButtonWidths();
+
+    // Update the active button background
+    const activeOption = document.querySelector(".option.active");
+    const selectorRect = themeSelector.getBoundingClientRect();
+    const optionRect = activeOption.getBoundingClientRect();
+
+    selectorBackground.style.transition = "none";
+    selectorBackground.style.width = optionRect.width + "px";
+    selectorBackground.style.left = optionRect.left - selectorRect.left + "px";
+
+    // Force reflow
+    void selectorBackground.offsetWidth;
+
+    // Restore transition
+    selectorBackground.style.transition =
+      "left 0.5s cubic-bezier(0.77, 0, 0.175, 1), width 0.5s cubic-bezier(0.77, 0, 0.175, 1)";
+  });
+
+  // Add a mutation observer to recalculate if button text changes
+  function setupMutationObserver() {
+    // Create a new observer
+    const observer = new MutationObserver((mutations) => {
+      let textChanged = false;
+
+      // Check if any mutations changed the text content
+      mutations.forEach((mutation) => {
+        if (
+          mutation.type === "characterData" ||
+          mutation.type === "childList"
+        ) {
+          textChanged = true;
+        }
       });
 
-      // Add a mutation observer to recalculate if button text changes
-      function setupMutationObserver() {
-        // Create a new observer
-        const observer = new MutationObserver((mutations) => {
-          let textChanged = false;
-
-          // Check if any mutations changed the text content
-          mutations.forEach((mutation) => {
-            if (
-              mutation.type === "characterData" ||
-              mutation.type === "childList"
-            ) {
-              textChanged = true;
-            }
-          });
-
-          // If text changed, recalculate shortest width and equalize buttons
-          if (textChanged) {
-            equalizeButtonWidths();
-          }
-        });
-
-        // Observe all button text elements for changes
-        options.forEach((option) => {
-          const h3 = option.querySelector("h3");
-          observer.observe(h3, {
-            characterData: true,
-            childList: true,
-            subtree: true,
-          });
-        });
+      // If text changed, recalculate shortest width and equalize buttons
+      if (textChanged) {
+        equalizeButtonWidths();
       }
+    });
 
-      // Initialize everything
-      window.onload = function () {
-        // Initialize sliders from CSS variables
-        initializeSlidersFromCSS();
+    // Observe all button text elements for changes
+    options.forEach((option) => {
+      const h3 = option.querySelector("h3");
+      observer.observe(h3, {
+        characterData: true,
+        childList: true,
+        subtree: true,
+      });
+    });
+  }
 
-        // Initialize CSS variables with default values
-        updateCSSVariables();
+  // Load saved theme preference on initialization
+  function loadSavedThemePreference() {
+    const savedTheme = localStorage.getItem("themePreference");
+    if (savedTheme) {
+      // Find the corresponding option
+      const themePosition =
+        savedTheme === "light" ? 1 : savedTheme === "dark" ? 3 : 2;
+      const option = document.querySelector(
+        `.option[data-position="${themePosition}"]`
+      );
+      if (option) {
+        setActiveOption(option, true);
+      }
+    }
+  }
 
-        // Disable transition for initial positioning
-        selectorBackground.style.transition = "none";
+  // Initialize everything
+  document.addEventListener("DOMContentLoaded", function () {
+    // Initialize sliders from CSS variables
+    initializeSlidersFromCSS();
 
-        // Initialize selector
-        initializeSelector();
+    // Initialize CSS variables with default values
+    updateCSSVariables();
 
-        // Apply system theme based on system preference
-        applySystemTheme();
+    // Disable transition for initial positioning
+    selectorBackground.style.transition = "none";
 
-        // Re-enable transitions after initial positioning with fixed timing
-        setTimeout(() => {
-          selectorBackground.style.transition =
-            "left 0.5s cubic-bezier(0.77, 0, 0.175, 1), width 0.5s cubic-bezier(0.77, 0, 0.175, 1)";
-        }, 50);
+    // Initialize selector
+    initializeSelector();
 
-        // Set up mouse events
-        setupMouseEvents();
+    // Load saved theme preference
+    loadSavedThemePreference();
 
-        // Set up mutation observer to watch for text changes
-        setupMutationObserver();
+    // Apply system theme based on system preference if no saved preference
+    if (!localStorage.getItem("themePreference")) {
+      applySystemTheme();
+    }
 
-        // Start continuous monitoring to catch mouse events that might be missed
-        startContinuousMonitoring();
-      };
-    </script>
-  </body>
-</html>
+    // Re-enable transitions after initial positioning with fixed timing
+    setTimeout(() => {
+      selectorBackground.style.transition =
+        "left 0.5s cubic-bezier(0.77, 0, 0.175, 1), width 0.5s cubic-bezier(0.77, 0, 0.175, 1)";
+    }, 50);
+
+    // Set up mouse events
+    setupMouseEvents();
+
+    // Set up mutation observer to watch for text changes
+    setupMutationObserver();
+
+    // Start continuous monitoring to catch mouse events that might be missed
+    startContinuousMonitoring();
+  });
+
+  // Initialize if DOM is already loaded
+  if (
+    document.readyState === "interactive" ||
+    document.readyState === "complete"
+  ) {
+    // Initialize sliders from CSS variables
+    initializeSlidersFromCSS();
+
+    // Initialize CSS variables with default values
+    updateCSSVariables();
+
+    // Disable transition for initial positioning
+    selectorBackground.style.transition = "none";
+
+    // Initialize selector
+    initializeSelector();
+
+    // Load saved theme preference
+    loadSavedThemePreference();
+
+    // Apply system theme based on system preference if no saved preference
+    if (!localStorage.getItem("themePreference")) {
+      applySystemTheme();
+    }
+
+    // Re-enable transitions after initial positioning with fixed timing
+    setTimeout(() => {
+      selectorBackground.style.transition =
+        "left 0.5s cubic-bezier(0.77, 0, 0.175, 1), width 0.5s cubic-bezier(0.77, 0, 0.175, 1)";
+    }, 50);
+
+    // Set up mouse events
+    setupMouseEvents();
+
+    // Set up mutation observer to watch for text changes
+    setupMutationObserver();
+
+    // Start continuous monitoring to catch mouse events that might be missed
+    startContinuousMonitoring();
+  }
+</script>
