@@ -18,17 +18,17 @@ function initThemeSelector() {
   const themeSelectorElement = document.querySelector(".theme-selector");
   if (!themeSelectorElement) return;
 
-  // Check if theme selector is initialized
+  // Check if themeSelector is defined in the global scope
   if (
-    typeof themeSelector === "undefined" ||
-    typeof themeSelector.init !== "function"
+    typeof window.themeSelector === "undefined" ||
+    typeof window.themeSelector.init !== "function"
   ) {
     console.warn("Theme selector not available yet");
     return;
   }
 
   // Initialize the theme selector
-  themeSelector.init();
+  window.themeSelector.init();
 
   // Load saved theme preference
   const savedTheme = localStorage.getItem("userThemePreference");
@@ -40,7 +40,7 @@ function initThemeSelector() {
     };
 
     if (themeOptions[savedTheme]) {
-      themeSelector.setActiveOption(themeOptions[savedTheme], true);
+      window.themeSelector.setActiveOption(themeOptions[savedTheme], true);
     }
   }
 
