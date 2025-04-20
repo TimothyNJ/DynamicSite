@@ -12,6 +12,36 @@ body {
   --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.2)), 30vw);
   --collapse-breakpoint: #{$collapse-breakpoint};
   --navbar-height: auto;
+
+  /* Theme variables */
+  /* Light theme page range */
+  --light-page-start: #4b5b62;
+  --light-page-end: #ffffff;
+
+  /* Dark theme page range */
+  --dark-page-start: #000000;
+  --dark-page-end: #96b7c4;
+
+  /* Light theme slider container range */
+  --light-slider-start: #7c8e94; /* 34% of range between #4b5b62 and #ffffff */
+  --light-slider-end: #a0b2b8; /* 68% of range between #4b5b62 and #ffffff */
+
+  /* Dark theme slider container range */
+  --dark-slider-start: #384c59; /* 34% of range between #000000 and #96b7c4 */
+  --dark-slider-end: #6c7f8b; /* 68% of range between #000000 and #96b7c4 */
+
+  /* Active button gradient colors */
+  --active-button-start: #6a0dad; /* Purple */
+  --active-button-end: #4169e1; /* Royal Blue */
+
+  /* Store percentage values for JavaScript to read */
+  --light-slider-start-percent: 34;
+  --light-slider-end-percent: 68;
+  --dark-slider-start-percent: 34;
+  --dark-slider-end-percent: 68;
+
+  /* Define inverse color variable */
+  --inv: #ffffff;
 }
 
 /* Site Outer Padding Elimination */
