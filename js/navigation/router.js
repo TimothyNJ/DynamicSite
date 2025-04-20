@@ -96,6 +96,40 @@ export async function navigateToPage(pageName, pushState = true) {
       detail: { pageName },
     });
     document.dispatchEvent(pageLoadEvent);
+
+    // Load page-specific resources
+    if (pageName === "settings") {
+      // Load theme selector resources if not already loaded
+      if (!document.getElementById("theme-selector-style")) {
+        const themeStyle = document.createElement("link");
+        themeStyle.id = "theme-selector-style";
+        themeStyle.rel = "stylesheet";
+        themeStyle.href = "styles/theme-selector.css";
+        document.head.appendChild(themeStyle);
+      }
+
+      // Load theme selector scripts if not already loaded
+      if (!window.themeSelector) {
+        const themeScript = document.createElement("script");
+        themeScript.src = "js/settings/theme-selector.js";
+        themeScript.onload = () => {
+          const integrationScript = document.createElement("script");
+          integrationScript.src = "js/settings/theme-integration.js";
+          document.body.appendChild(integrationScript);
+        };
+        document.body.appendChild(themeScript);
+      } else {
+        // If scripts are already loaded, just initialize
+        setTimeout(() => {
+          if (
+            typeof themeSelector !== "undefined" &&
+            typeof themeSelector.init === "function"
+          ) {
+            themeSelector.init();
+          }
+        }, 50);
+      }
+    }
   } catch (error) {
     console.error("Error loading page:", error);
   }
