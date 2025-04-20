@@ -68,18 +68,29 @@ window.themeSelector = (function () {
   function applyThemeByName(themeName, skipThemeDetection = false) {
     const body = document.body;
 
+    // Ensure --inv is always set to white for the theme selector
+    document.documentElement.style.setProperty("--inv", "#ffffff");
+
     if (themeName === "light") {
       body.setAttribute("data-theme", "light");
       body.style.backgroundImage =
         "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
       _themeSelector.style.background =
         "linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)";
+      // Ensure theme selector text is white
+      _options.forEach((option) => {
+        option.querySelector("h3").style.color = "#ffffff";
+      });
     } else if (themeName === "dark") {
       body.setAttribute("data-theme", "dark");
       body.style.backgroundImage =
         "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
       _themeSelector.style.background =
         "linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)";
+      // Ensure theme selector text is white
+      _options.forEach((option) => {
+        option.querySelector("h3").style.color = "#ffffff";
+      });
     } else if (themeName === "system" && !skipThemeDetection) {
       const prefersDark =
         window.matchMedia &&
@@ -255,6 +266,14 @@ window.themeSelector = (function () {
 
     // Initial position of borders off-screen
     resetBorderAnimation();
+
+    // Ensure text color is white for all options
+    _options.forEach((option) => {
+      const h3 = option.querySelector("h3");
+      if (h3) {
+        h3.style.color = "#ffffff";
+      }
+    });
   }
 
   // Reset border animation by moving borders off-screen
@@ -602,14 +621,27 @@ window.themeSelector = (function () {
     // Set button just selected flag
     sliderState.buttonJustSelected = true;
 
-    // Get the theme name from data-theme attribute
-    const themeName = option.getAttribute("data-theme");
+    // Get the theme name from data-theme attribute or from text
+    const themeName =
+      option.getAttribute("data-theme") ||
+      option
+        .querySelector("h3")
+        .textContent.toLowerCase()
+        .replace(" theme", "");
 
     // Apply the selected theme
     applyThemeByName(themeName);
 
     // Save preference to localStorage
     localStorage.setItem("userThemePreference", themeName);
+
+    // Ensure text is white for all options (after theme change)
+    _options.forEach((opt) => {
+      const h3 = opt.querySelector("h3");
+      if (h3) {
+        h3.style.color = "#ffffff";
+      }
+    });
 
     // Recalculate shortest text width when text content changes
     calculateShortestTextWidth();
@@ -687,6 +719,9 @@ window.themeSelector = (function () {
       return false;
     }
 
+    // Set --inv variable to white at the document root level
+    document.documentElement.style.setProperty("--inv", "#ffffff");
+
     // Disable transition for initial positioning
     _selectorBackground.style.transition = "none";
 
@@ -724,6 +759,14 @@ window.themeSelector = (function () {
 
     // Start continuous monitoring to catch mouse events that might be missed
     startContinuousMonitoring();
+
+    // Force white text for all options
+    _options.forEach((option) => {
+      const h3 = option.querySelector("h3");
+      if (h3) {
+        h3.style.color = "#ffffff";
+      }
+    });
 
     return true;
   }
