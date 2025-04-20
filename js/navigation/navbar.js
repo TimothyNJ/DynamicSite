@@ -124,3 +124,6 @@ export function updateMenuContent() {
     }
   });
 }
+
+// Make updateMenuContent available globally for router.js
+window.updateMenuContent = updateMenuContent;
