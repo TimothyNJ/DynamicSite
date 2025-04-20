@@ -527,6 +527,15 @@ window.themeSelector = (function () {
     });
   }
 
+  // Add click handlers to the theme options
+  function setupOptionClickHandlers() {
+    document.querySelectorAll(".theme-selector .option").forEach((option) => {
+      option.addEventListener("click", function () {
+        setActiveOption(this);
+      });
+    });
+  }
+
   // Public function to set active option
   function setActiveOption(option, skipAnimation = false) {
     if (option.classList.contains("active")) {
@@ -593,14 +602,14 @@ window.themeSelector = (function () {
     // Set button just selected flag
     sliderState.buttonJustSelected = true;
 
-    // Get the theme name
-    const themeName = option
-      .querySelector("h3")
-      .textContent.toLowerCase()
-      .replace(" theme", "");
+    // Get the theme name from data-theme attribute
+    const themeName = option.getAttribute("data-theme");
 
     // Apply the selected theme
     applyThemeByName(themeName);
+
+    // Save preference to localStorage
+    localStorage.setItem("userThemePreference", themeName);
 
     // Recalculate shortest text width when text content changes
     calculateShortestTextWidth();
@@ -703,6 +712,9 @@ window.themeSelector = (function () {
     // Set up mouse events
     setupMouseEvents();
     setupMouseTracking();
+
+    // Set up click handlers on options
+    setupOptionClickHandlers();
 
     // Set up resize handler
     setupResizeHandler();
