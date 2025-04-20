@@ -97,6 +97,11 @@ export async function navigateToPage(pageName, pushState = true) {
     });
     document.dispatchEvent(pageLoadEvent);
 
+    // Update collapsed navbar menu
+    if (typeof window.updateMenuContent === "function") {
+      window.updateMenuContent();
+    }
+
     // Load page-specific resources
     if (pageName === "settings") {
       // Load theme selector resources if not already loaded
@@ -122,10 +127,10 @@ export async function navigateToPage(pageName, pushState = true) {
         // If scripts are already loaded, just initialize
         setTimeout(() => {
           if (
-            typeof themeSelector !== "undefined" &&
-            typeof themeSelector.init === "function"
+            typeof window.themeSelector !== "undefined" &&
+            typeof window.themeSelector.init === "function"
           ) {
-            themeSelector.init();
+            window.themeSelector.init();
           }
         }, 50);
       }
