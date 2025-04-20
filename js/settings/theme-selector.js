@@ -1,5 +1,5 @@
 // Theme Selector Module
-const themeSelector = (function () {
+window.themeSelector = (function () {
   // Private variables
   let _themeSelector;
   let _selectorBackground;
