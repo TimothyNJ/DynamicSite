@@ -143,10 +143,13 @@ export async function navigateToPage(pageName, pushState = true) {
     // Initialize theme selector if we're on the settings page
     if (
       pageName === "settings" &&
-      window.themeSelector &&
-      window.themeSelector.init
+      window.sliderButtons &&
+      window.sliderButtons.init
     ) {
-      window.themeSelector.init();
+      // Use a slight delay to ensure DOM is ready
+      setTimeout(() => {
+        window.sliderButtons.init();
+      }, 100);
     }
   } catch (error) {
     console.error("Error loading page:", error);
