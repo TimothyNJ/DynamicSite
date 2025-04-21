@@ -26,7 +26,7 @@
     }
 
     // Initialize the theme selector
-    console.log("Initializing theme selector");
+    console.log("Initializing theme selector from integration.js");
     const result = window.sliderButtons.init();
     console.log("Theme selector initialization result:", result);
 
@@ -46,18 +46,7 @@
     }
   }
 
-  // Wait for page to be fully loaded
-  if (document.readyState === "complete") {
-    // Page already loaded
-    setTimeout(initThemeSelector, 300);
-  } else {
-    // Wait for page to finish loading
-    window.addEventListener("load", function () {
-      setTimeout(initThemeSelector, 300);
-    });
-  }
-
-  // Also try to initialize when the settings page is loaded via router
+  // Only initialize via pageLoaded event to avoid double initialization
   document.addEventListener("pageLoaded", function (event) {
     if (event.detail && event.detail.pageName === "settings") {
       console.log("Settings page loaded event detected");
