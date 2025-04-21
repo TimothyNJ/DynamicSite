@@ -12,6 +12,13 @@ const pagePathMap = {
 // Store the active page to avoid reloading the same page
 let activePage = null;
 
+// Keep track of preloaded resources
+const preloadedResources = {
+  sliderStylesheet: false,
+  sliderScript: false,
+  sliderIntegration: false,
+};
+
 // Initialize the router
 export function initRouter() {
   // Set up click handlers for navigation buttons
@@ -21,6 +28,9 @@ export function initRouter() {
       navigateToPage(pageName);
     });
   });
+
+  // Preload slider resources in the background for faster transitions
+  preloadSliderResources();
 
   // Load the initial page (either from URL or default to home)
   const initialPage = getPageFromURL() || "home";
@@ -40,54 +50,100 @@ function getPageFromURL() {
   return hash || null;
 }
 
-// Load the slider resources and return a promise
-function loadSliderResources() {
-  return new Promise((resolve) => {
-    // Load slider stylesheet if not already loaded
-    if (!document.getElementById("slider-buttons-style")) {
-      const sliderStyle = document.createElement("link");
-      sliderStyle.id = "slider-buttons-style";
-      sliderStyle.rel = "stylesheet";
-      sliderStyle.href = "styles/slider-buttons.css";
-      document.head.appendChild(sliderStyle);
+// Preload slider resources in the background
+function preloadSliderResources() {
+  // Create a container for preloaded resources
+  const preloadContainer = document.createElement("div");
+  preloadContainer.style.display = "none";
+  preloadContainer.id = "preloaded-resources";
+  document.body.appendChild(preloadContainer);
 
-      // Allow a moment for the stylesheet to load
-      setTimeout(() => {
-        // Now load the scripts
-        loadSliderScripts(resolve);
-      }, 100);
-    } else {
-      // Stylesheet already loaded, just load the scripts
-      loadSliderScripts(resolve);
-    }
-  });
-}
+  // Add slider stylesheet
+  if (!document.getElementById("slider-buttons-style")) {
+    const sliderStyle = document.createElement("link");
+    sliderStyle.id = "slider-buttons-style";
+    sliderStyle.rel = "stylesheet";
+    sliderStyle.href = "styles/slider-buttons.css";
+    document.head.appendChild(sliderStyle);
 
-// Helper function to load slider scripts
-function loadSliderScripts(resolve) {
-  // Only load scripts if they're not already loaded
+    sliderStyle.onload = () => {
+      preloadedResources.sliderStylesheet = true;
+      console.log("Slider stylesheet preloaded");
+    };
+  } else {
+    preloadedResources.sliderStylesheet = true;
+  }
+
+  // Preload slider scripts if they're not already loaded
   if (!window.sliderButtons) {
+    // Create and load the main slider script
     const sliderScript = document.createElement("script");
+    sliderScript.id = "slider-buttons-script";
     sliderScript.src = "js/settings/slider-buttons.js";
 
     sliderScript.onload = () => {
+      preloadedResources.sliderScript = true;
+      console.log("Slider buttons script preloaded");
+
       // After main script loads, load the integration script
-      const integrationScript = document.createElement("script");
-      integrationScript.src = "js/settings/slider-integration.js";
+      if (!document.getElementById("slider-integration-script")) {
+        const integrationScript = document.createElement("script");
+        integrationScript.id = "slider-integration-script";
+        integrationScript.src = "js/settings/slider-integration.js";
 
-      integrationScript.onload = () => {
-        // Wait a bit to ensure everything is initialized
-        setTimeout(resolve, 200);
-      };
+        integrationScript.onload = () => {
+          preloadedResources.sliderIntegration = true;
+          console.log("Slider integration script preloaded");
+        };
 
-      document.body.appendChild(integrationScript);
+        document.body.appendChild(integrationScript);
+      }
     };
 
     document.body.appendChild(sliderScript);
   } else {
-    // Scripts already loaded
-    resolve();
+    preloadedResources.sliderScript = true;
+    preloadedResources.sliderIntegration = true;
   }
+}
+
+// Check if slider resources are loaded
+function areSliderResourcesLoaded() {
+  return (
+    preloadedResources.sliderStylesheet &&
+    preloadedResources.sliderScript &&
+    preloadedResources.sliderIntegration
+  );
+}
+
+// Wait for slider resources to be loaded
+function waitForSliderResources() {
+  return new Promise((resolve) => {
+    if (areSliderResourcesLoaded()) {
+      resolve();
+      return;
+    }
+
+    // Check every 50ms until resources are loaded
+    const checkInterval = setInterval(() => {
+      if (areSliderResourcesLoaded()) {
+        clearInterval(checkInterval);
+        resolve();
+      }
+    }, 50);
+
+    // Timeout after 3 seconds to prevent infinite waiting
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      resolve(); // Continue anyway
+    }, 3000);
+  });
+}
+
+// Load the slider resources and return a promise
+async function loadSliderResources() {
+  // If resources are already being preloaded, wait for them
+  return waitForSliderResources();
 }
 
 // Navigate to a specific page
@@ -120,8 +176,13 @@ export async function navigateToPage(pageName, pushState = true) {
       return;
     }
 
-    // For settings page, load resources BEFORE loading content
+    // For settings page, make sure slider resources are loaded before showing content
     if (pageName === "settings") {
+      // Add a loading indicator
+      contentContainer.innerHTML =
+        '<div class="loading-indicator">Loading...</div>';
+
+      // Await slider resources
       await loadSliderResources();
     }
 
