@@ -60,8 +60,8 @@ function loadSliderResources() {
         const integrationScript = document.createElement("script");
         integrationScript.src = "js/settings/slider-integration.js";
         integrationScript.onload = () => {
-          // Give time for scripts to initialize
-          setTimeout(resolve, 100);
+          // Give more time for scripts to initialize
+          setTimeout(resolve, 300);
         };
         document.body.appendChild(integrationScript);
       };
@@ -103,11 +103,6 @@ export async function navigateToPage(pageName, pushState = true) {
       return;
     }
 
-    // For settings page, load slider resources before content
-    if (pageName === "settings") {
-      await loadSliderResources();
-    }
-
     // Fetch the page content
     const response = await fetch(pagePath);
     if (!response.ok) {
@@ -129,6 +124,19 @@ export async function navigateToPage(pageName, pushState = true) {
       window.history.pushState({ page: pageName }, "", `#${pageName}`);
     }
 
+    // For settings page, load slider resources after content is loaded
+    if (pageName === "settings") {
+      await loadSliderResources();
+
+      // Use a longer delay to ensure DOM is fully ready
+      setTimeout(() => {
+        if (window.sliderButtons && window.sliderButtons.init) {
+          console.log("Initializing slider buttons from router");
+          window.sliderButtons.init();
+        }
+      }, 500);
+    }
+
     // Trigger any page-specific initialization
     const pageLoadEvent = new CustomEvent("pageLoaded", {
       detail: { pageName },
@@ -138,18 +146,6 @@ export async function navigateToPage(pageName, pushState = true) {
     // Update collapsed navbar menu
     if (typeof window.updateMenuContent === "function") {
       window.updateMenuContent();
-    }
-
-    // Initialize theme selector if we're on the settings page
-    if (
-      pageName === "settings" &&
-      window.sliderButtons &&
-      window.sliderButtons.init
-    ) {
-      // Use a slight delay to ensure DOM is ready
-      setTimeout(() => {
-        window.sliderButtons.init();
-      }, 100);
     }
   } catch (error) {
     console.error("Error loading page:", error);
