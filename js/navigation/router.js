@@ -45,6 +45,7 @@ function loadThemeResources() {
   return new Promise((resolve) => {
     // Load theme selector stylesheet if not already loaded
     if (!document.getElementById("theme-selector-style")) {
+      console.log("Loading theme-selector.css stylesheet");
       const themeStyle = document.createElement("link");
       themeStyle.id = "theme-selector-style";
       themeStyle.rel = "stylesheet";
@@ -54,14 +55,17 @@ function loadThemeResources() {
 
     // Load theme selector script if not already loaded
     if (!window.themeSelector) {
+      console.log("Loading theme-selector.js script");
       const themeScript = document.createElement("script");
       themeScript.src = "js/settings/theme-selector.js";
       themeScript.onload = () => {
+        console.log("Theme selector script loaded");
         const integrationScript = document.createElement("script");
         integrationScript.src = "js/settings/theme-integration.js";
         integrationScript.onload = () => {
+          console.log("Theme integration script loaded");
           // Give time for scripts to initialize
-          setTimeout(resolve, 100);
+          setTimeout(resolve, 200);
         };
         document.body.appendChild(integrationScript);
       };
@@ -105,6 +109,7 @@ export async function navigateToPage(pageName, pushState = true) {
 
     // For settings page, load theme resources before content
     if (pageName === "settings") {
+      console.log("Loading theme resources for settings page");
       await loadThemeResources();
     }
 
@@ -141,12 +146,19 @@ export async function navigateToPage(pageName, pushState = true) {
     }
 
     // Initialize theme selector if we're on the settings page
-    if (
-      pageName === "settings" &&
-      window.themeSelector &&
-      window.themeSelector.init
-    ) {
-      window.themeSelector.init();
+    if (pageName === "settings") {
+      console.log("Setting page loaded, initializing theme selector");
+      // Allow DOM to update before initializing
+      setTimeout(() => {
+        if (
+          window.themeSelector &&
+          typeof window.themeSelector.init === "function"
+        ) {
+          window.themeSelector.init();
+        } else {
+          console.warn("Theme selector not available");
+        }
+      }, 300);
     }
   } catch (error) {
     console.error("Error loading page:", error);
