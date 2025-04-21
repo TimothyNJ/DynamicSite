@@ -37,6 +37,8 @@ window.sliderButtons = (function () {
   }
 
   function calculateBorderPosition(hoveredOption, selectorRect) {
+    if (!hoveredOption || !selectorRect) return 0;
+
     const hoveredRect = hoveredOption.getBoundingClientRect();
     const buttonLeft = hoveredRect.left - selectorRect.left;
     const buttonCenter = buttonLeft + hoveredRect.width / 2;
@@ -44,6 +46,8 @@ window.sliderButtons = (function () {
   }
 
   function updateBorderTransform(leftPosition) {
+    if (!_borderTop || !_borderBottom) return;
+
     const transformValue = `translateX(${leftPosition}px)`;
     _borderTop.style.transform = transformValue;
     _borderBottom.style.transform = transformValue;
@@ -51,6 +55,8 @@ window.sliderButtons = (function () {
 
   // Utility function for border transitions
   function setBorderTransition(immediate = false) {
+    if (!_borderTop || !_borderBottom) return;
+
     _borderTop.style.transition = immediate
       ? "none"
       : "transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)";
@@ -75,22 +81,32 @@ window.sliderButtons = (function () {
       body.setAttribute("data-theme", "light");
       body.style.backgroundImage =
         "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
-      _themeSelector.style.background =
-        "linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)";
+      if (_themeSelector) {
+        _themeSelector.style.background =
+          "linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)";
+      }
       // Ensure theme selector text is white
-      _options.forEach((option) => {
-        option.querySelector("h3").style.color = "#ffffff";
-      });
+      if (_options) {
+        _options.forEach((option) => {
+          const h3 = option.querySelector("h3");
+          if (h3) h3.style.color = "#ffffff";
+        });
+      }
     } else if (themeName === "dark") {
       body.setAttribute("data-theme", "dark");
       body.style.backgroundImage =
         "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
-      _themeSelector.style.background =
-        "linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)";
+      if (_themeSelector) {
+        _themeSelector.style.background =
+          "linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)";
+      }
       // Ensure theme selector text is white
-      _options.forEach((option) => {
-        option.querySelector("h3").style.color = "#ffffff";
-      });
+      if (_options) {
+        _options.forEach((option) => {
+          const h3 = option.querySelector("h3");
+          if (h3) h3.style.color = "#ffffff";
+        });
+      }
     } else if (themeName === "system" && !skipThemeDetection) {
       const prefersDark =
         window.matchMedia &&
@@ -108,6 +124,8 @@ window.sliderButtons = (function () {
 
   // Calculate shortest text width from all buttons
   function calculateShortestTextWidth() {
+    if (!_options || _options.length === 0) return 100; // Default fallback
+
     let shortestWidth = Infinity;
 
     // Create a temporary span to measure text width
@@ -115,32 +133,50 @@ window.sliderButtons = (function () {
     tempSpan.style.visibility = "hidden";
     tempSpan.style.position = "absolute";
     tempSpan.style.whiteSpace = "nowrap";
-    tempSpan.style.font = getComputedStyle(
-      document.querySelector(".option h3")
-    ).font;
+
+    // Get font style from an option's h3 if available
+    const sampleH3 = document.querySelector(".option h3");
+    if (sampleH3) {
+      tempSpan.style.font = getComputedStyle(sampleH3).font;
+    } else {
+      // Fallback font style
+      tempSpan.style.font =
+        "bold clamp(0.5rem, 1.2vw, 2.3rem) Helvetica, Tahoma, sans-serif";
+    }
+
     document.body.appendChild(tempSpan);
 
     // Measure each text width
     _options.forEach((option) => {
-      const text = option.querySelector("h3").textContent;
-      tempSpan.textContent = text;
-      const width = tempSpan.offsetWidth;
-      shortestWidth = Math.min(shortestWidth, width);
+      const h3 = option.querySelector("h3");
+      if (h3) {
+        const text = h3.textContent;
+        tempSpan.textContent = text;
+        const width = tempSpan.offsetWidth;
+        shortestWidth = Math.min(shortestWidth, width);
+      }
     });
 
     // Remove the temporary element
     document.body.removeChild(tempSpan);
 
-    // Store the result
-    sliderState.shortestTextWidth = shortestWidth;
+    // Store the result, ensure it's at least 50px
+    sliderState.shortestTextWidth = Math.max(shortestWidth, 50);
 
-    return shortestWidth;
+    return sliderState.shortestTextWidth;
   }
 
   // Define the applySystemTheme function to check system preference
   function applySystemTheme() {
     // Find the system theme option
-    const systemOption = document.querySelector('.option[data-position="2"]');
+    const systemOption =
+      document.querySelector('.option[data-theme="2"]') ||
+      document.querySelector('.option[data-position="2"]');
+
+    if (!systemOption) {
+      console.warn("System theme option not found");
+      return;
+    }
 
     // Make sure system option is active
     if (!systemOption.classList.contains("active")) {
@@ -222,6 +258,8 @@ window.sliderButtons = (function () {
 
   // Set all buttons to equal width based on widest content
   function equalizeButtonWidths() {
+    if (!_options || _options.length === 0) return 0;
+
     let maxWidth = 0;
 
     // First reset any previously set widths to get natural content width
@@ -248,12 +286,20 @@ window.sliderButtons = (function () {
 
   // Initialize selector
   function initializeSelector() {
+    if (!_themeSelector || !_selectorBackground) {
+      console.error("Theme selector elements not available for initialization");
+      return false;
+    }
+
     // Set all buttons to equal width
     const buttonWidth = equalizeButtonWidths();
 
     // Get the active option
     const activeOption = document.querySelector(".option.active");
-    if (!activeOption || !_themeSelector) return;
+    if (!activeOption) {
+      console.warn("No active option found");
+      return false;
+    }
 
     const selectorRect = _themeSelector.getBoundingClientRect();
     const optionRect = activeOption.getBoundingClientRect();
@@ -265,7 +311,7 @@ window.sliderButtons = (function () {
 
     // Set active position based on data-position
     sliderState.activePosition = parseInt(
-      activeOption.getAttribute("data-position")
+      activeOption.getAttribute("data-position") || "2"
     );
 
     // Initial position of borders off-screen
@@ -278,11 +324,13 @@ window.sliderButtons = (function () {
         h3.style.color = "#ffffff";
       }
     });
+
+    return true;
   }
 
   // Reset border animation by moving borders off-screen
   function resetBorderAnimation() {
-    if (!_themeSelector) return;
+    if (!_themeSelector || !_borderTop || !_borderBottom) return;
 
     const selectorRect = _themeSelector.getBoundingClientRect();
 
@@ -326,6 +374,8 @@ window.sliderButtons = (function () {
 
   // Find which option the mouse is over
   function findHoveredOption(mouseX) {
+    if (!_options) return null;
+
     let hoveredOption = null;
 
     _options.forEach((option) => {
@@ -367,8 +417,10 @@ window.sliderButtons = (function () {
     sliderState.buttonWidth = borderWidth;
 
     // Set the border width to the shortest text width
-    _borderTop.style.width = `${borderWidth}px`;
-    _borderBottom.style.width = `${borderWidth}px`;
+    if (_borderTop && _borderBottom) {
+      _borderTop.style.width = `${borderWidth}px`;
+      _borderBottom.style.width = `${borderWidth}px`;
+    }
 
     // Make sure borders are positioned off-screen first
     resetBorderAnimation();
@@ -400,7 +452,12 @@ window.sliderButtons = (function () {
 
   // Animation to move borders out to edge
   function animateBordersOut() {
-    if (sliderState.isAnimating || !_themeSelector) {
+    if (
+      sliderState.isAnimating ||
+      !_themeSelector ||
+      !_borderTop ||
+      !_borderBottom
+    ) {
       return;
     }
 
@@ -558,11 +615,24 @@ window.sliderButtons = (function () {
 
   // Add click handlers to the theme options
   function setupOptionClickHandlers() {
-    document.querySelectorAll(".theme-selector .option").forEach((option) => {
-      option.addEventListener("click", function () {
-        setActiveOption(this);
-      });
+    const options = document.querySelectorAll(".theme-selector .option");
+    if (!options || options.length === 0) {
+      console.warn("No theme options found to set up click handlers");
+      return;
+    }
+
+    options.forEach((option) => {
+      // Remove any existing click handler to prevent duplicates
+      option.removeEventListener("click", optionClickHandler);
+
+      // Add new click handler
+      option.addEventListener("click", optionClickHandler);
     });
+  }
+
+  // Click handler function for options
+  function optionClickHandler() {
+    setActiveOption(this);
   }
 
   // Public function to set active option
@@ -574,7 +644,12 @@ window.sliderButtons = (function () {
     }
 
     // If border is visible, make it instantly disappear instead of animating out
-    if (sliderState.currentHoveredOption && !sliderState.isAnimating) {
+    if (
+      sliderState.currentHoveredOption &&
+      !sliderState.isAnimating &&
+      _borderTop &&
+      _borderBottom
+    ) {
       // Instantly remove borders (no animation)
       setBorderTransition(true);
       _borderTop.style.transform = "translateX(-9999px)";
@@ -588,16 +663,26 @@ window.sliderButtons = (function () {
       setBorderTransition(false);
     }
 
-    // Remove active class from all options
-    _options.forEach((opt) => {
-      opt.classList.remove("active");
-    });
+    // Check if _options NodeList is still valid
+    if (_options && _options.length > 0) {
+      // Remove active class from all options
+      _options.forEach((opt) => {
+        opt.classList.remove("active");
+      });
+    } else {
+      // Fallback if _options is no longer valid
+      document.querySelectorAll(".option").forEach((opt) => {
+        opt.classList.remove("active");
+      });
+    }
 
     // Add active class to clicked option
     option.classList.add("active");
 
     // Update active position
-    sliderState.activePosition = parseInt(option.getAttribute("data-position"));
+    sliderState.activePosition = parseInt(
+      option.getAttribute("data-position") || "2"
+    );
 
     // Move the selector background
     const optionRect = option.getBoundingClientRect();
@@ -648,12 +733,14 @@ window.sliderButtons = (function () {
     localStorage.setItem("userThemePreference", themeName);
 
     // Ensure text is white for all options (after theme change)
-    _options.forEach((opt) => {
-      const h3 = opt.querySelector("h3");
-      if (h3) {
-        h3.style.color = "#ffffff";
-      }
-    });
+    if (_options) {
+      _options.forEach((opt) => {
+        const h3 = opt.querySelector("h3");
+        if (h3) {
+          h3.style.color = "#ffffff";
+        }
+      });
+    }
 
     // Recalculate shortest text width when text content changes
     calculateShortestTextWidth();
@@ -690,6 +777,8 @@ window.sliderButtons = (function () {
 
   // Add a mutation observer to recalculate if button text changes
   function setupMutationObserver() {
+    if (!_options || _options.length === 0) return;
+
     // Create a new observer
     const observer = new MutationObserver((mutations) => {
       let textChanged = false;
@@ -746,16 +835,38 @@ window.sliderButtons = (function () {
     }
 
     // Initialize selector
-    initializeSelector();
+    const selectorInitialized = initializeSelector();
+    if (!selectorInitialized) {
+      console.error("Selector initialization failed");
+      return false;
+    }
 
     // Apply system theme based on system preference
     applySystemTheme();
 
     // Set up listeners for system theme changes
     if (window.matchMedia) {
-      window
-        .matchMedia("(prefers-color-scheme: dark)")
-        .addEventListener("change", applySystemTheme);
+      // Remove any existing listeners first to prevent duplicates
+      try {
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        // For older browsers
+        mediaQuery.removeListener(applySystemTheme);
+        // For newer browsers
+        mediaQuery.removeEventListener("change", applySystemTheme);
+
+        // Add the listener
+        mediaQuery.addEventListener("change", applySystemTheme);
+      } catch (e) {
+        console.warn("Media query listener error:", e);
+        // Fallback for older browsers
+        try {
+          window
+            .matchMedia("(prefers-color-scheme: dark)")
+            .addListener(applySystemTheme);
+        } catch (e2) {
+          console.warn("Media query addListener error:", e2);
+        }
+      }
     }
 
     // Re-enable transitions after initial positioning with fixed timing
@@ -783,12 +894,14 @@ window.sliderButtons = (function () {
     startContinuousMonitoring();
 
     // Force white text for all options
-    _options.forEach((option) => {
-      const h3 = option.querySelector("h3");
-      if (h3) {
-        h3.style.color = "#ffffff";
-      }
-    });
+    if (_options) {
+      _options.forEach((option) => {
+        const h3 = option.querySelector("h3");
+        if (h3) {
+          h3.style.color = "#ffffff";
+        }
+      });
+    }
 
     return true;
   }
