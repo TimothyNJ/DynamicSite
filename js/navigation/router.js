@@ -40,32 +40,32 @@ function getPageFromURL() {
   return hash || null;
 }
 
-// Load the slider resources and return a promise
-function loadSliderResources() {
+// Load the theme resources and return a promise
+function loadThemeResources() {
   return new Promise((resolve) => {
-    // Load slider stylesheet if not already loaded
-    if (!document.getElementById("slider-buttons-style")) {
-      const sliderStyle = document.createElement("link");
-      sliderStyle.id = "slider-buttons-style";
-      sliderStyle.rel = "stylesheet";
-      sliderStyle.href = "styles/slider-buttons.css";
-      document.head.appendChild(sliderStyle);
+    // Load theme selector stylesheet if not already loaded
+    if (!document.getElementById("theme-selector-style")) {
+      const themeStyle = document.createElement("link");
+      themeStyle.id = "theme-selector-style";
+      themeStyle.rel = "stylesheet";
+      themeStyle.href = "styles/theme-selector.css";
+      document.head.appendChild(themeStyle);
     }
 
-    // Load slider script if not already loaded
-    if (!window.sliderButtons) {
-      const sliderScript = document.createElement("script");
-      sliderScript.src = "js/settings/slider-buttons.js";
-      sliderScript.onload = () => {
+    // Load theme selector script if not already loaded
+    if (!window.themeSelector) {
+      const themeScript = document.createElement("script");
+      themeScript.src = "js/settings/theme-selector.js";
+      themeScript.onload = () => {
         const integrationScript = document.createElement("script");
-        integrationScript.src = "js/settings/slider-integration.js";
+        integrationScript.src = "js/settings/theme-integration.js";
         integrationScript.onload = () => {
           // Give time for scripts to initialize
           setTimeout(resolve, 100);
         };
         document.body.appendChild(integrationScript);
       };
-      document.body.appendChild(sliderScript);
+      document.body.appendChild(themeScript);
     } else {
       // Scripts already loaded
       resolve();
@@ -103,9 +103,9 @@ export async function navigateToPage(pageName, pushState = true) {
       return;
     }
 
-    // For settings page, load slider resources before content
+    // For settings page, load theme resources before content
     if (pageName === "settings") {
-      await loadSliderResources();
+      await loadThemeResources();
     }
 
     // Fetch the page content
@@ -138,6 +138,15 @@ export async function navigateToPage(pageName, pushState = true) {
     // Update collapsed navbar menu
     if (typeof window.updateMenuContent === "function") {
       window.updateMenuContent();
+    }
+
+    // Initialize theme selector if we're on the settings page
+    if (
+      pageName === "settings" &&
+      window.themeSelector &&
+      window.themeSelector.init
+    ) {
+      window.themeSelector.init();
     }
   } catch (error) {
     console.error("Error loading page:", error);
