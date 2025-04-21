@@ -40,36 +40,32 @@ function getPageFromURL() {
   return hash || null;
 }
 
-// Load the theme resources and return a promise
-function loadThemeResources() {
+// Load the slider resources and return a promise
+function loadSliderResources() {
   return new Promise((resolve) => {
-    // Load theme selector stylesheet if not already loaded
-    if (!document.getElementById("theme-selector-style")) {
-      console.log("Loading theme-selector.css stylesheet");
-      const themeStyle = document.createElement("link");
-      themeStyle.id = "theme-selector-style";
-      themeStyle.rel = "stylesheet";
-      themeStyle.href = "styles/theme-selector.css";
-      document.head.appendChild(themeStyle);
+    // Load slider stylesheet if not already loaded
+    if (!document.getElementById("slider-buttons-style")) {
+      const sliderStyle = document.createElement("link");
+      sliderStyle.id = "slider-buttons-style";
+      sliderStyle.rel = "stylesheet";
+      sliderStyle.href = "styles/slider-buttons.css";
+      document.head.appendChild(sliderStyle);
     }
 
-    // Load theme selector script if not already loaded
-    if (!window.themeSelector) {
-      console.log("Loading theme-selector.js script");
-      const themeScript = document.createElement("script");
-      themeScript.src = "js/settings/theme-selector.js";
-      themeScript.onload = () => {
-        console.log("Theme selector script loaded");
+    // Load slider script if not already loaded
+    if (!window.sliderButtons) {
+      const sliderScript = document.createElement("script");
+      sliderScript.src = "js/settings/slider-buttons.js";
+      sliderScript.onload = () => {
         const integrationScript = document.createElement("script");
-        integrationScript.src = "js/settings/theme-integration.js";
+        integrationScript.src = "js/settings/slider-integration.js";
         integrationScript.onload = () => {
-          console.log("Theme integration script loaded");
           // Give time for scripts to initialize
-          setTimeout(resolve, 200);
+          setTimeout(resolve, 100);
         };
         document.body.appendChild(integrationScript);
       };
-      document.body.appendChild(themeScript);
+      document.body.appendChild(sliderScript);
     } else {
       // Scripts already loaded
       resolve();
@@ -107,10 +103,9 @@ export async function navigateToPage(pageName, pushState = true) {
       return;
     }
 
-    // For settings page, load theme resources before content
+    // For settings page, load slider resources before content
     if (pageName === "settings") {
-      console.log("Loading theme resources for settings page");
-      await loadThemeResources();
+      await loadSliderResources();
     }
 
     // Fetch the page content
@@ -146,19 +141,12 @@ export async function navigateToPage(pageName, pushState = true) {
     }
 
     // Initialize theme selector if we're on the settings page
-    if (pageName === "settings") {
-      console.log("Setting page loaded, initializing theme selector");
-      // Allow DOM to update before initializing
-      setTimeout(() => {
-        if (
-          window.themeSelector &&
-          typeof window.themeSelector.init === "function"
-        ) {
-          window.themeSelector.init();
-        } else {
-          console.warn("Theme selector not available");
-        }
-      }, 300);
+    if (
+      pageName === "settings" &&
+      window.themeSelector &&
+      window.themeSelector.init
+    ) {
+      window.themeSelector.init();
     }
   } catch (error) {
     console.error("Error loading page:", error);
