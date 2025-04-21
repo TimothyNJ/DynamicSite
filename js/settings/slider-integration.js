@@ -4,20 +4,32 @@
 
   // This will track if we've already initialized to avoid duplicate initialization
   let initialized = false;
+  let currentSelectors = null; // Store references to current DOM elements
 
   // Initialize the theme selector if it exists
   function initThemeSelector() {
-    // Check if already initialized
-    if (initialized) {
-      console.log("Theme selector already initialized, skipping");
-      return;
-    }
-
     // Check if we're on the settings page by looking for the theme selector
     const themeSelectorElement = document.querySelector(".theme-selector");
     if (!themeSelectorElement) {
       console.log("Theme selector element not found in the DOM");
       return false;
+    }
+
+    // Reset initialization status when the DOM has changed
+    // Compare current selector with the one we have stored
+    if (
+      currentSelectors &&
+      currentSelectors.themeSelector !== themeSelectorElement
+    ) {
+      console.log("DOM has changed, resetting initialization state");
+      initialized = false;
+      window.sliderButtons = null; // Force module recreation
+    }
+
+    // Check if already initialized with current DOM elements
+    if (initialized) {
+      console.log("Theme selector already initialized, skipping");
+      return true;
     }
 
     // Check if sliderButtons is defined in the global scope
@@ -45,6 +57,15 @@
     console.log("Theme selector initialization successful");
     initialized = true;
 
+    // Store references to current DOM elements
+    currentSelectors = {
+      themeSelector: document.querySelector(".theme-selector"),
+      selectorBackground: document.querySelector(".selector-background"),
+      options: document.querySelectorAll(".option"),
+      borderTop: document.querySelector(".border-top"),
+      borderBottom: document.querySelector(".border-bottom"),
+    };
+
     // Load saved theme preference
     const savedTheme = localStorage.getItem("userThemePreference");
     if (savedTheme) {
@@ -63,10 +84,39 @@
     return true;
   }
 
+  // Force re-initialization when page content changes
+  function reinitializeIfNeeded() {
+    // Check if we're on the settings page
+    if (window.location.hash === "#settings") {
+      console.log("Settings page detected, checking initialization");
+
+      // Give time for DOM to be fully loaded
+      setTimeout(function () {
+        // Get current theme selector
+        const themeSelectorElement = document.querySelector(".theme-selector");
+
+        // Check if DOM has changed
+        if (
+          themeSelectorElement &&
+          (!currentSelectors ||
+            currentSelectors.themeSelector !== themeSelectorElement)
+        ) {
+          console.log("New DOM detected, forcing reinitialization");
+          initialized = false;
+          initThemeSelector();
+        }
+      }, 100);
+    }
+  }
+
   // The pageLoaded event is our primary initialization point
   document.addEventListener("pageLoaded", function (event) {
     if (event.detail && event.detail.pageName === "settings") {
       console.log("Settings page loaded event detected");
+
+      // Force reinitialization since page has been loaded anew
+      initialized = false;
+
       // First try after a short delay
       setTimeout(function () {
         if (!initThemeSelector()) {
@@ -82,7 +132,10 @@
     }
   });
 
-  // Also try during normal page load for direct URL navigation to settings
+  // Also monitor hash changes to reinitialize when navigating directly to settings
+  window.addEventListener("hashchange", reinitializeIfNeeded);
+
+  // Try during normal page load for direct URL navigation to settings
   if (document.readyState === "complete") {
     // Page already loaded, check if we're on the settings page
     if (window.location.hash === "#settings") {
@@ -101,5 +154,9 @@
   // Store a reference in the window object for router.js to access
   window.themeSelector = {
     init: initThemeSelector,
+    reinitialize: function () {
+      initialized = false;
+      return initThemeSelector();
+    },
   };
 })();
