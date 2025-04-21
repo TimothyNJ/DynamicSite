@@ -50,27 +50,44 @@ function loadSliderResources() {
       sliderStyle.rel = "stylesheet";
       sliderStyle.href = "styles/slider-buttons.css";
       document.head.appendChild(sliderStyle);
-    }
 
-    // Load slider script if not already loaded
-    if (!window.sliderButtons) {
-      const sliderScript = document.createElement("script");
-      sliderScript.src = "js/settings/slider-buttons.js";
-      sliderScript.onload = () => {
-        const integrationScript = document.createElement("script");
-        integrationScript.src = "js/settings/slider-integration.js";
-        integrationScript.onload = () => {
-          // Give more time for scripts to initialize
-          setTimeout(resolve, 300);
-        };
-        document.body.appendChild(integrationScript);
-      };
-      document.body.appendChild(sliderScript);
+      // Allow a moment for the stylesheet to load
+      setTimeout(() => {
+        // Now load the scripts
+        loadSliderScripts(resolve);
+      }, 100);
     } else {
-      // Scripts already loaded
-      resolve();
+      // Stylesheet already loaded, just load the scripts
+      loadSliderScripts(resolve);
     }
   });
+}
+
+// Helper function to load slider scripts
+function loadSliderScripts(resolve) {
+  // Only load scripts if they're not already loaded
+  if (!window.sliderButtons) {
+    const sliderScript = document.createElement("script");
+    sliderScript.src = "js/settings/slider-buttons.js";
+
+    sliderScript.onload = () => {
+      // After main script loads, load the integration script
+      const integrationScript = document.createElement("script");
+      integrationScript.src = "js/settings/slider-integration.js";
+
+      integrationScript.onload = () => {
+        // Wait a bit to ensure everything is initialized
+        setTimeout(resolve, 200);
+      };
+
+      document.body.appendChild(integrationScript);
+    };
+
+    document.body.appendChild(sliderScript);
+  } else {
+    // Scripts already loaded
+    resolve();
+  }
 }
 
 // Navigate to a specific page
@@ -103,6 +120,11 @@ export async function navigateToPage(pageName, pushState = true) {
       return;
     }
 
+    // For settings page, load resources BEFORE loading content
+    if (pageName === "settings") {
+      await loadSliderResources();
+    }
+
     // Fetch the page content
     const response = await fetch(pagePath);
     if (!response.ok) {
@@ -124,24 +146,15 @@ export async function navigateToPage(pageName, pushState = true) {
       window.history.pushState({ page: pageName }, "", `#${pageName}`);
     }
 
-    // For settings page, load slider resources after content is loaded
-    if (pageName === "settings") {
-      await loadSliderResources();
-
-      // Use a longer delay to ensure DOM is fully ready
-      setTimeout(() => {
-        if (window.sliderButtons && window.sliderButtons.init) {
-          console.log("Initializing slider buttons from router");
-          window.sliderButtons.init();
-        }
-      }, 500);
-    }
-
     // Trigger any page-specific initialization
     const pageLoadEvent = new CustomEvent("pageLoaded", {
       detail: { pageName },
     });
-    document.dispatchEvent(pageLoadEvent);
+
+    // Dispatch the event after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      document.dispatchEvent(pageLoadEvent);
+    }, 100);
 
     // Update collapsed navbar menu
     if (typeof window.updateMenuContent === "function") {
