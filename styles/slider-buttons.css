@@ -26,17 +26,12 @@
   --dark-slider-start-percent: 34;
   --dark-slider-end-percent: 68;
 
-  /* Define inverse color variable */
-  --inv: #ffffff;
-}
-
 /* Override to prevent truncation in theme selector */
 .theme-selector .option h3 {
   white-space: nowrap;
   overflow: visible;
   text-overflow: clip;
   max-width: none;
-  color: var(--inv);
   font-size: clamp(0.5rem, 1.2vw, 2.3rem);
   margin: 0;
   font-weight: bold;
