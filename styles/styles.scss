@@ -30,11 +30,6 @@ body {
   --dark-slider-start: #384c59; /* 34% of range between #000000 and #96b7c4 */
   --dark-slider-end: #6c7f8b; /* 68% of range between #000000 and #96b7c4 */
 
-  /* dark theme white font */
-  body[data-theme="dark"] {
-    color: #ffffff;
-  }
-
   /* Active button gradient colors */
   --active-button-start: #6a0dad; /* Purple */
   --active-button-end: #4169e1; /* Royal Blue */
@@ -47,6 +42,11 @@ body {
 
   /* Define inverse color variable */
   --inv: #ffffff;
+}
+
+/* dark theme white font */
+body[data-theme="dark"] {
+  color: #ffffff;
 }
 
 /* Site Outer Padding Elimination */
