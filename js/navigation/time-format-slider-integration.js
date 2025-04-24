@@ -40,13 +40,13 @@
       return false;
     }
 
-    // Ensure the callback is set up before initializing
-    window.sliderButtons.onOptionSelected =
-      window.timeFormatSlider.handleOptionSelected;
-
     // Initialize the time format slider
     console.log("Initializing time format slider from integration.js");
     try {
+      // Important: Set the callback before initializing
+      window.sliderButtons.onOptionSelected =
+        window.timeFormatSlider.handleOptionSelected;
+
       const result = window.timeFormatSlider.init();
 
       if (result === false) {

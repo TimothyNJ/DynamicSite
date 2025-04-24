@@ -3,84 +3,53 @@ window.timeFormatSlider = (function () {
   // Core slider instance we'll use
   let sliderInstance = null;
 
-  // Element to display current time
-  let timeDisplayElement = null;
-
-  // Interval ID for updating time
-  let timeUpdateInterval = null;
-
   // Current format (12 or 24)
   let currentFormat = "12";
+
+  // Update interval ID
+  let updateInterval = null;
+
+  // Option elements
+  let option12h = null;
+  let option24h = null;
 
   // Utility function to format current time based on preference
   function formatCurrentTime(use24Hour = false) {
     const now = new Date();
     let hours = now.getHours();
     const minutes = now.getMinutes().toString().padStart(2, "0");
-    const seconds = now.getSeconds().toString().padStart(2, "0");
 
     if (use24Hour) {
       // 24-hour format
       hours = hours.toString().padStart(2, "0");
-      return `${hours}:${minutes}:${seconds}`;
+      return `24h ${hours}:${minutes}`;
     } else {
       // 12-hour format with AM/PM
-      const period = hours >= 12 ? "PM" : "AM";
+      const period = hours >= 12 ? "pm" : "am";
       hours = hours % 12;
       hours = hours ? hours : 12; // Convert 0 to 12 for 12 AM
-      return `${hours}:${minutes}:${seconds} ${period}`;
+      return `12h ${hours}:${minutes}${period}`;
     }
   }
 
-  // Function to update the time display
+  // Function to update the time display in the buttons
   function updateTimeDisplay() {
-    if (!timeDisplayElement) return;
-
-    timeDisplayElement.textContent = formatCurrentTime(currentFormat === "24");
-  }
-
-  // Initialize the time display
-  function initTimeDisplay() {
-    // Look for or create a time display element
-    timeDisplayElement = document.getElementById("current-time-display");
-
-    if (!timeDisplayElement) {
-      // Create it if it doesn't exist
-      timeDisplayElement = document.createElement("div");
-      timeDisplayElement.id = "current-time-display";
-      timeDisplayElement.className = "time-display";
-
-      // Insert after time format selector
-      const timeFormatContainer = document.querySelector(
-        ".time-format-container"
+    if (!option12h || !option24h) {
+      option12h = document.querySelector(
+        '.time-format-selector .option[data-format="12"] h3'
       );
-      if (timeFormatContainer) {
-        timeFormatContainer.parentNode.insertBefore(
-          timeDisplayElement,
-          timeFormatContainer.nextSibling
-        );
-      } else {
-        // Fallback - insert before theme selector
-        const themeContainer = document.querySelector(".theme-container");
-        if (themeContainer) {
-          themeContainer.parentNode.insertBefore(
-            timeDisplayElement,
-            themeContainer
-          );
-        }
-      }
+      option24h = document.querySelector(
+        '.time-format-selector .option[data-format="24"] h3'
+      );
     }
 
-    // Update time immediately and set interval
-    updateTimeDisplay();
-
-    // Clear any existing interval
-    if (timeUpdateInterval) {
-      clearInterval(timeUpdateInterval);
+    if (option12h) {
+      option12h.textContent = formatCurrentTime(false);
     }
 
-    // Set new interval to update every second
-    timeUpdateInterval = setInterval(updateTimeDisplay, 1000);
+    if (option24h) {
+      option24h.textContent = formatCurrentTime(true);
+    }
   }
 
   // Apply time format
@@ -96,10 +65,8 @@ window.timeFormatSlider = (function () {
 
   // Custom handler for when an option is selected
   function handleOptionSelected(option) {
-    // Get the format from data attribute or text
-    const formatName =
-      option.getAttribute("data-format") ||
-      option.querySelector("h3").textContent.match(/(\d+)/)[1];
+    // Get the format from data attribute
+    const formatName = option.getAttribute("data-format");
 
     console.log("Time format option selected:", formatName);
 
@@ -118,6 +85,28 @@ window.timeFormatSlider = (function () {
       return false;
     }
 
+    // Find time format selector buttons
+    option12h = document.querySelector(
+      '.time-format-selector .option[data-format="12"] h3'
+    );
+    option24h = document.querySelector(
+      '.time-format-selector .option[data-format="24"] h3'
+    );
+
+    if (!option12h || !option24h) {
+      console.error("Time format selector buttons not found");
+      return false;
+    }
+
+    // Update time display in buttons
+    updateTimeDisplay();
+
+    // Set up interval to update time display
+    if (updateInterval) {
+      clearInterval(updateInterval);
+    }
+    updateInterval = setInterval(updateTimeDisplay, 1000);
+
     // Initialize the slider
     const result = window.sliderButtons.init(".time-format-selector");
 
@@ -128,9 +117,6 @@ window.timeFormatSlider = (function () {
 
     // Set the callback
     window.sliderButtons.onOptionSelected = handleOptionSelected;
-
-    // Initialize the time display
-    initTimeDisplay();
 
     // Apply saved preference or default
     const savedFormat =
@@ -154,9 +140,9 @@ window.timeFormatSlider = (function () {
 
   // Clean up resources when navigating away
   function cleanup() {
-    if (timeUpdateInterval) {
-      clearInterval(timeUpdateInterval);
-      timeUpdateInterval = null;
+    if (updateInterval) {
+      clearInterval(updateInterval);
+      updateInterval = null;
     }
   }
 
