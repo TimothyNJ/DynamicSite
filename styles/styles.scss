@@ -70,6 +70,7 @@ body {
   h3,
   p {
     font-family: Helvetica, Tahoma, sans-serif; /* Default font preferrence order */
+    color: #ffffff; /* Set white text color globally */
   }
 
   h1 {
@@ -94,11 +95,6 @@ body {
     font-size: clamp(0.5rem, 1.2vw, 2.3rem);
     margin: calc(0.03vw + 0.03vh);
     font-weight: normal; /* Explicit normal styling */
-  }
-
-  /* Dark theme text color */
-  body[data-theme="dark"] {
-    color: #ffffff;
   }
 
   /* FULL SITE CONTAINER */

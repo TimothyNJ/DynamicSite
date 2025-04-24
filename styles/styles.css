@@ -34,7 +34,6 @@ body {
   --dark-slider-end-percent: 68;
   /* Site Outer Padding Elimination */
   /* FONT */
-  /* Dark theme text color */
   /* FULL SITE CONTAINER */
   /* Rounded bottom corners for desktop */
   /* Dimension container styling */
@@ -89,6 +88,7 @@ body {
 :root h3,
 :root p {
   font-family: Helvetica, Tahoma, sans-serif; /* Default font preferrence order */
+  color: #ffffff; /* Set white text color globally */
 }
 :root h1 {
   font-size: clamp(0.7rem, 1.6vw, 2.5rem);
@@ -109,9 +109,6 @@ body {
   font-size: clamp(0.5rem, 1.2vw, 2.3rem);
   margin: calc(0.03vw + 0.03vh);
   font-weight: normal; /* Explicit normal styling */
-}
-:root body[data-theme=dark] {
-  color: #ffffff;
 }
 :root .site-container {
   font-size: inherit; /* Ensure H1/H2/H3/P inherit */
