@@ -5,9 +5,11 @@ window.themeSlider = (function () {
 
   // Utility function for theme application
   function applyThemeByName(themeName, skipThemeDetection = false) {
+    console.log("Applying theme:", themeName);
     const body = document.body;
 
     if (themeName === "light") {
+      console.log("Setting light theme attributes");
       body.setAttribute("data-theme", "light");
       body.style.backgroundImage =
         "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
@@ -16,6 +18,7 @@ window.themeSlider = (function () {
           "linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)";
       }
     } else if (themeName === "dark") {
+      console.log("Setting dark theme attributes");
       body.setAttribute("data-theme", "dark");
       body.style.backgroundImage =
         "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
@@ -24,6 +27,7 @@ window.themeSlider = (function () {
           "linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)";
       }
     } else if (themeName === "system" && !skipThemeDetection) {
+      console.log("Setting system theme based on preference");
       const prefersDark =
         window.matchMedia &&
         window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -63,8 +67,11 @@ window.themeSlider = (function () {
         .textContent.toLowerCase()
         .replace(" theme", "");
 
+    console.log("Theme option selected:", themeName);
+
     // Apply the selected theme
     applyThemeByName(themeName);
+    console.log("Theme should now be:", themeName);
 
     // Save preference to localStorage
     localStorage.setItem("userThemePreference", themeName);
@@ -72,14 +79,14 @@ window.themeSlider = (function () {
 
   // Initialize the theme slider
   function init() {
-    // Create slider instance if not already created
+    // Get access to the core slider functionality
     if (!window.sliderButtons) {
       console.error("Core slider functionality not available");
       return false;
     }
 
-    // Initialize core slider
-    sliderInstance = Object.create(window.sliderButtons);
+    // Use the existing slider instance directly
+    sliderInstance = window.sliderButtons;
 
     // Set custom option selection handler
     sliderInstance.onOptionSelected = handleOptionSelected;

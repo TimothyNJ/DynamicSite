@@ -562,6 +562,8 @@ window.sliderButtons = (function () {
 
   // Public function to set active option
   function setActiveOption(option, skipAnimation = false) {
+    console.log("Setting active option:", option ? option.textContent : "none");
+
     if (!option || !_themeSelector || !_selectorBackground) return;
 
     if (option.classList.contains("active")) {
@@ -645,7 +647,10 @@ window.sliderButtons = (function () {
 
     // Call the onOptionSelected handler if it exists
     if (typeof this.onOptionSelected === "function") {
+      console.log("Calling onOptionSelected callback");
       this.onOptionSelected(option);
+    } else {
+      console.log("No onOptionSelected callback defined");
     }
 
     // Recalculate shortest text width when text content changes
@@ -722,6 +727,8 @@ window.sliderButtons = (function () {
 
   // Initialize everything
   function init(selectorClass = ".theme-selector") {
+    console.log("Initializing slider with selector:", selectorClass);
+
     // Update the selector class if provided
     _selectorClass = selectorClass;
 
@@ -778,16 +785,17 @@ window.sliderButtons = (function () {
     // Start continuous monitoring to catch mouse events that might be missed
     startContinuousMonitoring();
 
+    console.log("Slider initialization complete");
     return true;
   }
 
   // Callback for option selection (to be overridden)
   function onOptionSelected(option) {
     // Default empty implementation
-    // This will be overridden by specific slider implementations
+    console.log("Default onOptionSelected - should be overridden");
   }
 
-  // Return public methods
+  // Return public methods and properties
   return {
     init: init,
     setActiveOption: setActiveOption,

@@ -72,13 +72,8 @@
         };
 
         if (themeOptions[savedTheme]) {
-          // Find the slider instance and use it
-          if (window.sliderButtons && themeOptions[savedTheme]) {
-            window.sliderButtons.setActiveOption(
-              themeOptions[savedTheme],
-              true
-            );
-          }
+          // Use the slider instance directly
+          window.sliderButtons.setActiveOption(themeOptions[savedTheme], true);
         } else {
           // Apply theme directly if we can't find the option
           window.themeSlider.applyThemeByName(savedTheme);
