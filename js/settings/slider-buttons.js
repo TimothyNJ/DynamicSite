@@ -6,6 +6,7 @@ window.sliderButtons = (function () {
   let _options;
   let _borderTop;
   let _borderBottom;
+  let _selectorClass = ".theme-selector"; // Default selector class
 
   // Slider state
   const sliderState = {
@@ -70,34 +71,6 @@ window.sliderButtons = (function () {
     }
   }
 
-  // Utility function for theme application
-  function applyThemeByName(themeName, skipThemeDetection = false) {
-    const body = document.body;
-
-    if (themeName === "light") {
-      body.setAttribute("data-theme", "light");
-      body.style.backgroundImage =
-        "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
-      if (_themeSelector) {
-        _themeSelector.style.background =
-          "linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)";
-      }
-    } else if (themeName === "dark") {
-      body.setAttribute("data-theme", "dark");
-      body.style.backgroundImage =
-        "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
-      if (_themeSelector) {
-        _themeSelector.style.background =
-          "linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)";
-      }
-    } else if (themeName === "system" && !skipThemeDetection) {
-      const prefersDark =
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      applyThemeByName(prefersDark ? "dark" : "light", true);
-    }
-  }
-
   // Function to get CSS variable value from root
   function getCSSVariable(name) {
     return getComputedStyle(document.documentElement)
@@ -118,7 +91,7 @@ window.sliderButtons = (function () {
     tempSpan.style.whiteSpace = "nowrap";
 
     // Get font style from an option's h3 if available
-    const sampleH3 = document.querySelector(".option h3");
+    const sampleH3 = document.querySelector(`${_selectorClass} .option h3`);
     if (sampleH3) {
       tempSpan.style.font = getComputedStyle(sampleH3).font;
     } else {
@@ -147,28 +120,6 @@ window.sliderButtons = (function () {
     sliderState.shortestTextWidth = Math.max(shortestWidth, 50);
 
     return sliderState.shortestTextWidth;
-  }
-
-  // Define the applySystemTheme function to check system preference
-  function applySystemTheme() {
-    // Find the system theme option
-    const systemOption =
-      document.querySelector('.option[data-theme="2"]') ||
-      document.querySelector('.option[data-position="2"]');
-
-    if (!systemOption) {
-      console.warn("System theme option not found");
-      return;
-    }
-
-    // Make sure system option is active
-    if (!systemOption.classList.contains("active")) {
-      // Programmatically activate the system option
-      setActiveOption(systemOption, true);
-    } else {
-      // Apply the system theme directly since the option is already active
-      applyThemeByName("system");
-    }
   }
 
   // Track mouse position globally and check if we need to update
@@ -275,7 +226,9 @@ window.sliderButtons = (function () {
     }
 
     // Get the active option
-    const activeOption = document.querySelector(".option.active");
+    const activeOption = document.querySelector(
+      `${_selectorClass} .option.active`
+    );
     if (!activeOption) {
       console.warn("No active option found");
       return false;
@@ -587,9 +540,9 @@ window.sliderButtons = (function () {
 
   // Add click handlers to the theme options
   function setupOptionClickHandlers() {
-    const options = document.querySelectorAll(".theme-selector .option");
+    const options = document.querySelectorAll(`${_selectorClass} .option`);
     if (!options || options.length === 0) {
-      console.warn("No theme options found to set up click handlers");
+      console.warn("No options found to set up click handlers");
       return;
     }
 
@@ -643,7 +596,7 @@ window.sliderButtons = (function () {
       });
     } else {
       // Fallback if _options is no longer valid
-      document.querySelectorAll(".option").forEach((opt) => {
+      document.querySelectorAll(`${_selectorClass} .option`).forEach((opt) => {
         opt.classList.remove("active");
       });
     }
@@ -690,19 +643,10 @@ window.sliderButtons = (function () {
     // Set button just selected flag
     sliderState.buttonJustSelected = true;
 
-    // Get the theme name from data-theme attribute or from text
-    const themeName =
-      option.getAttribute("data-theme") ||
-      option
-        .querySelector("h3")
-        .textContent.toLowerCase()
-        .replace(" theme", "");
-
-    // Apply the selected theme
-    applyThemeByName(themeName);
-
-    // Save preference to localStorage
-    localStorage.setItem("userThemePreference", themeName);
+    // Call the onOptionSelected handler if it exists
+    if (typeof this.onOptionSelected === "function") {
+      this.onOptionSelected(option);
+    }
 
     // Recalculate shortest text width when text content changes
     calculateShortestTextWidth();
@@ -717,7 +661,9 @@ window.sliderButtons = (function () {
       if (!_themeSelector || !_selectorBackground) return;
 
       // Update the active button background
-      const activeOption = document.querySelector(".option.active");
+      const activeOption = document.querySelector(
+        `${_selectorClass} .option.active`
+      );
       if (!activeOption) return;
 
       const selectorRect = _themeSelector.getBoundingClientRect();
@@ -775,16 +721,21 @@ window.sliderButtons = (function () {
   }
 
   // Initialize everything
-  function init() {
+  function init(selectorClass = ".theme-selector") {
+    // Update the selector class if provided
+    _selectorClass = selectorClass;
+
     // Get slider elements
-    _themeSelector = document.querySelector(".theme-selector");
-    _selectorBackground = document.querySelector(".selector-background");
-    _options = document.querySelectorAll(".option");
-    _borderTop = document.querySelector(".border-top");
-    _borderBottom = document.querySelector(".border-bottom");
+    _themeSelector = document.querySelector(_selectorClass);
+    _selectorBackground = document.querySelector(
+      `${_selectorClass} .selector-background`
+    );
+    _options = document.querySelectorAll(`${_selectorClass} .option`);
+    _borderTop = document.querySelector(`${_selectorClass} .border-top`);
+    _borderBottom = document.querySelector(`${_selectorClass} .border-bottom`);
 
     if (!_themeSelector) {
-      console.error("Theme selector elements not found");
+      console.error(`Selector elements not found for ${_selectorClass}`);
       return false;
     }
 
@@ -801,34 +752,6 @@ window.sliderButtons = (function () {
     if (!selectorInitialized) {
       console.error("Selector initialization failed");
       return false;
-    }
-
-    // Apply system theme based on system preference
-    applySystemTheme();
-
-    // Set up listeners for system theme changes
-    if (window.matchMedia) {
-      // Remove any existing listeners first to prevent duplicates
-      try {
-        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-        // For older browsers
-        mediaQuery.removeListener(applySystemTheme);
-        // For newer browsers
-        mediaQuery.removeEventListener("change", applySystemTheme);
-
-        // Add the listener
-        mediaQuery.addEventListener("change", applySystemTheme);
-      } catch (e) {
-        console.warn("Media query listener error:", e);
-        // Fallback for older browsers
-        try {
-          window
-            .matchMedia("(prefers-color-scheme: dark)")
-            .addListener(applySystemTheme);
-        } catch (e2) {
-          console.warn("Media query addListener error:", e2);
-        }
-      }
     }
 
     // Re-enable transitions after initial positioning with fixed timing
@@ -858,10 +781,18 @@ window.sliderButtons = (function () {
     return true;
   }
 
+  // Callback for option selection (to be overridden)
+  function onOptionSelected(option) {
+    // Default empty implementation
+    // This will be overridden by specific slider implementations
+  }
+
   // Return public methods
   return {
     init: init,
     setActiveOption: setActiveOption,
-    applyThemeByName: applyThemeByName,
+    onOptionSelected: onOptionSelected,
+    // Expose for testing and debugging
+    _themeSelector: _themeSelector,
   };
 })();

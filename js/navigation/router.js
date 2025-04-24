@@ -16,7 +16,8 @@ let activePage = null;
 const preloadedResources = {
   sliderStylesheet: false,
   sliderScript: false,
-  sliderIntegration: false,
+  themeSliderScript: false,
+  themeSliderIntegration: false,
 };
 
 // Initialize the router
@@ -76,34 +77,82 @@ function preloadSliderResources() {
 
   // Preload slider scripts if they're not already loaded
   if (!window.sliderButtons) {
-    // Create and load the main slider script
+    // Create and load the main slider script (core functionality)
     const sliderScript = document.createElement("script");
     sliderScript.id = "slider-buttons-script";
     sliderScript.src = "js/settings/slider-buttons.js";
 
     sliderScript.onload = () => {
       preloadedResources.sliderScript = true;
-      console.log("Slider buttons script preloaded");
+      console.log("Core slider buttons script preloaded");
 
-      // After main script loads, load the integration script
-      if (!document.getElementById("slider-integration-script")) {
-        const integrationScript = document.createElement("script");
-        integrationScript.id = "slider-integration-script";
-        integrationScript.src = "js/settings/slider-integration.js";
+      // After main script loads, load the theme-specific script
+      if (!document.getElementById("theme-slider-script")) {
+        const themeScript = document.createElement("script");
+        themeScript.id = "theme-slider-script";
+        themeScript.src = "js/settings/theme-slider.js";
 
-        integrationScript.onload = () => {
-          preloadedResources.sliderIntegration = true;
-          console.log("Slider integration script preloaded");
+        themeScript.onload = () => {
+          preloadedResources.themeSliderScript = true;
+          console.log("Theme slider script preloaded");
+
+          // After theme script loads, load the theme integration script
+          if (!document.getElementById("theme-slider-integration-script")) {
+            const integrationScript = document.createElement("script");
+            integrationScript.id = "theme-slider-integration-script";
+            integrationScript.src = "js/settings/theme-slider-integration.js";
+
+            integrationScript.onload = () => {
+              preloadedResources.themeSliderIntegration = true;
+              console.log("Theme slider integration script preloaded");
+            };
+
+            document.body.appendChild(integrationScript);
+          }
         };
 
-        document.body.appendChild(integrationScript);
+        document.body.appendChild(themeScript);
       }
     };
 
     document.body.appendChild(sliderScript);
   } else {
+    // Scripts already loaded
     preloadedResources.sliderScript = true;
-    preloadedResources.sliderIntegration = true;
+
+    // Check if theme scripts are loaded
+    if (window.themeSlider) {
+      preloadedResources.themeSliderScript = true;
+    } else {
+      // Load theme-specific script
+      const themeScript = document.createElement("script");
+      themeScript.id = "theme-slider-script";
+      themeScript.src = "js/settings/theme-slider.js";
+
+      themeScript.onload = () => {
+        preloadedResources.themeSliderScript = true;
+        console.log("Theme slider script preloaded");
+      };
+
+      document.body.appendChild(themeScript);
+    }
+
+    // Check if theme integration is loaded
+    if (window.themeSliderIntegration) {
+      preloadedResources.themeSliderIntegration = true;
+    } else {
+      // Load theme integration script
+      const integrationScript = document.createElement("script");
+      integrationScript.id = "theme-slider-integration-script";
+      integrationScript.src = "js/settings/theme-slider-integration.js";
+
+      integrationScript.onload = () => {
+        preloadedResources.themeSliderIntegration = true;
+        console.log("Theme slider integration script preloaded");
+      };
+
+      document.body.appendChild(integrationScript);
+    }
   }
 }
 
@@ -112,7 +161,8 @@ function areSliderResourcesLoaded() {
   return (
     preloadedResources.sliderStylesheet &&
     preloadedResources.sliderScript &&
-    preloadedResources.sliderIntegration
+    preloadedResources.themeSliderScript &&
+    preloadedResources.themeSliderIntegration
   );
 }
 
