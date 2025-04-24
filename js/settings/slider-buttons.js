@@ -74,9 +74,6 @@ window.sliderButtons = (function () {
   function applyThemeByName(themeName, skipThemeDetection = false) {
     const body = document.body;
 
-    // Ensure --inv is always set to white for the theme selector
-    document.documentElement.style.setProperty("--inv", "#ffffff");
-
     if (themeName === "light") {
       body.setAttribute("data-theme", "light");
       body.style.backgroundImage =
@@ -85,13 +82,6 @@ window.sliderButtons = (function () {
         _themeSelector.style.background =
           "linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)";
       }
-      // Ensure theme selector text is white
-      if (_options) {
-        _options.forEach((option) => {
-          const h3 = option.querySelector("h3");
-          if (h3) h3.style.color = "#ffffff";
-        });
-      }
     } else if (themeName === "dark") {
       body.setAttribute("data-theme", "dark");
       body.style.backgroundImage =
@@ -99,13 +89,6 @@ window.sliderButtons = (function () {
       if (_themeSelector) {
         _themeSelector.style.background =
           "linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)";
-      }
-      // Ensure theme selector text is white
-      if (_options) {
-        _options.forEach((option) => {
-          const h3 = option.querySelector("h3");
-          if (h3) h3.style.color = "#ffffff";
-        });
       }
     } else if (themeName === "system" && !skipThemeDetection) {
       const prefersDark =
@@ -313,14 +296,6 @@ window.sliderButtons = (function () {
 
     // Initial position of borders off-screen
     resetBorderAnimation();
-
-    // Ensure text color is white for all options
-    _options.forEach((option) => {
-      const h3 = option.querySelector("h3");
-      if (h3) {
-        h3.style.color = "#ffffff";
-      }
-    });
 
     return true;
   }
@@ -729,16 +704,6 @@ window.sliderButtons = (function () {
     // Save preference to localStorage
     localStorage.setItem("userThemePreference", themeName);
 
-    // Ensure text is white for all options (after theme change)
-    if (_options) {
-      _options.forEach((opt) => {
-        const h3 = opt.querySelector("h3");
-        if (h3) {
-          h3.style.color = "#ffffff";
-        }
-      });
-    }
-
     // Recalculate shortest text width when text content changes
     calculateShortestTextWidth();
   }
@@ -823,9 +788,6 @@ window.sliderButtons = (function () {
       return false;
     }
 
-    // Set --inv variable to white at the document root level
-    document.documentElement.style.setProperty("--inv", "#ffffff");
-
     // Set all buttons to equal width FIRST before anything else
     equalizeButtonWidths();
 
@@ -892,16 +854,6 @@ window.sliderButtons = (function () {
 
     // Start continuous monitoring to catch mouse events that might be missed
     startContinuousMonitoring();
-
-    // Force white text for all options
-    if (_options) {
-      _options.forEach((option) => {
-        const h3 = option.querySelector("h3");
-        if (h3) {
-          h3.style.color = "#ffffff";
-        }
-      });
-    }
 
     return true;
   }

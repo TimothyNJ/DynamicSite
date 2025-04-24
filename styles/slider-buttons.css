@@ -168,7 +168,6 @@ body[data-theme="dark"] .theme-selector {
   height: 100px; /* Reduced height */
   width: 100%;
   font-size: 1.2rem;
-  color: #555;
   background-color: transparent;
   position: relative;
 }
