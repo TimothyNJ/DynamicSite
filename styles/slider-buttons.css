@@ -1,4 +1,4 @@
-/* styles/theme-selector.css */
+/* styles/slider-buttons.css */
 :root {
   /* Light theme page range */
   --light-page-start: #4b5b62;
@@ -27,8 +27,9 @@
   --dark-slider-end-percent: 68;
 }
 
-/* Override to prevent truncation in theme selector */
-.theme-selector .option h3 {
+/* Override to prevent truncation in selectors */
+.theme-selector .option h3,
+.time-format-selector .option h3 {
   white-space: nowrap;
   overflow: visible;
   text-overflow: clip;
@@ -42,7 +43,9 @@
   padding: 2px 8px; /* Added padding to text instead of button */
 }
 
-.theme-selector {
+/* Common styles for both selector types */
+.theme-selector,
+.time-format-selector {
   display: inline-flex;
   position: relative;
   height: auto;
@@ -57,15 +60,17 @@
   gap: 4px; /* Kept the 4px gap as requested */
 }
 
-/* Theme container styles */
-.theme-container {
+/* Container styles */
+.theme-container,
+.time-format-container {
   display: flex;
   justify-content: center;
   margin: 20px 0;
 }
 
 /* Dark theme slider container */
-body[data-theme="dark"] .theme-selector {
+body[data-theme="dark"] .theme-selector,
+body[data-theme="dark"] .time-format-selector {
   background: linear-gradient(
     -25deg,
     var(--dark-slider-start) 0%,
@@ -74,7 +79,8 @@ body[data-theme="dark"] .theme-selector {
 }
 
 /* Container border animation */
-.theme-selector .border-container {
+.theme-selector .border-container,
+.time-format-selector .border-container {
   position: absolute;
   top: 0;
   left: 0;
