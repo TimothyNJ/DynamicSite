@@ -44,11 +44,6 @@ body {
   --inv: #ffffff;
 }
 
-/* dark theme white font */
-body[data-theme="dark"] {
-  color: #ffffff;
-}
-
 /* Site Outer Padding Elimination */
 * {
   /* "*" is a universal selector */
@@ -103,6 +98,11 @@ p {
   font-size: clamp(0.5rem, 1.2vw, 2.3rem);
   margin: calc(0.03vw + 0.03vh);
   font-weight: normal; /* Explicit normal styling */
+}
+
+/* Dark theme text color */
+body[data-theme="dark"] {
+  color: #ffffff;
 }
 
 /* FULL SITE CONTAINER */
