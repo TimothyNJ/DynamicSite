@@ -192,10 +192,10 @@ function preloadSliderResources() {
     if (window.timeFormatSlider) {
       preloadedResources.timeFormatSliderScript = true;
     } else {
-      // Load time format slider script
+      // Load time format slider script - FIX: Changed path from settings to navigation
       const timeFormatScript = document.createElement("script");
       timeFormatScript.id = "time-format-slider-script";
-      timeFormatScript.src = "js/settings/time-format-slider.js";
+      timeFormatScript.src = "js/navigation/time-format-slider.js";
 
       timeFormatScript.onload = () => {
         preloadedResources.timeFormatSliderScript = true;
@@ -209,11 +209,11 @@ function preloadSliderResources() {
     if (window.timeFormatSliderIntegration) {
       preloadedResources.timeFormatSliderIntegration = true;
     } else {
-      // Load time format integration script
+      // Load time format integration script - FIX: Changed path from settings to navigation
       const timeFormatIntegrationScript = document.createElement("script");
       timeFormatIntegrationScript.id = "time-format-slider-integration-script";
       timeFormatIntegrationScript.src =
-        "js/settings/time-format-slider-integration.js";
+        "js/navigation/time-format-slider-integration.js";
 
       timeFormatIntegrationScript.onload = () => {
         preloadedResources.timeFormatSliderIntegration = true;

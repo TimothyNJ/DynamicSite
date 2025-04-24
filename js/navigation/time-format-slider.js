@@ -1,4 +1,4 @@
-// js/settings/time-format-slider.js
+// js/navigation/time-format-slider.js
 window.timeFormatSlider = (function () {
   // Core slider instance we'll use
   let sliderInstance = null;

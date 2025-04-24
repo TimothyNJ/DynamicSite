@@ -1,4 +1,4 @@
-// js/settings/time-format-slider-integration.js
+// js/navigation/time-format-slider-integration.js
 (function () {
   console.log("Time format slider integration loaded");
 
