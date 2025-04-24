@@ -1,6 +1,4 @@
-@ -1,57 +1,5 @@
 // js/navigation/router.js
-// Modified preloadSliderResources function to include time format slider
 
 // Map page names to their file paths
 const pagePathMap = {
@@ -57,53 +55,101 @@ function getPageFromURL() {
 function preloadSliderResources() {
   // Create a container for preloaded resources
   const preloadContainer = document.createElement("div");
-@ -75,6 +23,22 @@ function preloadSliderResources() {
-    preloadedResources.sliderStylesheet = true;
-  }
+  preloadContainer.style.display = "none";
+  preloadContainer.id = "preloaded-resources";
+  document.body.appendChild(preloadContainer);
 
-  // Add time display stylesheet
-  if (!document.getElementById("time-display-style")) {
-    const timeStyle = document.createElement("link");
-    timeStyle.id = "time-display-style";
-    timeStyle.rel = "stylesheet";
-    timeStyle.href = "styles/time-display.css";
-    document.head.appendChild(timeStyle);
+  // Add slider stylesheet
+  if (!document.getElementById("slider-buttons-style")) {
+    const sliderStyle = document.createElement("link");
+    sliderStyle.id = "slider-buttons-style";
+    sliderStyle.rel = "stylesheet";
+    sliderStyle.href = "styles/slider-buttons.css";
+    document.head.appendChild(sliderStyle);
 
-    timeStyle.onload = () => {
-      preloadedResources.timeDisplayStylesheet = true;
-      console.log("Time display stylesheet preloaded");
+    sliderStyle.onload = () => {
+      preloadedResources.sliderStylesheet = true;
+      console.log("Slider stylesheet preloaded");
     };
   } else {
-    preloadedResources.timeDisplayStylesheet = true;
+    preloadedResources.sliderStylesheet = true;
   }
 
   // Preload slider scripts if they're not already loaded
   if (!window.sliderButtons) {
     // Create and load the main slider script (core functionality)
-@ -105,13 +69,22 @@ function preloadSliderResources() {
+    const sliderScript = document.createElement("script");
+    sliderScript.id = "slider-buttons-script";
+    sliderScript.src = "js/settings/slider-buttons.js";
+
+    sliderScript.onload = () => {
+      preloadedResources.sliderScript = true;
+      console.log("Core slider buttons script preloaded");
+
+      // After main script loads, load the theme-specific script
+      if (!document.getElementById("theme-slider-script")) {
+        const themeScript = document.createElement("script");
+        themeScript.id = "theme-slider-script";
+        themeScript.src = "js/settings/theme-slider.js";
+
+        themeScript.onload = () => {
+          preloadedResources.themeSliderScript = true;
+          console.log("Theme slider script preloaded");
+
+          // After theme script loads, load the theme integration script
+          if (!document.getElementById("theme-slider-integration-script")) {
+            const integrationScript = document.createElement("script");
+            integrationScript.id = "theme-slider-integration-script";
+            integrationScript.src = "js/settings/theme-slider-integration.js";
+
             integrationScript.onload = () => {
               preloadedResources.themeSliderIntegration = true;
               console.log("Theme slider integration script preloaded");
-
-              // Load time format slider scripts
-              loadTimeFormatSliderScripts();
             };
 
             document.body.appendChild(integrationScript);
-          } else {
-            // Load time format slider scripts if integration script is already loaded
-            loadTimeFormatSliderScripts();
           }
         };
 
         document.body.appendChild(themeScript);
-      } else {
-        // Load time format slider scripts if theme script is already loaded
-        loadTimeFormatSliderScripts();
       }
     };
 
-@ -153,123 +126,70 @@ function preloadSliderResources() {
+    document.body.appendChild(sliderScript);
+  } else {
+    // Scripts already loaded
+    preloadedResources.sliderScript = true;
+
+    // Check if theme scripts are loaded
+    if (window.themeSlider) {
+      preloadedResources.themeSliderScript = true;
+    } else {
+      // Load theme-specific script
+      const themeScript = document.createElement("script");
+      themeScript.id = "theme-slider-script";
+      themeScript.src = "js/settings/theme-slider.js";
+
+      themeScript.onload = () => {
+        preloadedResources.themeSliderScript = true;
+        console.log("Theme slider script preloaded");
+      };
+
+      document.body.appendChild(themeScript);
+    }
+
+    // Check if theme integration is loaded
+    if (window.themeSliderIntegration) {
+      preloadedResources.themeSliderIntegration = true;
+    } else {
+      // Load theme integration script
+      const integrationScript = document.createElement("script");
+      integrationScript.id = "theme-slider-integration-script";
+      integrationScript.src = "js/settings/theme-slider-integration.js";
+
+      integrationScript.onload = () => {
+        preloadedResources.themeSliderIntegration = true;
+        console.log("Theme slider integration script preloaded");
+      };
 
       document.body.appendChild(integrationScript);
     }
@@ -154,8 +200,6 @@ async function loadSliderResources() {
 export async function navigateToPage(pageName, pushState = true) {
   if (!pageName || pageName === activePage) {
     return; // Already on this page
-    // Load time format slider scripts
-    loadTimeFormatSliderScripts();
   }
 
   try {
@@ -191,21 +235,6 @@ export async function navigateToPage(pageName, pushState = true) {
       // Await slider resources
       await loadSliderResources();
     }
-  // Function to load time format slider scripts
-  function loadTimeFormatSliderScripts() {
-    // Check if time format slider is already loaded
-    if (window.timeFormatSlider) {
-      preloadedResources.timeFormatSliderScript = true;
-    } else {
-      // Load time format slider script
-      const timeFormatScript = document.createElement("script");
-      timeFormatScript.id = "time-format-slider-script";
-      timeFormatScript.src = "js/settings/time-format-slider.js";
-
-      timeFormatScript.onload = () => {
-        preloadedResources.timeFormatSliderScript = true;
-        console.log("Time format slider script preloaded");
-      };
 
     // Fetch the page content
     const response = await fetch(pagePath);
@@ -213,7 +242,6 @@ export async function navigateToPage(pageName, pushState = true) {
       throw new Error(
         `Failed to load page: ${response.status} ${response.statusText}`
       );
-      document.body.appendChild(timeFormatScript);
     }
 
     const html = await response.text();
@@ -223,28 +251,11 @@ export async function navigateToPage(pageName, pushState = true) {
 
     // Update active page tracking
     activePage = pageName;
-    // Check if time format integration is loaded
-    if (window.timeFormatSliderIntegration) {
-      preloadedResources.timeFormatSliderIntegration = true;
-    } else {
-      // Load time format integration script
-      const timeFormatIntegrationScript = document.createElement("script");
-      timeFormatIntegrationScript.id = "time-format-slider-integration-script";
-      timeFormatIntegrationScript.src =
-        "js/settings/time-format-slider-integration.js";
-
-      timeFormatIntegrationScript.onload = () => {
-        preloadedResources.timeFormatSliderIntegration = true;
-        console.log("Time format slider integration script preloaded");
-      };
 
     // Update URL for bookmarking (if this isn't from a popstate event)
     if (pushState) {
       window.history.pushState({ page: pageName }, "", `#${pageName}`);
-      document.body.appendChild(timeFormatIntegrationScript);
     }
-  }
-}
 
     // Trigger any page-specific initialization - REMOVED TIMEOUT
     const pageLoadEvent = new CustomEvent("pageLoaded", {
@@ -253,16 +264,6 @@ export async function navigateToPage(pageName, pushState = true) {
 
     // Dispatch the event immediately without delay
     document.dispatchEvent(pageLoadEvent);
-// Also update the preloadedResources object at the top of the file:
-const preloadedResources = {
-  sliderStylesheet: false,
-  timeDisplayStylesheet: false,
-  sliderScript: false,
-  themeSliderScript: false,
-  themeSliderIntegration: false,
-  timeFormatSliderScript: false,
-  timeFormatSliderIntegration: false,
-};
 
     // Update collapsed navbar menu
     if (typeof window.updateMenuContent === "function") {
@@ -271,15 +272,4 @@ const preloadedResources = {
   } catch (error) {
     console.error("Error loading page:", error);
   }
-// And update the areSliderResourcesLoaded function:
-function areSliderResourcesLoaded() {
-  return (
-    preloadedResources.sliderStylesheet &&
-    preloadedResources.sliderScript &&
-    preloadedResources.themeSliderScript &&
-    preloadedResources.themeSliderIntegration &&
-    preloadedResources.timeDisplayStylesheet &&
-    preloadedResources.timeFormatSliderScript &&
-    preloadedResources.timeFormatSliderIntegration
-  );
 }
