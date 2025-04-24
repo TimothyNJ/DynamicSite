@@ -11,6 +11,29 @@ body {
   --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.2)), 30vw);
   --collapse-breakpoint: 600px;
   --navbar-height: auto;
+  /* Theme variables */
+  /* Light theme page range */
+  --light-page-start: #4b5b62;
+  --light-page-end: #ffffff;
+  /* Dark theme page range */
+  --dark-page-start: #000000;
+  --dark-page-end: #96b7c4;
+  /* Light theme slider container range */
+  --light-slider-start: #7c8e94; /* 34% of range between #4b5b62 and #ffffff */
+  --light-slider-end: #a0b2b8; /* 68% of range between #4b5b62 and #ffffff */
+  /* Dark theme slider container range */
+  --dark-slider-start: #384c59; /* 34% of range between #000000 and #96b7c4 */
+  --dark-slider-end: #6c7f8b; /* 68% of range between #000000 and #96b7c4 */
+  /* Active button gradient colors */
+  --active-button-start: #6a0dad; /* Purple */
+  --active-button-end: #4169e1; /* Royal Blue */
+  /* Store percentage values for JavaScript to read */
+  --light-slider-start-percent: 34;
+  --light-slider-end-percent: 68;
+  --dark-slider-start-percent: 34;
+  --dark-slider-end-percent: 68;
+  /* Define inverse color variable */
+  --inv: #ffffff;
 }
 
 /* Site Outer Padding Elimination */
@@ -67,6 +90,11 @@ p {
   font-size: clamp(0.5rem, 1.2vw, 2.3rem);
   margin: calc(0.03vw + 0.03vh);
   font-weight: normal; /* Explicit normal styling */
+}
+
+/* Dark theme text color */
+body[data-theme=dark] {
+  color: #ffffff;
 }
 
 /* FULL SITE CONTAINER */
@@ -353,4 +381,56 @@ p {
 /* Class for hiding borders but not button borders */
 .borders-hidden *:not(button):not(.nav-bar button) {
   border-color: transparent !important;
+}
+
+/* Loading Indicator */
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  width: 100%;
+  font-size: 1.2rem;
+  color: #555;
+  background-color: transparent;
+  position: relative;
+}
+.loading-indicator::after {
+  content: "";
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(100, 100, 100, 0.2);
+  border-top-color: royalblue;
+  border-radius: 50%;
+  position: absolute;
+  left: calc(50% - 15px);
+  top: calc(50% + 30px);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+/* Make the settings container fade in smoothly */
+.settings-container {
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* Hide theme selector until fully loaded */
+.theme-selector {
+  transition: opacity 0.3s ease;
 }/*# sourceMappingURL=styles.css.map */
