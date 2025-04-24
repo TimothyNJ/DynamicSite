@@ -15,9 +15,12 @@ let activePage = null;
 // Keep track of preloaded resources
 const preloadedResources = {
   sliderStylesheet: false,
+  timeDisplayStylesheet: false,
   sliderScript: false,
   themeSliderScript: false,
   themeSliderIntegration: false,
+  timeFormatSliderScript: false,
+  timeFormatSliderIntegration: false,
 };
 
 // Initialize the router
@@ -75,6 +78,22 @@ function preloadSliderResources() {
     preloadedResources.sliderStylesheet = true;
   }
 
+  // Add time display stylesheet
+  if (!document.getElementById("time-display-style")) {
+    const timeStyle = document.createElement("link");
+    timeStyle.id = "time-display-style";
+    timeStyle.rel = "stylesheet";
+    timeStyle.href = "styles/time-display.css";
+    document.head.appendChild(timeStyle);
+
+    timeStyle.onload = () => {
+      preloadedResources.timeDisplayStylesheet = true;
+      console.log("Time display stylesheet preloaded");
+    };
+  } else {
+    preloadedResources.timeDisplayStylesheet = true;
+  }
+
   // Preload slider scripts if they're not already loaded
   if (!window.sliderButtons) {
     // Create and load the main slider script (core functionality)
@@ -105,13 +124,22 @@ function preloadSliderResources() {
             integrationScript.onload = () => {
               preloadedResources.themeSliderIntegration = true;
               console.log("Theme slider integration script preloaded");
+
+              // Load time format slider scripts
+              loadTimeFormatSliderScripts();
             };
 
             document.body.appendChild(integrationScript);
+          } else {
+            // Load time format slider scripts if integration script is already loaded
+            loadTimeFormatSliderScripts();
           }
         };
 
         document.body.appendChild(themeScript);
+      } else {
+        // Load time format slider scripts if theme script is already loaded
+        loadTimeFormatSliderScripts();
       }
     };
 
@@ -153,6 +181,47 @@ function preloadSliderResources() {
 
       document.body.appendChild(integrationScript);
     }
+
+    // Load time format slider scripts
+    loadTimeFormatSliderScripts();
+  }
+
+  // Function to load time format slider scripts
+  function loadTimeFormatSliderScripts() {
+    // Check if time format slider is already loaded
+    if (window.timeFormatSlider) {
+      preloadedResources.timeFormatSliderScript = true;
+    } else {
+      // Load time format slider script
+      const timeFormatScript = document.createElement("script");
+      timeFormatScript.id = "time-format-slider-script";
+      timeFormatScript.src = "js/settings/time-format-slider.js";
+
+      timeFormatScript.onload = () => {
+        preloadedResources.timeFormatSliderScript = true;
+        console.log("Time format slider script preloaded");
+      };
+
+      document.body.appendChild(timeFormatScript);
+    }
+
+    // Check if time format integration is loaded
+    if (window.timeFormatSliderIntegration) {
+      preloadedResources.timeFormatSliderIntegration = true;
+    } else {
+      // Load time format integration script
+      const timeFormatIntegrationScript = document.createElement("script");
+      timeFormatIntegrationScript.id = "time-format-slider-integration-script";
+      timeFormatIntegrationScript.src =
+        "js/settings/time-format-slider-integration.js";
+
+      timeFormatIntegrationScript.onload = () => {
+        preloadedResources.timeFormatSliderIntegration = true;
+        console.log("Time format slider integration script preloaded");
+      };
+
+      document.body.appendChild(timeFormatIntegrationScript);
+    }
   }
 }
 
@@ -162,7 +231,10 @@ function areSliderResourcesLoaded() {
     preloadedResources.sliderStylesheet &&
     preloadedResources.sliderScript &&
     preloadedResources.themeSliderScript &&
-    preloadedResources.themeSliderIntegration
+    preloadedResources.themeSliderIntegration &&
+    preloadedResources.timeDisplayStylesheet &&
+    preloadedResources.timeFormatSliderScript &&
+    preloadedResources.timeFormatSliderIntegration
   );
 }
 
