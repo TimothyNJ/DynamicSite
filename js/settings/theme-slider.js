@@ -13,8 +13,11 @@ window.themeSlider = (function () {
       body.setAttribute("data-theme", "light");
       body.style.backgroundImage =
         "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
-      if (sliderInstance._themeSelector) {
-        sliderInstance._themeSelector.style.background =
+
+      // Update slider background if available
+      const themeSelector = document.querySelector(".theme-selector");
+      if (themeSelector) {
+        themeSelector.style.background =
           "linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)";
       }
     } else if (themeName === "dark") {
@@ -22,8 +25,11 @@ window.themeSlider = (function () {
       body.setAttribute("data-theme", "dark");
       body.style.backgroundImage =
         "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
-      if (sliderInstance._themeSelector) {
-        sliderInstance._themeSelector.style.background =
+
+      // Update slider background if available
+      const themeSelector = document.querySelector(".theme-selector");
+      if (themeSelector) {
+        themeSelector.style.background =
           "linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)";
       }
     } else if (themeName === "system" && !skipThemeDetection) {
@@ -50,14 +56,16 @@ window.themeSlider = (function () {
     // Make sure system option is active
     if (!systemOption.classList.contains("active")) {
       // Programmatically activate the system option
-      sliderInstance.setActiveOption(systemOption, true);
+      if (window.sliderButtons) {
+        window.sliderButtons.setActiveOption(systemOption, true);
+      }
     } else {
       // Apply the system theme directly since the option is already active
       applyThemeByName("system");
     }
   }
 
-  // Custom handler for when an option is selected
+  // Custom handler for when an option is selected - exposed globally
   function handleOptionSelected(option) {
     // Get the theme name from data-theme attribute or from text
     const themeName =
@@ -85,18 +93,16 @@ window.themeSlider = (function () {
       return false;
     }
 
-    // Use the existing slider instance directly
-    sliderInstance = window.sliderButtons;
-
-    // Set custom option selection handler
-    sliderInstance.onOptionSelected = handleOptionSelected;
-
     // Initialize the slider
-    const result = sliderInstance.init(".theme-selector");
+    const result = window.sliderButtons.init(".theme-selector");
 
     if (!result) {
+      console.error("Failed to initialize the core slider");
       return false;
     }
+
+    // Make sure the callback is set - do this both here and in integration
+    window.sliderButtons.onOptionSelected = handleOptionSelected;
 
     // Set up listeners for system theme changes
     if (window.matchMedia) {
@@ -134,5 +140,6 @@ window.themeSlider = (function () {
     init: init,
     applyThemeByName: applyThemeByName,
     applySystemTheme: applySystemTheme,
+    handleOptionSelected: handleOptionSelected, // Expose this for integration
   };
 })();

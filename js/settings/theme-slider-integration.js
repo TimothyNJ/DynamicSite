@@ -40,6 +40,10 @@
       return false;
     }
 
+    // Ensure the callback is set up before initializing
+    window.sliderButtons.onOptionSelected =
+      window.themeSlider.handleOptionSelected;
+
     // Initialize the theme slider
     console.log("Initializing theme slider from integration.js");
     try {
@@ -97,7 +101,7 @@
       initializationAttempts = 0;
 
       // Initialize immediately
-      initThemeSlider();
+      setTimeout(initThemeSlider, 0); // Use setTimeout to avoid blocking
     } else {
       // If we navigated away from settings
       if (event.detail && event.detail.pageName !== "settings") {
@@ -113,7 +117,7 @@
         console.log("Navigated to settings page");
         initialized = false;
         initializationAttempts = 0;
-        initThemeSlider();
+        setTimeout(initThemeSlider, 0); // Use setTimeout to avoid blocking
       }
     } else {
       // When navigating away from settings
@@ -125,25 +129,29 @@
   if (document.readyState === "complete") {
     // Page already loaded, check if we're on the settings page
     if (window.location.hash === "#settings") {
-      initThemeSlider();
+      setTimeout(initThemeSlider, 0); // Use setTimeout to avoid blocking
     }
   } else {
     // Wait for page to finish loading
     window.addEventListener("load", function () {
       // Check if we're on the settings page
       if (window.location.hash === "#settings") {
-        initThemeSlider();
+        setTimeout(initThemeSlider, 0); // Use setTimeout to avoid blocking
       }
     });
   }
 
   // Store a reference in the window object for router.js to access
   window.themeSliderIntegration = {
-    init: initThemeSlider,
+    init: function () {
+      setTimeout(initThemeSlider, 0); // Use setTimeout to avoid blocking
+      return true;
+    },
     reinitialize: function () {
       initialized = false;
       initializationAttempts = 0;
-      return initThemeSlider();
+      setTimeout(initThemeSlider, 0); // Use setTimeout to avoid blocking
+      return true;
     },
   };
 })();
