@@ -32,26 +32,51 @@ body {
   --light-slider-end-percent: 68;
   --dark-slider-start-percent: 34;
   --dark-slider-end-percent: 68;
-  /* Define inverse color variable */
-  --inv: #ffffff;
+  /* Site Outer Padding Elimination */
+  /* FONT */
+  /* Dark theme text color */
+  /* FULL SITE CONTAINER */
+  /* Rounded bottom corners for desktop */
+  /* Dimension container styling */
+  /* NAVBAR */
+  /* Navbar Primary Container */
+  /* Navbar Buffer Containers 1 & 5 */
+  /* Navbar Container 2 */
+  /* Navbar Container 3 */
+  /* Navbar Container 4 */
+  /* Global Button Styles */
+  /* Global Hover Effect for all buttons */
+  /* Hover and Dropdown Interaction */
+  /* Collapsed Navbar */
+  /* Show collapsed button and hide inactive buttons below collapse-breakpoint */
+  /* Hide the collapsed navbar button above collapse-breakpoint */
+  /* CONTENT AREA */
+  /* Full content area with Buffers */
+  /* Content Buffers */
+  /* Content Area */
+  /* VIRTUAL PAGES */
+  /* For loaded pages - equivalent to virtual-page.active */
+  /* Bottom Buffer Bar */
+  /* Border Toggle Button */
+  /* Class for hiding borders but not button borders */
+  /* Loading Indicator */
+  /* Make the settings container fade in smoothly */
+  /* Hide theme selector until fully loaded */
 }
-
-/* Site Outer Padding Elimination */
-* {
+:root * {
   /* "*" is a universal selector */
   margin: 0; /* Removes default margins applied by browsers */
   padding: 0; /* Removes default padding applied by browsers */
   box-sizing: border-box; /* Includes padding and borders within the declared width and height. */
 }
-
-body,
-h1,
-h2,
-h3,
-p,
-button,
-span,
-a {
+:root body,
+:root h1,
+:root h2,
+:root h3,
+:root p,
+:root button,
+:root span,
+:root a {
   white-space: nowrap; /* Prevent wrapping by keeping all content on a single line */
   overflow: hidden; /* Hide overflowing content */
   text-overflow: ellipsis; /* Add ellipsis (...) for overflowed text */
@@ -59,46 +84,36 @@ a {
   max-height: 100%; /* Limits the height of the element to the container's height. */
   box-sizing: border-box; /* Ensure padding and border are included in the size limit */
 }
-
-/* FONT */
-h1,
-h2,
-h3,
-p {
+:root h1,
+:root h2,
+:root h3,
+:root p {
   font-family: Helvetica, Tahoma, sans-serif; /* Default font preferrence order */
 }
-
-h1 {
+:root h1 {
   font-size: clamp(0.7rem, 1.6vw, 2.5rem);
   margin: calc(0.03vw + 0.03vh);
   font-weight: bold;
 }
-
-h2 {
+:root h2 {
   font-size: clamp(0.6rem, 1.4vw, 2.4rem);
   margin: calc(0.03vw + 0.03vh);
   font-weight: bold; /* Explicit bold styling */
 }
-
-h3 {
+:root h3 {
   font-size: clamp(0.5rem, 1.2vw, 2.3rem);
   margin: calc(0.03vw + 0.03vh);
   font-weight: bold; /* Explicit bold styling */
 }
-
-p {
+:root p {
   font-size: clamp(0.5rem, 1.2vw, 2.3rem);
   margin: calc(0.03vw + 0.03vh);
   font-weight: normal; /* Explicit normal styling */
 }
-
-/* Dark theme text color */
-body[data-theme=dark] {
+:root body[data-theme=dark] {
   color: #ffffff;
 }
-
-/* FULL SITE CONTAINER */
-.site-container {
+:root .site-container {
   font-size: inherit; /* Ensure H1/H2/H3/P inherit */
   display: flex;
   flex-direction: column; /* Stack child elements vertically */
@@ -109,22 +124,15 @@ body[data-theme=dark] {
   border-bottom: 1px solid royalblue;
   border-left: 1px solid royalblue;
 }
-
-/* Rounded bottom corners for desktop */
-.site-container.round-bottom {
+:root .site-container.round-bottom {
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
 }
-
-/* Dimension container styling */
-.dimension-container {
+:root .dimension-container {
   margin-top: 20px;
   text-align: center;
 }
-
-/* NAVBAR */
-/* Navbar Primary Container */
-.nav-bar {
+:root .nav-bar {
   font-size: inherit; /* Ensure H1/H2/H3/P inherit */
   display: flex;
   justify-content: center; /* Center contents */
@@ -134,22 +142,16 @@ body[data-theme=dark] {
   border: 2px solid yellow; /* Border Colour */
   color: white; /* White Text */
 }
-
-/* Navbar Buffer Containers 1 & 5 */
-.nav-bar .nav-container:nth-child(1),
-.nav-bar .nav-container:nth-child(5) {
+:root .nav-bar .nav-container:nth-child(1),
+:root .nav-bar .nav-container:nth-child(5) {
   border: 2px solid rgb(94, 255, 0); /* Border Colour */
 }
-
-/* Navbar Container 2 */
-.nav-bar .nav-container:nth-child(2) {
+:root .nav-bar .nav-container:nth-child(2) {
   justify-content: flex-start; /* Justify contents to the left */
   flex: 0 1 auto; /* Flex size based on content */
   border: 2px solid green; /* Retain visible border */
 }
-
-/* Navbar Container 3 */
-.nav-bar .nav-container:nth-child(3) {
+:root .nav-bar .nav-container:nth-child(3) {
   display: flex; /* Ensure it's visible */
   justify-content: center; /* Center contents */
   align-items: center; /* Align contents */
@@ -157,9 +159,7 @@ body[data-theme=dark] {
   flex: 1; /* Allow it to grow and shrink */
   min-width: 2vw; /* Stop shrinking below the navbar buffer width */
 }
-
-/* Navbar Container 4 */
-.nav-bar .nav-container:nth-child(4) {
+:root .nav-bar .nav-container:nth-child(4) {
   font-size: inherit; /* Ensure H1/H2/H3/P inherit */
   display: flex; /* Ensure it's visible */
   justify-content: flex-end; /* Justify contents to the right */
@@ -168,10 +168,8 @@ body[data-theme=dark] {
   border: 2px solid purple; /* Ensure visible border */
   position: relative; /* Add this line to establish positioning context */
 }
-
-/* Global Button Styles */
-.nav-bar button,
-.collapsed-menu button {
+:root .nav-bar button,
+:root .collapsed-menu button {
   font-size: inherit;
   flex: 0 1 auto;
   background-color: black;
@@ -184,54 +182,45 @@ body[data-theme=dark] {
   justify-content: center;
   align-items: center;
 }
-
-/* Global Hover Effect for all buttons */
-.nav-bar button:hover,
-.collapsed-menu button:hover {
+:root .nav-bar button:hover,
+:root .collapsed-menu button:hover {
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   cursor: pointer;
   border: 1px solid royalblue;
 }
-
-/* Hover and Dropdown Interaction */
 @media (max-width: 600px) {
-  .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
-  .collapsed-menu:hover:not(.show) {
+  :root .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
+  :root .collapsed-menu:hover:not(.show) {
     display: flex;
     flex-direction: column;
   }
 }
-.nav-bar .nav-container:nth-child(4) button.active {
+:root .nav-bar .nav-container:nth-child(4) button.active {
   background-color: royalblue; /* Active button color */
   color: white; /* Make active button text white */
 }
-
-/* Collapsed Navbar */
-.collapsed-navbar {
+:root .collapsed-navbar {
   display: none; /* Keep this to hide by default */
 }
-
-.collapsed-navbar h3 {
+:root .collapsed-navbar h3 {
   font-size: 80%; /* Makes the icon slightly larger */
   line-height: 0.9; /* Keeps button height consistent */
 }
-
-/* Show collapsed button and hide inactive buttons below collapse-breakpoint */
 @media (max-width: 600px) {
-  .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
+  :root .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
     display: none; /* Hide inactive buttons */
   }
-  .nav-bar .nav-container:nth-child(4) {
+  :root .nav-bar .nav-container:nth-child(4) {
     flex: 0 0 auto; /* Prevents shrinking beyond calculated size */
     width: calc(50vw + 10px); /* Dynamically adjusts with viewport */
     min-width: 20px; /* Ensures a reasonable minimum width */
     flex-basis: content; /* trying to shrink the navbar4 when buttons are hidden */
   }
-  .collapsed-menu {
+  :root .collapsed-menu {
     width: calc(50vw + 10px); /* Keep width in sync with navbar4 */
   }
-  .nav-container:nth-child(4) .collapsed-navbar {
+  :root .nav-container:nth-child(4) .collapsed-navbar {
     display: flex; /* Show collapsed navbar button */
     margin: calc(0.03vw + 0.03vh);
     padding: 0;
@@ -239,14 +228,13 @@ body[data-theme=dark] {
     color: white;
   }
 }
-/* Hide the collapsed navbar button above collapse-breakpoint */
 @media (min-width: 601px) {
-  .nav-container:nth-child(4) .collapsed-navbar,
-  .collapsed-menu {
+  :root .nav-container:nth-child(4) .collapsed-navbar,
+  :root .collapsed-menu {
     display: none !important; /* ✅ Hide dropdown when navbar expands */
   }
 }
-.collapsed-menu button {
+:root .collapsed-menu button {
   display: flex !important;
   text-align: right;
   justify-content: flex-end;
@@ -266,8 +254,7 @@ body[data-theme=dark] {
   overflow: visible !important;
   text-overflow: clip !important;
 }
-
-.collapsed-menu {
+:root .collapsed-menu {
   display: none;
   flex-direction: column !important;
   text-align: right;
@@ -285,26 +272,20 @@ body[data-theme=dark] {
   overflow: visible;
   font-size: inherit;
 }
-
-.collapsed-menu button {
+:root .collapsed-menu button {
   width: 100%;
   text-align: right;
   justify-content: flex-end;
   white-space: nowrap;
 }
-
-/* CONTENT AREA */
-/* Full content area with Buffers */
-.content-wrapper {
+:root .content-wrapper {
   display: flex;
   flex: 1; /* Allow content-wrapper to grow */
   width: 100%;
   overflow: auto; /* Scrollable if necessary */
   border: 2px solid rgb(181, 58, 230);
 }
-
-/* Content Buffers */
-.content-buffer {
+:root .content-buffer {
   flex: 0 0 auto; /* Changed to prevent growing/shrinking */
   width: var(--side-buffer-width);
   top: 0;
@@ -316,9 +297,7 @@ body[data-theme=dark] {
   align-items: center; /* Center content horizontally */
   text-align: center; /* Ensure text alignment */
 }
-
-/* Content Area */
-.content-container {
+:root .content-container {
   font-size: inherit; /* Ensure H1/H2/H3/P are inhereted */
   flex: 1; /* Allow main content to grow and shrink */
   border: 2px solid green; /* Green border for distinction */
@@ -328,29 +307,22 @@ body[data-theme=dark] {
   justify-content: center; /* Center content vertically */
   align-items: center; /* Center content horizontally */
 }
-
-/* VIRTUAL PAGES */
-.virtual-page {
+:root .virtual-page {
   display: none; /* Default state is hidden */
 }
-
-.virtual-page.active {
+:root .virtual-page.active {
   display: flex; /* Show the active page */
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
-
-/* For loaded pages - equivalent to virtual-page.active */
-.page-content {
+:root .page-content {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
-
-/* Bottom Buffer Bar */
-.bottom-buffer-bar {
+:root .bottom-buffer-bar {
   width: 100%;
   height: var(--navbar-height);
   background-color: transparent;
@@ -360,9 +332,7 @@ body[data-theme=dark] {
   align-items: center;
   text-align: center;
 }
-
-/* Border Toggle Button */
-.border-toggle-btn {
+:root .border-toggle-btn {
   margin: 10px;
   padding: 8px 16px;
   background-color: #007bff;
@@ -372,18 +342,13 @@ body[data-theme=dark] {
   cursor: pointer;
   transition: background-color 0.3s;
 }
-
-.border-toggle-btn:hover {
+:root .border-toggle-btn:hover {
   background-color: #0056b3;
 }
-
-/* Class for hiding borders but not button borders */
-.borders-hidden *:not(button):not(.nav-bar button) {
+:root .borders-hidden *:not(button):not(.nav-bar button) {
   border-color: transparent !important;
 }
-
-/* Loading Indicator */
-.loading-indicator {
+:root .loading-indicator {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -393,7 +358,7 @@ body[data-theme=dark] {
   background-color: transparent;
   position: relative;
 }
-.loading-indicator::after {
+:root .loading-indicator::after {
   content: "";
   width: 30px;
   height: 30px;
@@ -405,7 +370,6 @@ body[data-theme=dark] {
   top: calc(50% + 30px);
   animation: spin 0.8s linear infinite;
 }
-
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -414,12 +378,10 @@ body[data-theme=dark] {
     transform: rotate(360deg);
   }
 }
-/* Make the settings container fade in smoothly */
-.settings-container {
+:root .settings-container {
   opacity: 0;
   animation: fadeIn 0.3s ease-in-out forwards;
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -428,7 +390,6 @@ body[data-theme=dark] {
     opacity: 1;
   }
 }
-/* Hide theme selector until fully loaded */
-.theme-selector {
+:root .theme-selector {
   transition: opacity 0.3s ease;
 }/*# sourceMappingURL=styles.css.map */

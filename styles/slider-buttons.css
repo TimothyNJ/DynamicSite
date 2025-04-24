@@ -25,6 +25,7 @@
   --light-slider-end-percent: 68;
   --dark-slider-start-percent: 34;
   --dark-slider-end-percent: 68;
+}
 
 /* Override to prevent truncation in theme selector */
 .theme-selector .option h3 {
@@ -124,10 +125,6 @@ body[data-theme="dark"] .theme-selector {
   border-radius: 9999px;
   overflow: visible; /* Allow natural content flow */
   width: 110px; /* Add fixed width to prevent expansion */
-}
-
-.option.active h3 {
-  color: #ffffff;
 }
 
 .selector-background {
