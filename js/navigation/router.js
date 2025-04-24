@@ -207,15 +207,13 @@ export async function navigateToPage(pageName, pushState = true) {
       window.history.pushState({ page: pageName }, "", `#${pageName}`);
     }
 
-    // Trigger any page-specific initialization
+    // Trigger any page-specific initialization - REMOVED TIMEOUT
     const pageLoadEvent = new CustomEvent("pageLoaded", {
       detail: { pageName },
     });
 
-    // Dispatch the event after a short delay to ensure DOM is ready
-    setTimeout(() => {
-      document.dispatchEvent(pageLoadEvent);
-    }, 100);
+    // Dispatch the event immediately without delay
+    document.dispatchEvent(pageLoadEvent);
 
     // Update collapsed navbar menu
     if (typeof window.updateMenuContent === "function") {

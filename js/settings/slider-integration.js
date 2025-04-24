@@ -49,9 +49,9 @@
       typeof window.sliderButtons.init !== "function"
     ) {
       console.log(
-        "Slider buttons object not available yet, will retry in 300ms"
+        "Slider buttons object not available yet, will retry in 50ms"
       );
-      setTimeout(initThemeSelector, 300);
+      setTimeout(initThemeSelector, 50);
       return false;
     }
 
@@ -61,10 +61,8 @@
       const result = window.sliderButtons.init();
 
       if (result === false) {
-        console.log(
-          "Theme selector initialization failed, will retry in 300ms"
-        );
-        setTimeout(initThemeSelector, 300);
+        console.log("Theme selector initialization failed, will retry in 50ms");
+        setTimeout(initThemeSelector, 50);
         return false;
       }
 
@@ -100,13 +98,10 @@
     if (window.location.hash === "#settings") {
       console.log("Settings page detected, checking initialization");
 
-      // Give time for DOM to be fully loaded
-      setTimeout(function () {
-        // Only attempt reinitialization if necessary
-        if (!initialized) {
-          initThemeSelector();
-        }
-      }, 100);
+      // Only attempt reinitialization if necessary
+      if (!initialized) {
+        initThemeSelector();
+      }
     }
   }
 
@@ -115,18 +110,13 @@
     if (event.detail && event.detail.pageName === "settings") {
       console.log("Settings page loaded event detected");
 
-      // Mark as navigating
-      isNavigating = true;
-
       // Force reinitialization since page has been loaded anew
       initialized = false;
       initializationAttempts = 0;
+      isNavigating = false;
 
-      // First try after a short delay
-      setTimeout(function () {
-        isNavigating = false; // Navigation complete
-        initThemeSelector();
-      }, 200);
+      // Initialize immediately - remove timeout
+      initThemeSelector();
     } else {
       // If we navigated away from settings, mark as not initialized
       if (event.detail && event.detail.pageName !== "settings") {
@@ -143,7 +133,7 @@
         console.log("Navigated to settings page");
         initialized = false;
         initializationAttempts = 0;
-        setTimeout(reinitializeIfNeeded, 300);
+        reinitializeIfNeeded();
       }
     } else {
       // When navigating away from settings
@@ -156,14 +146,14 @@
   if (document.readyState === "complete") {
     // Page already loaded, check if we're on the settings page
     if (window.location.hash === "#settings") {
-      setTimeout(initThemeSelector, 500);
+      initThemeSelector();
     }
   } else {
     // Wait for page to finish loading
     window.addEventListener("load", function () {
       // Check if we're on the settings page
       if (window.location.hash === "#settings") {
-        setTimeout(initThemeSelector, 500);
+        initThemeSelector();
       }
     });
   }

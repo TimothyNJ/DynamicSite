@@ -291,9 +291,6 @@ window.sliderButtons = (function () {
       return false;
     }
 
-    // Set all buttons to equal width
-    const buttonWidth = equalizeButtonWidths();
-
     // Get the active option
     const activeOption = document.querySelector(".option.active");
     if (!activeOption) {
@@ -828,6 +825,9 @@ window.sliderButtons = (function () {
 
     // Set --inv variable to white at the document root level
     document.documentElement.style.setProperty("--inv", "#ffffff");
+
+    // Set all buttons to equal width FIRST before anything else
+    equalizeButtonWidths();
 
     // Disable transition for initial positioning
     if (_selectorBackground) {
