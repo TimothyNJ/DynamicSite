@@ -1,0 +1,68 @@
+/* styles/clock-selector.css */
+
+/* Clock section styles */
+.settings-section {
+  margin-bottom: 30px;
+}
+
+.settings-title {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Clock container styles */
+.clock-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+/* Clock selector styles (based on theme selector) */
+.clock-selector {
+  display: inline-flex;
+  position: relative;
+  height: auto;
+  border-radius: 9999px;
+  background: linear-gradient(
+    -25deg,
+    var(--light-slider-start) 0%,
+    var(--light-slider-end) 100%
+  );
+  overflow: visible;
+  padding: 0;
+  gap: 4px;
+}
+
+/* Style for dark theme */
+body[data-theme="dark"] .clock-selector {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-slider-start) 0%,
+    var(--dark-slider-end) 100%
+  );
+}
+
+/* Clock display style */
+.clock-display {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  padding: 2px 8px;
+}
+
+/* Override to prevent truncation in clock selector */
+.clock-selector .option h3 {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+  margin: 0;
+  font-weight: bold;
+  position: relative;
+  z-index: 3;
+  transition: color 0.5s ease;
+  padding: 2px 8px;
+}

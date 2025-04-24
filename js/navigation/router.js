@@ -17,6 +17,9 @@ const preloadedResources = {
   sliderStylesheet: false,
   sliderScript: false,
   sliderIntegration: false,
+  clockStylesheet: false,
+  clockScript: false,
+  clockIntegration: false,
 };
 
 // Initialize the router
@@ -29,8 +32,8 @@ export function initRouter() {
     });
   });
 
-  // Preload slider resources in the background for faster transitions
-  preloadSliderResources();
+  // Preload slider and clock resources in the background for faster transitions
+  preloadSettingsResources();
 
   // Load the initial page (either from URL or default to home)
   const initialPage = getPageFromURL() || "home";
@@ -51,7 +54,7 @@ function getPageFromURL() {
 }
 
 // Preload slider resources in the background
-function preloadSliderResources() {
+function preloadSettingsResources() {
   // Create a container for preloaded resources
   const preloadContainer = document.createElement("div");
   preloadContainer.style.display = "none";
@@ -72,6 +75,22 @@ function preloadSliderResources() {
     };
   } else {
     preloadedResources.sliderStylesheet = true;
+  }
+
+  // Add clock selector stylesheet
+  if (!document.getElementById("clock-selector-style")) {
+    const clockStyle = document.createElement("link");
+    clockStyle.id = "clock-selector-style";
+    clockStyle.rel = "stylesheet";
+    clockStyle.href = "styles/clock-selector.css";
+    document.head.appendChild(clockStyle);
+
+    clockStyle.onload = () => {
+      preloadedResources.clockStylesheet = true;
+      console.log("Clock stylesheet preloaded");
+    };
+  } else {
+    preloadedResources.clockStylesheet = true;
   }
 
   // Preload slider scripts if they're not already loaded
@@ -105,28 +124,63 @@ function preloadSliderResources() {
     preloadedResources.sliderScript = true;
     preloadedResources.sliderIntegration = true;
   }
+
+  // Preload clock scripts if they're not already loaded
+  if (!window.clockSelector) {
+    // Create and load the main clock script
+    const clockScript = document.createElement("script");
+    clockScript.id = "clock-selector-script";
+    clockScript.src = "js/settings/clock-selector.js";
+
+    clockScript.onload = () => {
+      preloadedResources.clockScript = true;
+      console.log("Clock selector script preloaded");
+
+      // After main script loads, load the integration script
+      if (!document.getElementById("clock-integration-script")) {
+        const clockIntegrationScript = document.createElement("script");
+        clockIntegrationScript.id = "clock-integration-script";
+        clockIntegrationScript.src = "js/settings/clock-integration.js";
+
+        clockIntegrationScript.onload = () => {
+          preloadedResources.clockIntegration = true;
+          console.log("Clock integration script preloaded");
+        };
+
+        document.body.appendChild(clockIntegrationScript);
+      }
+    };
+
+    document.body.appendChild(clockScript);
+  } else {
+    preloadedResources.clockScript = true;
+    preloadedResources.clockIntegration = true;
+  }
 }
 
-// Check if slider resources are loaded
-function areSliderResourcesLoaded() {
+// Check if settings resources are loaded
+function areSettingsResourcesLoaded() {
   return (
     preloadedResources.sliderStylesheet &&
     preloadedResources.sliderScript &&
-    preloadedResources.sliderIntegration
+    preloadedResources.sliderIntegration &&
+    preloadedResources.clockStylesheet &&
+    preloadedResources.clockScript &&
+    preloadedResources.clockIntegration
   );
 }
 
-// Wait for slider resources to be loaded
-function waitForSliderResources() {
+// Wait for settings resources to be loaded
+function waitForSettingsResources() {
   return new Promise((resolve) => {
-    if (areSliderResourcesLoaded()) {
+    if (areSettingsResourcesLoaded()) {
       resolve();
       return;
     }
 
     // Check every 50ms until resources are loaded
     const checkInterval = setInterval(() => {
-      if (areSliderResourcesLoaded()) {
+      if (areSettingsResourcesLoaded()) {
         clearInterval(checkInterval);
         resolve();
       }
@@ -140,10 +194,10 @@ function waitForSliderResources() {
   });
 }
 
-// Load the slider resources and return a promise
-async function loadSliderResources() {
+// Load the settings resources and return a promise
+async function loadSettingsResources() {
   // If resources are already being preloaded, wait for them
-  return waitForSliderResources();
+  return waitForSettingsResources();
 }
 
 // Navigate to a specific page
@@ -176,14 +230,14 @@ export async function navigateToPage(pageName, pushState = true) {
       return;
     }
 
-    // For settings page, make sure slider resources are loaded before showing content
+    // For settings page, make sure resources are loaded before showing content
     if (pageName === "settings") {
       // Add a loading indicator
       contentContainer.innerHTML =
         '<div class="loading-indicator">Loading...</div>';
 
-      // Await slider resources
-      await loadSliderResources();
+      // Await settings resources
+      await loadSettingsResources();
     }
 
     // Fetch the page content
