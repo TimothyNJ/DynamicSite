@@ -1,22 +1,4 @@
 /* styles/time-display.css */
-.time-display {
-  font-size: clamp(1rem, 1.5vw, 2.5rem);
-  font-weight: bold;
-  text-align: center;
-  margin: 15px 0;
-  padding: 10px;
-  border-radius: 9999px;
-  min-width: 150px;
-  display: inline-block;
-  background: linear-gradient(
-    145deg,
-    var(--active-button-start),
-    var(--active-button-end)
-  );
-  color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
 /* Time format section styling */
 .settings-section {
   margin-bottom: 20px;
@@ -34,12 +16,27 @@
   margin: 10px 0;
 }
 
-/* Ensure white text on dark theme */
-body[data-theme="dark"] .time-display {
-  color: white;
+/* Apply the same styling to both selectors */
+.time-format-selector {
+  display: inline-flex;
+  position: relative;
+  height: auto;
+  border-radius: 9999px;
+  background: linear-gradient(
+    -25deg,
+    var(--light-slider-start) 0%,
+    var(--light-slider-end) 100%
+  );
+  overflow: visible;
+  padding: 0;
+  gap: 4px;
 }
 
-/* Make sure text is visible in light theme */
-body[data-theme="light"] .time-display {
-  color: white;
+/* Dark theme specific styling */
+body[data-theme="dark"] .time-format-selector {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-slider-start) 0%,
+    var(--dark-slider-end) 100%
+  );
 }
