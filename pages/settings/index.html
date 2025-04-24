@@ -1,5 +1,32 @@
 <div class="settings-container">
+  <!-- Time Format Selector -->
   <div class="settings-section">
+    <h3>Time Format</h3>
+    <div class="time-format-container">
+      <div class="time-format-selector">
+        <div class="border-container">
+          <div class="border-segment border-top"></div>
+          <div class="border-segment border-bottom"></div>
+        </div>
+        <div class="selector-background"></div>
+        <div class="option active" data-position="1" data-format="12">
+          <h3>12-Hour</h3>
+        </div>
+        <div class="option" data-position="2" data-format="24">
+          <h3>24-Hour</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Current Time Display -->
+  <div class="time-display" id="current-time-display">
+    <!-- Time will be inserted here by JavaScript -->
+  </div>
+
+  <!-- Theme Selector (existing) -->
+  <div class="settings-section">
+    <h3>Theme</h3>
     <div class="theme-container">
       <div class="theme-selector">
         <div class="border-container">
