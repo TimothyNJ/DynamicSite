@@ -10,27 +10,26 @@
   // Define all modules to be loaded
   const modules = [
     {
-        id: "generic-selector",
-        src: "js/selectors/generic-selector.js",
-        loaded: false,
-        required: true,
-        dependencies: ["selector-factory"],
-      },
-      {
-        id: "selector-config",
-        src: "js/selectors/selector-config.js",
-        loaded: false,
-        required: true,
-        dependencies: ["generic-selector"],
-      },
-      {
-        id: "selector-manager",
-        src: "js/selectors/selector-manager.js",
-        loaded: false,
-        required: true,
-        dependencies: ["selector-config"],
-      },
-
+      id: "generic-selector",
+      src: "js/selectors/generic-selector.js",
+      loaded: false,
+      required: true,
+      dependencies: ["selector-factory"],
+    },
+    {
+      id: "selector-config",
+      src: "js/selectors/selector-config.js",
+      loaded: false,
+      required: true,
+      dependencies: ["generic-selector"],
+    },
+    {
+      id: "selector-manager",
+      src: "js/selectors/selector-manager.js",
+      loaded: false,
+      required: true,
+      dependencies: ["selector-config"],
+    },
     {
       id: "slider-core",
       src: "js/core/slider-core.js",
@@ -40,6 +39,13 @@
     {
       id: "slider-styles",
       src: "js/core/slider-styles.css",
+      type: "stylesheet",
+      loaded: false,
+      required: true,
+    },
+    {
+      id: "input-styles",
+      src: "js/core/input-styles.css",
       type: "stylesheet",
       loaded: false,
       required: true,
@@ -71,6 +77,33 @@
       loaded: false,
       required: false,
       dependencies: ["selector-factory"],
+    },
+    {
+      id: "input-base",
+      src: "js/inputs/input-base.js",
+      loaded: false,
+      required: true,
+    },
+    {
+      id: "input-config",
+      src: "js/inputs/input-config.js",
+      loaded: false,
+      required: true,
+      dependencies: ["input-base"],
+    },
+    {
+      id: "input-factory",
+      src: "js/inputs/input-factory.js",
+      loaded: false,
+      required: true,
+      dependencies: ["input-base"],
+    },
+    {
+      id: "input-manager",
+      src: "js/inputs/input-manager.js",
+      loaded: false,
+      required: true,
+      dependencies: ["input-factory", "input-config"],
     },
   ];
 
@@ -218,13 +251,18 @@
         .every((m) => m.loaded);
 
       if (allRequiredLoaded) {
-        console.log("All required selector system modules loaded");
+        console.log("All required UI system modules loaded");
         isLoading = false;
         loadingComplete = true;
 
         // Notify that loading is complete
         if (typeof window.SelectorFactory !== "undefined") {
           window.SelectorFactory.initializeAll();
+        }
+
+        // Initialize input system if available
+        if (typeof window.InputFactory !== "undefined") {
+          window.InputFactory.initializeAll();
         }
       } else {
         // Keep trying
