@@ -85,6 +85,12 @@ class TimeFormatSelector extends SelectorBase {
   applyPreference(formatName) {
     console.log("Applying time format:", formatName);
 
+    // Update the current format
+    this.currentFormat = formatName;
+
+    // Update the time display
+    this.updateTimeDisplay();
+
     // Find the option element
     if (this.sliderInstance) {
       const option = document.querySelector(
@@ -92,16 +98,16 @@ class TimeFormatSelector extends SelectorBase {
       );
 
       if (option) {
-        // Update the active button in UI
-        this.sliderInstance.setActiveOption(option, true);
+        // Add a slight delay to allow DOM to be ready
+        setTimeout(() => {
+          // Update the active button in UI
+          this.sliderInstance.setActiveOption(option, true);
+
+          // Force a reflow to ensure the visual update
+          void this.sliderInstance._selectorBackground.offsetWidth;
+        }, 50);
       }
     }
-
-    // Update the current format
-    this.currentFormat = formatName;
-
-    // Update the time display
-    this.updateTimeDisplay();
   }
 
   /**
@@ -184,6 +190,20 @@ class TimeFormatSelector extends SelectorBase {
   onInitialized() {
     // Set up time display update interval
     this.setupTimeDisplayInterval();
+
+    // Refresh the active option after a short delay to ensure proper visual update
+    setTimeout(() => {
+      const formatName =
+        localStorage.getItem(this.options.storageKey) ||
+        this.options.defaultValue;
+      const option = document.querySelector(
+        `${this.selectorClass} .option[data-format="${formatName}"]`
+      );
+
+      if (option && this.sliderInstance) {
+        this.sliderInstance.setActiveOption(option, false);
+      }
+    }, 100);
   }
 }
 
