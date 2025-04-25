@@ -12,15 +12,13 @@ const pagePathMap = {
 // Store the active page to avoid reloading the same page
 let activePage = null;
 
-// Keep track of preloaded resources
-const preloadedResources = {
-  sliderStylesheet: false,
-  timeDisplayStylesheet: false,
-  sliderScript: false,
-  themeSliderScript: false,
-  themeSliderIntegration: false,
-  timeFormatSliderScript: false,
-  timeFormatSliderIntegration: false,
+// Required resources for settings page
+const settingsResources = {
+  // Core selector system
+  selectorInit: {
+    loaded: false,
+    path: "js/selectors/selector-init.js",
+  },
 };
 
 // Initialize the router
@@ -33,8 +31,8 @@ export function initRouter() {
     });
   });
 
-  // Preload slider resources in the background for faster transitions
-  preloadSliderResources();
+  // Preload selector init in the background for faster transitions
+  preloadSelectorInit();
 
   // Load the initial page (either from URL or default to home)
   const initialPage = getPageFromURL() || "home";
@@ -54,201 +52,47 @@ function getPageFromURL() {
   return hash || null;
 }
 
-// Preload slider resources in the background
-function preloadSliderResources() {
+// Preload the selector init module in the background
+function preloadSelectorInit() {
   // Create a container for preloaded resources
   const preloadContainer = document.createElement("div");
   preloadContainer.style.display = "none";
   preloadContainer.id = "preloaded-resources";
   document.body.appendChild(preloadContainer);
 
-  // Add slider stylesheet
-  if (!document.getElementById("slider-buttons-style")) {
-    const sliderStyle = document.createElement("link");
-    sliderStyle.id = "slider-buttons-style";
-    sliderStyle.rel = "stylesheet";
-    sliderStyle.href = "styles/slider-buttons.css";
-    document.head.appendChild(sliderStyle);
+  // Load the selector-init.js script if it's not already loaded
+  if (!document.getElementById("selector-init-script")) {
+    const script = document.createElement("script");
+    script.id = "selector-init-script";
+    script.src = settingsResources.selectorInit.path;
 
-    sliderStyle.onload = () => {
-      preloadedResources.sliderStylesheet = true;
-      console.log("Slider stylesheet preloaded");
-    };
-  } else {
-    preloadedResources.sliderStylesheet = true;
-  }
-
-  // Add time display stylesheet
-  if (!document.getElementById("time-display-style")) {
-    const timeStyle = document.createElement("link");
-    timeStyle.id = "time-display-style";
-    timeStyle.rel = "stylesheet";
-    timeStyle.href = "styles/time-display.css";
-    document.head.appendChild(timeStyle);
-
-    timeStyle.onload = () => {
-      preloadedResources.timeDisplayStylesheet = true;
-      console.log("Time display stylesheet preloaded");
-    };
-  } else {
-    preloadedResources.timeDisplayStylesheet = true;
-  }
-
-  // Preload slider scripts if they're not already loaded
-  if (!window.sliderButtons) {
-    // Create and load the main slider script (core functionality)
-    const sliderScript = document.createElement("script");
-    sliderScript.id = "slider-buttons-script";
-    sliderScript.src = "js/settings/slider-buttons.js";
-
-    sliderScript.onload = () => {
-      preloadedResources.sliderScript = true;
-      console.log("Core slider buttons script preloaded");
-
-      // After main script loads, load the theme-specific script
-      if (!document.getElementById("theme-slider-script")) {
-        const themeScript = document.createElement("script");
-        themeScript.id = "theme-slider-script";
-        themeScript.src = "js/settings/theme-slider.js";
-
-        themeScript.onload = () => {
-          preloadedResources.themeSliderScript = true;
-          console.log("Theme slider script preloaded");
-
-          // After theme script loads, load the theme integration script
-          if (!document.getElementById("theme-slider-integration-script")) {
-            const integrationScript = document.createElement("script");
-            integrationScript.id = "theme-slider-integration-script";
-            integrationScript.src = "js/settings/theme-slider-integration.js";
-
-            integrationScript.onload = () => {
-              preloadedResources.themeSliderIntegration = true;
-              console.log("Theme slider integration script preloaded");
-
-              // Load time format slider scripts
-              loadTimeFormatSliderScripts();
-            };
-
-            document.body.appendChild(integrationScript);
-          } else {
-            // Load time format slider scripts if integration script is already loaded
-            loadTimeFormatSliderScripts();
-          }
-        };
-
-        document.body.appendChild(themeScript);
-      } else {
-        // Load time format slider scripts if theme script is already loaded
-        loadTimeFormatSliderScripts();
-      }
+    script.onload = () => {
+      settingsResources.selectorInit.loaded = true;
+      console.log("Selector init module preloaded");
     };
 
-    document.body.appendChild(sliderScript);
+    document.body.appendChild(script);
   } else {
-    // Scripts already loaded
-    preloadedResources.sliderScript = true;
-
-    // Check if theme scripts are loaded
-    if (window.themeSlider) {
-      preloadedResources.themeSliderScript = true;
-    } else {
-      // Load theme-specific script
-      const themeScript = document.createElement("script");
-      themeScript.id = "theme-slider-script";
-      themeScript.src = "js/settings/theme-slider.js";
-
-      themeScript.onload = () => {
-        preloadedResources.themeSliderScript = true;
-        console.log("Theme slider script preloaded");
-      };
-
-      document.body.appendChild(themeScript);
-    }
-
-    // Check if theme integration is loaded
-    if (window.themeSliderIntegration) {
-      preloadedResources.themeSliderIntegration = true;
-    } else {
-      // Load theme integration script
-      const integrationScript = document.createElement("script");
-      integrationScript.id = "theme-slider-integration-script";
-      integrationScript.src = "js/settings/theme-slider-integration.js";
-
-      integrationScript.onload = () => {
-        preloadedResources.themeSliderIntegration = true;
-        console.log("Theme slider integration script preloaded");
-      };
-
-      document.body.appendChild(integrationScript);
-    }
-
-    // Load time format slider scripts
-    loadTimeFormatSliderScripts();
-  }
-
-  // Function to load time format slider scripts
-  function loadTimeFormatSliderScripts() {
-    // Check if time format slider is already loaded
-    if (window.timeFormatSlider) {
-      preloadedResources.timeFormatSliderScript = true;
-    } else {
-      // Load time format slider script - FIX: Changed path from settings to navigation
-      const timeFormatScript = document.createElement("script");
-      timeFormatScript.id = "time-format-slider-script";
-      timeFormatScript.src = "js/navigation/time-format-slider.js";
-
-      timeFormatScript.onload = () => {
-        preloadedResources.timeFormatSliderScript = true;
-        console.log("Time format slider script preloaded");
-      };
-
-      document.body.appendChild(timeFormatScript);
-    }
-
-    // Check if time format integration is loaded
-    if (window.timeFormatSliderIntegration) {
-      preloadedResources.timeFormatSliderIntegration = true;
-    } else {
-      // Load time format integration script - FIX: Changed path from settings to navigation
-      const timeFormatIntegrationScript = document.createElement("script");
-      timeFormatIntegrationScript.id = "time-format-slider-integration-script";
-      timeFormatIntegrationScript.src =
-        "js/navigation/time-format-slider-integration.js";
-
-      timeFormatIntegrationScript.onload = () => {
-        preloadedResources.timeFormatSliderIntegration = true;
-        console.log("Time format slider integration script preloaded");
-      };
-
-      document.body.appendChild(timeFormatIntegrationScript);
-    }
+    settingsResources.selectorInit.loaded = true;
   }
 }
 
-// Check if slider resources are loaded
-function areSliderResourcesLoaded() {
-  return (
-    preloadedResources.sliderStylesheet &&
-    preloadedResources.sliderScript &&
-    preloadedResources.themeSliderScript &&
-    preloadedResources.themeSliderIntegration &&
-    preloadedResources.timeDisplayStylesheet &&
-    preloadedResources.timeFormatSliderScript &&
-    preloadedResources.timeFormatSliderIntegration
-  );
+// Check if settings resources are loaded
+function areSettingsResourcesLoaded() {
+  return settingsResources.selectorInit.loaded;
 }
 
-// Wait for slider resources to be loaded
-function waitForSliderResources() {
+// Wait for settings resources to be loaded
+function waitForSettingsResources() {
   return new Promise((resolve) => {
-    if (areSliderResourcesLoaded()) {
+    if (areSettingsResourcesLoaded()) {
       resolve();
       return;
     }
 
     // Check every 50ms until resources are loaded
     const checkInterval = setInterval(() => {
-      if (areSliderResourcesLoaded()) {
+      if (areSettingsResourcesLoaded()) {
         clearInterval(checkInterval);
         resolve();
       }
@@ -262,10 +106,10 @@ function waitForSliderResources() {
   });
 }
 
-// Load the slider resources and return a promise
-async function loadSliderResources() {
+// Load the settings resources and return a promise
+async function loadSettingsResources() {
   // If resources are already being preloaded, wait for them
-  return waitForSliderResources();
+  return waitForSettingsResources();
 }
 
 // Navigate to a specific page
@@ -298,14 +142,14 @@ export async function navigateToPage(pageName, pushState = true) {
       return;
     }
 
-    // For settings page, make sure slider resources are loaded before showing content
+    // For settings page, make sure resources are loaded before showing content
     if (pageName === "settings") {
       // Add a loading indicator
       contentContainer.innerHTML =
         '<div class="loading-indicator">Loading...</div>';
 
-      // Await slider resources
-      await loadSliderResources();
+      // Await settings resources
+      await loadSettingsResources();
     }
 
     // Fetch the page content

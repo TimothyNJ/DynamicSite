@@ -57,3 +57,14 @@ window.addEventListener("load", () => {
 
 // Update dimensions when a page loads
 document.addEventListener("pageLoaded", updateDimensions);
+
+// Export a method to get the active theme
+export function getActiveTheme() {
+  const theme = document.body.getAttribute("data-theme") || "light";
+  return theme;
+}
+
+// Add a way to check if we're on the settings page
+export function isSettingsPage() {
+  return window.location.hash === "#settings";
+}
