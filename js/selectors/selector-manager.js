@@ -92,9 +92,10 @@ window.SelectorManager = (function() {
         // Create temporary instance to generate HTML
         const temp = new window.GenericSelector(config.selector, config.name, config);
         
-        // Add section HTML - without heading labels
+        // Add section HTML
         html += `
           <div class="settings-section">
+            <h3>${config.name.charAt(0).toUpperCase() + config.name.slice(1)}</h3>
             <div class="slider-container ${key}-container">
               ${temp.generateHTML()}
             </div>

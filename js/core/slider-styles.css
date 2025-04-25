@@ -1,55 +1,340 @@
+/**
+ * Slider Core Styles
+ * 
+ * Unified styling for all slider selector components
+ * This file consolidates styles from slider-buttons.css and time-display.css
+ * into a single, reusable stylesheet for all slider types.
+ */
+
+:root {
+  /* Light theme page range */
+  --light-page-start: #4b5b62;
+  --light-page-end: #ffffff;
+
+  /* Dark theme page range */
+  --dark-page-start: #000000;
+  --dark-page-end: #96b7c4;
+
+  /* Light theme slider container range */
+  --light-slider-start: #7c8e94; /* 34% of range between #4b5b62 and #ffffff */
+  --light-slider-end: #a0b2b8; /* 68% of range between #4b5b62 and #ffffff */
+
+  /* Dark theme slider container range */
+  --dark-slider-start: #384c59; /* 34% of range between #000000 and #96b7c4 */
+  --dark-slider-end: #6c7f8b; /* 68% of range between #000000 and #96b7c4 */
+
+  /* Active button gradient colors */
+  --active-button-start: #6a0dad; /* Purple */
+  --active-button-end: #4169e1; /* Royal Blue */
+
+  /* Store percentage values for JavaScript to read */
+  --light-slider-start-percent: 34;
+  --light-slider-end-percent: 68;
+  --dark-slider-start-percent: 34;
+  --dark-slider-end-percent: 68;
+}
+
+/* Common section styling */
+.settings-section {
+  margin-bottom: 0px;
+}
+
+.settings-section h3 {
+  text-align: center;
+  margin-bottom: 0px;
+}
+
+/* Container styles */
+.slider-container {
+  display: flex;
+  justify-content: center;
+  margin: 5px 0;
+}
+
+/* Base slider styles - applies to all slider types */
+.slider-selector {
+  display: inline-flex;
+  position: relative;
+  height: auto;
+  border-radius: 9999px;
+  background: linear-gradient(
+    -25deg,
+    var(--light-slider-start) 0%,
+    var(--light-slider-end) 100%
+  ); /* Light theme slider container */
+  overflow: visible; /* Allow natural content flow */
+  padding: 0;
+  gap: 4px; /* Space between buttons */
+}
+
+/* Dark theme slider container */
+body[data-theme="dark"] .slider-selector {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-slider-start) 0%,
+    var(--dark-slider-end) 100%
+  );
+}
+
+/* Override to prevent truncation in selectors */
+.slider-selector .option h3 {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+  font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  margin: 0;
+  font-weight: bold;
+  position: relative;
+  z-index: 3;
+  transition: color 0.5s ease;
+  padding: 2px 8px; /* Added padding to text instead of button */
+}
+
+/* Container border animation */
+.slider-selector .border-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  /* Add clip-path to match the container's shape */
+  clip-path: inset(0 0 0 0 round 9999px);
+}
+
+/* Border segments */
+.border-segment {
+  position: absolute;
+  background: linear-gradient(
+    to right,
+    var(--active-button-start),
+    var(--active-button-end)
+  );
+  opacity: 1;
+  transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+/* Top and bottom segments only */
+.border-top,
+.border-bottom {
+  height: 1px;
+  width: 100px; /* Default width, will be set in JS */
+}
+
+.border-top {
+  top: 0;
+}
+
+.border-bottom {
+  bottom: 0;
+}
+
+/* Option buttons */
+.option {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  z-index: 1;
+  transition: color 0.5s ease;
+  padding: 0;
+  border-radius: 9999px;
+  overflow: visible; /* Allow natural content flow */
+  width: 110px; /* Add default width to prevent jumping */
+}
+
+/* Sliding background */
+.selector-background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    145deg,
+    var(--active-button-start),
+    var(--active-button-end)
+  );
+  z-index: 0;
+}
+
+/* Settings container styles */
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 1px 0;
+  align-items: center;
+  justify-content: center;
+  opacity: 1; /* Set to 1 by default to avoid fade-in animation */
+}
+
+/* Make loading faster and more efficient */
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px; /* Reduced height */
+  width: 100%;
+  font-size: 1.2rem;
+  background-color: transparent;
+  position: relative;
+}
+
+.loading-indicator::after {
+  content: "";
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(100, 100, 100, 0.2);
+  border-top-color: royalblue;
+  border-radius: 50%;
+  position: absolute;
+  left: calc(50% - 15px);
+  top: calc(50% + 15px);
+  animation: spin 0.5s linear infinite; /* Faster animation */
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Backward compatibility classes */
+/* These classes allow existing HTML to work with the new system */
+
+/* Theme selector backward compatibility */
+.theme-selector {
+  composes: slider-selector;
+}
+
+.theme-container {
+  composes: slider-container;
+}
+
+/* Time format selector backward compatibility */
+.time-format-selector {
+  composes: slider-selector;
+}
+
+.time-format-container {
+  composes: slider-container;
+}
+
+/* Animation for settings container */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.settings-container {
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
 /* Form field styling */
 .form-container {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    width: 100%;
-    max-width: 500px;
-    margin: 5px auto;
-  }
-  
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-  
-  .form-field label {
-    font-size: clamp(0.5rem, 1.2vw, 2.3rem);
-    color: #ffffff;
-    text-align: left;
-  }
-  
-  .text-input {
-    background: linear-gradient(
-      -25deg,
-      var(--light-slider-start) 0%,
-      var(--light-slider-end) 100%
-    );
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    padding: 4px 6px;
-    font-size: clamp(0.5rem, 1.2vw, 2.3rem);
-    font-family: Helvetica, Tahoma, sans-serif;
-    color: #ffffff;
-    width: 100%;
-  }
-  
-  body[data-theme="dark"] .text-input {
-    background: linear-gradient(
-      -25deg,
-      var(--dark-slider-start) 0%,
-      var(--dark-slider-end) 100%
-    );
-  }
-  
-  .text-input:focus {
-    outline: none;
-    border-color: var(--active-button-start);
-    box-shadow: 0 0 0 2px rgba(106, 13, 173, 0.3);
-  }
-  
-  .text-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-    font-family: Helvetica, Tahoma, sans-serif;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 500px;
+  margin: 10px auto;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-field label {
+  font-size: clamp(0.5rem, 1.1vw, 2rem);
+  color: #ffffff;
+  text-align: left;
+}
+
+.text-input {
+  background: linear-gradient(
+    -25deg,
+    var(--light-slider-start) 0%,
+    var(--light-slider-end) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: clamp(0.5rem, 1.1vw, 2rem);
+  color: #ffffff;
+  width: 100%;
+}
+
+body[data-theme="dark"] .text-input {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-slider-start) 0%,
+    var(--dark-slider-end) 100%
+  );
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--active-button-start);
+  box-shadow: 0 0 0 2px rgba(106, 13, 173, 0.3);
+}
+
+.text-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Language selector compatibility */
+.language-selector {
+  composes: slider-selector;
+}
+
+.language-container {
+  composes: slider-container;
+}
+
+/* First day of week selector compatibility */
+.first-day-selector {
+  composes: slider-selector;
+}
+
+.first-day-container {
+  composes: slider-container;
+}
+
+/* Date format selector compatibility */
+.date-format-selector {
+  composes: slider-selector;
+}
+
+.date-format-container {
+  composes: slider-container;
+}
+
+/* Units selector compatibility */
+.units-selector {
+  composes: slider-selector;
+}
+
+.units-container {
+  composes: slider-container;
+}
+
+/* Option icon styling */
+.option-icon {
+  margin-right: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
