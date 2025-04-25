@@ -1,21 +1,30 @@
-# Slider System Refactoring - Implementation Plan
+# UI Components Refactoring - Implementation Plan
 
 ## Overview
 
-We've created a modular, extensible system for slider-based selectors that separates core functionality from specific implementations. This allows for easy addition of new selector types without modifying existing code.
+We've created modular, extensible systems for interactive UI components that separate core functionality from specific implementations. These systems include slider-based selectors and text input fields with consistent styling and no labels for a clean, minimal interface.
 
 ## Files Created
 
 ### Core Files
 
-- **js/core/slider-core.js** - Core UI/animation functionality
+- **js/core/slider-core.js** - Core UI/animation functionality for sliders
 - **js/core/slider-styles.css** - Unified styling for all sliders
+- **js/core/input-styles.css** - Unified styling for all input fields
 
-### Base Structure
+### Selector System
 
-- **js/selectors/selector-base.js** - Abstract base class
+- **js/selectors/selector-base.js** - Abstract base class for selectors
 - **js/selectors/selector-factory.js** - Registration and lifecycle management
 - **js/selectors/selector-init.js** - Module loader
+- **js/selectors/selector-manager.js** - Manages creation and HTML generation
+
+### Input System
+
+- **js/inputs/input-base.js** - Abstract base class for input fields
+- **js/inputs/input-factory.js** - Registration and lifecycle management
+- **js/inputs/input-config.js** - Configuration for all input fields
+- **js/inputs/input-manager.js** - Manages creation and HTML generation
 
 ### Implementations
 
@@ -24,9 +33,9 @@ We've created a modular, extensible system for slider-based selectors that separ
 
 ### Updated Files
 
-- **js/navigation/router.js** - Updated to use new module system
+- **js/navigation/router.js** - Updated to use new module systems
 - **js/main.js** - Updated to work with new structure
-- **pages/settings/index.html** - Updated HTML with new class names
+- **pages/settings/index.html** - Updated HTML with new structure and no labels
 
 ## Files to Remove
 
@@ -40,6 +49,7 @@ We've created a modular, extensible system for slider-based selectors that separ
 
    - Create `/js/core/` directory
    - Create `/js/selectors/` directory
+   - Create `/js/inputs/` directory
 
 2. **Remove Obsolete Files**
 
@@ -52,11 +62,13 @@ We've created a modular, extensible system for slider-based selectors that separ
 4. **Update Existing Files**
 
    - Update router.js, main.js, and settings/index.html
+   - Remove all labels from selector and input HTML generation
 
 5. **Test**
    - Test navigation to settings page
-   - Test theme selection functionality
-   - Test time format selection functionality
+   - Test all selector functionality
+   - Test all input field functionality
+   - Verify consistent styling across components
 
 ## Adding New Selectors
 
@@ -64,35 +76,19 @@ To add a new selector type:
 
 1. Create a new implementation file in `/js/selectors/` that extends `SelectorBase`
 2. Register it with the `SelectorFactory` in that file
-3. Add the HTML markup to `settings/index.html` using the standard structure
+3. Add the selector to the configuration in `selector-config.js`
 
 For example, to add a language selector:
 
 ```javascript
-// js/selectors/language-selector.js
-class LanguageSelector extends SelectorBase {
-  // Implementation here
+// In selector-config.js
+language: {
+  type: 'generic',
+  name: 'language',
+  selector: '.language-selector',
+  values: ['en-gb', 'en-us', 'fr', 'de', 'es'],
+  labels: ['UK English', 'US English', 'Français', 'Deutsch', 'Español'],
+  defaultValue: 'en-gb',
+  storageKey: 'userLanguagePreference'
 }
-
-// Register
-window.SelectorFactory.register(
-  "language",
-  LanguageSelector,
-  ".language-selector",
-  {
-    /* options */
-  }
-);
-```
-
-```html
-<!-- HTML in settings/index.html -->
-<div class="settings-section">
-  <h3>Language</h3>
-  <div class="slider-container language-container">
-    <div class="slider-selector language-selector">
-      <!-- Standard structure -->
-    </div>
-  </div>
-</div>
 ```
