@@ -45,7 +45,7 @@
     },
     {
       id: "input-styles",
-      src: "js/core/input-styles.css",
+      src: "js/inputs/input-styles.css",
       type: "stylesheet",
       loaded: false,
       required: true,
