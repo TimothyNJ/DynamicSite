@@ -36,19 +36,19 @@
 
 /* Common section styling */
 .settings-section {
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 .settings-section h3 {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 0px;
 }
 
 /* Container styles */
 .slider-container {
   display: flex;
   justify-content: center;
-  margin: 20px 0;
+  margin: 5px 0;
 }
 
 /* Base slider styles - applies to all slider types */
