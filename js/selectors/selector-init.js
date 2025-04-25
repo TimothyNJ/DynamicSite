@@ -10,6 +10,28 @@
   // Define all modules to be loaded
   const modules = [
     {
+        id: "generic-selector",
+        src: "js/selectors/generic-selector.js",
+        loaded: false,
+        required: true,
+        dependencies: ["selector-factory"],
+      },
+      {
+        id: "selector-config",
+        src: "js/selectors/selector-config.js",
+        loaded: false,
+        required: true,
+        dependencies: ["generic-selector"],
+      },
+      {
+        id: "selector-manager",
+        src: "js/selectors/selector-manager.js",
+        loaded: false,
+        required: true,
+        dependencies: ["selector-config"],
+      },
+
+    {
       id: "slider-core",
       src: "js/core/slider-core.js",
       loaded: false,

@@ -240,3 +240,101 @@ body[data-theme="dark"] .slider-selector {
 .settings-container {
   animation: fadeIn 0.3s ease-in-out forwards;
 }
+
+/* Form field styling */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 500px;
+  margin: 10px auto;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-field label {
+  font-size: clamp(0.5rem, 1.1vw, 2rem);
+  color: #ffffff;
+  text-align: left;
+}
+
+.text-input {
+  background: linear-gradient(
+    -25deg,
+    var(--light-slider-start) 0%,
+    var(--light-slider-end) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: clamp(0.5rem, 1.1vw, 2rem);
+  color: #ffffff;
+  width: 100%;
+}
+
+body[data-theme="dark"] .text-input {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-slider-start) 0%,
+    var(--dark-slider-end) 100%
+  );
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--active-button-start);
+  box-shadow: 0 0 0 2px rgba(106, 13, 173, 0.3);
+}
+
+.text-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Language selector compatibility */
+.language-selector {
+  composes: slider-selector;
+}
+
+.language-container {
+  composes: slider-container;
+}
+
+/* First day of week selector compatibility */
+.first-day-selector {
+  composes: slider-selector;
+}
+
+.first-day-container {
+  composes: slider-container;
+}
+
+/* Date format selector compatibility */
+.date-format-selector {
+  composes: slider-selector;
+}
+
+.date-format-container {
+  composes: slider-container;
+}
+
+/* Units selector compatibility */
+.units-selector {
+  composes: slider-selector;
+}
+
+.units-container {
+  composes: slider-container;
+}
+
+/* Option icon styling */
+.option-icon {
+  margin-right: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,50 +1,97 @@
 <div class="settings-container">
-  <!-- Time Format Selector -->
-  <div class="settings-section">
-    <div class="slider-container time-format-container">
-      <div class="slider-selector time-format-selector">
-        <div class="border-container">
-          <div class="border-segment border-top"></div>
-          <div class="border-segment border-bottom"></div>
+  <!-- Dynamic selectors will be added here -->
+  <div id="dynamic-selectors">
+    <!-- This section will be populated by the SelectorManager -->
+  </div>
+
+  <!-- Original selectors as fallback -->
+  <div id="original-selectors">
+    <!-- Time Format Selector -->
+    <div class="settings-section">
+      <h3>Time Format</h3>
+      <div class="slider-container time-format-container">
+        <div class="slider-selector time-format-selector">
+          <div class="border-container">
+            <div class="border-segment border-top"></div>
+            <div class="border-segment border-bottom"></div>
+          </div>
+          <div class="selector-background"></div>
+          <div class="option" data-position="1" data-format="24" data-value="24">
+            <h3>24h</h3>
+          </div>
+          <div class="option" data-position="2" data-format="system" data-value="system">
+            <h3>System</h3>
+          </div>
+          <div class="option active" data-position="3" data-format="12" data-value="12">
+            <h3>12h</h3>
+          </div>
         </div>
-        <div class="selector-background"></div>
-        <div class="option" data-position="1" data-format="24">
-          <h3>24h</h3>
-        </div>
-        <div class="option" data-position="2" data-format="system">
-          <h3>System</h3>
-        </div>
-        <div class="option active" data-position="3" data-format="12">
-          <h3>12h</h3>
+      </div>
+    </div>
+
+    <!-- Theme Selector -->
+    <div class="settings-section">
+      <h3>Theme</h3>
+      <div class="slider-container theme-container">
+        <div class="slider-selector theme-selector">
+          <div class="border-container">
+            <div class="border-segment border-top"></div>
+            <div class="border-segment border-bottom"></div>
+          </div>
+          <div class="selector-background"></div>
+          <div class="option active" data-position="1" data-theme="dark" data-value="dark">
+            <h3>Dark</h3>
+          </div>
+          <div class="option" data-position="2" data-theme="system" data-value="system">
+            <h3>System</h3>
+          </div>
+          <div class="option" data-position="3" data-theme="light" data-value="light">
+            <h3>Light</h3>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Theme Selector -->
+  <!-- Text input fields section -->
   <div class="settings-section">
-    <div class="slider-container theme-container">
-      <div class="slider-selector theme-selector">
-        <div class="border-container">
-          <div class="border-segment border-top"></div>
-          <div class="border-segment border-bottom"></div>
-        </div>
-        <div class="selector-background"></div>
-        <div class="option active" data-position="1" data-theme="dark">
-          <h3>Dark Theme</h3>
-        </div>
-        <div class="option" data-position="2" data-theme="system">
-          <h3>System</h3>
-        </div>
-        <div class="option" data-position="3" data-theme="light">
-          <h3>Light Theme</h3>
-        </div>
+    <h3>Personal Information</h3>
+    <div class="form-container">
+      <div class="form-field">
+        <label for="first-name">First Name</label>
+        <input type="text" id="first-name" class="text-input" placeholder="Enter first name">
+      </div>
+      <div class="form-field">
+        <label for="last-name">Last Name</label>
+        <input type="text" id="last-name" class="text-input" placeholder="Enter last name">
+      </div>
+      <div class="form-field">
+        <label for="nickname">Nickname (optional)</label>
+        <input type="text" id="nickname" class="text-input" placeholder="Enter nickname">
       </div>
     </div>
   </div>
 
-  <!-- Add space for future selector types -->
-  <div class="settings-section">
-    <!-- This section is intentionally empty for future expansion -->
-  </div>
+  <!-- Add a script to populate the dynamic selectors -->
+  <script>
+    // Initialize dynamic selectors when available
+    function initDynamicSelectors() {
+      if (window.SelectorManager && typeof window.SelectorManager.generateHTML === 'function') {
+        const container = document.getElementById('dynamic-selectors');
+        if (container) {
+          container.innerHTML = window.SelectorManager.generateHTML();
+          
+          // Hide original selectors if dynamic ones are created
+          const originalContainer = document.getElementById('original-selectors');
+          if (originalContainer) {
+            originalContainer.style.display = 'none';
+          }
+        }
+      }
+    }
+    
+    // Try to init now, and also add a delayed attempt
+    initDynamicSelectors();
+    setTimeout(initDynamicSelectors, 500);
+  </script>
 </div>
