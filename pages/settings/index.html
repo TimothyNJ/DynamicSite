@@ -9,8 +9,8 @@
     <!-- This section will be populated by the InputManager -->
   </div>
 
-  <!-- Fallback selectors (hidden when dynamic selectors are loaded) -->
-  <div id="original-selectors" style="display: none;">
+  <!-- Fallback selectors (visible until dynamic selectors are loaded) -->
+  <div id="original-selectors" style="display: block">
     <!-- Time Format Selector -->
     <div class="settings-section">
       <div class="slider-container time-format-container">
@@ -86,8 +86,8 @@
     </div>
   </div>
 
-  <!-- Fallback inputs (hidden when dynamic inputs are loaded) -->
-  <div id="original-inputs" style="display: none;">
+  <!-- Fallback inputs (visible until dynamic inputs are loaded) -->
+  <div id="original-inputs" style="display: block">
     <div class="settings-section">
       <div class="form-container">
         <div class="form-field">
@@ -151,8 +151,7 @@
           container.innerHTML = window.InputManager.generateHTML();
 
           // Hide original inputs if dynamic ones are created
-          const originalContainer =
-            document.getElementById("original-inputs");
+          const originalContainer = document.getElementById("original-inputs");
           if (originalContainer) {
             originalContainer.style.display = "none";
           }
@@ -163,7 +162,7 @@
     // Try to init now, and also add a delayed attempt
     initDynamicSelectors();
     initDynamicInputs();
-    
+
     setTimeout(() => {
       initDynamicSelectors();
       initDynamicInputs();
