@@ -102,9 +102,6 @@ class TimeFormatSelector extends SelectorBase {
         setTimeout(() => {
           // Update the active button in UI
           this.sliderInstance.setActiveOption(option, true);
-
-          // Force a reflow to ensure the visual update
-          void this.sliderInstance._selectorBackground.offsetWidth;
         }, 50);
       }
     }
