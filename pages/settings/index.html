@@ -1,11 +1,16 @@
 <div class="settings-container">
-  <!-- Dynamic selectors will be added here -->
+  <!-- Dynamic selectors section -->
   <div id="dynamic-selectors">
     <!-- This section will be populated by the SelectorManager -->
   </div>
 
-  <!-- Original selectors as fallback -->
-  <div id="original-selectors">
+  <!-- Dynamic inputs section -->
+  <div id="dynamic-inputs">
+    <!-- This section will be populated by the InputManager -->
+  </div>
+
+  <!-- Fallback selectors (hidden when dynamic selectors are loaded) -->
+  <div id="original-selectors" style="display: none">
     <!-- Time Format Selector -->
     <div class="settings-section">
       <div class="slider-container time-format-container">
@@ -81,40 +86,39 @@
     </div>
   </div>
 
-  <!-- Text input fields section -->
-  <div class="settings-section">
-    <div class="form-container">
-      <div class="form-field">
-        <label for="first-name">First Name</label>
-        <input
-          type="text"
-          id="first-name"
-          class="text-input"
-          placeholder="Enter first name"
-        />
-      </div>
-      <div class="form-field">
-        <label for="last-name">Last Name</label>
-        <input
-          type="text"
-          id="last-name"
-          class="text-input"
-          placeholder="Enter last name"
-        />
-      </div>
-      <div class="form-field">
-        <label for="nickname">Nickname (optional)</label>
-        <input
-          type="text"
-          id="nickname"
-          class="text-input"
-          placeholder="Enter nickname"
-        />
+  <!-- Fallback inputs (hidden when dynamic inputs are loaded) -->
+  <div id="original-inputs" style="display: none">
+    <div class="settings-section">
+      <div class="form-container">
+        <div class="form-field">
+          <input
+            type="text"
+            id="first-name"
+            class="text-input"
+            placeholder="Enter first name"
+          />
+        </div>
+        <div class="form-field">
+          <input
+            type="text"
+            id="last-name"
+            class="text-input"
+            placeholder="Enter last name"
+          />
+        </div>
+        <div class="form-field">
+          <input
+            type="text"
+            id="nickname"
+            class="text-input"
+            placeholder="Enter nickname (optional)"
+          />
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Add a script to populate the dynamic selectors -->
+  <!-- Add scripts to populate dynamic components -->
   <script>
     // Initialize dynamic selectors when available
     function initDynamicSelectors() {
@@ -136,8 +140,32 @@
       }
     }
 
+    // Initialize dynamic inputs when available
+    function initDynamicInputs() {
+      if (
+        window.InputManager &&
+        typeof window.InputManager.generateHTML === "function"
+      ) {
+        const container = document.getElementById("dynamic-inputs");
+        if (container) {
+          container.innerHTML = window.InputManager.generateHTML();
+
+          // Hide original inputs if dynamic ones are created
+          const originalContainer = document.getElementById("original-inputs");
+          if (originalContainer) {
+            originalContainer.style.display = "none";
+          }
+        }
+      }
+    }
+
     // Try to init now, and also add a delayed attempt
     initDynamicSelectors();
-    setTimeout(initDynamicSelectors, 500);
+    initDynamicInputs();
+
+    setTimeout(() => {
+      initDynamicSelectors();
+      initDynamicInputs();
+    }, 500);
   </script>
 </div>
