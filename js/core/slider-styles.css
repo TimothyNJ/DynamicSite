@@ -165,8 +165,8 @@ body[data-theme="dark"] .slider-selector {
 .settings-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin: 20px 0;
+  gap: 1px;
+  margin: 1px 0;
   align-items: center;
   justify-content: center;
   opacity: 1; /* Set to 1 by default to avoid fade-in animation */
