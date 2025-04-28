@@ -1,5 +1,5 @@
 // js/navigation/navbar.js
-import { navigateToPage } from "./router.js";
+import * as router from "./router.js";
 
 let isMenuOpenedByClick = false;
 
@@ -87,7 +87,7 @@ function setupButtonNavigation() {
   navButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const pageName = button.getAttribute("data-page");
-      navigateToPage(pageName);
+      router.navigateToPage(pageName);
     });
   });
 }
@@ -115,7 +115,7 @@ export function updateMenuContent() {
       menuButton.appendChild(h3Element);
 
       menuButton.onclick = () => {
-        navigateToPage(pageName);
+        router.navigateToPage(pageName);
         collapsedMenu.style.display = "none";
         isMenuOpenedByClick = false;
       };
