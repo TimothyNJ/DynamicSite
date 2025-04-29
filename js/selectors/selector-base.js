@@ -1,231 +1,373 @@
 /**
  * Selector Base Class
  *
- * This abstract base class provides common functionality for all slider selectors.
- * Specific selectors (theme, time format, etc.) should extend this class.
+ * This abstract class extends ComponentBase to provide specialized functionality
+ * for all slider-based selectors. Specific selector types (theme, time, etc.)
+ * should extend this class.
  */
-class SelectorBase {
+class SelectorBase extends ComponentBase {
   /**
-   * Create a new selector
-   * @param {string} selectorClass - CSS selector for the slider container (e.g., ".theme-selector")
+   * Create a new selector component
+   * @param {string} selectorClass - CSS selector for the slider container
    * @param {string} name - Unique identifier for this selector
    * @param {Object} options - Configuration options
    */
   constructor(selectorClass, name, options = {}) {
-    if (this.constructor === SelectorBase) {
-      throw new Error(
-        "SelectorBase is an abstract class and cannot be instantiated directly"
-      );
-    }
-
-    this.selectorClass = selectorClass;
-    this.name = name;
-    this.options = Object.assign(
+    // Set up selector-specific default options
+    const selectorOptions = Object.assign(
       {
-        storageKey: `user${this.capitalizeFirstLetter(name)}Preference`,
-        defaultValue: null,
-        initialDelay: 0,
+        values: [], // Possible values for this selector
+        labels: [], // Display labels for values
+        storageKey: `user${ComponentUtils.capitalizeFirstLetter(
+          name
+        )}Preference`,
+        defaultValue: null, // Default value if none is stored
+        containerClass: `${name}-container`, // Class for container element
+        optionSelector: ".option", // Selector for option elements
+        backgroundSelector: ".selector-background", // Selector for slider background
+        borderTopSelector: ".border-top", // Selector for top border
+        borderBottomSelector: ".border-bottom", // Selector for bottom border
+        activeClass: "active", // Class for active option
+        animationDuration: 500, // Duration for animations
+        animationEasing: "cubic-bezier(0.77, 0, 0.175, 1)", // Easing function
+        useCoreSlider: true, // Whether to use the SliderCore module
       },
       options
     );
 
-    // Properties
+    // Call parent constructor
+    super(selectorClass, name, selectorOptions);
+
+    // Selector-specific properties
     this.sliderInstance = null;
-    this.initialized = false;
-    this.initializationAttempts = 0;
+    this.currentValue = null;
 
-    // Bind methods to maintain context
-    this.init = this.init.bind(this);
+    // Additional methods to bind
     this.handleOptionSelected = this.handleOptionSelected.bind(this);
-    this.cleanup = this.cleanup.bind(this);
-    this.reinitialize = this.reinitialize.bind(this);
+    this.setActiveOption = this.setActiveOption.bind(this);
   }
 
   /**
-   * Helper to capitalize first letter for storage keys
-   * @param {string} str - The string to capitalize
-   * @returns {string} - The string with first letter capitalized
-   */
-  capitalizeFirstLetter(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
-  /**
-   * Initialize the selector
-   * This sets up the slider and registers event handlers
+   * Get DOM elements specific to selectors
    * @returns {boolean} - Success status
    */
-  init() {
-    // Check if already initialized
-    if (this.initialized) {
-      console.log(`${this.name} selector already initialized, skipping`);
-      return true;
-    }
-
-    // Limit initialization attempts
-    this.initializationAttempts++;
-    if (this.initializationAttempts > 3) {
-      console.warn(
-        `Exceeded initialization attempts for ${this.name} selector, giving up`
-      );
+  getDOMElements() {
+    // First call parent method to get container
+    if (!super.getDOMElements()) {
       return false;
     }
-
-    // Check DOM availability
-    const sliderElement = document.querySelector(this.selectorClass);
-    if (!sliderElement) {
-      console.log(`${this.name} selector element not found in the DOM`);
-      // Try again after a short delay
-      if (this.initializationAttempts < 3) {
-        setTimeout(this.init, 50);
-      }
-      return false;
-    }
-
-    // Check if core slider functionality is available
-    if (typeof window.SliderCore === "undefined") {
-      console.log(
-        "Core slider functionality not available yet, will retry in 50ms"
-      );
-      setTimeout(this.init, 50);
-      return false;
-    }
-
-    console.log(`Initializing ${this.name} selector`);
 
     try {
-      // Create slider instance
-      this.sliderInstance = window.SliderCore.create(this.selectorClass);
-
-      if (!this.sliderInstance) {
-        console.log(
-          `${this.name} slider initialization failed, will retry in 50ms`
-        );
-        setTimeout(this.init, 50);
+      // Get the selector element
+      const selector = document.querySelector(this.containerSelector);
+      if (!selector) {
+        this.error(`Selector element not found: ${this.containerSelector}`);
         return false;
       }
 
-      // Set up the option selected callback
-      this.sliderInstance.onOptionSelected = this.handleOptionSelected;
+      // Get option elements
+      const options = selector.querySelectorAll(this.options.optionSelector);
+      if (!options || options.length === 0) {
+        this.error(`No options found in selector`);
+        return false;
+      }
 
-      // Apply saved preference if any
-      this.applyStoredPreference();
+      // Get background element
+      const background = selector.querySelector(
+        this.options.backgroundSelector
+      );
+      if (!background) {
+        this.error(`Background element not found`);
+        return false;
+      }
 
-      console.log(`${this.name} slider initialization successful`);
-      this.initialized = true;
-      this.initializationAttempts = 0; // Reset counter on success
+      // Get border elements
+      const borderTop = selector.querySelector(this.options.borderTopSelector);
+      const borderBottom = selector.querySelector(
+        this.options.borderBottomSelector
+      );
 
-      // Perform custom initialization
-      this.onInitialized();
+      // Store elements
+      this.domElements.selector = selector;
+      this.domElements.options = options;
+      this.domElements.background = background;
+      this.domElements.borderTop = borderTop;
+      this.domElements.borderBottom = borderBottom;
 
       return true;
     } catch (error) {
-      console.error(`Error during ${this.name} slider initialization:`, error);
+      this.error(`Error getting selector DOM elements:`, error);
       return false;
     }
   }
 
   /**
-   * Clean up resources
-   * Called when navigating away from page
+   * Initialize the selector component
+   * @returns {Promise<boolean>} - Success status
    */
-  cleanup() {
-    this.initialized = false;
-    this.sliderInstance = null;
+  async initComponent() {
+    try {
+      // Check if we should use the core slider
+      if (this.options.useCoreSlider) {
+        // Wait for SliderCore to be available
+        if (typeof window.SliderCore === "undefined") {
+          this.log("Waiting for SliderCore to be available");
+
+          // Try a few times with increasing delay
+          for (let i = 0; i < 5; i++) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 100 * Math.pow(2, i))
+            );
+            if (typeof window.SliderCore !== "undefined") break;
+          }
+
+          // If still not available, fail
+          if (typeof window.SliderCore === "undefined") {
+            this.error("SliderCore module not available");
+            return false;
+          }
+        }
+
+        // Create slider instance
+        this.sliderInstance = window.SliderCore.create(this.containerSelector);
+
+        if (!this.sliderInstance) {
+          this.error("Failed to create slider instance");
+          return false;
+        }
+
+        // Set up the onOptionSelected callback
+        this.sliderInstance.onOptionSelected = this.handleOptionSelected;
+      } else {
+        // Set up click handlers for options
+        this.setupOptionClickHandlers();
+      }
+
+      return true;
+    } catch (error) {
+      this.error(`Error initializing selector component:`, error);
+      return false;
+    }
   }
 
   /**
-   * Force reinitialization
-   * @returns {boolean} - Success status
+   * Set up option click handlers when not using SliderCore
    */
-  reinitialize() {
-    this.initialized = false;
-    this.initializationAttempts = 0;
-    return this.init();
-  }
+  setupOptionClickHandlers() {
+    if (!this.domElements.options) return;
 
-  /**
-   * Apply stored preference from localStorage
-   * This is called during initialization
-   */
-  applyStoredPreference() {
-    if (!this.sliderInstance) return;
-
-    const savedValue = localStorage.getItem(this.options.storageKey);
-    if (savedValue) {
-      console.log(`Applying saved ${this.name} preference:`, savedValue);
-      this.applyPreference(savedValue);
-    } else if (this.options.defaultValue) {
-      console.log(
-        `Applying default ${this.name} preference:`,
-        this.options.defaultValue
+    // Add click handlers to each option
+    this.domElements.options.forEach((option) => {
+      const removeListener = this.addEventListener(option, "click", () =>
+        this.handleOptionSelected(option)
       );
-      this.applyPreference(this.options.defaultValue);
-    }
+
+      // Store for cleanup
+      this.addDestroyHandler(removeListener);
+    });
   }
 
   /**
-   * Save preference to localStorage
-   * @param {string} value - The value to save
-   */
-  savePreference(value) {
-    localStorage.setItem(this.options.storageKey, value);
-  }
-
-  /**
-   * Get preference value from option element
-   * Child classes can override this to customize how values are extracted
-   * @param {Element} option - The selected option DOM element
-   * @returns {string} - The preference value
-   */
-  getValueFromOption(option) {
-    // Try to get from data attribute first
-    const dataAttribute = option.getAttribute(
-      `data-${this.name.toLowerCase()}`
-    );
-    if (dataAttribute) return dataAttribute;
-
-    // Fall back to text content
-    const h3 = option.querySelector("h3");
-    if (h3) {
-      return h3.textContent.toLowerCase();
-    }
-
-    // Last resort, use position
-    return option.getAttribute("data-position") || "1";
-  }
-
-  // ============================================================
-  // ABSTRACT METHODS - Must be implemented by child classes
-  // ============================================================
-
-  /**
-   * Handle when an option is selected
+   * Handle option selected event
    * This is called when user clicks on an option
    * @param {Element} option - The selected option DOM element
    */
   handleOptionSelected(option) {
-    throw new Error(
-      "Method 'handleOptionSelected' must be implemented by child classes"
-    );
+    if (!option) return;
+
+    // Get the value from the option
+    const value = this.getValueFromOption(option);
+
+    this.log(`Option selected:`, value);
+
+    // Apply the preference
+    this.applyPreference(value);
+
+    // Save to localStorage
+    this.savePreference(value);
+
+    // Trigger event
+    this.triggerEvent("change", { value, option });
   }
 
   /**
-   * Apply preference - implement in child class
-   * @param {string} value - The preference value to apply
+   * Set the active option
+   * @param {string} value - The value to set active
+   * @param {boolean} skipAnimation - Whether to skip animation
+   * @returns {Element|null} - The activated option element or null
    */
-  applyPreference(value) {
-    throw new Error(
-      "Method 'applyPreference' must be implemented by child classes"
-    );
+  setActiveOption(value, skipAnimation = false) {
+    // No action if value is already active
+    if (value === this.currentValue) {
+      return null;
+    }
+
+    // Find the option with this value
+    let targetOption = null;
+
+    if (this.domElements.options) {
+      for (const option of this.domElements.options) {
+        const optionValue = this.getValueFromOption(option);
+        if (optionValue === value) {
+          targetOption = option;
+          break;
+        }
+      }
+    }
+
+    if (!targetOption) {
+      this.error(`No option found with value: ${value}`);
+      return null;
+    }
+
+    // If using SliderCore, use its method
+    if (
+      this.sliderInstance &&
+      typeof this.sliderInstance.setActiveOption === "function"
+    ) {
+      this.sliderInstance.setActiveOption(targetOption, skipAnimation);
+    } else {
+      // Otherwise handle it ourselves
+      this.updateActiveOption(targetOption, skipAnimation);
+    }
+
+    // Store the current value
+    this.currentValue = value;
+
+    return targetOption;
   }
 
   /**
-   * Hook called after initialization is complete
-   * Child classes can override to perform additional setup
+   * Update active option when not using SliderCore
+   * @param {Element} activeOption - The option to make active
+   * @param {boolean} skipAnimation - Whether to skip animation
    */
-  onInitialized() {
-    // Default implementation does nothing
+  updateActiveOption(activeOption, skipAnimation = false) {
+    if (
+      !activeOption ||
+      !this.domElements.options ||
+      !this.domElements.background
+    ) {
+      return;
+    }
+
+    // Remove active class from all options
+    this.domElements.options.forEach((option) => {
+      option.classList.remove(this.options.activeClass);
+    });
+
+    // Add active class to selected option
+    activeOption.classList.add(this.options.activeClass);
+
+    // Position the background behind the active option
+    const optionRect = activeOption.getBoundingClientRect();
+    const selectorRect = this.domElements.selector.getBoundingClientRect();
+
+    // Calculate the left position relative to the selector
+    const leftPosition = optionRect.left - selectorRect.left;
+
+    // Apply the position and width
+    if (skipAnimation) {
+      this.domElements.background.style.transition = "none";
+
+      // Set properties
+      this.domElements.background.style.width = `${optionRect.width}px`;
+      this.domElements.background.style.left = `${leftPosition}px`;
+
+      // Force reflow
+      void this.domElements.background.offsetWidth;
+
+      // Restore transition
+      this.domElements.background.style.transition = "";
+    } else {
+      // Apply with animation
+      this.domElements.background.style.transition = `left ${this.options.animationDuration}ms ${this.options.animationEasing}, 
+         width ${this.options.animationDuration}ms ${this.options.animationEasing}`;
+
+      this.domElements.background.style.width = `${optionRect.width}px`;
+      this.domElements.background.style.left = `${leftPosition}px`;
+    }
+  }
+
+  /**
+   * Get value from option element
+   * @param {Element} option - The option element
+   * @returns {string} - The value
+   */
+  getValueFromOption(option) {
+    if (!option) return null;
+
+    // Try data-value attribute first
+    const dataValue = option.getAttribute("data-value");
+    if (dataValue) {
+      return dataValue;
+    }
+
+    // Try data attribute with component name
+    const dataAttr = option.getAttribute(`data-${this.name.toLowerCase()}`);
+    if (dataAttr) {
+      return dataAttr;
+    }
+
+    // Try header content
+    const header = option.querySelector("h3");
+    if (header) {
+      return header.textContent.trim().toLowerCase();
+    }
+
+    // Fallback to position
+    return option.getAttribute("data-position") || "1";
+  }
+
+  /**
+   * Clean up resources specific to selectors
+   */
+  cleanupComponent() {
+    // Cleanup SliderCore if it was used
+    if (
+      this.sliderInstance &&
+      typeof this.sliderInstance.destroy === "function"
+    ) {
+      this.sliderInstance.destroy();
+    }
+
+    this.sliderInstance = null;
+    this.currentValue = null;
+  }
+
+  /**
+   * Generate HTML for selector
+   * @returns {string} - HTML markup
+   */
+  generateHTML() {
+    // Generate options HTML
+    const optionsHTML = this.options.values
+      .map((value, index) => {
+        const position = index + 1;
+        const isActive = value === this.options.defaultValue;
+        const label = this.options.labels[index] || value;
+
+        return `
+        <div class="option${isActive ? " active" : ""}" 
+             data-position="${position}" 
+             data-value="${value}">
+          <h3>${label}</h3>
+        </div>
+      `;
+      })
+      .join("");
+
+    // Generate the full selector HTML
+    return `
+      <div class="slider-selector ${this.name}-selector">
+        <div class="border-container">
+          <div class="border-segment border-top"></div>
+          <div class="border-segment border-bottom"></div>
+        </div>
+        <div class="selector-background"></div>
+        ${optionsHTML}
+      </div>
+    `;
   }
 }
 

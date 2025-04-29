@@ -17,8 +17,10 @@ class TimeFormatSelector extends SelectorBase {
       {
         storageKey: "userTimeFormatPreference",
         defaultValue: "12",
-        formats: ["12", "24"],
+        values: ["12", "24"],
+        labels: ["12-hour", "24-hour"],
         updateInterval: 1000, // Update time display every second
+        debug: false,
       },
       options
     );
@@ -62,10 +64,10 @@ class TimeFormatSelector extends SelectorBase {
   updateTimeDisplay() {
     if (!this.option12h || !this.option24h) {
       this.option12h = document.querySelector(
-        `${this.selectorClass} .option[data-format="12"] h3`
+        `${this.containerSelector} .option[data-value="12"] h3`
       );
       this.option24h = document.querySelector(
-        `${this.selectorClass} .option[data-format="24"] h3`
+        `${this.containerSelector} .option[data-value="24"] h3`
       );
     }
 
@@ -83,69 +85,19 @@ class TimeFormatSelector extends SelectorBase {
    * @param {string} formatName - The format to apply ("12" or "24")
    */
   applyPreference(formatName) {
-    console.log("Applying time format:", formatName);
+    this.log("Applying time format:", formatName);
 
-    // Update the current format
-    this.currentFormat = formatName;
+    // Update the current value
+    this.currentValue = formatName;
 
     // Update the time display
     this.updateTimeDisplay();
 
-    // Find the option element
-    if (this.sliderInstance) {
-      const option = document.querySelector(
-        `${this.selectorClass} .option[data-format="${formatName}"]`
-      );
+    // Set the active option in UI
+    this.setActiveOption(formatName);
 
-      if (option) {
-        // Add a slight delay to allow DOM to be ready
-        setTimeout(() => {
-          // Update the active button in UI
-          this.sliderInstance.setActiveOption(option, true);
-        }, 50);
-      }
-    }
-  }
-
-  /**
-   * Handle option selected
-   * @param {Element} option - The selected option element
-   */
-  handleOptionSelected(option) {
-    // Get the format name
-    const formatName = this.getValueFromOption(option);
-
-    console.log("Time format option selected:", formatName);
-
-    // Apply the format
-    this.applyPreference(formatName);
-
-    // Save to localStorage
-    this.savePreference(formatName);
-  }
-
-  /**
-   * Get format value from option
-   * @param {Element} option - The option element
-   * @returns {string} - The format value
-   */
-  getValueFromOption(option) {
-    // Try data-format attribute first
-    const dataFormat = option.getAttribute("data-format");
-    if (dataFormat) return dataFormat;
-
-    // Try header content
-    const h3 = option.querySelector("h3");
-    if (h3) {
-      // Extract 12h or 24h from the text
-      const text = h3.textContent.toLowerCase();
-      if (text.includes("12h")) return "12";
-      if (text.includes("24h")) return "24";
-    }
-
-    // Fallback to position: 1=12h, 2=24h
-    const position = parseInt(option.getAttribute("data-position") || "1");
-    return this.options.formats[position - 1] || "12";
+    // Trigger event
+    this.triggerEvent("change", { value: formatName });
   }
 
   /**
@@ -165,71 +117,114 @@ class TimeFormatSelector extends SelectorBase {
       () => this.updateTimeDisplay(),
       this.options.updateInterval
     );
+
+    // Register cleanup
+    this.addDestroyHandler(() => {
+      if (this.updateInterval) {
+        clearInterval(this.updateInterval);
+        this.updateInterval = null;
+      }
+    });
   }
 
   /**
-   * Clean up resources
+   * Generate HTML for selector
+   * Override to create time format specific display
+   * @returns {string} - HTML markup
    */
-  cleanup() {
-    // Clear update interval
-    if (this.updateInterval) {
-      clearInterval(this.updateInterval);
-      this.updateInterval = null;
+  generateHTML() {
+    // Generate options HTML with time-specific labels
+    const now = new Date();
+    let hours12 = now.getHours() % 12;
+    hours12 = hours12 ? hours12 : 12; // Convert 0 to 12 for 12 AM
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    const period = now.getHours() >= 12 ? "pm" : "am";
+    const hours24 = now.getHours().toString().padStart(2, "0");
+
+    const timeFormat12 = `12h ${hours12}:${minutes}${period}`;
+    const timeFormat24 = `24h ${hours24}:${minutes}`;
+
+    // Determine which option should be active
+    const defaultValue = this.options.defaultValue || "12";
+
+    return `
+      <div class="slider-selector ${this.name}-selector">
+        <div class="border-container">
+          <div class="border-segment border-top"></div>
+          <div class="border-segment border-bottom"></div>
+        </div>
+        <div class="selector-background"></div>
+        <div class="option${defaultValue === "12" ? " active" : ""}" 
+             data-position="1" 
+             data-value="12">
+          <h3>${timeFormat12}</h3>
+        </div>
+        <div class="option${defaultValue === "24" ? " active" : ""}" 
+             data-position="2" 
+             data-value="24">
+          <h3>${timeFormat24}</h3>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Component-specific initialization
+   */
+  async initComponent() {
+    // Call parent initialization
+    if (!(await super.initComponent())) {
+      return false;
     }
 
-    // Call parent cleanup
-    super.cleanup();
+    // Set up time display interval
+    this.setupTimeDisplayInterval();
+
+    return true;
   }
 
   /**
    * After initialization complete
    */
   onInitialized() {
-    // Set up time display update interval
-    this.setupTimeDisplayInterval();
-
-    // Refresh the active option after a short delay to ensure proper visual update
-    setTimeout(() => {
-      const formatName =
-        localStorage.getItem(this.options.storageKey) ||
-        this.options.defaultValue;
-      const option = document.querySelector(
-        `${this.selectorClass} .option[data-format="${formatName}"]`
-      );
-
-      if (option && this.sliderInstance) {
-        this.sliderInstance.setActiveOption(option, false);
-      }
-    }, 100);
+    // Apply stored preference or default
+    const savedFormat =
+      localStorage.getItem(this.options.storageKey) ||
+      this.options.defaultValue;
+    this.applyPreference(savedFormat);
   }
 }
 
 // Register time format selector with the factory
 (function () {
-  // Wait for dependencies to be loaded
-  function waitForDependencies() {
+  // Register when dependencies are available
+  function checkDependencies() {
     if (
       typeof window.SelectorBase === "undefined" ||
       typeof window.SelectorFactory === "undefined"
     ) {
-      console.log("Waiting for selector dependencies...");
-      setTimeout(waitForDependencies, 50);
+      setTimeout(checkDependencies, 50);
       return;
     }
 
-    // Create and register the time format selector
-    console.log("Registering time format selector");
-    window.timeFormatSelector = window.SelectorFactory.register(
-      "timeFormat",
-      TimeFormatSelector,
-      ".time-format-selector",
-      {
-        storageKey: "userTimeFormatPreference",
-        defaultValue: "12",
-      }
-    );
+    // Register with factory
+    window.TimeFormatSelector = TimeFormatSelector;
+
+    // Create instance if not running in preload mode
+    if (typeof window.selectorPreload === "undefined") {
+      window.timeFormatSelector = window.SelectorFactory.register(
+        "timeFormat",
+        TimeFormatSelector,
+        ".time-format-selector",
+        {
+          storageKey: "userTimeFormatPreference",
+          defaultValue: "12",
+          values: ["12", "24"],
+        }
+      );
+    }
   }
 
-  // Start waiting for dependencies
-  waitForDependencies();
+  // Start checking for dependencies
+  checkDependencies();
 })();

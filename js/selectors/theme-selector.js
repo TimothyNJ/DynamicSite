@@ -17,7 +17,9 @@ class ThemeSelector extends SelectorBase {
       {
         storageKey: "userThemePreference",
         defaultValue: "system",
-        themes: ["light", "system", "dark"],
+        values: ["dark", "system", "light"],
+        labels: ["Dark", "System", "Light"],
+        debug: false,
       },
       options
     );
@@ -35,38 +37,47 @@ class ThemeSelector extends SelectorBase {
    * @param {boolean} skipThemeDetection - If true, skips system theme detection
    */
   applyTheme(themeName, skipThemeDetection = false) {
-    console.log("Applying theme:", themeName);
+    this.log("Applying theme:", themeName);
     const body = document.body;
 
     if (themeName === "light") {
-      console.log("Setting light theme attributes");
+      this.log("Setting light theme attributes");
       body.setAttribute("data-theme", "light");
       body.style.backgroundImage =
         "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
 
-      // Update slider background if available
-      const themeSelector = document.querySelector(this.selectorClass);
-      if (themeSelector) {
-        themeSelector.style.background =
-          "linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)";
-      }
+      // Update component background colors via CSS variables
+      document.documentElement.style.setProperty(
+        "--component-gradient-start",
+        "var(--light-component-start)"
+      );
+      document.documentElement.style.setProperty(
+        "--component-gradient-end",
+        "var(--light-component-end)"
+      );
     } else if (themeName === "dark") {
-      console.log("Setting dark theme attributes");
+      this.log("Setting dark theme attributes");
       body.setAttribute("data-theme", "dark");
       body.style.backgroundImage =
         "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
 
-      // Update slider background if available
-      const themeSelector = document.querySelector(this.selectorClass);
-      if (themeSelector) {
-        themeSelector.style.background =
-          "linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)";
-      }
+      // Update component background colors via CSS variables
+      document.documentElement.style.setProperty(
+        "--component-gradient-start",
+        "var(--dark-component-start)"
+      );
+      document.documentElement.style.setProperty(
+        "--component-gradient-end",
+        "var(--dark-component-end)"
+      );
     } else if (themeName === "system" && !skipThemeDetection) {
-      console.log("Setting system theme based on preference");
+      this.log("Setting system theme based on preference");
       const prefersDark = this.detectSystemDarkMode();
       this.applyTheme(prefersDark ? "dark" : "light", true);
     }
+
+    // Trigger theme changed event
+    this.triggerEvent("themeChanged", { theme: themeName });
   }
 
   /**
@@ -83,11 +94,15 @@ class ThemeSelector extends SelectorBase {
   /**
    * Handle system theme change event
    */
-  handleSystemThemeChange() {
+  handleSystemThemeChange(event) {
     // Only apply change if current preference is "system"
     const currentPreference = localStorage.getItem(this.options.storageKey);
     if (currentPreference === "system") {
-      const prefersDark = this.detectSystemDarkMode();
+      const prefersDark = event.matches;
+      this.log(
+        "System theme preference changed:",
+        prefersDark ? "dark" : "light"
+      );
       this.applyTheme(prefersDark ? "dark" : "light", true);
     }
   }
@@ -97,19 +112,27 @@ class ThemeSelector extends SelectorBase {
    */
   setupSystemThemeDetection() {
     if (window.matchMedia) {
-      // Remove any existing listeners first to prevent duplicates
       try {
+        // Remove any existing listeners first to prevent duplicates
+        if (this.darkModeMediaQuery) {
+          try {
+            // For older browsers
+            this.darkModeMediaQuery.removeListener(
+              this.systemThemeChangeHandler
+            );
+            // For newer browsers
+            this.darkModeMediaQuery.removeEventListener(
+              "change",
+              this.systemThemeChangeHandler
+            );
+          } catch (e) {
+            this.log("Error removing existing media query listeners:", e);
+          }
+        }
+
+        // Create new media query
         this.darkModeMediaQuery = window.matchMedia(
           "(prefers-color-scheme: dark)"
-        );
-
-        // For older browsers
-        this.darkModeMediaQuery.removeListener(this.systemThemeChangeHandler);
-
-        // For newer browsers
-        this.darkModeMediaQuery.removeEventListener(
-          "change",
-          this.systemThemeChangeHandler
         );
 
         // Add the listener using modern method or fallback
@@ -119,101 +142,59 @@ class ThemeSelector extends SelectorBase {
             this.systemThemeChangeHandler
           );
         } catch (e) {
-          console.warn("Media query addEventListener error:", e);
+          this.log("Media query addEventListener error:", e);
           // Fallback for older browsers
           try {
             this.darkModeMediaQuery.addListener(this.systemThemeChangeHandler);
           } catch (e2) {
-            console.warn("Media query addListener error:", e2);
+            this.error("Media query addListener error:", e2);
           }
         }
+
+        // Register cleanup
+        this.addDestroyHandler(() => {
+          try {
+            if (this.darkModeMediaQuery) {
+              // For older browsers
+              this.darkModeMediaQuery.removeListener(
+                this.systemThemeChangeHandler
+              );
+              // For newer browsers
+              this.darkModeMediaQuery.removeEventListener(
+                "change",
+                this.systemThemeChangeHandler
+              );
+            }
+          } catch (e) {
+            this.error(
+              "Error removing media query listeners during cleanup:",
+              e
+            );
+          }
+        });
       } catch (e) {
-        console.warn("Error setting up media query listeners:", e);
+        this.error("Error setting up media query listeners:", e);
       }
     }
   }
 
   /**
-   * Clean up resources
-   */
-  cleanup() {
-    // Remove media query listeners
-    if (this.darkModeMediaQuery) {
-      try {
-        // For older browsers
-        this.darkModeMediaQuery.removeListener(this.systemThemeChangeHandler);
-
-        // For newer browsers
-        this.darkModeMediaQuery.removeEventListener(
-          "change",
-          this.systemThemeChangeHandler
-        );
-      } catch (e) {
-        console.warn("Error removing media query listeners:", e);
-      }
-    }
-
-    // Call parent cleanup
-    super.cleanup();
-  }
-
-  /**
-   * Apply user preference from storage or UI selection
+   * Apply preference from selector
    * @param {string} themeName - The theme to apply
    */
   applyPreference(themeName) {
-    // First, try to find the option in DOM
-    if (this.sliderInstance) {
-      const option = document.querySelector(
-        `${this.selectorClass} .option[data-theme="${themeName}"]`
-      );
+    if (!themeName) return;
 
-      if (option) {
-        // Set the active option in the UI
-        this.sliderInstance.setActiveOption(option, true);
-      }
-    }
+    this.log("Applying theme preference:", themeName);
+
+    // Update active option in UI
+    this.setActiveOption(themeName);
+
+    // Store current value
+    this.currentValue = themeName;
 
     // Apply the theme
     this.applyTheme(themeName);
-  }
-
-  /**
-   * Handle option selected event
-   * @param {Element} option - The selected option element
-   */
-  handleOptionSelected(option) {
-    // Get the theme from data-theme attribute or fallback to text
-    const themeName = this.getValueFromOption(option);
-
-    console.log("Theme option selected:", themeName);
-
-    // Apply the theme
-    this.applyTheme(themeName);
-
-    // Save to local storage
-    this.savePreference(themeName);
-  }
-
-  /**
-   * Get theme value from option
-   * @param {Element} option - The option element
-   * @returns {string} - The theme name
-   */
-  getValueFromOption(option) {
-    // First try data-theme attribute
-    const dataTheme = option.getAttribute("data-theme");
-    if (dataTheme) return dataTheme;
-
-    // Then try header content
-    const h3 = option.querySelector("h3");
-    if (h3) {
-      return h3.textContent.toLowerCase().replace(" theme", "");
-    }
-
-    // Fallback to position: 1=light, 2=system, 3=dark
-    const position = parseInt(option.getAttribute("data-position") || "2");
-    return this.options.themes[position - 1] || "system";
   }
 
   /**
@@ -223,72 +204,47 @@ class ThemeSelector extends SelectorBase {
     // Set up system theme detection
     this.setupSystemThemeDetection();
 
-    // Apply system theme based on system preference
-    const currentPreference =
-      localStorage.getItem(this.options.storageKey) ||
-      this.options.defaultValue;
-    if (currentPreference === "system") {
-      this.applySystemTheme();
-    }
-  }
-
-  /**
-   * Apply system theme based on system preferences
-   */
-  applySystemTheme() {
-    // Find the system theme option
-    const systemOption =
-      document.querySelector(
-        `${this.selectorClass} .option[data-theme="system"]`
-      ) ||
-      document.querySelector(
-        `${this.selectorClass} .option[data-position="2"]`
-      );
-
-    if (!systemOption) {
-      console.warn("System theme option not found");
-      return;
-    }
-
-    // Make sure system option is active
-    if (!systemOption.classList.contains("active")) {
-      // Programmatically activate the system option
-      if (this.sliderInstance) {
-        this.sliderInstance.setActiveOption(systemOption, true);
-      }
-    } else {
-      // Apply the system theme directly since the option is already active
-      this.applyTheme("system");
-    }
+    // Apply stored preference or default after a short delay
+    setTimeout(() => {
+      const savedTheme =
+        localStorage.getItem(this.options.storageKey) ||
+        this.options.defaultValue;
+      this.applyPreference(savedTheme);
+    }, 50);
   }
 }
 
 // Register theme selector with the factory
 (function () {
-  // Wait for dependencies to be loaded
-  function waitForDependencies() {
+  // Register when dependencies are available
+  function checkDependencies() {
     if (
       typeof window.SelectorBase === "undefined" ||
       typeof window.SelectorFactory === "undefined"
     ) {
-      console.log("Waiting for selector dependencies...");
-      setTimeout(waitForDependencies, 50);
+      setTimeout(checkDependencies, 50);
       return;
     }
 
-    // Create and register the theme selector
-    console.log("Registering theme selector");
-    window.themeSelector = window.SelectorFactory.register(
-      "theme",
-      ThemeSelector,
-      ".theme-selector",
-      {
-        storageKey: "userThemePreference",
-        defaultValue: "system",
-      }
-    );
+    // Register with factory
+    window.ThemeSelector = ThemeSelector;
+
+    // Create instance if not running in preload mode
+    if (typeof window.selectorPreload === "undefined") {
+      window.themeSelector = window.SelectorFactory.register(
+        "theme",
+        ThemeSelector,
+        ".theme-selector",
+        {
+          storageKey: "userThemePreference",
+          defaultValue: "system",
+          values: ["dark", "system", "light"],
+          labels: ["Dark", "System", "Light"],
+        }
+      );
+    }
   }
 
-  // Start waiting for dependencies
-  waitForDependencies();
+  // Start checking for dependencies
+  checkDependencies();
 })();
