@@ -17,18 +17,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - name: List all files for debugging
+      # First deploy markdown files specifically with correct content type
+      - name: Deploy markdown files to S3
         run: |
-          find . -type f -name "*.md" | sort
+          aws s3 cp ./docs/ s3://tnjdynamicsite-dev/docs/ --recursive --include "*.md" --content-type="text/markdown"
 
+      # Then deploy HTML files with cache headers
       - name: Deploy HTML files to S3 with no-cache
         run: |
           aws s3 sync . s3://tnjdynamicsite-dev --delete --exclude "*" --include "*.html" --cache-control="no-cache,no-store,must-revalidate" --content-type="text/html"
 
-      - name: Deploy markdown files with correct content type
-        run: |
-          aws s3 cp ./docs/ s3://tnjdynamicsite-dev/docs/ --recursive --exclude "*" --include "*.md" --content-type="text/markdown"
-
+      # Finally deploy all remaining files
       - name: Deploy remaining files to S3
         run: |
-          aws s3 sync . s3://tnjdynamicsite-dev --exclude ".git*" --exclude ".github*" --exclude "*.html"
+          aws s3 sync . s3://tnjdynamicsite-dev --delete --exclude ".git*" --exclude ".github*" --exclude "*.html" --exclude "docs/*.md"
