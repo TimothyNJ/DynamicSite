@@ -21,6 +21,14 @@ jobs:
         run: |
           aws s3 sync . s3://tnjdynamicsite-dev --delete --exclude "*" --include "*.html" --cache-control="no-cache,no-store,must-revalidate" --content-type="text/html"
 
+      - name: Deploy markdown files to S3
+        run: |
+          aws s3 sync . s3://tnjdynamicsite-dev --delete --exclude "*" --include "*.md" --cache-control="no-cache,no-store,must-revalidate" --content-type="text/markdown"
+
+      - name: Deploy documentation files to S3
+        run: |
+          aws s3 sync ./docs s3://tnjdynamicsite-dev/docs --delete --exclude "*" --include "*.md" --cache-control="no-cache,no-store,must-revalidate" --content-type="text/markdown"
+
       - name: Deploy remaining files to S3
         run: |
-          aws s3 sync . s3://tnjdynamicsite-dev --delete --exclude ".git*" --exclude ".github*" --exclude "*.html"
+          aws s3 sync . s3://tnjdynamicsite-dev --delete --exclude ".git*" --exclude ".github*" --exclude "*.html" --exclude "*.md"
