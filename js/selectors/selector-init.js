@@ -47,7 +47,7 @@
     },
     {
       id: "selector-base",
-      src: "js/selectors/selector-base.js",
+      src: "js/core/selector-base.js",
       loaded: false,
       required: true,
       dependencies: ["slider-core"],
@@ -91,8 +91,8 @@
       type: "script",
     },
     {
-      id: "theme-selector",
-      src: "js/selectors/theme-selector.js",
+      id: "slider-selector",
+      src: "js/components/slider-selector.js",
       loaded: false,
       required: false,
       dependencies: ["selector-factory", "generic-selector"],
@@ -117,8 +117,8 @@
       type: "script",
     },
     {
-      id: "input-config",
-      src: "js/inputs/input-config.js",
+      id: "alpha-numeric-input",
+      src: "js/core/alpha-numeric-input.js",
       loaded: false,
       required: true,
       dependencies: ["input-base"],
