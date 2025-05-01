@@ -104,6 +104,6 @@ When creating documentation:
 
 - MCP Examples: https://modelcontextprotocol.io/examples
 - MCP Debugging: https://modelcontextprotocol.io/docs/tools/debugging
-- Previous configuration fixes are documented in `/Users/Timothy/Documents/GitFiles/dynamicsite/docs/mcp_git_configuration.md`
+- Previous configuration fixes are documented in `/Users/Timothy/Documents/GitFiles/dynamicsite/docs/mcp_git_guide.md`
 
 Remember: Always provide precise, clear instructions with full paths and commands.
