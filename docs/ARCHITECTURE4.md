@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the progress made in implementing the component architecture plan detailed in ARCHITECTURE3.md, along with the remaining tasks needed to complete the implementation.
+This document outlines the progress made in implementing the component architecture plan detailed in architecture3.md, along with the remaining tasks needed to complete the implementation.
 
 ## Changes Implemented
 
