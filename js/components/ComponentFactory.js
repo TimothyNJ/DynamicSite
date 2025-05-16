@@ -1,21 +1,24 @@
 /**
  * ComponentFactory
  *
- * A factory system for registering, creating, and managing GenericSelector
- * and TextInput components. This enables easy configuration and initialization
- * of components that replace hardcoded main branch UI elements.
+ * A factory system for registering, creating, and managing all component types:
+ * GenericSelector, TextInput, TimeRangePicker, and MultiSelect components.
  */
 class ComponentFactory {
   // Static storage for registered components
   static components = {
     selector: new Map(),
-    input: new Map()
+    input: new Map(),
+    timeRangePicker: new Map(),
+    multiSelect: new Map()
   };
   
   // Track initialized components for cleanup
   static instances = {
     selectors: new Map(),
-    inputs: new Map()
+    inputs: new Map(),
+    timeRangePickers: new Map(),
+    multiSelects: new Map()
   };
   
   // Debug mode for extra logging
@@ -107,6 +110,95 @@ class ComponentFactory {
       return false;
     }
   }
+
+  /**
+   * Register a TimeRangePicker configuration
+   * @param {string} name - Unique name for the time range picker
+   * @param {Object} config - Configuration object for TimeRangePicker
+   * @param {string} [config.startTime='09:00'] - Default start time
+   * @param {string} [config.endTime='17:00'] - Default end time
+   * @param {string} [config.format='24h'] - Time format ('24h' or '12h')
+   * @param {number} [config.step=15] - Step in minutes
+   * @param {string} [config.storageKey] - localStorage key
+   * @param {string} [config.container] - CSS selector for container
+   * @param {Function} [config.onValueChange] - Callback function
+   * @returns {boolean} - Success status
+   */
+  static registerTimeRangePicker(name, config) {
+    try {
+      // Validate required parameters
+      if (!name || typeof name !== 'string') {
+        throw new Error('TimeRangePicker name must be a non-empty string');
+      }
+      
+      if (!config) {
+        config = {};
+      }
+      
+      // Check for duplicate registration
+      if (this.components.timeRangePicker.has(name)) {
+        console.warn(`TimeRangePicker '${name}' is already registered, overwriting...`);
+      }
+      
+      // Store the configuration with name
+      const fullConfig = { name, ...config };
+      this.components.timeRangePicker.set(name, fullConfig);
+      
+      if (this.debug) {
+        console.log(`Registered TimeRangePicker: ${name}`, fullConfig);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error(`Failed to register TimeRangePicker '${name}':`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Register a MultiSelect configuration
+   * @param {string} name - Unique name for the multi-select
+   * @param {Object} config - Configuration object for MultiSelect
+   * @param {Array} config.options - Array of option values
+   * @param {Array} [config.labels] - Display labels for options
+   * @param {Array} [config.defaultValue] - Default selected values
+   * @param {number} [config.maxSelections] - Maximum selections allowed
+   * @param {boolean} [config.searchable=true] - Enable search functionality
+   * @param {string} [config.storageKey] - localStorage key
+   * @param {string} [config.container] - CSS selector for container
+   * @param {Function} [config.onValueChange] - Callback function
+   * @returns {boolean} - Success status
+   */
+  static registerMultiSelect(name, config) {
+    try {
+      // Validate required parameters
+      if (!name || typeof name !== 'string') {
+        throw new Error('MultiSelect name must be a non-empty string');
+      }
+      
+      if (!config || !config.options || !Array.isArray(config.options)) {
+        throw new Error('MultiSelect config must include an options array');
+      }
+      
+      // Check for duplicate registration
+      if (this.components.multiSelect.has(name)) {
+        console.warn(`MultiSelect '${name}' is already registered, overwriting...`);
+      }
+      
+      // Store the configuration with name
+      const fullConfig = { name, ...config };
+      this.components.multiSelect.set(name, fullConfig);
+      
+      if (this.debug) {
+        console.log(`Registered MultiSelect: ${name}`, fullConfig);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error(`Failed to register MultiSelect '${name}':`, error);
+      return false;
+    }
+  }
   
   /**
    * Create a selector instance from registered configuration
@@ -175,12 +267,82 @@ class ComponentFactory {
       return null;
     }
   }
+
+  /**
+   * Create a TimeRangePicker instance from registered configuration
+   * @param {string} name - Name of registered TimeRangePicker
+   * @returns {TimeRangePicker|null} - Created TimeRangePicker instance or null
+   */
+  static createTimeRangePicker(name) {
+    try {
+      const config = this.components.timeRangePicker.get(name);
+      if (!config) {
+        throw new Error(`TimeRangePicker '${name}' not registered`);
+      }
+      
+      // Ensure TimeRangePicker is available
+      if (typeof window.TimeRangePicker !== 'function') {
+        throw new Error('TimeRangePicker class not available');
+      }
+      
+      // Create the instance
+      const instance = new window.TimeRangePicker(config);
+      
+      // Store reference for management
+      this.instances.timeRangePickers.set(name, instance);
+      
+      if (this.debug) {
+        console.log(`Created TimeRangePicker: ${name}`);
+      }
+      
+      return instance;
+    } catch (error) {
+      console.error(`Failed to create TimeRangePicker '${name}':`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Create a MultiSelect instance from registered configuration
+   * @param {string} name - Name of registered MultiSelect
+   * @returns {MultiSelect|null} - Created MultiSelect instance or null
+   */
+  static createMultiSelect(name) {
+    try {
+      const config = this.components.multiSelect.get(name);
+      if (!config) {
+        throw new Error(`MultiSelect '${name}' not registered`);
+      }
+      
+      // Ensure MultiSelect is available
+      if (typeof window.MultiSelect !== 'function') {
+        throw new Error('MultiSelect class not available');
+      }
+      
+      // Create the instance
+      const instance = new window.MultiSelect(config);
+      
+      // Store reference for management
+      this.instances.multiSelects.set(name, instance);
+      
+      if (this.debug) {
+        console.log(`Created MultiSelect: ${name}`);
+      }
+      
+      return instance;
+    } catch (error) {
+      console.error(`Failed to create MultiSelect '${name}':`, error);
+      return null;
+    }
+  }
   
   /**
    * Initialize all registered components
    * @param {Object} [options] - Initialization options
    * @param {boolean} [options.skipSelectors=false] - Skip selector initialization
    * @param {boolean} [options.skipInputs=false] - Skip input initialization
+   * @param {boolean} [options.skipTimeRangePickers=false] - Skip TimeRangePicker initialization
+   * @param {boolean} [options.skipMultiSelects=false] - Skip MultiSelect initialization
    * @param {number} [options.delay=0] - Delay before initialization (ms)
    * @returns {Promise<Object>} - Results of initialization
    */
@@ -188,6 +350,8 @@ class ComponentFactory {
     const {
       skipSelectors = false,
       skipInputs = false,
+      skipTimeRangePickers = false,
+      skipMultiSelects = false,
       delay = 0
     } = options;
     
@@ -201,7 +365,9 @@ class ComponentFactory {
     
     const results = {
       selectors: { success: 0, failed: 0, errors: [] },
-      inputs: { success: 0, failed: 0, errors: [] }
+      inputs: { success: 0, failed: 0, errors: [] },
+      timeRangePickers: { success: 0, failed: 0, errors: [] },
+      multiSelects: { success: 0, failed: 0, errors: [] }
     };
     
     // Initialize selectors
@@ -257,6 +423,60 @@ class ComponentFactory {
         }
       }
     }
+
+    // Initialize TimeRangePickers
+    if (!skipTimeRangePickers) {
+      console.log(`Initializing ${this.components.timeRangePicker.size} TimeRangePickers...`);
+      
+      for (const [name, config] of this.components.timeRangePicker) {
+        try {
+          console.log(`Initializing TimeRangePicker: ${name}`);
+          
+          const instance = this.createTimeRangePicker(name);
+          if (instance && await instance.init()) {
+            results.timeRangePickers.success++;
+            console.log(`✅ TimeRangePicker '${name}' initialized successfully`);
+          } else {
+            results.timeRangePickers.failed++;
+            const error = `Failed to initialize TimeRangePicker '${name}'`;
+            results.timeRangePickers.errors.push(error);
+            console.error(`❌ ${error}`);
+          }
+        } catch (error) {
+          results.timeRangePickers.failed++;
+          const errorMsg = `Error initializing TimeRangePicker '${name}': ${error.message}`;
+          results.timeRangePickers.errors.push(errorMsg);
+          console.error(`❌ ${errorMsg}`);
+        }
+      }
+    }
+
+    // Initialize MultiSelects
+    if (!skipMultiSelects) {
+      console.log(`Initializing ${this.components.multiSelect.size} MultiSelects...`);
+      
+      for (const [name, config] of this.components.multiSelect) {
+        try {
+          console.log(`Initializing MultiSelect: ${name}`);
+          
+          const instance = this.createMultiSelect(name);
+          if (instance && await instance.init()) {
+            results.multiSelects.success++;
+            console.log(`✅ MultiSelect '${name}' initialized successfully`);
+          } else {
+            results.multiSelects.failed++;
+            const error = `Failed to initialize MultiSelect '${name}'`;
+            results.multiSelects.errors.push(error);
+            console.error(`❌ ${error}`);
+          }
+        } catch (error) {
+          results.multiSelects.failed++;
+          const errorMsg = `Error initializing MultiSelect '${name}': ${error.message}`;
+          results.multiSelects.errors.push(errorMsg);
+          console.error(`❌ ${errorMsg}`);
+        }
+      }
+    }
     
     // Summary
     console.log('Initialization complete:', results);
@@ -266,17 +486,23 @@ class ComponentFactory {
   
   /**
    * Get a created instance by name
-   * @param {string} type - 'selector' or 'input'
+   * @param {string} type - 'selector', 'input', 'timeRangePicker', or 'multiSelect'
    * @param {string} name - Name of the component
-   * @returns {GenericSelector|TextInput|null} - The instance or null
+   * @returns {GenericSelector|TextInput|TimeRangePicker|MultiSelect|null} - The instance or null
    */
   static getInstance(type, name) {
-    if (type === 'selector') {
-      return this.instances.selectors.get(name) || null;
-    } else if (type === 'input') {
-      return this.instances.inputs.get(name) || null;
+    switch (type) {
+      case 'selector':
+        return this.instances.selectors.get(name) || null;
+      case 'input':
+        return this.instances.inputs.get(name) || null;
+      case 'timeRangePicker':
+        return this.instances.timeRangePickers.get(name) || null;
+      case 'multiSelect':
+        return this.instances.multiSelects.get(name) || null;
+      default:
+        return null;
     }
-    return null;
   }
   
   /**
@@ -286,7 +512,9 @@ class ComponentFactory {
   static getRegistered() {
     return {
       selectors: Array.from(this.components.selector.entries()),
-      inputs: Array.from(this.components.input.entries())
+      inputs: Array.from(this.components.input.entries()),
+      timeRangePickers: Array.from(this.components.timeRangePicker.entries()),
+      multiSelects: Array.from(this.components.multiSelect.entries())
     };
   }
   
@@ -296,15 +524,29 @@ class ComponentFactory {
    */
   static clear(destroyInstances = true) {
     if (destroyInstances) {
-      // Destroy selector instances if they have a destroy method
+      // Destroy selector instances
       this.instances.selectors.forEach((instance, name) => {
         if (typeof instance.destroy === 'function') {
           instance.destroy();
         }
       });
       
-      // Destroy input instances if they have a destroy method
+      // Destroy input instances
       this.instances.inputs.forEach((instance, name) => {
+        if (typeof instance.destroy === 'function') {
+          instance.destroy();
+        }
+      });
+
+      // Destroy TimeRangePicker instances
+      this.instances.timeRangePickers.forEach((instance, name) => {
+        if (typeof instance.destroy === 'function') {
+          instance.destroy();
+        }
+      });
+
+      // Destroy MultiSelect instances
+      this.instances.multiSelects.forEach((instance, name) => {
         if (typeof instance.destroy === 'function') {
           instance.destroy();
         }
@@ -314,10 +556,14 @@ class ComponentFactory {
     // Clear registrations
     this.components.selector.clear();
     this.components.input.clear();
+    this.components.timeRangePicker.clear();
+    this.components.multiSelect.clear();
     
     // Clear instances
     this.instances.selectors.clear();
     this.instances.inputs.clear();
+    this.instances.timeRangePickers.clear();
+    this.instances.multiSelects.clear();
     
     console.log('ComponentFactory cleared');
   }
@@ -339,11 +585,15 @@ class ComponentFactory {
     return {
       registered: {
         selectors: this.components.selector.size,
-        inputs: this.components.input.size
+        inputs: this.components.input.size,
+        timeRangePickers: this.components.timeRangePicker.size,
+        multiSelects: this.components.multiSelect.size
       },
       instances: {
         selectors: this.instances.selectors.size,
-        inputs: this.instances.inputs.size
+        inputs: this.instances.inputs.size,
+        timeRangePickers: this.instances.timeRangePickers.size,
+        multiSelects: this.instances.multiSelects.size
       },
       debug: this.debug
     };

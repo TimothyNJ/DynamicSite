@@ -14,6 +14,8 @@ const integrateSettingsComponents = () => {
     'ComponentFactory',
     'GenericSelector', 
     'TextInput',
+    'TimeRangePicker',
+    'MultiSelect',
     'SelectorBase',
     'InputBase'
   ];
@@ -92,6 +94,91 @@ const registerAllComponents = () => {
     return false;
   }
   
+  // Language Selector (Phase 2)
+  if (!ComponentFactory.registerSelector('language', {
+    name: 'language',
+    options: ['en', 'es', 'fr', 'de', 'ja', 'zh'],
+    labels: ['English', 'Español', 'Français', 'Deutsch', '日本語', '中文'],
+    defaultValue: 'en',
+    storageKey: 'userLanguagePreference',
+    container: '.language-selector',
+    onValueChange: (value) => {
+      console.log(`Language changed to: ${value}`);
+      applyLanguage(value);
+    }
+  })) {
+    console.error('❌ Failed to register language selector');
+    return false;
+  }
+  
+  // Timezone Selector (Phase 2)
+  if (!ComponentFactory.registerSelector('timezone', {
+    name: 'timezone',
+    options: ['UTC', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'Europe/London', 'Europe/Paris', 'Asia/Tokyo'],
+    labels: ['UTC', 'EDT (Eastern)', 'CDT (Central)', 'MDT (Mountain)', 'PDT (Pacific)', 'BST (London)', 'CEST (Paris)', 'JST (Tokyo)'],
+    defaultValue: 'UTC',
+    storageKey: 'userTimezonePreference',
+    container: '.timezone-selector',
+    onValueChange: (value) => {
+      console.log(`Timezone changed to: ${value}`);
+      applyTimezone(value);
+    }
+  })) {
+    console.error('❌ Failed to register timezone selector');
+    return false;
+  }
+  
+  // Date Format Selector (Phase 2)
+  if (!ComponentFactory.registerSelector('dateFormat', {
+    name: 'dateFormat',
+    options: ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD', 'DD MMM YYYY'],
+    labels: ['MM/DD/YYYY (US)', 'DD/MM/YYYY (EU)', 'YYYY-MM-DD (ISO)', 'DD MMM YYYY (Verbose)'],
+    defaultValue: 'YYYY-MM-DD',
+    storageKey: 'userDateFormatPreference',
+    container: '.date-format-selector',
+    onValueChange: (value) => {
+      console.log(`Date format changed to: ${value}`);
+      applyDateFormat(value);
+    }
+  })) {
+    console.error('❌ Failed to register date format selector');
+    return false;
+  }
+  
+  // Currency Selector (Phase 2)
+  if (!ComponentFactory.registerSelector('currency', {
+    name: 'currency',
+    options: ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'],
+    labels: ['USD ($)', 'EUR (€)', 'GBP (£)', 'JPY (¥)', 'CAD (C$)', 'AUD (A$)'],
+    defaultValue: 'USD',
+    storageKey: 'userCurrencyPreference',
+    container: '.currency-selector',
+    onValueChange: (value) => {
+      console.log(`Currency changed to: ${value}`);
+      applyCurrency(value);
+    }
+  })) {
+    console.error('❌ Failed to register currency selector');
+    return false;
+  }
+  
+  // Units Selector (Phase 2)
+  if (!ComponentFactory.registerSelector('units', {
+    name: 'units',
+    options: ['metric', 'imperial', 'mixed'],
+    labels: ['Metric (kg, cm)', 'Imperial (lbs, inches)', 'Mixed (metric/imperial)'],
+    defaultValue: 'metric',
+    storageKey: 'userUnitsPreference',
+    container: '.units-selector',
+    onValueChange: (value) => {
+      console.log(`Units changed to: ${value}`);
+      applyUnits(value);
+    }
+  })) {
+    console.error('❌ Failed to register units selector');
+    return false;
+  }
+  
   // Text Inputs
   const inputConfigs = [
     {
@@ -114,13 +201,39 @@ const registerAllComponents = () => {
       placeholder: 'Enter nickname (optional)',
       storageKey: 'userNickname',
       validator: TextInput.createValidator('nickname')
+    },
+    // Phase 2 - New input types
+    {
+      name: 'email',
+      id: 'email-input',
+      type: 'email',
+      placeholder: 'Enter email address',
+      storageKey: 'userEmail',
+      required: true,
+      validator: TextInput.createValidator('email')
+    },
+    {
+      name: 'phone',
+      id: 'phone-input',
+      type: 'tel',
+      placeholder: 'Enter phone number',
+      storageKey: 'userPhone',
+      validator: TextInput.createValidator('phone')
+    },
+    {
+      name: 'sms',
+      id: 'sms-input',
+      type: 'tel',
+      placeholder: 'Enter SMS number (if different)',
+      storageKey: 'userSMS',
+      validator: TextInput.createValidator('sms')
     }
   ];
   
   for (const config of inputConfigs) {
     if (!ComponentFactory.registerInput(config.name, {
       ...config,
-      type: 'text',
+      type: config.type || 'text',
       onValueChange: (value, instance) => {
         console.log(`${config.name} changed to: ${value}`);
         handleInputChange(config.name, value, instance);
@@ -129,6 +242,43 @@ const registerAllComponents = () => {
       console.error(`❌ Failed to register ${config.name} input`);
       return false;
     }
+  }
+  
+  // TimeRangePicker for working hours (Phase 2)
+  if (!ComponentFactory.registerTimeRangePicker('workingHours', {
+    name: 'workingHours',
+    startTime: '09:00',
+    endTime: '17:00',
+    format: '24h',
+    storageKey: 'userWorkingHours',
+    container: '.working-hours-picker',
+    onValueChange: (startTime, endTime) => {
+      console.log(`Working hours changed to: ${startTime} - ${endTime}`);
+      applyWorkingHours(startTime, endTime);
+    }
+  })) {
+    console.error('❌ Failed to register working hours picker');
+    return false;
+  }
+  
+  // MultiSelect for categories/interests (Phase 2)
+  if (!ComponentFactory.registerMultiSelect('categories', {
+    name: 'categories',
+    options: ['technology', 'science', 'business', 'sports', 'entertainment', 'health', 'education', 'travel'],
+    labels: ['Technology', 'Science', 'Business', 'Sports', 'Entertainment', 'Health', 'Education', 'Travel'],
+    defaultValue: [],
+    maxSelections: 5,
+    searchable: true,
+    storageKey: 'userCategories',
+    container: '.categories-multiselect',
+    placeholder: 'Select interests (max 5)',
+    onValueChange: (selectedValues) => {
+      console.log(`Categories changed to:`, selectedValues);
+      applyCategories(selectedValues);
+    }
+  })) {
+    console.error('❌ Failed to register categories multi-select');
+    return false;
   }
   
   console.log('✅ All components registered successfully');
@@ -149,8 +299,14 @@ const initializeComponents = async () => {
     // Initialize inputs
     const inputResults = await initializeInputs();
     
+    // Initialize TimeRangePickers
+    const timePickerResults = await initializeTimeRangePickers();
+    
+    // Initialize MultiSelects
+    const multiSelectResults = await initializeMultiSelects();
+    
     // Hide fallback elements if initialization was successful
-    if (selectorResults.success && inputResults.success) {
+    if (selectorResults.success && inputResults.success && timePickerResults.success && multiSelectResults.success) {
       hideOriginalElements();
       console.log('✅ All components initialized successfully');
       
@@ -179,7 +335,7 @@ const initializeSelectors = async () => {
   console.log('Initializing selectors...');
   const results = { success: 0, failed: 0, errors: [] };
   
-  const selectors = ['theme', 'timeFormat'];
+  const selectors = ['theme', 'timeFormat', 'language', 'timezone', 'dateFormat', 'currency', 'units'];
   
   for (const selectorName of selectors) {
     try {
@@ -220,7 +376,7 @@ const initializeInputs = async () => {
   console.log('Initializing inputs...');
   const results = { success: 0, failed: 0, errors: [] };
   
-  const inputs = ['firstName', 'lastName', 'nickname'];
+  const inputs = ['firstName', 'lastName', 'nickname', 'email', 'phone', 'sms'];
   
   for (const inputName of inputs) {
     try {
@@ -253,6 +409,100 @@ const initializeInputs = async () => {
   }
   
   console.log(`Input initialization results: ${results.success} success, ${results.failed} failed`);
+  return results;
+};
+
+// Initialize TimeRangePickers
+const initializeTimeRangePickers = async () => {
+  console.log('Initializing TimeRangePickers...');
+  const results = { success: 0, failed: 0, errors: [] };
+  
+  const timeRangePickers = ['workingHours'];
+  
+  for (const pickerName of timeRangePickers) {
+    try {
+      console.log(`Initializing ${pickerName} TimeRangePicker...`);
+      
+      const instance = ComponentFactory.createTimeRangePicker(pickerName);
+      if (!instance) {
+        throw new Error(`Failed to create ${pickerName} TimeRangePicker`);
+      }
+      
+      const initialized = await instance.init();
+      if (!initialized) {
+        throw new Error(`Failed to initialize ${pickerName} TimeRangePicker`);
+      }
+      
+      // Restore saved value
+      const config = ComponentFactory.getRegistered().timeRangePickers.find(([name]) => name === pickerName)[1];
+      const savedValue = localStorage.getItem(config.storageKey);
+      if (savedValue) {
+        try {
+          const { start, end } = JSON.parse(savedValue);
+          console.log(`Restoring ${pickerName} to: ${start} - ${end}`);
+          instance.setValue(start, end, true); // Skip callback on initial set
+        } catch (error) {
+          console.error(`Error parsing saved ${pickerName} value:`, error);
+        }
+      }
+      
+      results.success++;
+      console.log(`✅ ${pickerName} TimeRangePicker initialized`);
+    } catch (error) {
+      results.failed++;
+      results.errors.push(`${pickerName}: ${error.message}`);
+      console.error(`❌ ${pickerName} TimeRangePicker failed:`, error);
+    }
+  }
+  
+  console.log(`TimeRangePicker initialization results: ${results.success} success, ${results.failed} failed`);
+  return results;
+};
+
+// Initialize MultiSelects
+const initializeMultiSelects = async () => {
+  console.log('Initializing MultiSelects...');
+  const results = { success: 0, failed: 0, errors: [] };
+  
+  const multiSelects = ['categories'];
+  
+  for (const multiSelectName of multiSelects) {
+    try {
+      console.log(`Initializing ${multiSelectName} MultiSelect...`);
+      
+      const instance = ComponentFactory.createMultiSelect(multiSelectName);
+      if (!instance) {
+        throw new Error(`Failed to create ${multiSelectName} MultiSelect`);
+      }
+      
+      const initialized = await instance.init();
+      if (!initialized) {
+        throw new Error(`Failed to initialize ${multiSelectName} MultiSelect`);
+      }
+      
+      // Restore saved value
+      const config = ComponentFactory.getRegistered().multiSelects.find(([name]) => name === multiSelectName)[1];
+      const savedValue = localStorage.getItem(config.storageKey);
+      if (savedValue) {
+        try {
+          const values = JSON.parse(savedValue);
+          console.log(`Restoring ${multiSelectName} to:`, values);
+          instance.setValue(values, true); // Skip callback on initial set
+        } catch (error) {
+          console.error(`Error parsing saved ${multiSelectName} value:`, error);
+        }
+      }
+      
+      results.success++;
+      console.log(`✅ ${multiSelectName} MultiSelect initialized`);
+    } catch (error) {
+      results.failed++;
+      results.errors.push(`${multiSelectName}: ${error.message}`);
+      console.error(`❌ ${multiSelectName} MultiSelect failed:`, error);
+    }
+  }
+  
+  console.log(`MultiSelect initialization results: ${results.success} success, ${results.failed} failed`);
   return results;
 };
 
@@ -331,6 +581,135 @@ const applyTimeFormat = (format) => {
   }
 };
 
+// Handle language changes
+const applyLanguage = (language) => {
+  console.log(`Applying language: ${language}`);
+  
+  // Try multiple integration approaches
+  if (window.i18n && typeof window.i18n.changeLanguage === 'function') {
+    window.i18n.changeLanguage(language);
+  } else if (window.langManager && typeof window.langManager.setLanguage === 'function') {
+    window.langManager.setLanguage(language);
+  } else {
+    // Set HTML lang attribute
+    document.documentElement.lang = language;
+    
+    // Dispatch event for other components
+    const event = new CustomEvent('languageChanged', { 
+      detail: { language } 
+    });
+    document.dispatchEvent(event);
+  }
+};
+
+// Handle timezone changes
+const applyTimezone = (timezone) => {
+  console.log(`Applying timezone: ${timezone}`);
+  
+  // Try multiple integration approaches
+  if (window.timezoneManger && typeof window.timezoneManger.setTimezone === 'function') {
+    window.timezoneManger.setTimezone(timezone);
+  } else if (window.dateTime && typeof window.dateTime.setTimezone === 'function') {
+    window.dateTime.setTimezone(timezone);
+  } else {
+    // Dispatch event for other components
+    const event = new CustomEvent('timezoneChanged', { 
+      detail: { timezone } 
+    });
+    document.dispatchEvent(event);
+  }
+};
+
+// Handle date format changes
+const applyDateFormat = (format) => {
+  console.log(`Applying date format: ${format}`);
+  
+  // Try multiple integration approaches
+  if (window.dateFormatManager && typeof window.dateFormatManager.setFormat === 'function') {
+    window.dateFormatManager.setFormat(format);
+  } else if (window.formatManager && typeof window.formatManager.setDateFormat === 'function') {
+    window.formatManager.setDateFormat(format);
+  } else {
+    // Dispatch event for other components
+    const event = new CustomEvent('dateFormatChanged', { 
+      detail: { format } 
+    });
+    document.dispatchEvent(event);
+  }
+};
+
+// Handle currency changes
+const applyCurrency = (currency) => {
+  console.log(`Applying currency: ${currency}`);
+  
+  // Try multiple integration approaches
+  if (window.currencyManager && typeof window.currencyManager.setCurrency === 'function') {
+    window.currencyManager.setCurrency(currency);
+  } else if (window.formatManager && typeof window.formatManager.setCurrency === 'function') {
+    window.formatManager.setCurrency(currency);
+  } else {
+    // Dispatch event for other components
+    const event = new CustomEvent('currencyChanged', { 
+      detail: { currency } 
+    });
+    document.dispatchEvent(event);
+  }
+};
+
+// Handle units changes
+const applyUnits = (units) => {
+  console.log(`Applying units: ${units}`);
+  
+  // Try multiple integration approaches
+  if (window.unitsManager && typeof window.unitsManager.setUnits === 'function') {
+    window.unitsManager.setUnits(units);
+  } else if (window.formatManager && typeof window.formatManager.setUnits === 'function') {
+    window.formatManager.setUnits(units);
+  } else {
+    // Dispatch event for other components
+    const event = new CustomEvent('unitsChanged', { 
+      detail: { units } 
+    });
+    document.dispatchEvent(event);
+  }
+};
+
+// Handle working hours changes
+const applyWorkingHours = (startTime, endTime) => {
+  console.log(`Applying working hours: ${startTime} - ${endTime}`);
+  
+  // Try multiple integration approaches
+  if (window.scheduleManager && typeof window.scheduleManager.setWorkingHours === 'function') {
+    window.scheduleManager.setWorkingHours(startTime, endTime);
+  } else if (window.timeManager && typeof window.timeManager.setWorkingHours === 'function') {
+    window.timeManager.setWorkingHours(startTime, endTime);
+  } else {
+    // Dispatch event for other components
+    const event = new CustomEvent('workingHoursChanged', { 
+      detail: { startTime, endTime } 
+    });
+    document.dispatchEvent(event);
+  }
+};
+
+// Handle categories changes
+const applyCategories = (categories) => {
+  console.log(`Applying categories:`, categories);
+  
+  // Try multiple integration approaches
+  if (window.categoryManager && typeof window.categoryManager.setCategories === 'function') {
+    window.categoryManager.setCategories(categories);
+  } else if (window.userProfile && typeof window.userProfile.updateCategories === 'function') {
+    window.userProfile.updateCategories(categories);
+  } else {
+    // Dispatch event for other components
+    const event = new CustomEvent('categoriesChanged', { 
+      detail: { categories } 
+    });
+    document.dispatchEvent(event);
+  }
+};
+
 // Handle input changes
 const handleInputChange = (inputName, value, instance) => {
   console.log(`Handling ${inputName} change: ${value}`);
@@ -369,8 +748,10 @@ const reinitializeComponents = async () => {
   console.log('Re-initializing components for SPA navigation...');
   
   // Check if components are already initialized
-  const selectors = ['theme', 'timeFormat'];
-  const inputs = ['firstName', 'lastName', 'nickname'];
+  const selectors = ['theme', 'timeFormat', 'language', 'timezone', 'dateFormat', 'currency', 'units'];
+  const inputs = ['firstName', 'lastName', 'nickname', 'email', 'phone', 'sms'];
+  const timeRangePickers = ['workingHours'];
+  const multiSelects = ['categories'];
   
   // Re-initialize selectors if needed
   for (const selectorName of selectors) {
@@ -400,6 +781,52 @@ const reinitializeComponents = async () => {
         const savedValue = localStorage.getItem(newInstance.options.storageKey);
         if (savedValue) {
           newInstance.setValue(savedValue, true);
+        }
+      }
+    }
+  }
+  
+  // Re-initialize TimeRangePickers if needed
+  for (const pickerName of timeRangePickers) {
+    const instance = ComponentFactory.getInstance('timeRangePicker', pickerName);
+    if (!instance || !instance.isInitialized) {
+      console.log(`Re-creating ${pickerName} TimeRangePicker...`);
+      const newInstance = ComponentFactory.createTimeRangePicker(pickerName);
+      if (newInstance) {
+        await newInstance.init();
+        // Restore value
+        const config = ComponentFactory.getRegistered().timeRangePickers.find(([name]) => name === pickerName)[1];
+        const savedValue = localStorage.getItem(config.storageKey);
+        if (savedValue) {
+          try {
+            const { start, end } = JSON.parse(savedValue);
+            newInstance.setValue(start, end, true);
+          } catch (error) {
+            console.error(`Error restoring ${pickerName}:`, error);
+          }
+        }
+      }
+    }
+  }
+  
+  // Re-initialize MultiSelects if needed
+  for (const multiSelectName of multiSelects) {
+    const instance = ComponentFactory.getInstance('multiSelect', multiSelectName);
+    if (!instance || !instance.isInitialized) {
+      console.log(`Re-creating ${multiSelectName} MultiSelect...`);
+      const newInstance = ComponentFactory.createMultiSelect(multiSelectName);
+      if (newInstance) {
+        await newInstance.init();
+        // Restore value
+        const config = ComponentFactory.getRegistered().multiSelects.find(([name]) => name === multiSelectName)[1];
+        const savedValue = localStorage.getItem(config.storageKey);
+        if (savedValue) {
+          try {
+            const values = JSON.parse(savedValue);
+            newInstance.setValue(values, true);
+          } catch (error) {
+            console.error(`Error restoring ${multiSelectName}:`, error);
+          }
         }
       }
     }
@@ -475,8 +902,8 @@ const createDebuggingInterface = () => {
       const output = document.getElementById('debug-output');
       output.innerHTML = `
         <p><strong>Factory Stats:</strong></p>
-        <p>Registered: ${stats.registered.selectors} selectors, ${stats.registered.inputs} inputs</p>
-        <p>Instances: ${stats.instances.selectors} selectors, ${stats.instances.inputs} inputs</p>
+        <p>Registered: ${stats.registered.selectors} selectors, ${stats.registered.inputs} inputs, ${stats.registered.timeRangePickers} time pickers, ${stats.registered.multiSelects} multi-selects</p>
+        <p>Instances: ${stats.instances.selectors} selectors, ${stats.instances.inputs} inputs, ${stats.instances.timeRangePickers} time pickers, ${stats.instances.multiSelects} multi-selects</p>
         <p>Debug: ${stats.debug}</p>
       `;
     },
@@ -486,10 +913,17 @@ const createDebuggingInterface = () => {
       window.testThemeSelector?.run();
       window.testTimeFormatSelector?.run();
       window.testTextInputs?.run();
+      window.testTimeRangePicker?.run();
+      window.testMultiSelect?.run();
     },
     
     clearStorage: () => {
-      const keys = ['userThemePreference', 'userTimeFormatPreference', 'userFirstName', 'userLastName', 'userNickname'];
+      const keys = [
+        'userThemePreference', 'userTimeFormatPreference', 'userLanguagePreference',
+        'userTimezonePreference', 'userDateFormatPreference', 'userCurrencyPreference',
+        'userUnitsPreference', 'userFirstName', 'userLastName', 'userNickname',
+        'userEmail', 'userPhone', 'userSMS', 'userWorkingHours', 'userCategories'
+      ];
       keys.forEach(key => localStorage.removeItem(key));
       console.log('Settings storage cleared');
       location.reload();
