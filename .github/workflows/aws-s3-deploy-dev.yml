@@ -21,6 +21,10 @@ jobs:
         run: |
           aws s3 sync . s3://tnjdynamicsite-dev --delete --exclude "*" --include "*.html" --cache-control="no-cache,no-store,must-revalidate" --content-type="text/html"
 
+      - name: Deploy JavaScript files to S3 with no-cache
+        run: |
+          aws s3 sync . s3://tnjdynamicsite-dev --exclude "*" --include "*.js" --cache-control="no-cache,no-store,must-revalidate" --content-type="application/javascript"
+
       - name: Deploy remaining files to S3
         run: |
-          aws s3 sync . s3://tnjdynamicsite-dev --delete --exclude ".git*" --exclude ".github*" --exclude "*.html"
+          aws s3 sync . s3://tnjdynamicsite-dev --delete --exclude ".git*" --exclude ".github*" --exclude "*.html" --exclude "*.js"
