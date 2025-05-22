@@ -1,7 +1,7 @@
 <div class="settings-container">
   <!-- Test Engine Sliders Section -->
   <div class="settings-section">
-    <h2>Test Engine Sliders [Deployment: 20250521235721]</h2>
+    <h2>Test Engine Sliders [Deployment: 20250522121914]</h2>
     
     <!-- Test1: Engine Theme Selector -->
     <div id="test1-container">
@@ -135,7 +135,7 @@
   <script src="js/engines/slider_component_engine.js"></script>
   <script src="js/factory/ComponentFactory.js"></script>
   <script>
-    console.log('[Test Implementation] Loading engine files [Deployment: 20250521235721]');
+    console.log('[Test Implementation] Loading engine files [Deployment: 20250522121914]');
     
     // Wait for DOM and scripts to load
     document.addEventListener('DOMContentLoaded', function() {
@@ -150,28 +150,53 @@
     }
     
     function initializeTestSliders() {
-      console.log('[Test Implementation] Initializing test sliders [Deployment: 20250521235721]');
+      console.log('[Test Implementation] Initializing test sliders [Deployment: 20250522121914]');
+      
+      // Check if engine components are available
+      if (!window.ComponentFactory) {
+        console.error('[Test Implementation] ComponentFactory not available');
+        return;
+      }
+      
+      if (!window.slider_component_engine) {
+        console.error('[Test Implementation] slider_component_engine not available');
+        return;
+      }
+      
+      console.log('[Test Implementation] Engine components available, proceeding...');
       
       // Test1: Theme selector using engine
-      if (window.ComponentFactory && document.getElementById('test1-container')) {
+      if (document.getElementById('test1-container')) {
         console.log('[Test Implementation] Creating test1 - theme selector');
-        const test1 = window.ComponentFactory.createThemeSelector('test1-container');
-        if (test1) {
-          console.log('[Test Implementation] Test1 theme selector created successfully');
-        } else {
-          console.error('[Test Implementation] Failed to create test1 theme selector');
+        try {
+          const test1 = window.ComponentFactory.createThemeSelector('test1-container');
+          if (test1) {
+            console.log('[Test Implementation] Test1 theme selector created successfully');
+          } else {
+            console.error('[Test Implementation] Failed to create test1 theme selector');
+          }
+        } catch (error) {
+          console.error('[Test Implementation] Error creating test1:', error);
         }
+      } else {
+        console.error('[Test Implementation] test1-container not found');
       }
       
       // Test2: Time format selector using engine  
-      if (window.ComponentFactory && document.getElementById('test2-container')) {
+      if (document.getElementById('test2-container')) {
         console.log('[Test Implementation] Creating test2 - time format selector');
-        const test2 = window.ComponentFactory.createTimeFormatSelector('test2-container');
-        if (test2) {
-          console.log('[Test Implementation] Test2 time format selector created successfully');
-        } else {
-          console.error('[Test Implementation] Failed to create test2 time format selector');
+        try {
+          const test2 = window.ComponentFactory.createTimeFormatSelector('test2-container');
+          if (test2) {
+            console.log('[Test Implementation] Test2 time format selector created successfully');
+          } else {
+            console.error('[Test Implementation] Failed to create test2 time format selector');
+          }
+        } catch (error) {
+          console.error('[Test Implementation] Error creating test2:', error);
         }
+      } else {
+        console.error('[Test Implementation] test2-container not found');
       }
       
       // Initialize original main branch sliders
