@@ -1,4 +1,94 @@
 <div class="settings-container">
+  <!-- Test Engine Sliders Section -->
+  <div class="settings-section">
+    <h2>Test Engine Sliders [Deployment: 20250521235721]</h2>
+    
+    <!-- Test1: Engine Theme Selector -->
+    <div id="test1-container">
+      <!-- slider_component_engine will inject theme selector here -->
+    </div>
+    
+    <!-- Test2: Engine Time Format Selector -->
+    <div id="test2-container">
+      <!-- slider_component_engine will inject time format selector here -->
+    </div>
+  </div>
+
+  <!-- Original Main Branch Sliders Section -->
+  <div class="settings-section">
+    <h2>Original Main Branch Sliders</h2>
+    
+    <!-- Time Format Selector -->
+    <div class="slider-container time-format-container">
+      <div class="slider-selector time-format-selector">
+        <div class="border-container">
+          <div class="border-segment border-top"></div>
+          <div class="border-segment border-bottom"></div>
+        </div>
+        <div class="selector-background"></div>
+        <div
+          class="option"
+          data-position="1"
+          data-format="24"
+          data-value="24"
+        >
+          <h3>24h</h3>
+        </div>
+        <div
+          class="option"
+          data-position="2"
+          data-format="system"
+          data-value="system"
+        >
+          <h3>System</h3>
+        </div>
+        <div
+          class="option active"
+          data-position="3"
+          data-format="12"
+          data-value="12"
+        >
+          <h3>12h</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme Selector -->
+    <div class="slider-container theme-container">
+      <div class="slider-selector theme-selector">
+        <div class="border-container">
+          <div class="border-segment border-top"></div>
+          <div class="border-segment border-bottom"></div>
+        </div>
+        <div class="selector-background"></div>
+        <div
+          class="option active"
+          data-position="1"
+          data-theme="dark"
+          data-value="dark"
+        >
+          <h3>Dark</h3>
+        </div>
+        <div
+          class="option"
+          data-position="2"
+          data-theme="system"
+          data-value="system"
+        >
+          <h3>System</h3>
+        </div>
+        <div
+          class="option"
+          data-position="3"
+          data-theme="light"
+          data-value="light"
+        >
+          <h3>Light</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Dynamic selectors section -->
   <div id="dynamic-selectors">
     <!-- This section will be populated by the SelectorManager -->
@@ -7,83 +97,6 @@
   <!-- Dynamic inputs section -->
   <div id="dynamic-inputs">
     <!-- This section will be populated by the InputManager -->
-  </div>
-
-  <!-- Fallback selectors (visible until dynamic selectors are loaded) -->
-  <div id="original-selectors" style="display: block">
-    <!-- Time Format Selector -->
-    <div class="settings-section">
-      <div class="slider-container time-format-container">
-        <div class="slider-selector time-format-selector">
-          <div class="border-container">
-            <div class="border-segment border-top"></div>
-            <div class="border-segment border-bottom"></div>
-          </div>
-          <div class="selector-background"></div>
-          <div
-            class="option"
-            data-position="1"
-            data-format="24"
-            data-value="24"
-          >
-            <h3>24h</h3>
-          </div>
-          <div
-            class="option"
-            data-position="2"
-            data-format="system"
-            data-value="system"
-          >
-            <h3>System</h3>
-          </div>
-          <div
-            class="option active"
-            data-position="3"
-            data-format="12"
-            data-value="12"
-          >
-            <h3>12h</h3>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Theme Selector -->
-    <div class="settings-section">
-      <div class="slider-container theme-container">
-        <div class="slider-selector theme-selector">
-          <div class="border-container">
-            <div class="border-segment border-top"></div>
-            <div class="border-segment border-bottom"></div>
-          </div>
-          <div class="selector-background"></div>
-          <div
-            class="option active"
-            data-position="1"
-            data-theme="dark"
-            data-value="dark"
-          >
-            <h3>Dark</h3>
-          </div>
-          <div
-            class="option"
-            data-position="2"
-            data-theme="system"
-            data-value="system"
-          >
-            <h3>System</h3>
-          </div>
-          <div
-            class="option"
-            data-position="3"
-            data-theme="light"
-            data-value="light"
-          >
-            <h3>Light</h3>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Fallback inputs (visible until dynamic inputs are loaded) -->
@@ -117,6 +130,66 @@
       </div>
     </div>
   </div>
+
+  <!-- Load engine files and initialize test sliders -->
+  <script src="js/engines/slider_component_engine.js"></script>
+  <script src="js/factory/ComponentFactory.js"></script>
+  <script>
+    console.log('[Test Implementation] Loading engine files [Deployment: 20250521235721]');
+    
+    // Wait for DOM and scripts to load
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeTestSliders();
+    });
+    
+    // Also try immediate initialization in case DOM is already ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeTestSliders);
+    } else {
+      initializeTestSliders();
+    }
+    
+    function initializeTestSliders() {
+      console.log('[Test Implementation] Initializing test sliders [Deployment: 20250521235721]');
+      
+      // Test1: Theme selector using engine
+      if (window.ComponentFactory && document.getElementById('test1-container')) {
+        console.log('[Test Implementation] Creating test1 - theme selector');
+        const test1 = window.ComponentFactory.createThemeSelector('test1-container');
+        if (test1) {
+          console.log('[Test Implementation] Test1 theme selector created successfully');
+        } else {
+          console.error('[Test Implementation] Failed to create test1 theme selector');
+        }
+      }
+      
+      // Test2: Time format selector using engine  
+      if (window.ComponentFactory && document.getElementById('test2-container')) {
+        console.log('[Test Implementation] Creating test2 - time format selector');
+        const test2 = window.ComponentFactory.createTimeFormatSelector('test2-container');
+        if (test2) {
+          console.log('[Test Implementation] Test2 time format selector created successfully');
+        } else {
+          console.error('[Test Implementation] Failed to create test2 time format selector');
+        }
+      }
+      
+      // Initialize original main branch sliders
+      if (window.sliderButtons) {
+        console.log('[Test Implementation] Initializing original main branch sliders');
+        
+        // Initialize time format slider
+        if (window.timeFormatSlider) {
+          window.timeFormatSlider.init();
+        }
+        
+        // Initialize theme slider
+        if (window.themeSlider) {
+          window.themeSlider.init();
+        }
+      }
+    }
+  </script>
 
   <!-- Add scripts to populate dynamic components -->
   <script>
