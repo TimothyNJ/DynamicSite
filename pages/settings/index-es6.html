@@ -1,7 +1,7 @@
 <div class="settings-container">
   <!-- Test Engine Sliders Section -->
   <div class="settings-section">
-    <h2>Test Engine Sliders [Deployment: 20250522211634]</h2>
+    <h2>Test Engine Sliders [Deployment: 20250522201023]</h2>
     
     <!-- Test1: Engine Theme Selector -->
     <div id="test1-container">
@@ -131,20 +131,20 @@
     </div>
   </div>
 
-  <!-- Load webpack bundle instead of ES6 modules -->
-  <script src="/dist/bundle.js"></script>
-  <script>
-    console.log('[Test Implementation] Loading webpack bundle [Deployment: 20250522211634]');
+  <!-- Load engine files using ES6 modules -->
+  <script type="module">
+    console.log('[Test Implementation] Loading ES6 modules [Deployment: 20250522201023]');
     
-    // The bundle should have already initialized the components
-    // Just log to confirm
-    setTimeout(() => {
-      if (window.componentFactory) {
-        console.log('[Test Implementation] ComponentFactory loaded from bundle');
-      } else {
-        console.error('[Test Implementation] ComponentFactory not found in bundle');
-      }
-    }, 100);
+    // Import the component loader
+    import { initializeComponents } from '/js/loader/component-loader.js';
+    
+    // Initialize components for settings page
+    console.log('[Test Implementation] Calling initializeComponents for settings page');
+    initializeComponents('settings').then(() => {
+      console.log('[Test Implementation] Component initialization complete');
+    }).catch(error => {
+      console.error('[Test Implementation] Error initializing components:', error);
+    });
   </script>
 
   <!-- Add scripts to populate dynamic components -->
