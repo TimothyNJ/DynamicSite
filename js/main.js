@@ -16,6 +16,9 @@ import { text_input_component_engine } from './engines/text_input_component_engi
 import { button_component_engine } from './engines/button_component_engine.js';
 import { multi_select_component_engine } from './engines/multi_select_component_engine.js';
 import { file_upload_input_component_engine } from './engines/file_upload_input_component_engine.js';
+import { wheel_time_selector_component_engine } from './engines/wheel_time_selector_component_engine.js';
+import { wheel_date_picker_component_engine } from './engines/wheel_date_picker_component_engine.js';
+import { calendar_picker_component_engine } from './engines/calendar_picker_component_engine.js';
 import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
 import { initializeComponents } from './loader/component-loader.js';
 
@@ -25,6 +28,9 @@ window.text_input_component_engine = text_input_component_engine;
 window.button_component_engine = button_component_engine;
 window.multi_select_component_engine = multi_select_component_engine;
 window.file_upload_input_component_engine = file_upload_input_component_engine;
+window.wheel_time_selector_component_engine = wheel_time_selector_component_engine;
+window.wheel_date_picker_component_engine = wheel_date_picker_component_engine;
+window.calendar_picker_component_engine = calendar_picker_component_engine;
 window.ComponentFactory = ComponentFactory;
 window.componentFactory = componentFactory;
 

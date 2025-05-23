@@ -13,6 +13,9 @@ import { text_input_component_engine } from '../engines/text_input_component_eng
 import { button_component_engine } from '../engines/button_component_engine.js';
 import { multi_select_component_engine } from '../engines/multi_select_component_engine.js';
 import { file_upload_input_component_engine } from '../engines/file_upload_input_component_engine.js';
+import { wheel_time_selector_component_engine } from '../engines/wheel_time_selector_component_engine.js';
+import { wheel_date_picker_component_engine } from '../engines/wheel_date_picker_component_engine.js';
+import { calendar_picker_component_engine } from '../engines/calendar_picker_component_engine.js';
 
 class ComponentFactory {
   constructor() {
@@ -21,6 +24,9 @@ class ComponentFactory {
     this.buttonInstances = new Map();
     this.multiSelectInstances = new Map();
     this.fileUploadInstances = new Map();
+    this.wheelTimeInstances = new Map();
+    this.wheelDateInstances = new Map();
+    this.calendarInstances = new Map();
     this.initialized = false;
     
     console.log('[ComponentFactory] Factory initialized for engine-based components [Deployment: 20250522201023]');
@@ -707,6 +713,249 @@ class ComponentFactory {
       maxSize: 100 * 1024 * 1024, // 100MB
       icon: '📁'
     }, changeHandler);
+  }
+
+  /**
+   * Create a wheel time selector using wheel_time_selector_component_engine
+   * 
+   * @param {string} containerId - Container element ID
+   * @param {Object} config - Configuration options
+   * @returns {Object} Wheel time selector engine instance
+   */
+  createWheelTimeSelector(containerId, config = {}) {
+    console.log(`[ComponentFactory] Creating wheel time selector in container: ${containerId}`);
+    
+    if (!wheel_time_selector_component_engine) {
+      console.error('[ComponentFactory] ERROR: wheel_time_selector_component_engine not available');
+      return null;
+    }
+    
+    try {
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error(`[ComponentFactory] Container not found: ${containerId}`);
+        return null;
+      }
+      
+      const wheelTimeEngine = new wheel_time_selector_component_engine(container, config.id || containerId, config);
+      const key = config.id || containerId;
+      this.wheelTimeInstances.set(key, wheelTimeEngine);
+      console.log(`[ComponentFactory] Wheel time selector created successfully: ${key}`);
+      return wheelTimeEngine;
+    } catch (error) {
+      console.error('[ComponentFactory] Error creating wheel time selector:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create morning work hours selector
+   */
+  createMorningHoursSelector(containerId = 'morning-hours-container') {
+    return this.createWheelTimeSelector(containerId, {
+      id: 'morning-hours',
+      label: 'Morning Hours',
+      defaultTime: { hours: 9, minutes: 0 },
+      onChange: (time) => {
+        console.log('[ComponentFactory] Morning hours selected:', time);
+        localStorage.setItem('userMorningStartTime', JSON.stringify(time));
+      }
+    });
+  }
+
+  /**
+   * Create afternoon work hours selector
+   */
+  createAfternoonHoursSelector(containerId = 'afternoon-hours-container') {
+    return this.createWheelTimeSelector(containerId, {
+      id: 'afternoon-hours',
+      label: 'Afternoon Hours',
+      defaultTime: { hours: 17, minutes: 0 },
+      onChange: (time) => {
+        console.log('[ComponentFactory] Afternoon hours selected:', time);
+        localStorage.setItem('userAfternoonEndTime', JSON.stringify(time));
+      }
+    });
+  }
+
+  /**
+   * Create meeting time selector
+   */
+  createMeetingTimeSelector(containerId = 'meeting-time-container') {
+    return this.createWheelTimeSelector(containerId, {
+      id: 'meeting-time',
+      label: 'Meeting Time',
+      minuteInterval: 15, // 15-minute intervals
+      onChange: (time) => {
+        console.log('[ComponentFactory] Meeting time selected:', time);
+      }
+    });
+  }
+
+  /**
+   * Create a wheel date picker using wheel_date_picker_component_engine
+   * 
+   * @param {string} containerId - Container element ID
+   * @param {Object} config - Configuration options
+   * @returns {Object} Wheel date picker engine instance
+   */
+  createWheelDatePicker(containerId, config = {}) {
+    console.log(`[ComponentFactory] Creating wheel date picker in container: ${containerId}`);
+    
+    if (!wheel_date_picker_component_engine) {
+      console.error('[ComponentFactory] ERROR: wheel_date_picker_component_engine not available');
+      return null;
+    }
+    
+    try {
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error(`[ComponentFactory] Container not found: ${containerId}`);
+        return null;
+      }
+      
+      const wheelDateEngine = new wheel_date_picker_component_engine(container, config.id || containerId, config);
+      const key = config.id || containerId;
+      this.wheelDateInstances.set(key, wheelDateEngine);
+      console.log(`[ComponentFactory] Wheel date picker created successfully: ${key}`);
+      return wheelDateEngine;
+    } catch (error) {
+      console.error('[ComponentFactory] Error creating wheel date picker:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create birthdate picker
+   */
+  createBirthdatePicker(containerId = 'birthdate-container') {
+    const today = new Date();
+    const minYear = today.getFullYear() - 100;
+    const maxYear = today.getFullYear() - 13; // Minimum age 13
+    
+    return this.createWheelDatePicker(containerId, {
+      id: 'birthdate',
+      label: 'Date of Birth',
+      format: 'DD-MMM-YYYY', // 22-May-2025 format
+      yearRange: { min: minYear, max: maxYear },
+      defaultDate: new Date(maxYear - 25, 0, 1), // Default to ~38 years old
+      onChange: (date) => {
+        console.log('[ComponentFactory] Birthdate selected:', date);
+        localStorage.setItem('userBirthdate', date.toISOString());
+      }
+    });
+  }
+
+  /**
+   * Create project deadline picker
+   */
+  createDeadlinePicker(containerId = 'deadline-container') {
+    return this.createWheelDatePicker(containerId, {
+      id: 'deadline',
+      label: 'Project Deadline',
+      format: 'YYYY-MM-DD', // 2025-05-22 format
+      minDate: new Date(), // Can't select past dates
+      onChange: (date) => {
+        console.log('[ComponentFactory] Deadline selected:', date);
+      }
+    });
+  }
+
+  /**
+   * Create expiry date picker
+   */
+  createExpiryDatePicker(containerId = 'expiry-date-container') {
+    return this.createWheelDatePicker(containerId, {
+      id: 'expiry-date',
+      label: 'Expiry Date',
+      format: 'DD-MM-YYYY', // 22-05-2025 format
+      minDate: new Date(),
+      onChange: (date) => {
+        console.log('[ComponentFactory] Expiry date selected:', date);
+      }
+    });
+  }
+
+  /**
+   * Create a calendar picker using calendar_picker_component_engine
+   * 
+   * @param {string} containerId - Container element ID
+   * @param {Object} config - Configuration options
+   * @returns {Object} Calendar picker engine instance
+   */
+  createCalendarPicker(containerId, config = {}) {
+    console.log(`[ComponentFactory] Creating calendar picker in container: ${containerId}`);
+    
+    if (!calendar_picker_component_engine) {
+      console.error('[ComponentFactory] ERROR: calendar_picker_component_engine not available');
+      return null;
+    }
+    
+    try {
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error(`[ComponentFactory] Container not found: ${containerId}`);
+        return null;
+      }
+      
+      const calendarEngine = new calendar_picker_component_engine(container, config.id || containerId, config);
+      const key = config.id || containerId;
+      this.calendarInstances.set(key, calendarEngine);
+      console.log(`[ComponentFactory] Calendar picker created successfully: ${key}`);
+      return calendarEngine;
+    } catch (error) {
+      console.error('[ComponentFactory] Error creating calendar picker:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create appointment date picker
+   */
+  createAppointmentPicker(containerId = 'appointment-container') {
+    return this.createCalendarPicker(containerId, {
+      id: 'appointment-date',
+      label: 'Select Appointment Date',
+      minDate: new Date(), // Can't book past appointments
+      expandable: true,
+      onChange: (date) => {
+        console.log('[ComponentFactory] Appointment date selected:', date);
+        localStorage.setItem('selectedAppointmentDate', date.toISOString());
+      },
+      onExpand: (expanded) => {
+        console.log('[ComponentFactory] Calendar expanded:', expanded);
+      }
+    });
+  }
+
+  /**
+   * Create vacation date range picker
+   */
+  createVacationPicker(containerId = 'vacation-container') {
+    return this.createCalendarPicker(containerId, {
+      id: 'vacation-dates',
+      label: 'Vacation Dates',
+      expandable: true,
+      monthsToShow: 3, // Show 3 months when expanded
+      onChange: (date) => {
+        console.log('[ComponentFactory] Vacation date selected:', date);
+      }
+    });
+  }
+
+  /**
+   * Create task due date picker
+   */
+  createTaskDueDatePicker(containerId = 'task-due-date-container') {
+    return this.createCalendarPicker(containerId, {
+      id: 'task-due-date',
+      label: 'Task Due Date',
+      minDate: new Date(),
+      expandable: false, // Single month view only
+      onChange: (date) => {
+        console.log('[ComponentFactory] Task due date selected:', date);
+      }
+    });
   }
 }
 
