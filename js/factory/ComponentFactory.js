@@ -16,6 +16,7 @@ import { file_upload_input_component_engine } from '../engines/file_upload_input
 import { wheel_time_selector_component_engine } from '../engines/wheel_time_selector_component_engine.js';
 import { wheel_date_picker_component_engine } from '../engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from '../engines/calendar_picker_component_engine.js';
+import { dropdown_menu_component_engine } from '../engines/dropdown_menu_component_engine.js';
 
 class ComponentFactory {
   constructor() {
@@ -27,6 +28,7 @@ class ComponentFactory {
     this.wheelTimeInstances = new Map();
     this.wheelDateInstances = new Map();
     this.calendarInstances = new Map();
+    this.dropdownInstances = new Map();
     this.initialized = false;
     
     console.log('[ComponentFactory] Factory initialized for engine-based components [Deployment: 20250522201023]');
@@ -954,6 +956,166 @@ class ComponentFactory {
       expandable: false, // Single month view only
       onChange: (date) => {
         console.log('[ComponentFactory] Task due date selected:', date);
+      }
+    });
+  }
+
+  /**
+   * Create a dropdown menu using dropdown_menu_component_engine
+   * 
+   * @param {string} containerId - Container element ID
+   * @param {Object} config - Configuration options
+   * @returns {Object} Dropdown menu engine instance
+   */
+  createDropdownMenu(containerId, config = {}) {
+    console.log(`[ComponentFactory] Creating dropdown menu in container: ${containerId}`);
+    
+    if (!dropdown_menu_component_engine) {
+      console.error('[ComponentFactory] ERROR: dropdown_menu_component_engine not available');
+      return null;
+    }
+    
+    try {
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error(`[ComponentFactory] Container not found: ${containerId}`);
+        return null;
+      }
+      
+      const dropdownEngine = new dropdown_menu_component_engine(container, config.id || containerId, config);
+      const key = config.id || containerId;
+      this.dropdownInstances.set(key, dropdownEngine);
+      console.log(`[ComponentFactory] Dropdown menu created successfully: ${key}`);
+      return dropdownEngine;
+    } catch (error) {
+      console.error('[ComponentFactory] Error creating dropdown menu:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create language selector dropdown
+   */
+  createLanguageSelector(containerId = 'language-selector-container') {
+    return this.createDropdownMenu(containerId, {
+      id: 'language-selector',
+      label: 'Language',
+      options: [
+        { value: 'en-UK', text: 'UK English', icon: '🇬🇧' },
+        { value: 'en-US', text: 'US English', icon: '🇺🇸' },
+        { value: 'es', text: 'Español', icon: '🇪🇸' },
+        { value: 'fr', text: 'Français', icon: '🇫🇷' },
+        { value: 'de', text: 'Deutsch', icon: '🇩🇪' },
+        { value: 'it', text: 'Italiano', icon: '🇮🇹' },
+        { value: 'pt', text: 'Português', icon: '🇵🇹' },
+        { value: 'ja', text: '日本語', icon: '🇯🇵' },
+        { value: 'ko', text: '한국어', icon: '🇰🇷' },
+        { value: 'zh', text: '中文', icon: '🇨🇳' }
+      ],
+      defaultValue: 'en-UK',
+      storageKey: 'userLanguagePreference',
+      onChange: (value, option) => {
+        console.log('[ComponentFactory] Language selected:', value);
+      }
+    });
+  }
+
+  /**
+   * Create timezone selector dropdown
+   */
+  createTimezoneSelector(containerId = 'timezone-selector-container') {
+    return this.createDropdownMenu(containerId, {
+      id: 'timezone-selector',
+      label: 'Time Zone',
+      icon: '🌍',
+      options: [
+        { value: 'system', text: 'System Time Zone' },
+        { value: 'UTC', text: 'UTC (Coordinated Universal Time)' },
+        { value: 'America/New_York', text: 'New York (EST/EDT)' },
+        { value: 'America/Chicago', text: 'Chicago (CST/CDT)' },
+        { value: 'America/Denver', text: 'Denver (MST/MDT)' },
+        { value: 'America/Los_Angeles', text: 'Los Angeles (PST/PDT)' },
+        { value: 'Europe/London', text: 'London (GMT/BST)' },
+        { value: 'Europe/Paris', text: 'Paris (CET/CEST)' },
+        { value: 'Asia/Tokyo', text: 'Tokyo (JST)' },
+        { value: 'Asia/Shanghai', text: 'Shanghai (CST)' },
+        { value: 'Australia/Sydney', text: 'Sydney (AEST/AEDT)' }
+      ],
+      defaultValue: 'system',
+      storageKey: 'userTimezonePreference',
+      onChange: (value) => {
+        console.log('[ComponentFactory] Timezone selected:', value);
+      }
+    });
+  }
+
+  /**
+   * Create currency selector dropdown
+   */
+  createCurrencySelector(containerId = 'currency-selector-container') {
+    return this.createDropdownMenu(containerId, {
+      id: 'currency-selector',
+      label: 'Default Currency',
+      options: [
+        { value: 'system', text: 'System Currency' },
+        { value: 'USD', text: 'USD - US Dollar', icon: '$' },
+        { value: 'EUR', text: 'EUR - Euro', icon: '€' },
+        { value: 'GBP', text: 'GBP - British Pound', icon: '£' },
+        { value: 'JPY', text: 'JPY - Japanese Yen', icon: '¥' },
+        { value: 'CHF', text: 'CHF - Swiss Franc', icon: '₣' },
+        { value: 'CAD', text: 'CAD - Canadian Dollar', icon: 'C$' },
+        { value: 'AUD', text: 'AUD - Australian Dollar', icon: 'A$' },
+        { value: 'CNY', text: 'CNY - Chinese Yuan', icon: '¥' }
+      ],
+      defaultValue: 'system',
+      storageKey: 'userCurrencyPreference',
+      onChange: (value, option) => {
+        console.log('[ComponentFactory] Currency selected:', value);
+      }
+    });
+  }
+
+  /**
+   * Create first day of week dropdown
+   */
+  createFirstDayOfWeekSelector(containerId = 'first-day-selector-container') {
+    return this.createDropdownMenu(containerId, {
+      id: 'first-day-selector',
+      label: 'First Day of Week',
+      options: [
+        { value: 'monday', text: 'Monday' },
+        { value: 'sunday', text: 'Sunday' },
+        { value: 'saturday', text: 'Saturday' }
+      ],
+      defaultValue: 'monday',
+      storageKey: 'userFirstDayOfWeek',
+      onChange: (value) => {
+        console.log('[ComponentFactory] First day of week selected:', value);
+      }
+    });
+  }
+
+  /**
+   * Create date format dropdown
+   */
+  createDateFormatSelector(containerId = 'date-format-selector-container') {
+    const today = new Date();
+    const formats = [
+      { value: 'dd-MMM-yyyy', text: today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') },
+      { value: 'yyyy-mm-dd', text: today.toISOString().split('T')[0] },
+      { value: 'mm/dd/yyyy', text: today.toLocaleDateString('en-US') },
+      { value: 'dd/mm/yyyy', text: today.toLocaleDateString('en-GB') },
+      { value: 'dd.mm.yyyy', text: today.toLocaleDateString('de-DE') }
+    ];
+    
+    return this.createDropdownMenu(containerId, {
+      id: 'date-format-selector',
+      label: 'Date Format',
+      options: formats,
+      defaultValue: 'dd-MMM-yyyy',
+      storageKey: 'userDateFormat',
+      onChange: (value) => {
+        console.log('[ComponentFactory] Date format selected:', value);
       }
     });
   }
