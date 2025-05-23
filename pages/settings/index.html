@@ -1,200 +1,228 @@
 <div class="settings-container">
-  <!-- Test Engine Sliders Section -->
+  <h1>User Settings</h1>
+  
+  <!-- Personal Info Section -->
   <div class="settings-section">
-    <h2>Test Engine Sliders [Deployment: 20250522211634]</h2>
-    
-    <!-- Test1: Engine Theme Selector -->
-    <div id="test1-container">
-      <!-- slider_component_engine will inject theme selector here -->
-    </div>
-    
-    <!-- Test2: Engine Time Format Selector -->
-    <div id="test2-container">
-      <!-- slider_component_engine will inject time format selector here -->
+    <h2>Personal Information</h2>
+    <div class="settings-grid">
+      <div id="first-name-container"></div>
+      <div id="last-name-container"></div>
+      <div id="nickname-container"></div>
     </div>
   </div>
 
-  <!-- Original Main Branch Sliders Section -->
+  <!-- Appearance & Language Section -->
   <div class="settings-section">
-    <h2>Original Main Branch Sliders</h2>
-    
-    <!-- Time Format Selector -->
-    <div class="slider-container time-format-container">
-      <div class="slider-selector time-format-selector">
-        <div class="border-container">
-          <div class="border-segment border-top"></div>
-          <div class="border-segment border-bottom"></div>
-        </div>
-        <div class="selector-background"></div>
-        <div
-          class="option"
-          data-position="1"
-          data-format="24"
-          data-value="24"
-        >
-          <h3>24h</h3>
-        </div>
-        <div
-          class="option"
-          data-position="2"
-          data-format="system"
-          data-value="system"
-        >
-          <h3>System</h3>
-        </div>
-        <div
-          class="option active"
-          data-position="3"
-          data-format="12"
-          data-value="12"
-        >
-          <h3>12h</h3>
-        </div>
-      </div>
-    </div>
-
-    <!-- Theme Selector -->
-    <div class="slider-container theme-container">
-      <div class="slider-selector theme-selector">
-        <div class="border-container">
-          <div class="border-segment border-top"></div>
-          <div class="border-segment border-bottom"></div>
-        </div>
-        <div class="selector-background"></div>
-        <div
-          class="option active"
-          data-position="1"
-          data-theme="dark"
-          data-value="dark"
-        >
-          <h3>Dark</h3>
-        </div>
-        <div
-          class="option"
-          data-position="2"
-          data-theme="system"
-          data-value="system"
-        >
-          <h3>System</h3>
-        </div>
-        <div
-          class="option"
-          data-position="3"
-          data-theme="light"
-          data-value="light"
-        >
-          <h3>Light</h3>
-        </div>
-      </div>
+    <h2>Appearance & Language</h2>
+    <div class="settings-grid">
+      <div id="theme-selector-container"></div>
+      <div id="language-selector-container"></div>
     </div>
   </div>
 
-  <!-- Dynamic selectors section -->
-  <div id="dynamic-selectors">
-    <!-- This section will be populated by the SelectorManager -->
-  </div>
-
-  <!-- Dynamic inputs section -->
-  <div id="dynamic-inputs">
-    <!-- This section will be populated by the InputManager -->
-  </div>
-
-  <!-- Fallback inputs (visible until dynamic inputs are loaded) -->
-  <div id="original-inputs" style="display: block">
-    <div class="settings-section">
-      <div class="form-container">
-        <div class="form-field">
-          <input
-            type="text"
-            id="first-name"
-            class="text-input"
-            placeholder="Enter first name"
-          />
-        </div>
-        <div class="form-field">
-          <input
-            type="text"
-            id="last-name"
-            class="text-input"
-            placeholder="Enter last name"
-          />
-        </div>
-        <div class="form-field">
-          <input
-            type="text"
-            id="nickname"
-            class="text-input"
-            placeholder="Enter nickname (optional)"
-          />
-        </div>
-      </div>
+  <!-- Time & Date Section -->
+  <div class="settings-section">
+    <h2>Time & Date</h2>
+    <div class="settings-grid">
+      <div id="timezone-selector-container"></div>
+      <div id="first-day-selector-container"></div>
+      <div id="date-format-selector-container"></div>
+      <div id="time-format-selector-container"></div>
     </div>
   </div>
 
-  <!-- Load webpack bundle instead of ES6 modules -->
+  <!-- Work Hours Section -->
+  <div class="settings-section">
+    <h2>Work Hours</h2>
+    <div class="settings-grid">
+      <div id="morning-hours-container"></div>
+      <div id="afternoon-hours-container"></div>
+    </div>
+  </div>
+
+  <!-- Units & Currency Section -->
+  <div class="settings-section">
+    <h2>Units & Currency</h2>
+    <div class="settings-grid">
+      <div id="currency-selector-container"></div>
+      <div id="units-selector-container"></div>
+    </div>
+  </div>
+
+  <!-- Contact Info Section -->
+  <div class="settings-section">
+    <h2>Contact Information</h2>
+    <div class="settings-grid">
+      <div id="email-container"></div>
+      <div id="phone-container"></div>
+    </div>
+  </div>
+
+  <!-- Notifications Section -->
+  <div class="settings-section">
+    <h2>Notifications</h2>
+    <div id="notification-preferences-container"></div>
+  </div>
+
+  <!-- Profile Section -->
+  <div class="settings-section">
+    <h2>Profile</h2>
+    <div class="settings-grid">
+      <div id="profile-picture-container"></div>
+      <div id="birthdate-container"></div>
+    </div>
+  </div>
+
+  <!-- Actions Section -->
+  <div class="settings-section actions-section">
+    <div id="save-button-container"></div>
+    <div id="cancel-button-container"></div>
+  </div>
+
+  <!-- Load webpack bundle -->
   <script src="/dist/bundle.js"></script>
   <script>
-    console.log('[Test Implementation] Loading webpack bundle [Deployment: 20250522211634]');
+    console.log('[Settings Page] Starting initialization [Deployment: 20250522234500]');
     
-    // The bundle should have already initialized the components
-    // Just log to confirm
-    setTimeout(() => {
-      if (window.componentFactory) {
-        console.log('[Test Implementation] ComponentFactory loaded from bundle');
-      } else {
-        console.error('[Test Implementation] ComponentFactory not found in bundle');
+    // Initialize all components when DOM is ready
+    function initializeAllComponents() {
+      if (!window.componentFactory) {
+        console.error('[Settings Page] ComponentFactory not available');
+        return;
       }
-    }, 100);
-  </script>
-
-  <!-- Add scripts to populate dynamic components -->
-  <script>
-    // Initialize dynamic selectors when available
-    function initDynamicSelectors() {
-      if (
-        window.SelectorManager &&
-        typeof window.SelectorManager.generateHTML === "function"
-      ) {
-        const container = document.getElementById("dynamic-selectors");
-        if (container) {
-          container.innerHTML = window.SelectorManager.generateHTML();
-
-          // Hide original selectors if dynamic ones are created
-          const originalContainer =
-            document.getElementById("original-selectors");
-          if (originalContainer) {
-            originalContainer.style.display = "none";
+      
+      console.log('[Settings Page] Initializing all components...');
+      
+      try {
+        // Personal Info
+        componentFactory.createFirstNameInput('first-name-container');
+        componentFactory.createLastNameInput('last-name-container');
+        componentFactory.createNicknameInput('nickname-container');
+        
+        // Appearance & Language
+        componentFactory.createThemeSelector('theme-selector-container');
+        componentFactory.createLanguageSelector('language-selector-container');
+        
+        // Time & Date
+        componentFactory.createTimezoneSelector('timezone-selector-container');
+        componentFactory.createFirstDayOfWeekSelector('first-day-selector-container');
+        componentFactory.createDateFormatSelector('date-format-selector-container');
+        componentFactory.createTimeFormatSelector('time-format-selector-container');
+        
+        // Work Hours
+        componentFactory.createMorningHoursSelector('morning-hours-container');
+        componentFactory.createAfternoonHoursSelector('afternoon-hours-container');
+        
+        // Units & Currency
+        componentFactory.createCurrencySelector('currency-selector-container');
+        
+        // Units selector - create a wheel selector for metric/imperial
+        componentFactory.createWheelSelector('units-selector-container', {
+          id: 'units-selector',
+          label: 'Units of Measurement',
+          options: [
+            { value: 'metric', text: 'Metric' },
+            { value: 'imperial', text: 'Imperial' }
+          ],
+          defaultValue: 'metric',
+          storageKey: 'userUnitsPreference',
+          onChange: (value) => {
+            console.log('[Settings] Units selected:', value);
           }
-        }
+        });
+        
+        // Contact Info
+        componentFactory.createEmailInput('email-container');
+        componentFactory.createPhoneInput('phone-container');
+        
+        // Notifications
+        componentFactory.createNotificationPreferences('notification-preferences-container');
+        
+        // Profile
+        componentFactory.createProfilePictureUpload('profile-picture-container', (files) => {
+          console.log('[Settings] Profile picture selected:', files);
+        });
+        componentFactory.createBirthdatePicker('birthdate-container');
+        
+        // Action Buttons
+        componentFactory.createSaveButton('save-button-container', () => {
+          console.log('[Settings] Save clicked - would save all settings');
+          // Here you would collect all values and save them
+        });
+        
+        componentFactory.createCancelButton('cancel-button-container', () => {
+          console.log('[Settings] Cancel clicked - would revert changes');
+          // Here you would revert any unsaved changes
+        });
+        
+        console.log('[Settings Page] All components initialized successfully');
+        
+      } catch (error) {
+        console.error('[Settings Page] Error initializing components:', error);
       }
     }
-
-    // Initialize dynamic inputs when available
-    function initDynamicInputs() {
-      if (
-        window.InputManager &&
-        typeof window.InputManager.generateHTML === "function"
-      ) {
-        const container = document.getElementById("dynamic-inputs");
-        if (container) {
-          container.innerHTML = window.InputManager.generateHTML();
-
-          // Hide original inputs if dynamic ones are created
-          const originalContainer = document.getElementById("original-inputs");
-          if (originalContainer) {
-            originalContainer.style.display = "none";
-          }
-        }
-      }
+    
+    // Wait for DOM and factory to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initializeAllComponents, 100);
+      });
+    } else {
+      setTimeout(initializeAllComponents, 100);
     }
-
-    // Try to init now, and also add a delayed attempt
-    initDynamicSelectors();
-    initDynamicInputs();
-
-    setTimeout(() => {
-      initDynamicSelectors();
-      initDynamicInputs();
-    }, 500);
   </script>
+
+  <style>
+    .settings-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    .settings-container h1 {
+      font-size: 32px;
+      margin-bottom: 40px;
+      color: #ffffff;
+    }
+    
+    .settings-section {
+      margin-bottom: 40px;
+      padding: 24px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+    }
+    
+    .settings-section h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .actions-section {
+      display: flex;
+      gap: 16px;
+      justify-content: flex-end;
+      background: none;
+      padding-top: 40px;
+    }
+    
+    /* Dark theme adjustments */
+    [data-theme="light"] .settings-container h1 {
+      color: #333;
+    }
+    
+    [data-theme="light"] .settings-section {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    
+    [data-theme="light"] .settings-section h2 {
+      color: rgba(0, 0, 0, 0.9);
+    }
+  </style>
 </div>
