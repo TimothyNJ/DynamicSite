@@ -1,6 +1,6 @@
-// dropdown_menu_component_engine.js
+// wheel_selector_component_engine.js
 
-export class DropdownMenuComponentEngine {
+export class WheelSelectorComponentEngine {
     constructor(container, componentId, config = {}) {
         this.container = container;
         this.componentId = componentId;

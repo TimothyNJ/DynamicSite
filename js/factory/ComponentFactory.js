@@ -16,7 +16,7 @@ import { file_upload_input_component_engine } from '../engines/file_upload_input
 import { wheel_time_selector_component_engine } from '../engines/wheel_time_selector_component_engine.js';
 import { wheel_date_picker_component_engine } from '../engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from '../engines/calendar_picker_component_engine.js';
-import { dropdown_menu_component_engine } from '../engines/dropdown_menu_component_engine.js';
+import { wheel_selector_component_engine } from '../engines/wheel_selector_component_engine.js';
 
 class ComponentFactory {
   constructor() {
@@ -28,7 +28,7 @@ class ComponentFactory {
     this.wheelTimeInstances = new Map();
     this.wheelDateInstances = new Map();
     this.calendarInstances = new Map();
-    this.dropdownInstances = new Map();
+    this.wheelSelectorInstances = new Map();
     this.initialized = false;
     
     console.log('[ComponentFactory] Factory initialized for engine-based components [Deployment: 20250522201023]');
@@ -961,17 +961,17 @@ class ComponentFactory {
   }
 
   /**
-   * Create a dropdown menu using dropdown_menu_component_engine
+   * Create a wheel selector using wheel_selector_component_engine
    * 
    * @param {string} containerId - Container element ID
    * @param {Object} config - Configuration options
-   * @returns {Object} Dropdown menu engine instance
+   * @returns {Object} Wheel selector engine instance
    */
-  createDropdownMenu(containerId, config = {}) {
-    console.log(`[ComponentFactory] Creating dropdown menu in container: ${containerId}`);
+  createWheelSelector(containerId, config = {}) {
+    console.log(`[ComponentFactory] Creating wheel selector in container: ${containerId}`);
     
-    if (!dropdown_menu_component_engine) {
-      console.error('[ComponentFactory] ERROR: dropdown_menu_component_engine not available');
+    if (!wheel_selector_component_engine) {
+      console.error('[ComponentFactory] ERROR: wheel_selector_component_engine not available');
       return null;
     }
     
@@ -982,13 +982,13 @@ class ComponentFactory {
         return null;
       }
       
-      const dropdownEngine = new dropdown_menu_component_engine(container, config.id || containerId, config);
+      const wheelSelectorEngine = new wheel_selector_component_engine(container, config.id || containerId, config);
       const key = config.id || containerId;
-      this.dropdownInstances.set(key, dropdownEngine);
-      console.log(`[ComponentFactory] Dropdown menu created successfully: ${key}`);
-      return dropdownEngine;
+      this.wheelSelectorInstances.set(key, wheelSelectorEngine);
+      console.log(`[ComponentFactory] Wheel selector created successfully: ${key}`);
+      return wheelSelectorEngine;
     } catch (error) {
-      console.error('[ComponentFactory] Error creating dropdown menu:', error);
+      console.error('[ComponentFactory] Error creating wheel selector:', error);
       return null;
     }
   }
@@ -997,7 +997,7 @@ class ComponentFactory {
    * Create language selector dropdown
    */
   createLanguageSelector(containerId = 'language-selector-container') {
-    return this.createDropdownMenu(containerId, {
+    return this.createWheelSelector(containerId, {
       id: 'language-selector',
       label: 'Language',
       options: [
@@ -1024,7 +1024,7 @@ class ComponentFactory {
    * Create timezone selector dropdown
    */
   createTimezoneSelector(containerId = 'timezone-selector-container') {
-    return this.createDropdownMenu(containerId, {
+    return this.createWheelSelector(containerId, {
       id: 'timezone-selector',
       label: 'Time Zone',
       icon: '🌍',
@@ -1053,7 +1053,7 @@ class ComponentFactory {
    * Create currency selector dropdown
    */
   createCurrencySelector(containerId = 'currency-selector-container') {
-    return this.createDropdownMenu(containerId, {
+    return this.createWheelSelector(containerId, {
       id: 'currency-selector',
       label: 'Default Currency',
       options: [
@@ -1079,7 +1079,7 @@ class ComponentFactory {
    * Create first day of week dropdown
    */
   createFirstDayOfWeekSelector(containerId = 'first-day-selector-container') {
-    return this.createDropdownMenu(containerId, {
+    return this.createWheelSelector(containerId, {
       id: 'first-day-selector',
       label: 'First Day of Week',
       options: [
@@ -1108,7 +1108,7 @@ class ComponentFactory {
       { value: 'dd.mm.yyyy', text: today.toLocaleDateString('de-DE') }
     ];
     
-    return this.createDropdownMenu(containerId, {
+    return this.createWheelSelector(containerId, {
       id: 'date-format-selector',
       label: 'Date Format',
       options: formats,

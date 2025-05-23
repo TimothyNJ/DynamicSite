@@ -19,7 +19,7 @@ import { file_upload_input_component_engine } from './engines/file_upload_input_
 import { wheel_time_selector_component_engine } from './engines/wheel_time_selector_component_engine.js';
 import { wheel_date_picker_component_engine } from './engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from './engines/calendar_picker_component_engine.js';
-import { dropdown_menu_component_engine } from './engines/dropdown_menu_component_engine.js';
+import { wheel_selector_component_engine } from './engines/wheel_selector_component_engine.js';
 import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
 import { initializeComponents } from './loader/component-loader.js';
 
@@ -32,7 +32,7 @@ window.file_upload_input_component_engine = file_upload_input_component_engine;
 window.wheel_time_selector_component_engine = wheel_time_selector_component_engine;
 window.wheel_date_picker_component_engine = wheel_date_picker_component_engine;
 window.calendar_picker_component_engine = calendar_picker_component_engine;
-window.dropdown_menu_component_engine = dropdown_menu_component_engine;
+window.wheel_selector_component_engine = wheel_selector_component_engine;
 window.ComponentFactory = ComponentFactory;
 window.componentFactory = componentFactory;
 
