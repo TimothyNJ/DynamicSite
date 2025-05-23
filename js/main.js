@@ -1,70 +1,63 @@
-// js/main.js
-import { initRouter } from "./navigation/router.js";
-import { initializeBuffers } from "./layout/buffers.js";
-import { updateDimensions } from "./layout/dimensions.js";
-import { initializeNavbar } from "./navigation/navbar.js";
+/**
+ * main.js - Webpack Entry Point
+ * 
+ * This file imports all ES6 modules and initializes the component system.
+ * It serves as the single entry point for webpack bundling.
+ * 
+ * Date: 22-May-2025 21:08
+ * Deployment Timestamp: 20250522210800
+ */
 
-// Initialize all modules when the DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  // Initialize buffer resizing
-  initializeBuffers();
+console.log('[main.js] Starting application initialization [Deployment: 20250522210800]');
 
-  // Set up navigation and routing
-  initRouter();
+// Import component system modules
+import { slider_component_engine } from './engines/slider_component_engine.js';
+import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
+import { initializeComponents } from './loader/component-loader.js';
 
-  // Initialize navbar with collapsible menu
-  initializeNavbar();
+// Make key components available globally for backward compatibility
+window.slider_component_engine = slider_component_engine;
+window.ComponentFactory = ComponentFactory;
+window.componentFactory = componentFactory;
 
-  // Update dimensions for responsive layout
-  updateDimensions();
+console.log('[main.js] ES6 modules imported successfully');
 
-  // Apply saved theme preference if it exists
-  const savedTheme = localStorage.getItem("userThemePreference");
-  if (savedTheme) {
-    document.body.setAttribute(
-      "data-theme",
-      savedTheme === "system"
-        ? window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light"
-        : savedTheme
-    );
-
-    // Apply appropriate background
-    if (
-      savedTheme === "dark" ||
-      (savedTheme === "system" &&
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches)
-    ) {
-      document.body.style.backgroundImage =
-        "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
-    } else {
-      document.body.style.backgroundImage =
-        "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
-    }
-  }
-
-  // Add a resize listener for dimension updates
-  window.addEventListener("resize", updateDimensions);
-});
-
-// Force reflow on page load to ensure proper layout calculations
-window.addEventListener("load", () => {
-  updateDimensions();
-});
-
-// Update dimensions when a page loads
-document.addEventListener("pageLoaded", updateDimensions);
-
-// Export a method to get the active theme
-export function getActiveTheme() {
-  const theme = document.body.getAttribute("data-theme") || "light";
-  return theme;
+// Function to determine current page from URL hash
+function getCurrentPage() {
+  const hash = window.location.hash;
+  if (hash.includes('settings')) return 'settings';
+  if (hash.includes('create-vendor-request')) return 'create-vendor-request';
+  if (hash.includes('data-entry-forms')) return 'data-entry-forms';
+  if (hash.includes('progress-view')) return 'progress-view';
+  return 'home';
 }
 
-// Add a way to check if we're on the settings page
-export function isSettingsPage() {
-  return window.location.hash === "#settings";
+// Initialize components when DOM is ready
+function initializeApp() {
+  console.log('[main.js] DOM ready, initializing components');
+  const currentPage = getCurrentPage();
+  console.log(`[main.js] Current page: ${currentPage}`);
+  
+  // Initialize components for current page
+  initializeComponents(currentPage).then(() => {
+    console.log('[main.js] Component initialization complete');
+  }).catch(error => {
+    console.error('[main.js] Error during initialization:', error);
+  });
 }
+
+// Set up initialization
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  // DOM already loaded
+  initializeApp();
+}
+
+// Handle hash changes for single-page navigation
+window.addEventListener('hashchange', () => {
+  console.log('[main.js] Hash changed, reinitializing components');
+  initializeApp();
+});
+
+console.log('[main.js] Application setup complete [Deployment: 20250522210800]');
