@@ -51,13 +51,15 @@ class text_input_component_engine {
       return null;
     }
     
-    // Create wrapper div with minimal styling
+    // Create wrapper div with minimal styling (like slider-container)
     this.wrapper = document.createElement('div');
     this.wrapper.className = 'dynamic-input-wrapper';
     this.wrapper.style.cssText = `
       position: relative;
       width: 100%;
-      margin: 2px 0;
+      margin: 5px 0;
+      display: flex;
+      justify-content: center;
     `;
     
     // Create the appropriate element based on options
@@ -68,6 +70,7 @@ class text_input_component_engine {
         resize: none;
         overflow-y: hidden;
         line-height: 1.4;
+        text-align: ${this.options.textAlign || 'left'};
       `;
       
       // Only set min-height if explicitly provided
@@ -77,6 +80,7 @@ class text_input_component_engine {
     } else {
       this.element = document.createElement('input');
       this.element.type = this.options.type;
+      this.element.style.textAlign = this.options.textAlign || 'left';
     }
     
     // Common properties
@@ -132,13 +136,15 @@ class text_input_component_engine {
       );
       border: none;
       border-radius: 9999px;
-      padding: 4px 12px;
+      padding: 2px 16px;
       font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+      font-weight: bold;
       color: #ffffff;
       width: 100%;
       transition: box-shadow 0.3s ease, height 0.2s ease;
       font-family: inherit;
       outline: none;
+      display: block;
     `;
     
     // Add dark theme support
@@ -165,6 +171,48 @@ class text_input_component_engine {
       const styleSheet = document.createElement('style');
       styleSheet.id = 'dynamic-input-styles';
       styleSheet.textContent = `
+        /* Container wrapper for input */
+        .dynamic-input-wrapper {
+          position: relative;
+          overflow: visible;
+        }
+        
+        /* Border container for inputs */
+        .dynamic-input-wrapper::before,
+        .dynamic-input-wrapper::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(
+            to right,
+            var(--active-button-start),
+            var(--active-button-end)
+          );
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
+        }
+        
+        .dynamic-input-wrapper::before {
+          top: 0;
+          border-radius: 9999px 9999px 0 0;
+        }
+        
+        .dynamic-input-wrapper::after {
+          bottom: 0;
+          border-radius: 0 0 9999px 9999px;
+        }
+        
+        /* Show borders on hover and focus */
+        .dynamic-input-wrapper:hover::before,
+        .dynamic-input-wrapper:hover::after,
+        .dynamic-text-input:focus ~ .dynamic-input-wrapper::before,
+        .dynamic-text-input:focus ~ .dynamic-input-wrapper::after {
+          opacity: 1;
+        }
+        
         .dynamic-text-input:hover {
           box-shadow: 0 0 0 1px var(--active-button-start);
         }
@@ -175,6 +223,7 @@ class text_input_component_engine {
         
         .dynamic-text-input::placeholder {
           color: rgba(255, 255, 255, 0.5);
+          font-weight: normal;
         }
         
         body[data-theme="dark"] .dynamic-text-input {
@@ -198,6 +247,11 @@ class text_input_component_engine {
         .dynamic-text-input::-webkit-scrollbar-thumb {
           background: var(--active-button-start);
           border-radius: 2px;
+        }
+        
+        /* Remove textarea resize handle */
+        .dynamic-text-input {
+          resize: none;
         }
       `;
       document.head.appendChild(styleSheet);
