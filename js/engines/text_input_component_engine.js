@@ -21,12 +21,16 @@ class text_input_component_engine {
       required: options.required || false,
       maxLength: options.maxLength || null,
       expandable: options.expandable !== false,
+      multiline: options.multiline || false,
+      minHeight: options.minHeight || '32px',
+      maxHeight: options.maxHeight || '200px',
       storageKey: options.storageKey || null,
       ...options
     };
     
     this.changeHandler = changeHandler;
     this.element = null;
+    this.wrapper = null;
     
     console.log(`[text_input_component_engine] Initialized with options:`, this.options);
   }
@@ -47,24 +51,45 @@ class text_input_component_engine {
       return null;
     }
     
-    // Create wrapper div
-    const wrapper = document.createElement('div');
-    wrapper.className = 'form-field';
+    // Create wrapper div with minimal styling
+    this.wrapper = document.createElement('div');
+    this.wrapper.className = 'dynamic-input-wrapper';
+    this.wrapper.style.cssText = `
+      position: relative;
+      width: 100%;
+      margin: 2px 0;
+    `;
     
-    // Create input element
-    this.element = document.createElement('input');
-    this.element.type = this.options.type;
+    // Create the appropriate element based on options
+    if (this.options.multiline || this.options.expandable) {
+      this.element = document.createElement('textarea');
+      this.element.rows = 1;
+      this.element.style.cssText = `
+        resize: none;
+        overflow-y: hidden;
+        min-height: ${this.options.minHeight};
+        line-height: 1.4;
+      `;
+    } else {
+      this.element = document.createElement('input');
+      this.element.type = this.options.type;
+    }
+    
+    // Common properties
     this.element.id = this.options.id;
     this.element.name = this.options.name;
-    this.element.className = 'text-input';
+    this.element.className = 'dynamic-text-input';
     this.element.placeholder = this.options.placeholder;
     this.element.value = this.options.value;
+    
+    // Apply minimal, slider-matching styles
+    this.applyStyles();
     
     if (this.options.required) {
       this.element.required = true;
     }
     
-    if (this.options.maxLength) {
+    if (this.options.maxLength && !this.options.expandable) {
       this.element.maxLength = this.options.maxLength;
     }
     
@@ -77,12 +102,102 @@ class text_input_component_engine {
     this.attachEventListeners();
     
     // Add to wrapper and container
-    wrapper.appendChild(this.element);
-    containerEl.appendChild(wrapper);
+    this.wrapper.appendChild(this.element);
+    containerEl.appendChild(this.wrapper);
+    
+    // Initial height adjustment for expandable inputs
+    if (this.options.expandable) {
+      setTimeout(() => this.adjustHeight(), 0);
+    }
     
     console.log(`[text_input_component_engine] Rendered input:`, this.options.id);
     
     return this.element;
+  }
+  
+  /**
+   * Apply minimal styles matching slider aesthetic
+   */
+  applyStyles() {
+    // Base styles matching slider components
+    const baseStyles = `
+      background: linear-gradient(
+        -25deg,
+        var(--light-slider-start) 0%,
+        var(--light-slider-end) 100%
+      );
+      border: none;
+      border-radius: 9999px;
+      padding: 4px 12px;
+      font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+      color: #ffffff;
+      width: 100%;
+      transition: box-shadow 0.3s ease, height 0.2s ease;
+      font-family: inherit;
+      outline: none;
+    `;
+    
+    // Add dark theme support
+    const darkThemeCheck = () => {
+      if (document.body.getAttribute('data-theme') === 'dark') {
+        this.element.style.background = `linear-gradient(
+          -25deg,
+          var(--dark-slider-start) 0%,
+          var(--dark-slider-end) 100%
+        )`;
+      }
+    };
+    
+    // Apply styles
+    this.element.style.cssText += baseStyles;
+    darkThemeCheck();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(darkThemeCheck);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+    
+    // Hover and focus styles via dynamic style injection
+    if (!document.getElementById('dynamic-input-styles')) {
+      const styleSheet = document.createElement('style');
+      styleSheet.id = 'dynamic-input-styles';
+      styleSheet.textContent = `
+        .dynamic-text-input:hover {
+          box-shadow: 0 0 0 1px var(--active-button-start);
+        }
+        
+        .dynamic-text-input:focus {
+          box-shadow: 0 0 0 2px var(--active-button-start);
+        }
+        
+        .dynamic-text-input::placeholder {
+          color: rgba(255, 255, 255, 0.5);
+        }
+        
+        body[data-theme="dark"] .dynamic-text-input {
+          background: linear-gradient(
+            -25deg,
+            var(--dark-slider-start) 0%,
+            var(--dark-slider-end) 100%
+          );
+        }
+        
+        /* Scrollbar styling for expandable inputs */
+        .dynamic-text-input::-webkit-scrollbar {
+          width: 4px;
+        }
+        
+        .dynamic-text-input::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 2px;
+        }
+        
+        .dynamic-text-input::-webkit-scrollbar-thumb {
+          background: var(--active-button-start);
+          border-radius: 2px;
+        }
+      `;
+      document.head.appendChild(styleSheet);
+    }
   }
   
   /**
@@ -135,11 +250,33 @@ class text_input_component_engine {
   }
   
   /**
-   * Adjust height for expandable inputs (future feature)
+   * Adjust height for expandable inputs
    */
   adjustHeight() {
-    // TODO: Implement dynamic height adjustment for textarea-like behavior
-    // For now, standard inputs don't expand
+    if (!this.element || this.element.tagName !== 'TEXTAREA') return;
+    
+    // Reset height to calculate new height
+    this.element.style.height = 'auto';
+    
+    // Calculate new height based on content
+    const scrollHeight = this.element.scrollHeight;
+    const minHeight = parseInt(this.options.minHeight);
+    const maxHeight = parseInt(this.options.maxHeight);
+    
+    // Clamp height between min and max
+    const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+    
+    // Apply new height
+    this.element.style.height = newHeight + 'px';
+    
+    // Show/hide scrollbar based on content
+    if (scrollHeight > maxHeight) {
+      this.element.style.overflowY = 'auto';
+      this.element.style.borderRadius = '20px'; // Less rounded when scrolling
+    } else {
+      this.element.style.overflowY = 'hidden';
+      this.element.style.borderRadius = '9999px'; // Fully rounded when not scrolling
+    }
   }
   
   /**
@@ -168,6 +305,11 @@ class text_input_component_engine {
       if (this.changeHandler) {
         this.changeHandler(value, this.options.id);
       }
+      
+      // Adjust height if expandable
+      if (this.options.expandable) {
+        this.adjustHeight();
+      }
     }
   }
   
@@ -193,10 +335,11 @@ class text_input_component_engine {
    * Destroy the component and clean up
    */
   destroy() {
-    if (this.element && this.element.parentNode) {
-      this.element.parentNode.remove();
+    if (this.wrapper && this.wrapper.parentNode) {
+      this.wrapper.parentNode.removeChild(this.wrapper);
     }
     this.element = null;
+    this.wrapper = null;
     console.log(`[text_input_component_engine] Destroyed:`, this.options.id);
   }
 }

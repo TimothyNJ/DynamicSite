@@ -296,7 +296,9 @@ class ComponentFactory {
       name: 'firstName',
       placeholder: 'Enter first name',
       storageKey: 'userFirstName',
-      required: false
+      required: false,
+      expandable: true,
+      multiline: true
     });
   }
 
@@ -309,7 +311,9 @@ class ComponentFactory {
       name: 'lastName',
       placeholder: 'Enter last name',
       storageKey: 'userLastName',
-      required: false
+      required: false,
+      expandable: true,
+      multiline: true
     });
   }
 
@@ -322,7 +326,9 @@ class ComponentFactory {
       name: 'nickname',
       placeholder: 'Enter nickname (optional)',
       storageKey: 'userNickname',
-      required: false
+      required: false,
+      expandable: true,
+      multiline: true
     });
   }
 
