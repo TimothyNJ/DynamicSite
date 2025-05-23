@@ -24,21 +24,37 @@ class ComponentFactory {
    * @returns {Object} Slider engine instance
    */
   createSlider(config, handler) {
-    console.log(`[ComponentFactory] Creating slider: ${config.sliderClass}`);
+    console.log(`[ComponentFactory] STEP 1: Creating slider: ${config.sliderClass}`);
+    console.log(`[ComponentFactory] STEP 2: Container ID: ${config.containerId}`);
+    console.log(`[ComponentFactory] STEP 3: Options count: ${config.options ? config.options.length : 0}`);
     
     if (!window.slider_component_engine) {
-      console.error('[ComponentFactory] slider_component_engine not available');
+      console.error('[ComponentFactory] ERROR: slider_component_engine not available');
       return null;
     }
+    console.log('[ComponentFactory] STEP 4: slider_component_engine is available');
 
-    const sliderEngine = new window.slider_component_engine(config, handler);
-    
-    if (sliderEngine.init()) {
-      this.sliderInstances.set(config.sliderClass, sliderEngine);
-      console.log(`[ComponentFactory] Slider created successfully: ${config.sliderClass}`);
-      return sliderEngine;
-    } else {
-      console.error(`[ComponentFactory] Failed to initialize slider: ${config.sliderClass}`);
+    try {
+      console.log('[ComponentFactory] STEP 5: Creating new slider_component_engine instance...');
+      const sliderEngine = new window.slider_component_engine(config, handler);
+      console.log('[ComponentFactory] STEP 6: Engine instance created successfully');
+      
+      console.log('[ComponentFactory] STEP 7: Calling engine.init()...');
+      const initResult = sliderEngine.init();
+      console.log(`[ComponentFactory] STEP 8: engine.init() returned: ${initResult}`);
+      
+      if (initResult) {
+        console.log('[ComponentFactory] STEP 9: Adding to sliderInstances map...');
+        this.sliderInstances.set(config.sliderClass, sliderEngine);
+        console.log(`[ComponentFactory] STEP 10: Slider created successfully: ${config.sliderClass}`);
+        return sliderEngine;
+      } else {
+        console.error(`[ComponentFactory] ERROR: engine.init() returned false for: ${config.sliderClass}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('[ComponentFactory] ERROR: Exception during slider creation:', error);
+      console.error('[ComponentFactory] Stack trace:', error.stack);
       return null;
     }
   }
@@ -47,6 +63,16 @@ class ComponentFactory {
    * Create theme selector using slider_component_engine
    */
   createThemeSelector(containerId = 'theme-selector-container') {
+    console.log(`[ComponentFactory] createThemeSelector called with containerId: ${containerId}`);
+    
+    // Check if container exists
+    const container = document.getElementById(containerId);
+    if (!container) {
+      console.error(`[ComponentFactory] ERROR: Container '${containerId}' not found in DOM`);
+      return null;
+    }
+    console.log(`[ComponentFactory] Container found. Current innerHTML length: ${container.innerHTML.length}`);
+    
     const config = {
       containerId: containerId,
       sliderClass: 'theme-selector',

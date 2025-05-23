@@ -85,19 +85,31 @@ class slider_component_engine {
    * Create slider container and inject HTML
    */
   createSliderContainer() {
+    console.log(`[slider_component_engine] CONTAINER STEP 1: Looking for container: ${this.containerId}`);
     const container = document.getElementById(this.containerId);
     if (!container) {
-      console.error(`Container ${this.containerId} not found`);
+      console.error(`[slider_component_engine] ERROR: Container ${this.containerId} not found in DOM`);
       return false;
     }
+    console.log(`[slider_component_engine] CONTAINER STEP 2: Container found, current children: ${container.children.length}`);
 
     // Generate and inject HTML
-    container.innerHTML = this.generateHTML();
+    console.log('[slider_component_engine] CONTAINER STEP 3: Generating HTML...');
+    const html = this.generateHTML();
+    console.log(`[slider_component_engine] CONTAINER STEP 4: Generated HTML length: ${html.length} characters`);
+    
+    console.log('[slider_component_engine] CONTAINER STEP 5: Injecting HTML into container...');
+    container.innerHTML = html;
+    console.log(`[slider_component_engine] CONTAINER STEP 6: HTML injected, new children count: ${container.children.length}`);
     
     // Get reference to created slider
+    console.log(`[slider_component_engine] CONTAINER STEP 7: Looking for slider element with class: ${this.sliderClass}`);
     this.sliderElement = container.querySelector(`.${this.sliderClass}`);
     
-    return this.sliderElement !== null;
+    const success = this.sliderElement !== null;
+    console.log(`[slider_component_engine] CONTAINER STEP 8: Slider element found: ${success}`);
+    
+    return success;
   }
 
   /**
@@ -105,39 +117,68 @@ class slider_component_engine {
    * Extracted from slider-buttons.js with modern wrapper
    */
   init() {
-    console.log(`[slider_component_engine] Initializing slider: ${this.sliderClass}`);
+    console.log(`[slider_component_engine] INIT STEP 1: Starting initialization for: ${this.sliderClass}`);
+    console.log(`[slider_component_engine] INIT STEP 2: Container ID: ${this.containerId}`);
     
     // Create HTML structure
+    console.log('[slider_component_engine] INIT STEP 3: Creating slider container...');
     if (!this.createSliderContainer()) {
-      console.error('Failed to create slider container');
+      console.error('[slider_component_engine] ERROR: Failed to create slider container');
       return false;
     }
+    console.log('[slider_component_engine] INIT STEP 4: Slider container created successfully');
 
     // Get element references (from slider-buttons.js pattern)
+    console.log('[slider_component_engine] INIT STEP 5: Getting element references...');
     this._themeSelector = document.querySelector(`.${this.sliderClass}`);
     this._selectorBackground = document.querySelector(`.${this.sliderClass} .selector-background`);
     this._options = document.querySelectorAll(`.${this.sliderClass} .option`);
     this._borderTop = document.querySelector(`.${this.sliderClass} .border-top`);
     this._borderBottom = document.querySelector(`.${this.sliderClass} .border-bottom`);
 
+    console.log(`[slider_component_engine] INIT STEP 6: Elements found:`);
+    console.log(`  - themeSelector: ${!!this._themeSelector}`);
+    console.log(`  - selectorBackground: ${!!this._selectorBackground}`);
+    console.log(`  - options count: ${this._options ? this._options.length : 0}`);
+    console.log(`  - borderTop: ${!!this._borderTop}`);
+    console.log(`  - borderBottom: ${!!this._borderBottom}`);
+
     if (!this._themeSelector) {
-      console.error(`Slider elements not found for ${this.sliderClass}`);
+      console.error(`[slider_component_engine] ERROR: Core slider element not found for ${this.sliderClass}`);
       return false;
     }
 
-    // Apply main branch initialization logic
-    this.equalizeButtonWidths();
-    this.initializeSelector();
-    this.setupMouseEvents();
-    this.setupOptionClickHandlers();
-    this.setupResizeHandler();
-    
-    // Start mouse tracking (from slider-buttons.js)
-    this.setupMouseTracking();
-    this.startContinuousMonitoring();
-    
-    console.log(`[slider_component_engine] Slider initialization complete: ${this.sliderClass}`);
-    return true;
+    try {
+      // Apply main branch initialization logic
+      console.log('[slider_component_engine] INIT STEP 7: Equalizing button widths...');
+      this.equalizeButtonWidths();
+      
+      console.log('[slider_component_engine] INIT STEP 8: Initializing selector position...');
+      this.initializeSelector();
+      
+      console.log('[slider_component_engine] INIT STEP 9: Setting up mouse events...');
+      this.setupMouseEvents();
+      
+      console.log('[slider_component_engine] INIT STEP 10: Setting up option click handlers...');
+      this.setupOptionClickHandlers();
+      
+      console.log('[slider_component_engine] INIT STEP 11: Setting up resize handler...');
+      this.setupResizeHandler();
+      
+      // Start mouse tracking (from slider-buttons.js)
+      console.log('[slider_component_engine] INIT STEP 12: Setting up mouse tracking...');
+      this.setupMouseTracking();
+      
+      console.log('[slider_component_engine] INIT STEP 13: Starting continuous monitoring...');
+      this.startContinuousMonitoring();
+      
+      console.log(`[slider_component_engine] INIT STEP 14: Initialization COMPLETE for: ${this.sliderClass}`);
+      return true;
+    } catch (error) {
+      console.error('[slider_component_engine] ERROR during initialization:', error);
+      console.error('[slider_component_engine] Stack trace:', error.stack);
+      return false;
+    }
   }
 
   /**
