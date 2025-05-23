@@ -12,6 +12,7 @@ import { slider_component_engine } from '../engines/slider_component_engine.js';
 import { text_input_component_engine } from '../engines/text_input_component_engine.js';
 import { button_component_engine } from '../engines/button_component_engine.js';
 import { multi_select_component_engine } from '../engines/multi_select_component_engine.js';
+import { file_upload_input_component_engine } from '../engines/file_upload_input_component_engine.js';
 
 class ComponentFactory {
   constructor() {
@@ -19,6 +20,7 @@ class ComponentFactory {
     this.textInputInstances = new Map();
     this.buttonInstances = new Map();
     this.multiSelectInstances = new Map();
+    this.fileUploadInstances = new Map();
     this.initialized = false;
     
     console.log('[ComponentFactory] Factory initialized for engine-based components [Deployment: 20250522201023]');
@@ -612,6 +614,99 @@ class ComponentFactory {
       sliderCount: this.sliderInstances.size,
       sliders: Array.from(this.sliderInstances.keys())
     };
+  }
+
+  /**
+   * Create a file upload using file_upload_input_component_engine
+   * 
+   * @param {string} containerId - Container element ID
+   * @param {Object} options - File upload configuration options
+   * @param {Function} changeHandler - Change callback function
+   * @returns {Object} File upload engine instance
+   */
+  createFileUpload(containerId, options = {}, changeHandler = null) {
+    console.log(`[ComponentFactory] Creating file upload in container: ${containerId}`);
+    
+    if (!file_upload_input_component_engine) {
+      console.error('[ComponentFactory] ERROR: file_upload_input_component_engine not available');
+      return null;
+    }
+    
+    try {
+      const fileUploadEngine = new file_upload_input_component_engine(options, changeHandler);
+      const element = fileUploadEngine.render(containerId);
+      
+      if (element) {
+        const key = options.id || containerId;
+        this.fileUploadInstances.set(key, fileUploadEngine);
+        console.log(`[ComponentFactory] File upload created successfully: ${key}`);
+        return fileUploadEngine;
+      } else {
+        console.error(`[ComponentFactory] Failed to render file upload in: ${containerId}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('[ComponentFactory] Error creating file upload:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create profile picture upload
+   */
+  createProfilePictureUpload(containerId = 'profile-picture-container', changeHandler) {
+    return this.createFileUpload(containerId, {
+      id: 'profile-picture',
+      text: 'Upload Profile Picture',
+      acceptedFiles: 'image/*',
+      multiple: false,
+      maxSize: 5 * 1024 * 1024, // 5MB
+      icon: '📷'
+    }, changeHandler);
+  }
+
+  /**
+   * Create document upload
+   */
+  createDocumentUpload(containerId = 'document-upload-container', changeHandler) {
+    return this.createFileUpload(containerId, {
+      id: 'document-upload',
+      text: 'Drag & Drop Documents or Click to Browse',
+      acceptedFiles: '.pdf,.doc,.docx,.txt',
+      multiple: true,
+      maxFiles: 10,
+      maxSize: 10 * 1024 * 1024, // 10MB
+      icon: '📄'
+    }, changeHandler);
+  }
+
+  /**
+   * Create CSV upload
+   */
+  createCSVUpload(containerId = 'csv-upload-container', changeHandler) {
+    return this.createFileUpload(containerId, {
+      id: 'csv-upload',
+      text: 'Upload CSV File',
+      acceptedFiles: '.csv,text/csv',
+      multiple: false,
+      maxSize: 50 * 1024 * 1024, // 50MB
+      icon: '📊'
+    }, changeHandler);
+  }
+
+  /**
+   * Create general file upload
+   */
+  createGeneralFileUpload(containerId = 'file-upload-container', changeHandler) {
+    return this.createFileUpload(containerId, {
+      id: 'general-upload',
+      text: 'Drag & Drop To Upload or Select to Browse',
+      acceptedFiles: '*', // Accept all files
+      multiple: true,
+      maxFiles: 20,
+      maxSize: 100 * 1024 * 1024, // 100MB
+      icon: '📁'
+    }, changeHandler);
   }
 }
 
