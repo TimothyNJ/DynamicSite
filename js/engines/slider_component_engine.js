@@ -8,7 +8,7 @@
  * component creation that meets master plan requirements.
  * 
  * Date: 21-May-2025 23:44
- * Deployment Timestamp: 20250521234420
+ * Deployment Timestamp: 20250522201023
  */
 
 class slider_component_engine {
@@ -50,7 +50,7 @@ class slider_component_engine {
     this._borderBottom = null;
     
     // Initialization timestamp for verification
-    console.log(`[slider_component_engine] Initializing slider engine [Deployment: 20250521234420]`);
+    console.log(`[slider_component_engine] Initializing slider engine [Deployment: 20250522201023]`);
   }
 
   /**
@@ -452,7 +452,7 @@ class slider_component_engine {
   }
 }
 
-// Export for use in factory
-window.slider_component_engine = slider_component_engine;
+// Export as ES6 module
+export { slider_component_engine };
 
-console.log('[slider_component_engine] Engine class loaded [Deployment: 20250521234420]');
+console.log('[slider_component_engine] Engine class loaded as ES6 module [Deployment: 20250522201023]');

@@ -5,15 +5,17 @@
  * Focuses on slider_component_engine for Phase 1 implementation.
  * 
  * Date: 21-May-2025 23:44  
- * Deployment Timestamp: 20250521234420
+ * Deployment Timestamp: 20250522201023
  */
+
+import { slider_component_engine } from '../engines/slider_component_engine.js';
 
 class ComponentFactory {
   constructor() {
     this.sliderInstances = new Map();
     this.initialized = false;
     
-    console.log('[ComponentFactory] Factory initialized for engine-based components [Deployment: 20250521234420]');
+    console.log('[ComponentFactory] Factory initialized for engine-based components [Deployment: 20250522201023]');
   }
 
   /**
@@ -28,7 +30,7 @@ class ComponentFactory {
     console.log(`[ComponentFactory] STEP 2: Container ID: ${config.containerId}`);
     console.log(`[ComponentFactory] STEP 3: Options count: ${config.options ? config.options.length : 0}`);
     
-    if (!window.slider_component_engine) {
+    if (!slider_component_engine) {
       console.error('[ComponentFactory] ERROR: slider_component_engine not available');
       return null;
     }
@@ -36,7 +38,7 @@ class ComponentFactory {
 
     try {
       console.log('[ComponentFactory] STEP 5: Creating new slider_component_engine instance...');
-      const sliderEngine = new window.slider_component_engine(config, handler);
+      const sliderEngine = new slider_component_engine(config, handler);
       console.log('[ComponentFactory] STEP 6: Engine instance created successfully');
       
       console.log('[ComponentFactory] STEP 7: Calling engine.init()...');
@@ -307,7 +309,9 @@ class ComponentFactory {
   }
 }
 
-// Create global factory instance
-window.ComponentFactory = new ComponentFactory();
+// Create and export factory instance
+const componentFactory = new ComponentFactory();
 
-console.log('[ComponentFactory] Engine-based ComponentFactory loaded [Deployment: 20250521234420]');
+export { ComponentFactory, componentFactory };
+
+console.log('[ComponentFactory] Engine-based ComponentFactory loaded as ES6 module [Deployment: 20250522201023]');
