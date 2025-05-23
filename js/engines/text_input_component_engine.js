@@ -22,7 +22,7 @@ class text_input_component_engine {
       maxLength: options.maxLength || null,
       expandable: options.expandable !== false,
       multiline: options.multiline || false,
-      minHeight: options.minHeight || '32px',
+      minHeight: options.minHeight || 'auto', // Start at natural single-line height
       maxHeight: options.maxHeight || '200px',
       storageKey: options.storageKey || null,
       ...options
@@ -63,13 +63,17 @@ class text_input_component_engine {
     // Create the appropriate element based on options
     if (this.options.multiline || this.options.expandable) {
       this.element = document.createElement('textarea');
-      this.element.rows = 1;
+      this.element.rows = 1; // Single line to start
       this.element.style.cssText = `
         resize: none;
         overflow-y: hidden;
-        min-height: ${this.options.minHeight};
         line-height: 1.4;
       `;
+      
+      // Only set min-height if explicitly provided
+      if (this.options.minHeight !== 'auto') {
+        this.element.style.minHeight = this.options.minHeight;
+      }
     } else {
       this.element = document.createElement('input');
       this.element.type = this.options.type;
@@ -260,7 +264,17 @@ class text_input_component_engine {
     
     // Calculate new height based on content
     const scrollHeight = this.element.scrollHeight;
-    const minHeight = parseInt(this.options.minHeight);
+    const computedStyle = window.getComputedStyle(this.element);
+    const lineHeight = parseFloat(computedStyle.lineHeight);
+    
+    // For auto min-height, use the natural single-line height
+    let minHeight;
+    if (this.options.minHeight === 'auto') {
+      minHeight = lineHeight + parseFloat(computedStyle.paddingTop) + parseFloat(computedStyle.paddingBottom);
+    } else {
+      minHeight = parseInt(this.options.minHeight);
+    }
+    
     const maxHeight = parseInt(this.options.maxHeight);
     
     // Clamp height between min and max

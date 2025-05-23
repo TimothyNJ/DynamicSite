@@ -297,8 +297,7 @@ class ComponentFactory {
       placeholder: 'Enter first name',
       storageKey: 'userFirstName',
       required: false,
-      expandable: true,
-      multiline: true
+      expandable: true
     });
   }
 
@@ -312,8 +311,7 @@ class ComponentFactory {
       placeholder: 'Enter last name',
       storageKey: 'userLastName',
       required: false,
-      expandable: true,
-      multiline: true
+      expandable: true
     });
   }
 
@@ -327,8 +325,7 @@ class ComponentFactory {
       placeholder: 'Enter nickname (optional)',
       storageKey: 'userNickname',
       required: false,
-      expandable: true,
-      multiline: true
+      expandable: true
     });
   }
 
@@ -357,6 +354,23 @@ class ComponentFactory {
       placeholder: 'Enter phone number',
       storageKey: 'userPhone',
       required: false
+    });
+  }
+
+  /**
+   * Create notes/bio input (example of larger starting size)
+   */
+  createNotesInput(containerId = 'notes-container') {
+    return this.createTextInput(containerId, {
+      id: 'notes',
+      name: 'notes',
+      placeholder: 'Enter notes or bio...',
+      storageKey: 'userNotes',
+      required: false,
+      expandable: true,
+      multiline: true,
+      minHeight: '80px', // Start larger for multi-line content
+      maxHeight: '300px'
     });
   }
 
