@@ -1,6 +1,6 @@
 // wheel_selector_component_engine.js
 
-export class WheelSelectorComponentEngine {
+class WheelSelectorComponentEngine {
     constructor(container, componentId, config = {}) {
         this.container = container;
         this.componentId = componentId;
@@ -56,7 +56,7 @@ export class WheelSelectorComponentEngine {
                     }
                 }
             } catch (e) {
-                console.error('[DropdownMenu] Error loading stored value:', e);
+                console.error('[WheelSelector] Error loading stored value:', e);
             }
         }
     }
@@ -707,3 +707,6 @@ export class WheelSelectorComponentEngine {
         document.head.appendChild(styles);
     }
 }
+
+// Export with snake_case name for consistency
+export { WheelSelectorComponentEngine as wheel_selector_component_engine };

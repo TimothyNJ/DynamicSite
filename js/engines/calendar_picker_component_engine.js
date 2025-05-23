@@ -1,6 +1,6 @@
 // calendar_picker_component_engine.js
 
-export class CalendarPickerComponentEngine {
+class CalendarPickerComponentEngine {
     constructor(container, componentId, config = {}) {
         this.container = container;
         this.componentId = componentId;
@@ -444,3 +444,6 @@ export class CalendarPickerComponentEngine {
         document.head.appendChild(styles);
     }
 }
+
+// Export with snake_case name for consistency
+export { CalendarPickerComponentEngine as calendar_picker_component_engine };
