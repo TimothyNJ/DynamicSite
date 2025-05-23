@@ -11,12 +11,14 @@
 import { slider_component_engine } from '../engines/slider_component_engine.js';
 import { text_input_component_engine } from '../engines/text_input_component_engine.js';
 import { button_component_engine } from '../engines/button_component_engine.js';
+import { multi_select_component_engine } from '../engines/multi_select_component_engine.js';
 
 class ComponentFactory {
   constructor() {
     this.sliderInstances = new Map();
     this.textInputInstances = new Map();
     this.buttonInstances = new Map();
+    this.multiSelectInstances = new Map();
     this.initialized = false;
     
     console.log('[ComponentFactory] Factory initialized for engine-based components [Deployment: 20250522201023]');
@@ -462,6 +464,96 @@ class ComponentFactory {
       icon: '💾',
       active: false
     }, clickHandler);
+  }
+
+  /**
+   * Create a multi-select using multi_select_component_engine
+   * 
+   * @param {string} containerId - Container element ID
+   * @param {Object} config - Multi-select configuration
+   * @param {Function} changeHandler - Change callback function
+   * @returns {Object} Multi-select engine instance
+   */
+  createMultiSelect(containerId, config, changeHandler) {
+    console.log(`[ComponentFactory] Creating multi-select in container: ${containerId}`);
+    
+    if (!multi_select_component_engine) {
+      console.error('[ComponentFactory] ERROR: multi_select_component_engine not available');
+      return null;
+    }
+    
+    try {
+      const multiSelectEngine = new multi_select_component_engine(config, changeHandler);
+      const success = multiSelectEngine.init(containerId);
+      
+      if (success) {
+        const key = config.id || config.containerClass || containerId;
+        this.multiSelectInstances.set(key, multiSelectEngine);
+        console.log(`[ComponentFactory] Multi-select created successfully: ${key}`);
+        return multiSelectEngine;
+      } else {
+        console.error(`[ComponentFactory] Failed to initialize multi-select in: ${containerId}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('[ComponentFactory] Error creating multi-select:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create notification preferences multi-select
+   */
+  createNotificationPreferences(containerId = 'notification-preferences-container') {
+    const config = {
+      id: 'notification-preferences',
+      containerClass: 'notification-selector',
+      options: [
+        { value: 'email', text: 'Email', icon: '📧' },
+        { value: 'phone', text: 'Phone', icon: '📱' },
+        { value: 'sms', text: 'SMS', icon: '💬' },
+        { value: 'push', text: 'Push', icon: '🔔' }
+      ],
+      selectedValues: ['email'], // Default to email
+      storageKey: 'userNotificationPreferences',
+      minSelection: 1 // At least one method required
+    };
+    
+    const handler = (selectedValues, toggledValue, isSelected) => {
+      console.log(`[ComponentFactory] Notification preferences updated:`, selectedValues);
+      if (toggledValue) {
+        console.log(`[ComponentFactory] ${toggledValue} ${isSelected ? 'enabled' : 'disabled'}`);
+      }
+    };
+    
+    return this.createMultiSelect(containerId, config, handler);
+  }
+
+  /**
+   * Create days of week multi-select
+   */
+  createDaysOfWeek(containerId = 'days-of-week-container') {
+    const config = {
+      id: 'days-of-week',
+      containerClass: 'days-selector',
+      options: [
+        { value: 'mon', text: 'Mon' },
+        { value: 'tue', text: 'Tue' },
+        { value: 'wed', text: 'Wed' },
+        { value: 'thu', text: 'Thu' },
+        { value: 'fri', text: 'Fri' },
+        { value: 'sat', text: 'Sat' },
+        { value: 'sun', text: 'Sun' }
+      ],
+      selectedValues: ['mon', 'tue', 'wed', 'thu', 'fri'], // Weekdays default
+      storageKey: 'userWorkDays'
+    };
+    
+    const handler = (selectedValues) => {
+      console.log(`[ComponentFactory] Work days updated:`, selectedValues);
+    };
+    
+    return this.createMultiSelect(containerId, config, handler);
   }
 
   /**

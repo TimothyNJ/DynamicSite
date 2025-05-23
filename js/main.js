@@ -14,6 +14,7 @@ console.log('[main.js] Starting application initialization [Deployment: 20250522
 import { slider_component_engine } from './engines/slider_component_engine.js';
 import { text_input_component_engine } from './engines/text_input_component_engine.js';
 import { button_component_engine } from './engines/button_component_engine.js';
+import { multi_select_component_engine } from './engines/multi_select_component_engine.js';
 import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
 import { initializeComponents } from './loader/component-loader.js';
 
@@ -21,6 +22,7 @@ import { initializeComponents } from './loader/component-loader.js';
 window.slider_component_engine = slider_component_engine;
 window.text_input_component_engine = text_input_component_engine;
 window.button_component_engine = button_component_engine;
+window.multi_select_component_engine = multi_select_component_engine;
 window.ComponentFactory = ComponentFactory;
 window.componentFactory = componentFactory;
 
