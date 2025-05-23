@@ -9,10 +9,12 @@
  */
 
 import { slider_component_engine } from '../engines/slider_component_engine.js';
+import { text_input_component_engine } from '../engines/text_input_component_engine.js';
 
 class ComponentFactory {
   constructor() {
     this.sliderInstances = new Map();
+    this.textInputInstances = new Map();
     this.initialized = false;
     
     console.log('[ComponentFactory] Factory initialized for engine-based components [Deployment: 20250522201023]');
@@ -248,6 +250,108 @@ class ComponentFactory {
     } else if (formatName === "system") {
       console.log('[ComponentFactory] Using system time format');
     }
+  }
+
+  /**
+   * Create a text input using text_input_component_engine
+   * 
+   * @param {string} containerId - Container element ID
+   * @param {Object} options - Input configuration options
+   * @param {Function} changeHandler - Change callback function
+   * @returns {Object} Text input engine instance
+   */
+  createTextInput(containerId, options = {}, changeHandler = null) {
+    console.log(`[ComponentFactory] Creating text input in container: ${containerId}`);
+    
+    if (!text_input_component_engine) {
+      console.error('[ComponentFactory] ERROR: text_input_component_engine not available');
+      return null;
+    }
+    
+    try {
+      const textInputEngine = new text_input_component_engine(options, changeHandler);
+      const element = textInputEngine.render(containerId);
+      
+      if (element) {
+        const key = options.id || containerId;
+        this.textInputInstances.set(key, textInputEngine);
+        console.log(`[ComponentFactory] Text input created successfully: ${key}`);
+        return textInputEngine;
+      } else {
+        console.error(`[ComponentFactory] Failed to render text input in: ${containerId}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('[ComponentFactory] Error creating text input:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create first name input
+   */
+  createFirstNameInput(containerId = 'first-name-container') {
+    return this.createTextInput(containerId, {
+      id: 'first-name',
+      name: 'firstName',
+      placeholder: 'Enter first name',
+      storageKey: 'userFirstName',
+      required: false
+    });
+  }
+
+  /**
+   * Create last name input
+   */
+  createLastNameInput(containerId = 'last-name-container') {
+    return this.createTextInput(containerId, {
+      id: 'last-name',
+      name: 'lastName',
+      placeholder: 'Enter last name',
+      storageKey: 'userLastName',
+      required: false
+    });
+  }
+
+  /**
+   * Create nickname input
+   */
+  createNicknameInput(containerId = 'nickname-container') {
+    return this.createTextInput(containerId, {
+      id: 'nickname',
+      name: 'nickname',
+      placeholder: 'Enter nickname (optional)',
+      storageKey: 'userNickname',
+      required: false
+    });
+  }
+
+  /**
+   * Create email input
+   */
+  createEmailInput(containerId = 'email-container') {
+    return this.createTextInput(containerId, {
+      id: 'email',
+      name: 'email',
+      type: 'email',
+      placeholder: 'Enter email',
+      storageKey: 'userEmail',
+      required: true
+    });
+  }
+
+  /**
+   * Create phone input
+   */
+  createPhoneInput(containerId = 'phone-container') {
+    return this.createTextInput(containerId, {
+      id: 'phone',
+      name: 'phone',
+      type: 'tel',
+      placeholder: 'Enter phone number',
+      storageKey: 'userPhone',
+      required: false
+    });
   }
 
   /**
