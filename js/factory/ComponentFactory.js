@@ -10,11 +10,13 @@
 
 import { slider_component_engine } from '../engines/slider_component_engine.js';
 import { text_input_component_engine } from '../engines/text_input_component_engine.js';
+import { button_component_engine } from '../engines/button_component_engine.js';
 
 class ComponentFactory {
   constructor() {
     this.sliderInstances = new Map();
     this.textInputInstances = new Map();
+    this.buttonInstances = new Map();
     this.initialized = false;
     
     console.log('[ComponentFactory] Factory initialized for engine-based components [Deployment: 20250522201023]');
@@ -372,6 +374,94 @@ class ComponentFactory {
       minHeight: '80px', // Start larger for multi-line content
       maxHeight: '300px'
     });
+  }
+
+  /**
+   * Create a button using button_component_engine
+   * 
+   * @param {string} containerId - Container element ID
+   * @param {Object} options - Button configuration options
+   * @param {Function} clickHandler - Click callback function
+   * @returns {Object} Button engine instance
+   */
+  createButton(containerId, options = {}, clickHandler = null) {
+    console.log(`[ComponentFactory] Creating button in container: ${containerId}`);
+    
+    if (!button_component_engine) {
+      console.error('[ComponentFactory] ERROR: button_component_engine not available');
+      return null;
+    }
+    
+    try {
+      const buttonEngine = new button_component_engine(options, clickHandler);
+      const element = buttonEngine.render(containerId);
+      
+      if (element) {
+        const key = options.id || containerId;
+        this.buttonInstances.set(key, buttonEngine);
+        console.log(`[ComponentFactory] Button created successfully: ${key}`);
+        return buttonEngine;
+      } else {
+        console.error(`[ComponentFactory] Failed to render button in: ${containerId}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('[ComponentFactory] Error creating button:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create submit button
+   */
+  createSubmitButton(containerId = 'submit-button-container', clickHandler) {
+    return this.createButton(containerId, {
+      id: 'submit-button',
+      text: 'Submit',
+      value: 'submit',
+      type: 'primary',
+      active: false
+    }, clickHandler);
+  }
+
+  /**
+   * Create cancel button
+   */
+  createCancelButton(containerId = 'cancel-button-container', clickHandler) {
+    return this.createButton(containerId, {
+      id: 'cancel-button',
+      text: 'Cancel',
+      value: 'cancel',
+      type: 'secondary',
+      active: false
+    }, clickHandler);
+  }
+
+  /**
+   * Create delete button
+   */
+  createDeleteButton(containerId = 'delete-button-container', clickHandler) {
+    return this.createButton(containerId, {
+      id: 'delete-button',
+      text: 'Delete',
+      value: 'delete',
+      type: 'danger',
+      active: false
+    }, clickHandler);
+  }
+
+  /**
+   * Create icon button example
+   */
+  createSaveButton(containerId = 'save-button-container', clickHandler) {
+    return this.createButton(containerId, {
+      id: 'save-button',
+      text: 'Save',
+      value: 'save',
+      type: 'primary',
+      icon: '💾',
+      active: false
+    }, clickHandler);
   }
 
   /**
