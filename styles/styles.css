@@ -68,7 +68,14 @@ body {
   padding: 0; /* Removes default padding applied by browsers */
   box-sizing: border-box; /* Includes padding and borders within the declared width and height. */
 }
-:root body,
+:root body {
+  white-space: normal; /* Allow normal text wrapping for body */
+  overflow: visible; /* Allow body to show overflow content */
+  text-overflow: clip; /* No ellipsis needed for body */
+  max-width: 100%; /* Limits the width of the element to the container's width. */
+  max-height: 100%; /* Limits the height of the element to the container's height. */
+  box-sizing: border-box; /* Ensure padding and border are included in the size limit */
+}
 :root h1,
 :root h2,
 :root h3,
@@ -301,7 +308,7 @@ body {
   background-color: transparent; /* Remove background color */
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* Start content from top instead of center */
+  justify-content: center; /* Center content vertically */
   align-items: center; /* Center content horizontally */
   overflow: visible; /* Changed from 'overflow-y: auto' - no scrolling here */
 }
@@ -317,7 +324,7 @@ body {
 :root .page-content {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   width: 100%;
 }
