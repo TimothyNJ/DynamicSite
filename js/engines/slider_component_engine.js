@@ -8,7 +8,11 @@
  * component creation that meets master plan requirements.
  * 
  * Date: 26-May-2025
- * Update: Added complete border hover animations from main branch
+ * Updates: 
+ * - Added complete border hover animations from main branch
+ * - Added MutationObserver for dynamic text changes
+ * - Added getCSSVariable utility function
+ * - Full feature parity with main branch achieved
  */
 
 class slider_component_engine {
@@ -139,6 +143,7 @@ class slider_component_engine {
       this.setupMouseEvents();
       this.setupOptionClickHandlers();
       this.setupResizeHandler();
+      this.setupMutationObserver();
       this.setupMouseTracking();
       this.startContinuousMonitoring();
       
@@ -197,6 +202,15 @@ class slider_component_engine {
       // Force reflow to apply instant position change
       void this._borderTop.offsetWidth;
     }
+  }
+
+  /**
+   * Get CSS variable value from root
+   */
+  getCSSVariable(name) {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(name)
+      .trim();
   }
 
   /**
@@ -791,6 +805,45 @@ class slider_component_engine {
       void this._selectorBackground.offsetWidth;
       this._selectorBackground.style.transition = 
         "left 0.5s cubic-bezier(0.77, 0, 0.175, 1), width 0.5s cubic-bezier(0.77, 0, 0.175, 1)";
+    });
+  }
+
+  /**
+   * Setup mutation observer to watch for text changes
+   */
+  setupMutationObserver() {
+    if (!this._options || this._options.length === 0) return;
+
+    // Create a new observer
+    const observer = new MutationObserver((mutations) => {
+      let textChanged = false;
+
+      // Check if any mutations changed the text content
+      mutations.forEach((mutation) => {
+        if (
+          mutation.type === "characterData" ||
+          mutation.type === "childList"
+        ) {
+          textChanged = true;
+        }
+      });
+
+      // If text changed, recalculate shortest width and equalize buttons
+      if (textChanged) {
+        this.equalizeButtonWidths();
+      }
+    });
+
+    // Observe all button text elements for changes
+    this._options.forEach((option) => {
+      const h3 = option.querySelector("h3");
+      if (h3) {
+        observer.observe(h3, {
+          characterData: true,
+          childList: true,
+          subtree: true,
+        });
+      }
     });
   }
 
