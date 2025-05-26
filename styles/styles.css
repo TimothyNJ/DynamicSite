@@ -301,8 +301,9 @@ body {
   background-color: transparent; /* Remove background color */
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Center content vertically */
+  justify-content: flex-start; /* Start content from top instead of center */
   align-items: center; /* Center content horizontally */
+  overflow-y: auto; /* Allow vertical scrolling when content exceeds container */
 }
 :root .virtual-page {
   display: none; /* Default state is hidden */
@@ -316,8 +317,9 @@ body {
 :root .page-content {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
+  width: 100%;
 }
 :root .bottom-buffer-bar {
   width: 100%;
