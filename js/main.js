@@ -15,6 +15,10 @@ import '../styles/slider-buttons.css';
 import './core/slider-styles.css';
 import './inputs/input-styles.css';
 
+// Import layout modules that were missing
+import { initializeBuffers } from './layout/buffers.js';
+import { updateDimensions } from './layout/dimensions.js';
+
 // Import component system modules
 import { slider_component_engine } from './engines/slider_component_engine.js';
 import { text_input_component_engine } from './engines/text_input_component_engine.js';
@@ -140,13 +144,49 @@ function getCurrentPage() {
 function initializeApp() {
   console.log('[main.js] DOM ready, initializing application');
   
-  // Initialize navigation system first
+  // Initialize layout first (this was missing!)
+  console.log('[main.js] Initializing layout system');
+  initializeBuffers();
+  updateDimensions();
+  
+  // Initialize navigation system
   console.log('[main.js] Initializing navigation system');
   initializeNavbar();
   initRouter();
   
+  // Apply saved theme preference if it exists
+  const savedTheme = localStorage.getItem("userThemePreference");
+  if (savedTheme) {
+    document.body.setAttribute(
+      "data-theme",
+      savedTheme === "system"
+        ? window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light"
+        : savedTheme
+    );
+
+    // Apply appropriate background
+    if (
+      savedTheme === "dark" ||
+      (savedTheme === "system" &&
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
+      document.body.style.backgroundImage =
+        "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
+    } else {
+      document.body.style.backgroundImage =
+        "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
+    }
+  }
+  
+  // Add resize listener for dimension updates
+  window.addEventListener("resize", updateDimensions);
+  
   // Router will handle page loading and component initialization
-  console.log('[main.js] Navigation system initialized');
+  console.log('[main.js] Application initialized');
 }
 
 // Set up initialization
@@ -156,5 +196,13 @@ if (document.readyState === 'loading') {
   // DOM already loaded
   initializeApp();
 }
+
+// Force reflow on page load to ensure proper layout calculations
+window.addEventListener("load", () => {
+  updateDimensions();
+});
+
+// Update dimensions when a page loads
+document.addEventListener("pageLoaded", updateDimensions);
 
 console.log('[main.js] Application setup complete [Deployment: 20250525224144]');
