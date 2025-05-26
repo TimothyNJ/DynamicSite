@@ -154,7 +154,7 @@ function initializeApp() {
   initializeNavbar();
   initRouter();
   
-  // Apply saved theme preference if it exists
+  // Apply saved theme preference if it exists, default to dark
   const savedTheme = localStorage.getItem("userThemePreference");
   if (savedTheme) {
     document.body.setAttribute(
@@ -166,8 +166,11 @@ function initializeApp() {
           : "light"
         : savedTheme
     );
-    // Background is now handled by CSS pseudo-element based on data-theme attribute
+  } else {
+    // No saved preference - default to dark theme
+    document.body.setAttribute("data-theme", "dark");
   }
+  // Background is now handled by CSS pseudo-element based on data-theme attribute
   
   // Add resize listener for dimension updates
   window.addEventListener("resize", updateDimensions);

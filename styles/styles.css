@@ -86,17 +86,17 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-image: linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%);
+  background-image: linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%); /* Default to dark theme */
   z-index: -1;
   pointer-events: none; /* Ensure it doesn't interfere with interactions */
 }
 
-/* Dark theme background */
+/* Dark theme background (explicit for when data-theme is set) */
 :root body[data-theme="dark"]::before {
   background-image: linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%);
 }
 
-/* Light theme background (explicit for clarity) */
+/* Light theme background */
 :root body[data-theme="light"]::before {
   background-image: linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%);
 }
