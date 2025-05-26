@@ -31,7 +31,7 @@ class ComponentFactory {
     this.wheelSelectorInstances = new Map();
     this.initialized = false;
     
-    console.log('[ComponentFactory] Factory initialized for engine-based components [Deployment: 20250522201023]');
+    console.log('[ComponentFactory] Factory initialized for engine-based components');
   }
 
   /**
@@ -1125,5 +1125,3 @@ class ComponentFactory {
 const componentFactory = new ComponentFactory();
 
 export { ComponentFactory, componentFactory };
-
-console.log('[ComponentFactory] Engine-based ComponentFactory loaded as ES6 module [Deployment: 20250522201023]');

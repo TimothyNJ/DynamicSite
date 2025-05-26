@@ -50,7 +50,7 @@ class slider_component_engine {
     this._borderBottom = null;
     
     // Initialization timestamp for verification
-    console.log(`[slider_component_engine] Initializing slider engine [Deployment: 20250522201023]`);
+    console.log(`[slider_component_engine] Initializing slider engine`);
   }
 
   /**

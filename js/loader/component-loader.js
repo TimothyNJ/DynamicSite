@@ -8,7 +8,7 @@
  * Deployment Timestamp: 20250522201023
  */
 
-console.log('[component-loader] Component loader initializing [Deployment: 20250522201023]');
+console.log('[component-loader] Component loader initializing');
 
 // Page to component mapping
 const pageComponents = {
@@ -122,4 +122,4 @@ function initializeTestSliders(factory) {
 // Export for use in pages
 export { initializeComponents, loadPageComponents };
 
-console.log('[component-loader] Component loader ready [Deployment: 20250522201023]');
+console.log('[component-loader] Component loader ready');
