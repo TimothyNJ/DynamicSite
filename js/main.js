@@ -53,11 +53,16 @@ function initializeSettingsComponents() {
     console.log('[Settings Page] Initializing demo components...');
     
     // 1. Slider demo
-    componentFactory.createSlider('demo-slider-container', {
-      id: 'demo-slider',
-      options: ['Option 1', 'Option 2', 'Option 3'],
-      defaultValue: 'Option 1',
-      onChange: (value) => console.log('[Demo] Slider selected:', value)
+    componentFactory.createSlider({
+      containerId: 'demo-slider-container',
+      sliderClass: 'demo-slider',
+      options: [
+        { text: 'Option 1', value: 'option1', position: 1, active: true },
+        { text: 'Option 2', value: 'option2', position: 2 },
+        { text: 'Option 3', value: 'option3', position: 3 }
+      ]
+    }, (selectedOption) => {
+      console.log('[Demo] Slider selected:', selectedOption.querySelector('h3').textContent);
     });
     
     // 2. Text Input demo
@@ -127,7 +132,7 @@ function initializeSettingsComponents() {
     });
     
     // 9. File Upload demo
-    componentFactory.createFileUploadInput('demo-file-upload-container', {
+    componentFactory.createFileUpload('demo-file-upload-container', {
       id: 'demo-file-upload',
       label: 'File Upload',
       onChange: (files) => console.log('[Demo] Files selected:', files)
