@@ -35,6 +35,21 @@ window.initializePageComponents = function(pageName) {
   if (pageName === 'settings') {
     // Settings page needs componentFactory which is already global
     console.log('[main.js] ComponentFactory available for settings page');
+    
+    // Call the settings page initialization function if it exists
+    if (typeof window.initializeSettingsComponents === 'function') {
+      console.log('[main.js] Calling initializeSettingsComponents');
+      window.initializeSettingsComponents();
+    } else {
+      console.log('[main.js] initializeSettingsComponents not found - waiting for page script to load');
+      // Give the page script time to load and define the function
+      setTimeout(() => {
+        if (typeof window.initializeSettingsComponents === 'function') {
+          console.log('[main.js] Calling initializeSettingsComponents after delay');
+          window.initializeSettingsComponents();
+        }
+      }, 100);
+    }
   }
   
   // Add other page-specific initialization as needed
