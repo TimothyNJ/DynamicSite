@@ -115,8 +115,8 @@ body {
   display: flex;
   flex-direction: column; /* Stack child elements vertically */
   width: 100%;
-  height: 100%;
-  overflow: auto; /* Ensure content is scrollable if necessary */
+  min-height: 100%; /* Changed from 'height: 100%' to 'min-height: 100%' */
+  overflow-y: auto; /* Changed from 'auto' to 'overflow-y: auto' for clarity */
   border-right: 1px solid royalblue;
   border-bottom: 1px solid royalblue;
   border-left: 1px solid royalblue;
@@ -279,7 +279,7 @@ body {
   display: flex;
   flex: 1; /* Allow content-wrapper to grow */
   width: 100%;
-  overflow: auto; /* Scrollable if necessary */
+  overflow: visible; /* Changed from 'auto' to 'visible' - no scrolling here */
   border: 2px solid rgb(181, 58, 230);
 }
 :root .content-buffer {
@@ -303,7 +303,7 @@ body {
   flex-direction: column;
   justify-content: flex-start; /* Start content from top instead of center */
   align-items: center; /* Center content horizontally */
-  overflow-y: auto; /* Allow vertical scrolling when content exceeds container */
+  overflow: visible; /* Changed from 'overflow-y: auto' - no scrolling here */
 }
 :root .virtual-page {
   display: none; /* Default state is hidden */
