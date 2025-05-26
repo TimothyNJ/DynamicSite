@@ -3,10 +3,10 @@
  * 
  * Engine for creating consistent text input components that match
  * the DynamicSite design language. Handles dynamic expansion,
- * localStorage persistence, and consistent styling.
+ * localStorage persistence, and sophisticated hover animations.
  * 
- * Date: 22-May-2025
- * Deployment Timestamp: [TO BE UPDATED ON DEPLOYMENT]
+ * Date: 26-May-2025
+ * Features slider-style border animations
  */
 
 class text_input_component_engine {
@@ -31,8 +31,31 @@ class text_input_component_engine {
     this.changeHandler = changeHandler;
     this.element = null;
     this.wrapper = null;
+    this.borderTop = null;
+    this.borderBottom = null;
     
-    console.log(`[text_input_component_engine] Initialized with options:`, this.options);
+    // Animation state (similar to slider)
+    this.animationState = {
+      isAnimating: false,
+      currentlyHovered: false,
+      entryDirection: null,
+      insideInput: false,
+      lastCheckTime: 0,
+      inputWidth: 0
+    };
+    
+    // Animation constants
+    this.ANIMATION_DURATION = 600; // Slightly faster than slider
+    this.MONITOR_INTERVAL = 100;
+    
+    // Global mouse tracking
+    this.globalMouseX = 0;
+    this.globalMouseY = 0;
+    
+    // Bound methods
+    this.handleMousePositionUpdate = this.handleMousePositionUpdate.bind(this);
+    
+    console.log(`[text_input_component_engine] Initialized with hover animations:`, this.options);
   }
   
   /**
@@ -51,7 +74,7 @@ class text_input_component_engine {
       return null;
     }
     
-    // Create wrapper div with minimal styling (like slider-container)
+    // Create wrapper div with border container
     this.wrapper = document.createElement('div');
     this.wrapper.className = 'dynamic-input-wrapper';
     this.wrapper.style.cssText = `
@@ -61,6 +84,59 @@ class text_input_component_engine {
       display: flex;
       justify-content: center;
     `;
+    
+    // Create border container
+    const borderContainer = document.createElement('div');
+    borderContainer.className = 'input-border-container';
+    borderContainer.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      overflow: hidden;
+      border-radius: 9999px;
+    `;
+    
+    // Create top and bottom borders
+    this.borderTop = document.createElement('div');
+    this.borderTop.className = 'input-border-segment input-border-top';
+    this.borderTop.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: linear-gradient(
+        to right,
+        var(--active-button-start),
+        var(--active-button-end)
+      );
+      transform: translateX(-100%);
+      transition: transform 0.6s cubic-bezier(0.1, 0.8, 0.2, 1);
+      width: 100%;
+    `;
+    
+    this.borderBottom = document.createElement('div');
+    this.borderBottom.className = 'input-border-segment input-border-bottom';
+    this.borderBottom.style.cssText = `
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      background: linear-gradient(
+        to right,
+        var(--active-button-start),
+        var(--active-button-end)
+      );
+      transform: translateX(-100%);
+      transition: transform 0.6s cubic-bezier(0.1, 0.8, 0.2, 1);
+      width: 100%;
+    `;
+    
+    borderContainer.appendChild(this.borderTop);
+    borderContainer.appendChild(this.borderBottom);
+    this.wrapper.appendChild(borderContainer);
     
     // Create the appropriate element based on options
     if (this.options.multiline || this.options.expandable) {
@@ -118,7 +194,12 @@ class text_input_component_engine {
       setTimeout(() => this.adjustHeight(), 0);
     }
     
-    console.log(`[text_input_component_engine] Rendered input:`, this.options.id);
+    // Setup animation systems
+    this.setupMouseTracking();
+    this.setupHoverAnimation();
+    this.startContinuousMonitoring();
+    
+    console.log(`[text_input_component_engine] Rendered input with animations:`, this.options.id);
     
     return this.element;
   }
@@ -141,7 +222,7 @@ class text_input_component_engine {
       font-weight: bold;
       color: #ffffff;
       width: 100%;
-      transition: box-shadow 0.3s ease, height 0.2s ease;
+      transition: height 0.2s ease;
       font-family: inherit;
       outline: none;
       display: block;
@@ -166,72 +247,14 @@ class text_input_component_engine {
     const observer = new MutationObserver(darkThemeCheck);
     observer.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
     
-    // Hover and focus styles via dynamic style injection
+    // Simple placeholder and scrollbar styles
     if (!document.getElementById('dynamic-input-styles')) {
       const styleSheet = document.createElement('style');
       styleSheet.id = 'dynamic-input-styles';
       styleSheet.textContent = `
-        /* Container wrapper for input */
-        .dynamic-input-wrapper {
-          position: relative;
-          overflow: visible;
-        }
-        
-        /* Border container for inputs */
-        .dynamic-input-wrapper::before,
-        .dynamic-input-wrapper::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          right: 0;
-          height: 1px;
-          background: linear-gradient(
-            to right,
-            var(--active-button-start),
-            var(--active-button-end)
-          );
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          pointer-events: none;
-        }
-        
-        .dynamic-input-wrapper::before {
-          top: 0;
-          border-radius: 9999px 9999px 0 0;
-        }
-        
-        .dynamic-input-wrapper::after {
-          bottom: 0;
-          border-radius: 0 0 9999px 9999px;
-        }
-        
-        /* Show borders on hover and focus */
-        .dynamic-input-wrapper:hover::before,
-        .dynamic-input-wrapper:hover::after,
-        .dynamic-text-input:focus ~ .dynamic-input-wrapper::before,
-        .dynamic-text-input:focus ~ .dynamic-input-wrapper::after {
-          opacity: 1;
-        }
-        
-        .dynamic-text-input:hover {
-          box-shadow: 0 0 0 1px var(--active-button-start);
-        }
-        
-        .dynamic-text-input:focus {
-          box-shadow: 0 0 0 2px var(--active-button-start);
-        }
-        
         .dynamic-text-input::placeholder {
           color: rgba(255, 255, 255, 0.5);
           font-weight: normal;
-        }
-        
-        body[data-theme="dark"] .dynamic-text-input {
-          background: linear-gradient(
-            -25deg,
-            var(--dark-slider-start) 0%,
-            var(--dark-slider-end) 100%
-          );
         }
         
         /* Scrollbar styling for expandable inputs */
@@ -247,11 +270,6 @@ class text_input_component_engine {
         .dynamic-text-input::-webkit-scrollbar-thumb {
           background: var(--active-button-start);
           border-radius: 2px;
-        }
-        
-        /* Remove textarea resize handle */
-        .dynamic-text-input {
-          resize: none;
         }
       `;
       document.head.appendChild(styleSheet);
@@ -297,14 +315,7 @@ class text_input_component_engine {
       }
     });
     
-    // Handle focus/blur for visual feedback
-    this.element.addEventListener('focus', () => {
-      console.log(`[text_input_component_engine] Input focused:`, this.options.id);
-    });
-    
-    this.element.addEventListener('blur', () => {
-      console.log(`[text_input_component_engine] Input blurred:`, this.options.id);
-    });
+    // Focus/blur are now handled in setupHoverAnimation() for border animations
   }
   
   /**
@@ -409,6 +420,191 @@ class text_input_component_engine {
     this.element = null;
     this.wrapper = null;
     console.log(`[text_input_component_engine] Destroyed:`, this.options.id);
+  }
+  
+  /**
+   * Setup mouse tracking for global position
+   */
+  setupMouseTracking() {
+    document.addEventListener('mousemove', (e) => {
+      this.globalMouseX = e.clientX;
+      this.globalMouseY = e.clientY;
+      
+      // Update position when mouse moves
+      this.handleMousePositionUpdate();
+    });
+  }
+  
+  /**
+   * Setup hover animation handlers
+   */
+  setupHoverAnimation() {
+    if (!this.wrapper) return;
+    
+    // Mouse enter
+    this.wrapper.addEventListener('mouseenter', () => {
+      this.updateInputState(true);
+    });
+    
+    // Mouse leave
+    this.wrapper.addEventListener('mouseleave', () => {
+      this.updateInputState(false);
+    });
+    
+    // Focus/blur for additional animation triggers
+    this.element.addEventListener('focus', () => {
+      // Force animation if not already hovering
+      if (!this.animationState.insideInput) {
+        this.animationState.entryDirection = 'left'; // Default for keyboard focus
+        this.animateBordersIn();
+      }
+    });
+    
+    this.element.addEventListener('blur', () => {
+      // Only animate out if not hovering
+      if (!this.animationState.insideInput) {
+        this.animateBordersOut();
+      }
+    });
+  }
+  
+  /**
+   * Handle mouse position updates
+   */
+  handleMousePositionUpdate() {
+    // Skip if we just checked recently
+    const now = Date.now();
+    if (now - this.animationState.lastCheckTime < this.MONITOR_INTERVAL) {
+      return;
+    }
+    
+    this.animationState.lastCheckTime = now;
+    
+    if (!this.wrapper) return;
+    
+    // Check if mouse is inside the input
+    const rect = this.wrapper.getBoundingClientRect();
+    const isInside = 
+      this.globalMouseX >= rect.left &&
+      this.globalMouseX <= rect.right &&
+      this.globalMouseY >= rect.top &&
+      this.globalMouseY <= rect.bottom;
+      
+    // Update state if changed
+    if (isInside !== this.animationState.insideInput) {
+      this.updateInputState(isInside);
+    }
+  }
+  
+  /**
+   * Update input hover state
+   */
+  updateInputState(isInside) {
+    this.animationState.insideInput = isInside;
+    
+    if (!this.wrapper) return;
+    
+    if (isInside) {
+      // Determine entry direction based on mouse position
+      const rect = this.wrapper.getBoundingClientRect();
+      const midpoint = rect.left + rect.width / 2;
+      const enteredFromRight = this.globalMouseX > midpoint;
+      
+      // Set direction and animate in
+      this.animationState.entryDirection = enteredFromRight ? 'right' : 'left';
+      
+      if (!this.animationState.isAnimating && !this.animationState.currentlyHovered) {
+        this.animateBordersIn();
+      }
+    } else {
+      // Animate out if not focused
+      if (!this.animationState.isAnimating && this.animationState.currentlyHovered && !this.element.matches(':focus')) {
+        this.animateBordersOut();
+      }
+    }
+  }
+  
+  /**
+   * Animate borders sliding in
+   */
+  animateBordersIn() {
+    if (!this.borderTop || !this.borderBottom || this.animationState.isAnimating) {
+      return;
+    }
+    
+    this.animationState.isAnimating = true;
+    this.animationState.currentlyHovered = true;
+    
+    // Ensure borders start from correct position
+    this.setBorderTransition(true); // Instant positioning
+    
+    if (this.animationState.entryDirection === 'left') {
+      this.borderTop.style.transform = 'translateX(-100%)';
+      this.borderBottom.style.transform = 'translateX(-100%)';
+    } else {
+      this.borderTop.style.transform = 'translateX(100%)';
+      this.borderBottom.style.transform = 'translateX(100%)';
+    }
+    
+    // Force reflow
+    void this.borderTop.offsetWidth;
+    
+    // Enable animation and slide in
+    this.setBorderTransition(false);
+    this.borderTop.style.transform = 'translateX(0)';
+    this.borderBottom.style.transform = 'translateX(0)';
+    
+    // Animation complete
+    setTimeout(() => {
+      this.animationState.isAnimating = false;
+    }, this.ANIMATION_DURATION);
+  }
+  
+  /**
+   * Animate borders sliding out
+   */
+  animateBordersOut() {
+    if (!this.borderTop || !this.borderBottom || this.animationState.isAnimating) {
+      return;
+    }
+    
+    this.animationState.isAnimating = true;
+    
+    // Slide out in the same direction they came from
+    if (this.animationState.entryDirection === 'left') {
+      this.borderTop.style.transform = 'translateX(-100%)';
+      this.borderBottom.style.transform = 'translateX(-100%)';
+    } else {
+      this.borderTop.style.transform = 'translateX(100%)';
+      this.borderBottom.style.transform = 'translateX(100%)';
+    }
+    
+    // Animation complete
+    setTimeout(() => {
+      this.animationState.isAnimating = false;
+      this.animationState.currentlyHovered = false;
+    }, this.ANIMATION_DURATION);
+  }
+  
+  /**
+   * Set border transition state
+   */
+  setBorderTransition(instant = false) {
+    if (!this.borderTop || !this.borderBottom) return;
+    
+    const transition = instant ? 'none' : 'transform 0.6s cubic-bezier(0.1, 0.8, 0.2, 1)';
+    this.borderTop.style.transition = transition;
+    this.borderBottom.style.transition = transition;
+  }
+  
+  /**
+   * Start continuous monitoring
+   */
+  startContinuousMonitoring() {
+    // Check mouse position regularly
+    setInterval(() => {
+      this.handleMousePositionUpdate();
+    }, this.MONITOR_INTERVAL);
   }
 }
 
