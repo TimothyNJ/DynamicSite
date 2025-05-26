@@ -52,7 +52,13 @@
 }
 
 /* Base slider styles - applies to all slider types */
-.slider-selector {
+.slider-selector,
+.theme-selector,
+.time-format-selector,
+.language-selector,
+.first-day-selector,
+.date-format-selector,
+.units-selector {
   display: inline-flex;
   position: relative;
   height: auto;
@@ -68,7 +74,13 @@
 }
 
 /* Dark theme slider container */
-body[data-theme="dark"] .slider-selector {
+body[data-theme="dark"] .slider-selector,
+body[data-theme="dark"] .theme-selector,
+body[data-theme="dark"] .time-format-selector,
+body[data-theme="dark"] .language-selector,
+body[data-theme="dark"] .first-day-selector,
+body[data-theme="dark"] .date-format-selector,
+body[data-theme="dark"] .units-selector {
   background: linear-gradient(
     -25deg,
     var(--dark-slider-start) 0%,
@@ -77,7 +89,13 @@ body[data-theme="dark"] .slider-selector {
 }
 
 /* Override to prevent truncation in selectors */
-.slider-selector .option h3 {
+.slider-selector .option h3,
+.theme-selector .option h3,
+.time-format-selector .option h3,
+.language-selector .option h3,
+.first-day-selector .option h3,
+.date-format-selector .option h3,
+.units-selector .option h3 {
   white-space: nowrap;
   overflow: visible;
   text-overflow: clip;
@@ -92,7 +110,13 @@ body[data-theme="dark"] .slider-selector {
 }
 
 /* Container border animation */
-.slider-selector .border-container {
+.slider-selector .border-container,
+.theme-selector .border-container,
+.time-format-selector .border-container,
+.language-selector .border-container,
+.first-day-selector .border-container,
+.date-format-selector .border-container,
+.units-selector .border-container {
   position: absolute;
   top: 0;
   left: 0;
@@ -206,25 +230,16 @@ body[data-theme="dark"] .slider-selector {
   }
 }
 
-/* Backward compatibility classes */
-/* These classes allow existing HTML to work with the new system */
-
-/* Theme selector backward compatibility */
-.theme-selector {
-  composes: slider-selector;
-}
-
-.theme-container {
-  composes: slider-container;
-}
-
-/* Time format selector backward compatibility */
-.time-format-selector {
-  composes: slider-selector;
-}
-
-.time-format-container {
-  composes: slider-container;
+/* Container compatibility classes */
+.theme-container,
+.time-format-container,
+.language-container,
+.first-day-container,
+.date-format-container,
+.units-container {
+  display: flex;
+  justify-content: center;
+  margin: 5px 0;
 }
 
 /* Animation for settings container */
@@ -293,42 +308,6 @@ body[data-theme="dark"] .text-input {
 
 .text-input::placeholder {
   color: rgba(255, 255, 255, 0.5);
-}
-
-/* Language selector compatibility */
-.language-selector {
-  composes: slider-selector;
-}
-
-.language-container {
-  composes: slider-container;
-}
-
-/* First day of week selector compatibility */
-.first-day-selector {
-  composes: slider-selector;
-}
-
-.first-day-container {
-  composes: slider-container;
-}
-
-/* Date format selector compatibility */
-.date-format-selector {
-  composes: slider-selector;
-}
-
-.date-format-container {
-  composes: slider-container;
-}
-
-/* Units selector compatibility */
-.units-selector {
-  composes: slider-selector;
-}
-
-.units-container {
-  composes: slider-container;
 }
 
 /* Option icon styling */
