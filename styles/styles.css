@@ -147,7 +147,7 @@ body {
   flex-direction: column; /* Stack child elements vertically */
   width: 100%;
   min-height: 100%; /* Changed from 'height: 100%' to 'min-height: 100%' */
-  overflow-y: auto; /* Changed from 'auto' to 'overflow-y: auto' for clarity */
+  /* Removed overflow-y: auto - let body handle scrolling */
   border-right: 1px solid royalblue;
   border-bottom: 1px solid royalblue;
   border-left: 1px solid royalblue;
@@ -169,7 +169,7 @@ body {
   background-color: black; /* Background Colour */
   border: 2px solid yellow; /* Border Colour */
   color: white; /* White Text */
-  position: sticky; /* Make navbar stick to top when scrolling */
+  position: sticky; /* Navbar sticks to top when scrolling */
   top: 0; /* Stick to top of viewport */
   z-index: 1000; /* Ensure it stays above content */
 }
