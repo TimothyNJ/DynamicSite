@@ -239,10 +239,10 @@ class ComponentFactory {
 
     if (themeName === "light") {
       body.setAttribute("data-theme", "light");
-      body.style.backgroundImage = "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
+      // Background is now handled by CSS pseudo-element
     } else if (themeName === "dark") {
       body.setAttribute("data-theme", "dark");
-      body.style.backgroundImage = "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
+      // Background is now handled by CSS pseudo-element
     } else if (themeName === "system") {
       const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
       this.applyTheme(prefersDark ? "dark" : "light");

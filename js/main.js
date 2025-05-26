@@ -5,10 +5,10 @@
  * Includes navigation system and all component engines.
  * 
  * Date: 25-May-2025 18:36
- * Deployment Timestamp: 20250525235505
+ * Deployment Timestamp: 20250526000716
  */
 
-console.log('[main.js] Starting application initialization [Deployment: 20250525235505]');
+console.log('[main.js] Starting application initialization [Deployment: 20250526000716]');
 
 // Import CSS files that were dynamically loaded in main branch
 import '../styles/slider-buttons.css';
@@ -166,20 +166,7 @@ function initializeApp() {
           : "light"
         : savedTheme
     );
-
-    // Apply appropriate background
-    if (
-      savedTheme === "dark" ||
-      (savedTheme === "system" &&
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches)
-    ) {
-      document.body.style.backgroundImage =
-        "linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)";
-    } else {
-      document.body.style.backgroundImage =
-        "linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)";
-    }
+    // Background is now handled by CSS pseudo-element based on data-theme attribute
   }
   
   // Add resize listener for dimension updates
@@ -205,4 +192,4 @@ window.addEventListener("load", () => {
 // Update dimensions when a page loads
 document.addEventListener("pageLoaded", updateDimensions);
 
-console.log('[main.js] Application setup complete [Deployment: 20250525235505]');
+console.log('[main.js] Application setup complete [Deployment: 20250526000716]');
