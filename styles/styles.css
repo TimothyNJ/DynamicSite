@@ -169,6 +169,9 @@ body {
   background-color: black; /* Background Colour */
   border: 2px solid yellow; /* Border Colour */
   color: white; /* White Text */
+  position: sticky; /* Make navbar stick to top when scrolling */
+  top: 0; /* Stick to top of viewport */
+  z-index: 1000; /* Ensure it stays above content */
 }
 :root .nav-bar .nav-container:nth-child(1),
 :root .nav-bar .nav-container:nth-child(5) {
