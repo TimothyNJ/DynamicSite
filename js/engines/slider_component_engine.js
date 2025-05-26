@@ -7,8 +7,8 @@
  * Replicates exact main branch slider behavior while providing configuration-driven
  * component creation that meets master plan requirements.
  * 
- * Date: 21-May-2025 23:44
- * Deployment Timestamp: 20250522201023
+ * Date: 26-May-2025
+ * Update: Added complete border hover animations from main branch
  */
 
 class slider_component_engine {
@@ -49,8 +49,11 @@ class slider_component_engine {
     this._borderTop = null;
     this._borderBottom = null;
     
+    // Bound methods for event listeners
+    this.handleMousePositionUpdate = this.handleMousePositionUpdate.bind(this);
+    
     // Initialization timestamp for verification
-    console.log(`[slider_component_engine] Initializing slider engine`);
+    console.log(`[slider_component_engine] Initializing slider engine with full hover animations`);
   }
 
   /**
@@ -85,99 +88,114 @@ class slider_component_engine {
    * Create slider container and inject HTML
    */
   createSliderContainer() {
-    console.log(`[slider_component_engine] CONTAINER STEP 1: Looking for container: ${this.containerId}`);
+    console.log(`[slider_component_engine] Creating container for: ${this.containerId}`);
     const container = document.getElementById(this.containerId);
     if (!container) {
       console.error(`[slider_component_engine] ERROR: Container ${this.containerId} not found in DOM`);
       return false;
     }
-    console.log(`[slider_component_engine] CONTAINER STEP 2: Container found, current children: ${container.children.length}`);
 
     // Generate and inject HTML
-    console.log('[slider_component_engine] CONTAINER STEP 3: Generating HTML...');
     const html = this.generateHTML();
-    console.log(`[slider_component_engine] CONTAINER STEP 4: Generated HTML length: ${html.length} characters`);
-    
-    console.log('[slider_component_engine] CONTAINER STEP 5: Injecting HTML into container...');
     container.innerHTML = html;
-    console.log(`[slider_component_engine] CONTAINER STEP 6: HTML injected, new children count: ${container.children.length}`);
     
     // Get reference to created slider
-    console.log(`[slider_component_engine] CONTAINER STEP 7: Looking for slider element with class: ${this.sliderClass}`);
     this.sliderElement = container.querySelector(`.slider-selector.${this.sliderClass}`);
     
     const success = this.sliderElement !== null;
-    console.log(`[slider_component_engine] CONTAINER STEP 8: Slider element found: ${success}`);
+    console.log(`[slider_component_engine] Slider element created: ${success}`);
     
     return success;
   }
 
   /**
    * Initialize slider engine with proven main branch logic
-   * Extracted from slider-buttons.js with modern wrapper
    */
   init() {
-    console.log(`[slider_component_engine] INIT STEP 1: Starting initialization for: ${this.sliderClass}`);
-    console.log(`[slider_component_engine] INIT STEP 2: Container ID: ${this.containerId}`);
+    console.log(`[slider_component_engine] Initializing: ${this.sliderClass}`);
     
     // Create HTML structure
-    console.log('[slider_component_engine] INIT STEP 3: Creating slider container...');
     if (!this.createSliderContainer()) {
-      console.error('[slider_component_engine] ERROR: Failed to create slider container');
+      console.error('[slider_component_engine] Failed to create slider container');
       return false;
     }
-    console.log('[slider_component_engine] INIT STEP 4: Slider container created successfully');
 
-    // Get element references (from slider-buttons.js pattern)
-    console.log('[slider_component_engine] INIT STEP 5: Getting element references...');
+    // Get element references
     this._themeSelector = document.querySelector(`.slider-selector.${this.sliderClass}`);
     this._selectorBackground = document.querySelector(`.slider-selector.${this.sliderClass} .selector-background`);
     this._options = document.querySelectorAll(`.slider-selector.${this.sliderClass} .option`);
     this._borderTop = document.querySelector(`.slider-selector.${this.sliderClass} .border-top`);
     this._borderBottom = document.querySelector(`.slider-selector.${this.sliderClass} .border-bottom`);
 
-    console.log(`[slider_component_engine] INIT STEP 6: Elements found:`);
-    console.log(`  - themeSelector: ${!!this._themeSelector}`);
-    console.log(`  - selectorBackground: ${!!this._selectorBackground}`);
-    console.log(`  - options count: ${this._options ? this._options.length : 0}`);
-    console.log(`  - borderTop: ${!!this._borderTop}`);
-    console.log(`  - borderBottom: ${!!this._borderBottom}`);
-
     if (!this._themeSelector) {
-      console.error(`[slider_component_engine] ERROR: Core slider element not found for ${this.sliderClass}`);
+      console.error(`[slider_component_engine] Core slider element not found for ${this.sliderClass}`);
       return false;
     }
 
     try {
       // Apply main branch initialization logic
-      console.log('[slider_component_engine] INIT STEP 7: Equalizing button widths...');
       this.equalizeButtonWidths();
-      
-      console.log('[slider_component_engine] INIT STEP 8: Initializing selector position...');
       this.initializeSelector();
-      
-      console.log('[slider_component_engine] INIT STEP 9: Setting up mouse events...');
       this.setupMouseEvents();
-      
-      console.log('[slider_component_engine] INIT STEP 10: Setting up option click handlers...');
       this.setupOptionClickHandlers();
-      
-      console.log('[slider_component_engine] INIT STEP 11: Setting up resize handler...');
       this.setupResizeHandler();
-      
-      // Start mouse tracking (from slider-buttons.js)
-      console.log('[slider_component_engine] INIT STEP 12: Setting up mouse tracking...');
       this.setupMouseTracking();
-      
-      console.log('[slider_component_engine] INIT STEP 13: Starting continuous monitoring...');
       this.startContinuousMonitoring();
       
-      console.log(`[slider_component_engine] INIT STEP 14: Initialization COMPLETE for: ${this.sliderClass}`);
+      console.log(`[slider_component_engine] Initialization complete for: ${this.sliderClass}`);
       return true;
     } catch (error) {
       console.error('[slider_component_engine] ERROR during initialization:', error);
-      console.error('[slider_component_engine] Stack trace:', error.stack);
       return false;
+    }
+  }
+
+  /**
+   * Calculate border width based on shortest text
+   */
+  calculateBorderWidth() {
+    return this.sliderState.shortestTextWidth * 0.9;
+  }
+
+  /**
+   * Calculate border position for centered placement on button
+   */
+  calculateBorderPosition(hoveredOption, selectorRect) {
+    if (!hoveredOption || !selectorRect) return 0;
+
+    const hoveredRect = hoveredOption.getBoundingClientRect();
+    const buttonLeft = hoveredRect.left - selectorRect.left;
+    const buttonCenter = buttonLeft + hoveredRect.width / 2;
+    return buttonCenter - this.calculateBorderWidth() / 2;
+  }
+
+  /**
+   * Update border transform position
+   */
+  updateBorderTransform(leftPosition) {
+    if (!this._borderTop || !this._borderBottom) return;
+
+    const transformValue = `translateX(${leftPosition}px)`;
+    this._borderTop.style.transform = transformValue;
+    this._borderBottom.style.transform = transformValue;
+  }
+
+  /**
+   * Set border transition state
+   */
+  setBorderTransition(immediate = false) {
+    if (!this._borderTop || !this._borderBottom) return;
+
+    this._borderTop.style.transition = immediate
+      ? "none"
+      : "transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)";
+    this._borderBottom.style.transition = immediate
+      ? "none"
+      : "transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)";
+
+    if (immediate) {
+      // Force reflow to apply instant position change
+      void this._borderTop.offsetWidth;
     }
   }
 
@@ -281,6 +299,9 @@ class slider_component_engine {
       activeOption.getAttribute("data-position") || "2"
     );
 
+    // Initial position of borders off-screen
+    this.resetBorderAnimation();
+
     // Restore transition after positioning
     setTimeout(() => {
       this._selectorBackground.style.transition = 
@@ -288,6 +309,300 @@ class slider_component_engine {
     }, 50);
 
     return true;
+  }
+
+  /**
+   * Reset border animation by moving borders off-screen
+   */
+  resetBorderAnimation() {
+    if (!this._themeSelector || !this._borderTop || !this._borderBottom) return;
+
+    const selectorRect = this._themeSelector.getBoundingClientRect();
+
+    // Determine the direction to position borders off-screen
+    const direction = this.sliderState.entryDirection || "left";
+
+    // Instantly position off-screen (no animation)
+    this.setBorderTransition(true);
+
+    if (direction === "left") {
+      this._borderTop.style.transform = "translateX(-100%)";
+      this._borderBottom.style.transform = "translateX(-100%)";
+    } else {
+      this._borderTop.style.transform = `translateX(${selectorRect.width}px)`;
+      this._borderBottom.style.transform = `translateX(${selectorRect.width}px)`;
+    }
+
+    // Restore transition
+    this.setBorderTransition(false);
+
+    this.sliderState.currentHoveredOption = null;
+    this.sliderState.isAnimating = false;
+    this.sliderState.buttonWidth = 0;
+  }
+
+  /**
+   * Determine animation direction based on active option and mouse position
+   */
+  getAnimationDirection() {
+    // If the right button is active (position 3), animation always starts from the right
+    if (this.sliderState.activePosition === 3) {
+      return "right";
+    }
+    // If the left button is active (position 1), animation always starts from the left
+    else if (this.sliderState.activePosition === 1) {
+      return "left";
+    }
+    // If the center button is active (position 2), determine based on mouse entry
+    else {
+      return this.sliderState.mouseEnteredFromRight ? "right" : "left";
+    }
+  }
+
+  /**
+   * Find which option the mouse is over
+   */
+  findHoveredOption(mouseX) {
+    if (!this._options) return null;
+
+    let hoveredOption = null;
+
+    this._options.forEach((option) => {
+      const rect = option.getBoundingClientRect();
+      if (mouseX >= rect.left && mouseX <= rect.right) {
+        hoveredOption = option;
+      }
+    });
+
+    return hoveredOption;
+  }
+
+  /**
+   * Animate borders in from edge
+   */
+  animateBordersIn(hoveredOption, fromDirection) {
+    if (!hoveredOption || this.sliderState.isAnimating || !this._themeSelector) {
+      return;
+    }
+
+    // If a button was just selected and we're hovering the active button, don't trigger animation
+    if (
+      this.sliderState.buttonJustSelected &&
+      hoveredOption.classList.contains("active")
+    ) {
+      return;
+    }
+
+    this.sliderState.isAnimating = true;
+    this.sliderState.entryDirection = fromDirection;
+
+    // Get dimensions
+    const selectorRect = this._themeSelector.getBoundingClientRect();
+
+    // Calculate border width and position
+    const borderWidth = this.calculateBorderWidth();
+    const borderLeft = this.calculateBorderPosition(hoveredOption, selectorRect);
+
+    // Store calculated button width for later
+    this.sliderState.buttonWidth = borderWidth;
+
+    // Set the border width to the shortest text width
+    if (this._borderTop && this._borderBottom) {
+      this._borderTop.style.width = `${borderWidth}px`;
+      this._borderBottom.style.width = `${borderWidth}px`;
+    }
+
+    // Make sure borders are positioned off-screen first
+    this.resetBorderAnimation();
+
+    // Now animate to centered position
+    this.updateBorderTransform(borderLeft);
+
+    // After animation completes
+    setTimeout(() => {
+      this.sliderState.isAnimating = false;
+
+      // If mouse has moved to a different button during animation
+      if (this.sliderState.insideSlider) {
+        const currentHoveredOption = this.findHoveredOption(this.globalMouseX);
+
+        if (currentHoveredOption && currentHoveredOption !== hoveredOption) {
+          // Animate to the current position
+          this.updateBorderPosition(this.globalMouseX);
+        }
+      } else {
+        // If mouse is no longer in the slider, animate out
+        this.animateBordersOut();
+      }
+    }, this.ANIMATION_DURATION);
+
+    // Save current hovered option
+    this.sliderState.currentHoveredOption = hoveredOption;
+  }
+
+  /**
+   * Animate borders out to edge
+   */
+  animateBordersOut() {
+    if (
+      this.sliderState.isAnimating ||
+      !this._themeSelector ||
+      !this._borderTop ||
+      !this._borderBottom
+    ) {
+      return;
+    }
+
+    this.sliderState.isAnimating = true;
+
+    const direction = this.sliderState.entryDirection;
+    const selectorRect = this._themeSelector.getBoundingClientRect();
+
+    // Animate borders off-screen in the same direction they came from
+    if (direction === "left") {
+      this._borderTop.style.transform = "translateX(-100%)";
+      this._borderBottom.style.transform = "translateX(-100%)";
+    } else {
+      this._borderTop.style.transform = `translateX(${selectorRect.width}px)`;
+      this._borderBottom.style.transform = `translateX(${selectorRect.width}px)`;
+    }
+
+    // After animation completes
+    setTimeout(() => {
+      this.sliderState.isAnimating = false;
+      this.sliderState.currentHoveredOption = null;
+    }, this.ANIMATION_DURATION);
+  }
+
+  /**
+   * Update border position based on mouse
+   */
+  updateBorderPosition(mouseX) {
+    // If animating, don't update position
+    if (this.sliderState.isAnimating || !this._themeSelector) {
+      return;
+    }
+
+    const selectorRect = this._themeSelector.getBoundingClientRect();
+
+    // Find which button the mouse is over
+    let hoveredOption = this.findHoveredOption(mouseX);
+
+    if (!hoveredOption) return;
+
+    // If a button was just selected and we're hovering the active button, don't update
+    if (
+      this.sliderState.buttonJustSelected &&
+      hoveredOption.classList.contains("active")
+    ) {
+      return;
+    }
+
+    // If we've moved to a different button
+    if (hoveredOption !== this.sliderState.currentHoveredOption) {
+      // Update the current hovered option
+      this.sliderState.currentHoveredOption = hoveredOption;
+
+      // Calculate new border position
+      const borderLeft = this.calculateBorderPosition(hoveredOption, selectorRect);
+
+      // Apply transform immediately without animation
+      this.updateBorderTransform(borderLeft);
+      return;
+    }
+
+    // For mouse following within the same button we'll center the border
+    const borderLeft = this.calculateBorderPosition(hoveredOption, selectorRect);
+
+    // Apply transform to move borders
+    this.updateBorderTransform(borderLeft);
+  }
+
+  /**
+   * Handle mouse position updates
+   */
+  handleMousePositionUpdate() {
+    // Skip if we just checked recently
+    const now = Date.now();
+    if (now - this.sliderState.lastCheckTime < this.MONITOR_INTERVAL) {
+      return;
+    }
+
+    this.sliderState.lastCheckTime = now;
+
+    if (!this._themeSelector) return;
+
+    // Check if mouse is inside the slider
+    const rect = this._themeSelector.getBoundingClientRect();
+    const isInside =
+      this.globalMouseX >= rect.left &&
+      this.globalMouseX <= rect.right &&
+      this.globalMouseY >= rect.top &&
+      this.globalMouseY <= rect.bottom;
+
+    // Update slider state if mouse state has changed
+    if (isInside !== this.sliderState.insideSlider) {
+      this.updateSliderState(isInside);
+    } else if (isInside) {
+      // When inside, keep updating border position based on mouse
+      if (!this.sliderState.isAnimating) {
+        // Get the hovered option to check if we should enable animations
+        const hoveredOption = this.findHoveredOption(this.globalMouseX);
+
+        // If a button was just selected and we're hovering the active button, don't trigger
+        if (
+          this.sliderState.buttonJustSelected &&
+          hoveredOption &&
+          hoveredOption.classList.contains("active")
+        ) {
+          return;
+        }
+
+        // Reset the buttonJustSelected flag if we hover over a non-active button
+        if (hoveredOption && !hoveredOption.classList.contains("active")) {
+          this.sliderState.buttonJustSelected = false;
+        }
+
+        this.updateBorderPosition(this.globalMouseX);
+      }
+    }
+  }
+
+  /**
+   * Update mouse state based on position
+   */
+  updateSliderState(isInside) {
+    this.sliderState.insideSlider = isInside;
+
+    if (!this._themeSelector) return;
+
+    if (isInside) {
+      const selectorRect = this._themeSelector.getBoundingClientRect();
+      const selectorMidpoint = selectorRect.left + selectorRect.width / 2;
+      this.sliderState.mouseEnteredFromRight = this.globalMouseX > selectorMidpoint;
+
+      // If borders are not animating and not visible
+      if (!this.sliderState.isAnimating && !this.sliderState.currentHoveredOption) {
+        const hoveredOption = this.findHoveredOption(this.globalMouseX);
+        if (hoveredOption) {
+          // Skip animation if a button was just selected and we're hovering the active button
+          if (
+            this.sliderState.buttonJustSelected &&
+            hoveredOption.classList.contains("active")
+          ) {
+            return;
+          }
+
+          const fromDirection = this.getAnimationDirection();
+          this.animateBordersIn(hoveredOption, fromDirection);
+        }
+      }
+    } else {
+      // If mouse left the slider and borders are visible but not animating
+      if (!this.sliderState.isAnimating && this.sliderState.currentHoveredOption) {
+        this.animateBordersOut();
+      }
+    }
   }
 
   /**
@@ -316,6 +631,26 @@ class slider_component_engine {
 
     if (option.classList.contains("active")) {
       return; // Already active
+    }
+
+    // If border is visible, make it instantly disappear instead of animating out
+    if (
+      this.sliderState.currentHoveredOption &&
+      !this.sliderState.isAnimating &&
+      this._borderTop &&
+      this._borderBottom
+    ) {
+      // Instantly remove borders (no animation)
+      this.setBorderTransition(true);
+      this._borderTop.style.transform = "translateX(-9999px)";
+      this._borderBottom.style.transform = "translateX(-9999px)";
+
+      // Reset state
+      this.sliderState.currentHoveredOption = null;
+      this.sliderState.isAnimating = false;
+
+      // Restore transition
+      this.setBorderTransition(false);
     }
 
     // Remove active class from all options
@@ -358,6 +693,9 @@ class slider_component_engine {
     // Set button just selected flag
     this.sliderState.buttonJustSelected = true;
 
+    // Recalculate shortest text width when text content changes
+    this.calculateShortestTextWidth();
+
     // Call the custom handler
     if (this.handler && typeof this.handler === "function") {
       console.log(`[slider_component_engine] Calling custom handler`);
@@ -366,28 +704,66 @@ class slider_component_engine {
   }
 
   /**
-   * Setup mouse tracking (simplified from slider-buttons.js)
+   * Setup mouse tracking (from slider-buttons.js)
    */
   setupMouseTracking() {
     document.addEventListener("mousemove", (e) => {
       this.globalMouseX = e.clientX;
       this.globalMouseY = e.clientY;
+
+      // Update mouse position every move
+      this.handleMousePositionUpdate();
     });
   }
 
   /**
-   * Setup mouse events (simplified from slider-buttons.js)
+   * Setup mouse events
    */
   setupMouseEvents() {
     if (!this._themeSelector) return;
 
     this._themeSelector.addEventListener("mouseenter", () => {
-      // Simplified hover effects - could expand with full border animations
-      console.log(`[slider_component_engine] Mouse entered slider`);
+      // Update slider state
+      this.updateSliderState(true);
+
+      // Find which option the mouse is over
+      const hoveredOption = this.findHoveredOption(this.globalMouseX);
+
+      if (hoveredOption && !this.sliderState.isAnimating) {
+        // Skip animation if a button was just selected and we're hovering the active button
+        if (
+          this.sliderState.buttonJustSelected &&
+          hoveredOption.classList.contains("active")
+        ) {
+          return;
+        }
+
+        // Determine animation direction and start animation
+        const fromDirection = this.getAnimationDirection();
+        this.animateBordersIn(hoveredOption, fromDirection);
+      }
+    });
+
+    // Track mouse movements over the entire selector
+    this._themeSelector.addEventListener("mousemove", () => {
+      // Update border position based on mouse
+      if (this.sliderState.insideSlider && !this.sliderState.isAnimating) {
+        const hoveredOption = this.findHoveredOption(this.globalMouseX);
+
+        // Always check if we're hovering a non-active button to reset the flag
+        if (hoveredOption && !hoveredOption.classList.contains("active")) {
+          this.sliderState.buttonJustSelected = false;
+        }
+
+        this.updateBorderPosition(this.globalMouseX);
+      }
     });
 
     this._themeSelector.addEventListener("mouseleave", () => {
-      console.log(`[slider_component_engine] Mouse left slider`);
+      // Update slider state
+      this.updateSliderState(false);
+
+      // Reset the buttonJustSelected flag when mouse leaves the slider
       this.sliderState.buttonJustSelected = false;
     });
   }
@@ -419,16 +795,12 @@ class slider_component_engine {
   }
 
   /**
-   * Start continuous monitoring (from slider-buttons.js)
+   * Start continuous monitoring
    */
   startContinuousMonitoring() {
+    // Check mouse position every interval
     setInterval(() => {
-      // Simplified monitoring - could expand with full hover border effects
-      const now = Date.now();
-      if (now - this.sliderState.lastCheckTime < this.MONITOR_INTERVAL) {
-        return;
-      }
-      this.sliderState.lastCheckTime = now;
+      this.handleMousePositionUpdate();
     }, this.MONITOR_INTERVAL);
   }
 
