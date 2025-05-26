@@ -8,7 +8,12 @@
  * Deployment Timestamp: 20250525183605
  */
 
-console.log('[main.js] Starting application initialization [Deployment: 20250525212322]');
+console.log('[main.js] Starting application initialization [Deployment: 20250525215338]');
+
+// Import CSS files that were dynamically loaded in main branch
+import '../styles/slider-buttons.css';
+import './core/slider-styles.css';
+import './inputs/input-styles.css';
 
 // Import component system modules
 import { slider_component_engine } from './engines/slider_component_engine.js';
@@ -152,4 +157,4 @@ if (document.readyState === 'loading') {
   initializeApp();
 }
 
-console.log('[main.js] Application setup complete [Deployment: 20250525212322]');
+console.log('[main.js] Application setup complete [Deployment: 20250525215338]');
