@@ -314,7 +314,31 @@ class slider_component_engine {
     );
 
     // Initial position of borders off-screen
-    this.resetBorderAnimation();
+    // Set initial direction based on active position for first hover
+    if (this.sliderState.activePosition === 3) {
+      this.sliderState.entryDirection = "right";
+    } else if (this.sliderState.activePosition === 1) {
+      this.sliderState.entryDirection = "left";
+    } else {
+      // For center, default to left but will be overridden by actual mouse entry
+      this.sliderState.entryDirection = "left";
+    }
+    
+    // Position borders off-screen
+    if (this._borderTop && this._borderBottom) {
+      this.setBorderTransition(true);
+      if (this.sliderState.entryDirection === "left") {
+        this._borderTop.style.transform = "translateX(-100%)";
+        this._borderBottom.style.transform = "translateX(-100%)";
+      } else {
+        const selectorRect = this._themeSelector.getBoundingClientRect();
+        this._borderTop.style.transform = `translateX(${selectorRect.width}px)`;
+        this._borderBottom.style.transform = `translateX(${selectorRect.width}px)`;
+      }
+      // Force reflow
+      void this._borderTop.offsetWidth;
+      this.setBorderTransition(false);
+    }
 
     // Restore transition after positioning
     setTimeout(() => {
@@ -333,8 +357,14 @@ class slider_component_engine {
 
     const selectorRect = this._themeSelector.getBoundingClientRect();
 
-    // Determine the direction to position borders off-screen
-    const direction = this.sliderState.entryDirection || "left";
+    // Use the current entry direction (should always be set by animateBordersIn)
+    const direction = this.sliderState.entryDirection;
+    
+    // Safety check - this should not happen with the fix above
+    if (!direction) {
+      console.warn('[slider_component_engine] resetBorderAnimation called without entryDirection set');
+      return;
+    }
 
     // Instantly position off-screen (no animation)
     this.setBorderTransition(true);
@@ -408,6 +438,8 @@ class slider_component_engine {
     }
 
     this.sliderState.isAnimating = true;
+    
+    // IMPORTANT: Set entry direction BEFORE calling resetBorderAnimation
     this.sliderState.entryDirection = fromDirection;
 
     // Get dimensions
@@ -426,7 +458,7 @@ class slider_component_engine {
       this._borderBottom.style.width = `${borderWidth}px`;
     }
 
-    // Make sure borders are positioned off-screen first
+    // Now borders will be positioned off-screen in the correct direction
     this.resetBorderAnimation();
 
     // Now animate to centered position
