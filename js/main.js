@@ -8,7 +8,7 @@
  * Deployment Timestamp: 20250525183605
  */
 
-console.log('[main.js] Starting application initialization [Deployment: 20250525205916]');
+console.log('[main.js] Starting application initialization [Deployment: 20250525212322]');
 
 // Import component system modules
 import { slider_component_engine } from './engines/slider_component_engine.js';
@@ -28,28 +28,92 @@ import { initRouter } from './navigation/router.js';
 // Make factory available for pages that need it
 window.componentFactory = componentFactory;
 
+// Define settings component initialization function
+function initializeSettingsComponents() {
+  if (!window.componentFactory) {
+    console.error('[Settings Page] ComponentFactory not available');
+    return;
+  }
+  
+  console.log('[Settings Page] Initializing all components...');
+  
+  try {
+    // Personal Info
+    componentFactory.createFirstNameInput('first-name-container');
+    componentFactory.createLastNameInput('last-name-container');
+    componentFactory.createNicknameInput('nickname-container');
+    
+    // Appearance & Language
+    componentFactory.createThemeSelector('theme-selector-container');
+    componentFactory.createLanguageSelector('language-selector-container');
+    
+    // Time & Date
+    componentFactory.createTimezoneSelector('timezone-selector-container');
+    componentFactory.createFirstDayOfWeekSelector('first-day-selector-container');
+    componentFactory.createDateFormatSelector('date-format-selector-container');
+    componentFactory.createTimeFormatSelector('time-format-selector-container');
+    
+    // Work Hours
+    componentFactory.createMorningHoursSelector('morning-hours-container');
+    componentFactory.createAfternoonHoursSelector('afternoon-hours-container');
+    
+    // Units & Currency
+    componentFactory.createCurrencySelector('currency-selector-container');
+    
+    // Units selector - create a wheel selector for metric/imperial
+    componentFactory.createWheelSelector('units-selector-container', {
+      id: 'units-selector',
+      label: 'Units of Measurement',
+      options: [
+        { value: 'metric', text: 'Metric' },
+        { value: 'imperial', text: 'Imperial' }
+      ],
+      defaultValue: 'metric',
+      storageKey: 'userUnitsPreference',
+      onChange: (value) => {
+        console.log('[Settings] Units selected:', value);
+      }
+    });
+    
+    // Contact Info
+    componentFactory.createEmailInput('email-container');
+    componentFactory.createPhoneInput('phone-container');
+    
+    // Notifications
+    componentFactory.createNotificationPreferences('notification-preferences-container');
+    
+    // Profile
+    componentFactory.createProfilePictureUpload('profile-picture-container', (files) => {
+      console.log('[Settings] Profile picture selected:', files);
+    });
+    componentFactory.createBirthdatePicker('birthdate-container');
+    
+    // Action Buttons
+    componentFactory.createSaveButton('save-button-container', () => {
+      console.log('[Settings] Save clicked - would save all settings');
+      // Here you would collect all values and save them
+    });
+    
+    componentFactory.createCancelButton('cancel-button-container', () => {
+      console.log('[Settings] Cancel clicked - would revert changes');
+      // Here you would revert any unsaved changes
+    });
+    
+    console.log('[Settings Page] All components initialized successfully');
+    
+  } catch (error) {
+    console.error('[Settings Page] Error initializing components:', error);
+  }
+}
+
 // Component initialization function for router
 window.initializePageComponents = function(pageName) {
   console.log(`[main.js] Initializing components for page: ${pageName}`);
   
   if (pageName === 'settings') {
-    // Settings page needs componentFactory which is already global
-    console.log('[main.js] ComponentFactory available for settings page');
-    
-    // Call the settings page initialization function if it exists
-    if (typeof window.initializeSettingsComponents === 'function') {
-      console.log('[main.js] Calling initializeSettingsComponents');
-      window.initializeSettingsComponents();
-    } else {
-      console.log('[main.js] initializeSettingsComponents not found - waiting for page script to load');
-      // Give the page script time to load and define the function
-      setTimeout(() => {
-        if (typeof window.initializeSettingsComponents === 'function') {
-          console.log('[main.js] Calling initializeSettingsComponents after delay');
-          window.initializeSettingsComponents();
-        }
-      }, 100);
-    }
+    // Call the settings initialization directly
+    console.log('[main.js] Initializing settings components');
+    initializeSettingsComponents();
   }
   
   // Add other page-specific initialization as needed
@@ -88,4 +152,4 @@ if (document.readyState === 'loading') {
   initializeApp();
 }
 
-console.log('[main.js] Application setup complete [Deployment: 20250525205916]');
+console.log('[main.js] Application setup complete [Deployment: 20250525212322]');
