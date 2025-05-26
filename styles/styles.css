@@ -32,6 +32,21 @@ body {
   --light-slider-end-percent: 68;
   --dark-slider-start-percent: 34;
   --dark-slider-end-percent: 68;
+  
+  /* Typography Variables for root control */
+  --h1-font-size: clamp(0.7rem, 1.6vw, 2.5rem);
+  --h2-font-size: clamp(0.6rem, 1.4vw, 2.4rem);
+  --h3-font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  --p-font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  --font-family-primary: Helvetica, Tahoma, sans-serif;
+  --h1-margin-bottom: 2rem;
+  --h2-margin-bottom: 1.5rem;
+  
+  /* Theme-specific text colors */
+  --text-color-dark: #ffffff;
+  --text-color-light: #333333;
+  --text-color-dark-secondary: rgba(255, 255, 255, 0.9);
+  --text-color-light-secondary: rgba(0, 0, 0, 0.9);
   /* Site Outer Padding Elimination */
   /* FONT */
   /* FULL SITE CONTAINER */
@@ -118,26 +133,26 @@ body {
 :root h2,
 :root h3,
 :root p {
-  font-family: Helvetica, Tahoma, sans-serif; /* Default font preferrence order */
-  color: #ffffff; /* Set white text color globally */
+  font-family: var(--font-family-primary); /* Use CSS variable for font family */
+  color: var(--text-color-dark); /* Use CSS variable for text color */
 }
 :root h1 {
-  font-size: clamp(0.7rem, 1.6vw, 2.5rem);
+  font-size: var(--h1-font-size);
   margin: calc(0.03vw + 0.03vh);
   font-weight: bold;
 }
 :root h2 {
-  font-size: clamp(0.6rem, 1.4vw, 2.4rem);
+  font-size: var(--h2-font-size);
   margin: calc(0.03vw + 0.03vh);
   font-weight: bold; /* Explicit bold styling */
 }
 :root h3 {
-  font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  font-size: var(--h3-font-size);
   margin: calc(0.03vw + 0.03vh);
   font-weight: bold; /* Explicit bold styling */
 }
 :root p {
-  font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  font-size: var(--p-font-size);
   margin: calc(0.03vw + 0.03vh);
   font-weight: normal; /* Explicit normal styling */
 }

@@ -89,9 +89,8 @@
     }
     
     .settings-container h1 {
-      font-size: 32px;
       margin-bottom: 40px;
-      color: #ffffff;
+      color: var(--text-color-dark);
     }
     
     .settings-section {
@@ -102,9 +101,8 @@
     }
     
     .settings-section h2 {
-      font-size: 20px;
       margin-bottom: 20px;
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--text-color-dark-secondary);
     }
     
     .settings-grid {
@@ -121,9 +119,9 @@
       padding-top: 40px;
     }
     
-    /* Dark theme adjustments */
+    /* Theme-specific adjustments using CSS variables */
     [data-theme="light"] .settings-container h1 {
-      color: #333;
+      color: var(--text-color-light);
     }
     
     [data-theme="light"] .settings-section {
@@ -131,7 +129,7 @@
     }
     
     [data-theme="light"] .settings-section h2 {
-      color: rgba(0, 0, 0, 0.9);
+      color: var(--text-color-light-secondary);
     }
   </style>
 </div>
