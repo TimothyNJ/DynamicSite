@@ -49,6 +49,91 @@ function initializeSettingsComponents() {
   console.log('[Settings Page] Initializing all components...');
   
   try {
+    // Demo Components - Base Models
+    console.log('[Settings Page] Initializing demo components...');
+    
+    // 1. Slider demo
+    componentFactory.createSlider('demo-slider-container', {
+      id: 'demo-slider',
+      options: ['Option 1', 'Option 2', 'Option 3'],
+      defaultValue: 'Option 1',
+      onChange: (value) => console.log('[Demo] Slider selected:', value)
+    });
+    
+    // 2. Text Input demo
+    componentFactory.createTextInput('demo-text-input-container', {
+      id: 'demo-text-input',
+      label: 'Text Input',
+      placeholder: 'Text Input',
+      onChange: (value) => console.log('[Demo] Text input:', value)
+    });
+    
+    // 3. Button demo
+    componentFactory.createButton('demo-button-container', {
+      id: 'demo-button',
+      text: 'Button',
+      onClick: () => console.log('[Demo] Button clicked')
+    });
+    
+    // 4. Wheel Selector demo (single casino-style wheel)
+    componentFactory.createWheelSelector('demo-wheel-selector-container', {
+      id: 'demo-wheel-selector',
+      label: 'Wheel Selector',
+      options: [
+        { value: 'item1', text: 'Item 1' },
+        { value: 'item2', text: 'Item 2' },
+        { value: 'item3', text: 'Item 3' },
+        { value: 'item4', text: 'Item 4' },
+        { value: 'item5', text: 'Item 5' }
+      ],
+      defaultValue: 'item1',
+      onChange: (value) => console.log('[Demo] Wheel selected:', value)
+    });
+    
+    // 5. Multi Select demo
+    componentFactory.createMultiSelect('demo-multi-select-container', {
+      id: 'demo-multi-select',
+      label: 'Multi Select',
+      options: [
+        { value: 'check1', text: 'Check 1' },
+        { value: 'check2', text: 'Check 2' },
+        { value: 'check3', text: 'Check 3' }
+      ],
+      defaultValues: ['check1'],
+      onChange: (values) => console.log('[Demo] Multi-select values:', values)
+    });
+    
+    // 6. Calendar Picker demo
+    componentFactory.createCalendarPicker('demo-calendar-picker-container', {
+      id: 'demo-calendar-picker',
+      label: 'Calendar Picker',
+      onChange: (date) => console.log('[Demo] Calendar date selected:', date)
+    });
+    
+    // 7. Wheel Time Selector demo
+    componentFactory.createWheelTimeSelector('demo-wheel-time-selector-container', {
+      id: 'demo-wheel-time-selector',
+      label: 'Time Selector',
+      defaultTime: '12:00',
+      onChange: (time) => console.log('[Demo] Time selected:', time)
+    });
+    
+    // 8. Wheel Date Picker demo
+    componentFactory.createWheelDatePicker('demo-wheel-date-picker-container', {
+      id: 'demo-wheel-date-picker',
+      label: 'Date Picker',
+      format: 'dd-mm-yyyy',
+      onChange: (date) => console.log('[Demo] Date selected:', date)
+    });
+    
+    // 9. File Upload demo
+    componentFactory.createFileUploadInput('demo-file-upload-container', {
+      id: 'demo-file-upload',
+      label: 'File Upload',
+      onChange: (files) => console.log('[Demo] Files selected:', files)
+    });
+    
+    console.log('[Settings Page] Demo components initialized');
     // Personal Info
     componentFactory.createFirstNameInput('first-name-container');
     componentFactory.createLastNameInput('last-name-container');

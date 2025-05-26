@@ -1,6 +1,68 @@
 <div class="settings-container">
   <h1>User Settings</h1>
   
+  <!-- Base Model Components Demonstration -->
+  <div class="settings-section demo-section">
+    <h2>Component Engine Base Models</h2>
+    <div class="demo-components">
+      
+      <!-- Slider Component Engine -->
+      <div class="demo-component">
+        <h3>slider_component_engine</h3>
+        <div id="demo-slider-container"></div>
+      </div>
+      
+      <!-- Text Input Component Engine -->
+      <div class="demo-component">
+        <h3>text_input_component_engine</h3>
+        <div id="demo-text-input-container"></div>
+      </div>
+      
+      <!-- Button Component Engine -->
+      <div class="demo-component">
+        <h3>button_component_engine</h3>
+        <div id="demo-button-container"></div>
+      </div>
+      
+      <!-- Wheel Selector Component Engine -->
+      <div class="demo-component">
+        <h3>wheel_selector_component_engine</h3>
+        <div id="demo-wheel-selector-container"></div>
+      </div>
+      
+      <!-- Multi Select Component Engine -->
+      <div class="demo-component">
+        <h3>multi_select_component_engine</h3>
+        <div id="demo-multi-select-container"></div>
+      </div>
+      
+      <!-- Calendar Picker Component Engine -->
+      <div class="demo-component">
+        <h3>calendar_picker_component_engine</h3>
+        <div id="demo-calendar-picker-container"></div>
+      </div>
+      
+      <!-- Wheel Time Selector Component Engine -->
+      <div class="demo-component">
+        <h3>wheel_time_selector_component_engine</h3>
+        <div id="demo-wheel-time-selector-container"></div>
+      </div>
+      
+      <!-- Wheel Date Picker Component Engine -->
+      <div class="demo-component">
+        <h3>wheel_date_picker_component_engine</h3>
+        <div id="demo-wheel-date-picker-container"></div>
+      </div>
+      
+      <!-- File Upload Input Component Engine -->
+      <div class="demo-component">
+        <h3>file_upload_input_component_engine</h3>
+        <div id="demo-file-upload-container"></div>
+      </div>
+      
+    </div>
+  </div>
+  
   <!-- Personal Info Section -->
   <div class="settings-section">
     <h2>Personal Information</h2>
@@ -130,6 +192,45 @@
     
     [data-theme="light"] .settings-section h2 {
       color: var(--text-color-light-secondary);
+    }
+    
+    /* Demo Components Styling */
+    .demo-section {
+      background: rgba(255, 255, 255, 0.02);
+      border: 2px dashed rgba(255, 255, 255, 0.2);
+    }
+    
+    .demo-components {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
+    }
+    
+    .demo-component {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .demo-component h3 {
+      font-family: monospace;
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: normal;
+      margin: 0;
+    }
+    
+    [data-theme="light"] .demo-section {
+      background: rgba(0, 0, 0, 0.02);
+      border-color: rgba(0, 0, 0, 0.2);
+    }
+    
+    [data-theme="light"] .demo-component h3 {
+      color: rgba(0, 0, 0, 0.7);
     }
   </style>
 </div>
