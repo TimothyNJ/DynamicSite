@@ -1,14 +1,14 @@
 /**
  * main.js - Webpack Entry Point
  * 
- * This file imports all ES6 modules and initializes the component system.
- * It serves as the single entry point for webpack bundling.
+ * This file imports all ES6 modules and initializes the complete SPA.
+ * Includes navigation system and all component engines.
  * 
- * Date: 22-May-2025 21:16
- * Deployment Timestamp: 20250522211634
+ * Date: 25-May-2025 18:36
+ * Deployment Timestamp: 20250525183605
  */
 
-console.log('[main.js] Starting application initialization [Deployment: 20250522211634]');
+console.log('[main.js] Starting application initialization [Deployment: 20250525183605]');
 
 // Import component system modules
 import { slider_component_engine } from './engines/slider_component_engine.js';
@@ -22,19 +22,23 @@ import { calendar_picker_component_engine } from './engines/calendar_picker_comp
 import { wheel_selector_component_engine } from './engines/wheel_selector_component_engine.js';
 import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
 import { initializeComponents } from './loader/component-loader.js';
+import { initializeNavbar } from './navigation/navbar.js';
+import { initRouter } from './navigation/router.js';
 
-// Make key components available globally for backward compatibility
-window.slider_component_engine = slider_component_engine;
-window.text_input_component_engine = text_input_component_engine;
-window.button_component_engine = button_component_engine;
-window.multi_select_component_engine = multi_select_component_engine;
-window.file_upload_input_component_engine = file_upload_input_component_engine;
-window.wheel_time_selector_component_engine = wheel_time_selector_component_engine;
-window.wheel_date_picker_component_engine = wheel_date_picker_component_engine;
-window.calendar_picker_component_engine = calendar_picker_component_engine;
-window.wheel_selector_component_engine = wheel_selector_component_engine;
-window.ComponentFactory = ComponentFactory;
+// Make factory available for pages that need it
 window.componentFactory = componentFactory;
+
+// Component initialization function for router
+window.initializePageComponents = function(pageName) {
+  console.log(`[main.js] Initializing components for page: ${pageName}`);
+  
+  if (pageName === 'settings') {
+    // Settings page needs componentFactory which is already global
+    console.log('[main.js] ComponentFactory available for settings page');
+  }
+  
+  // Add other page-specific initialization as needed
+};
 
 console.log('[main.js] ES6 modules imported successfully');
 
@@ -50,16 +54,15 @@ function getCurrentPage() {
 
 // Initialize components when DOM is ready
 function initializeApp() {
-  console.log('[main.js] DOM ready, initializing components');
-  const currentPage = getCurrentPage();
-  console.log(`[main.js] Current page: ${currentPage}`);
+  console.log('[main.js] DOM ready, initializing application');
   
-  // Initialize components for current page
-  initializeComponents(currentPage).then(() => {
-    console.log('[main.js] Component initialization complete');
-  }).catch(error => {
-    console.error('[main.js] Error during initialization:', error);
-  });
+  // Initialize navigation system first
+  console.log('[main.js] Initializing navigation system');
+  initializeNavbar();
+  initRouter();
+  
+  // Router will handle page loading and component initialization
+  console.log('[main.js] Navigation system initialized');
 }
 
 // Set up initialization
@@ -70,10 +73,4 @@ if (document.readyState === 'loading') {
   initializeApp();
 }
 
-// Handle hash changes for single-page navigation
-window.addEventListener('hashchange', () => {
-  console.log('[main.js] Hash changed, reinitializing components');
-  initializeApp();
-});
-
-console.log('[main.js] Application setup complete [Deployment: 20250522211634]');
+console.log('[main.js] Application setup complete [Deployment: 20250525183605]');

@@ -12,15 +12,6 @@ const pagePathMap = {
 // Store the active page to avoid reloading the same page
 let activePage = null;
 
-// Required resources for settings page
-const settingsResources = {
-  // Core selector system
-  selectorInit: {
-    loaded: false,
-    path: "js/selectors/selector-init.js",
-  },
-};
-
 // Initialize the router
 export function initRouter() {
   // Set up click handlers for navigation buttons
@@ -30,9 +21,6 @@ export function initRouter() {
       navigateToPage(pageName);
     });
   });
-
-  // Preload selector init in the background for faster transitions
-  preloadSelectorInit();
 
   // Load the initial page (either from URL or default to home)
   const initialPage = getPageFromURL() || "home";
@@ -52,65 +40,7 @@ function getPageFromURL() {
   return hash || null;
 }
 
-// Preload the selector init module in the background
-function preloadSelectorInit() {
-  // Create a container for preloaded resources
-  const preloadContainer = document.createElement("div");
-  preloadContainer.style.display = "none";
-  preloadContainer.id = "preloaded-resources";
-  document.body.appendChild(preloadContainer);
 
-  // Load the selector-init.js script if it's not already loaded
-  if (!document.getElementById("selector-init-script")) {
-    const script = document.createElement("script");
-    script.id = "selector-init-script";
-    script.src = settingsResources.selectorInit.path;
-
-    script.onload = () => {
-      settingsResources.selectorInit.loaded = true;
-      console.log("Selector init module preloaded");
-    };
-
-    document.body.appendChild(script);
-  } else {
-    settingsResources.selectorInit.loaded = true;
-  }
-}
-
-// Check if settings resources are loaded
-function areSettingsResourcesLoaded() {
-  return settingsResources.selectorInit.loaded;
-}
-
-// Wait for settings resources to be loaded
-function waitForSettingsResources() {
-  return new Promise((resolve) => {
-    if (areSettingsResourcesLoaded()) {
-      resolve();
-      return;
-    }
-
-    // Check every 50ms until resources are loaded
-    const checkInterval = setInterval(() => {
-      if (areSettingsResourcesLoaded()) {
-        clearInterval(checkInterval);
-        resolve();
-      }
-    }, 50);
-
-    // Timeout after 3 seconds to prevent infinite waiting
-    setTimeout(() => {
-      clearInterval(checkInterval);
-      resolve(); // Continue anyway
-    }, 3000);
-  });
-}
-
-// Load the settings resources and return a promise
-async function loadSettingsResources() {
-  // If resources are already being preloaded, wait for them
-  return waitForSettingsResources();
-}
 
 // Navigate to a specific page
 export async function navigateToPage(pageName, pushState = true) {
@@ -142,15 +72,7 @@ export async function navigateToPage(pageName, pushState = true) {
       return;
     }
 
-    // For settings page, make sure resources are loaded before showing content
-    if (pageName === "settings") {
-      // Add a loading indicator
-      contentContainer.innerHTML =
-        '<div class="loading-indicator">Loading...</div>';
 
-      // Await settings resources
-      await loadSettingsResources();
-    }
 
     // Fetch the page content
     const response = await fetch(pagePath);
@@ -173,13 +95,10 @@ export async function navigateToPage(pageName, pushState = true) {
       window.history.pushState({ page: pageName }, "", `#${pageName}`);
     }
 
-    // Trigger any page-specific initialization - REMOVED TIMEOUT
-    const pageLoadEvent = new CustomEvent("pageLoaded", {
-      detail: { pageName },
-    });
-
-    // Dispatch the event immediately without delay
-    document.dispatchEvent(pageLoadEvent);
+    // Initialize components for the loaded page
+    if (typeof window.initializePageComponents === 'function') {
+      window.initializePageComponents(pageName);
+    }
 
     // Update collapsed navbar menu
     if (typeof window.updateMenuContent === "function") {
