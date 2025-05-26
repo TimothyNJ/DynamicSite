@@ -45,7 +45,7 @@ class text_input_component_engine {
     };
     
     // Animation constants
-    this.ANIMATION_DURATION = 600; // Slightly faster than slider
+    this.ANIMATION_DURATION = 800; // Match slider exactly
     this.MONITOR_INTERVAL = 100;
     
     // Global mouse tracking
@@ -106,14 +106,14 @@ class text_input_component_engine {
       position: absolute;
       top: 0;
       left: 0;
-      height: 2px;
+      height: 1px;
       background: linear-gradient(
         to right,
         var(--active-button-start),
         var(--active-button-end)
       );
       transform: translateX(-100%);
-      transition: transform 0.6s cubic-bezier(0.1, 0.8, 0.2, 1);
+      transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1);
       width: 100%;
     `;
     
@@ -123,14 +123,14 @@ class text_input_component_engine {
       position: absolute;
       bottom: 0;
       left: 0;
-      height: 2px;
+      height: 1px;
       background: linear-gradient(
         to right,
         var(--active-button-start),
         var(--active-button-end)
       );
       transform: translateX(-100%);
-      transition: transform 0.6s cubic-bezier(0.1, 0.8, 0.2, 1);
+      transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1);
       width: 100%;
     `;
     
@@ -592,7 +592,7 @@ class text_input_component_engine {
   setBorderTransition(instant = false) {
     if (!this.borderTop || !this.borderBottom) return;
     
-    const transition = instant ? 'none' : 'transform 0.6s cubic-bezier(0.1, 0.8, 0.2, 1)';
+    const transition = instant ? 'none' : 'transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)';
     this.borderTop.style.transition = transition;
     this.borderBottom.style.transition = transition;
   }
