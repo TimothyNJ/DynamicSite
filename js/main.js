@@ -17,6 +17,9 @@ import '../styles/time-display.css';
 import './core/slider-styles.css';
 import './inputs/input-styles.css';
 
+// Import core modules
+import { globalMouseTracker } from './core/mouse-tracker.js';
+
 // Import layout modules that were missing
 import { initializeBuffers } from './layout/buffers.js';
 import { updateDimensions } from './layout/dimensions.js';
@@ -38,6 +41,9 @@ import { initRouter } from './navigation/router.js';
 
 // Make factory available for pages that need it
 window.componentFactory = componentFactory;
+
+// Ensure global mouse tracker is initialized
+console.log('[main.js] Global mouse tracker ready');
 
 // Define settings component initialization function
 function initializeSettingsComponents() {

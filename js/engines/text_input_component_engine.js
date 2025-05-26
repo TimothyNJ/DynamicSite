@@ -7,7 +7,10 @@
  * 
  * Date: 26-May-2025
  * Features slider-style border animations
+ * Updated to use global mouse tracker for performance
  */
+
+import { globalMouseTracker } from '../core/mouse-tracker.js';
 
 class text_input_component_engine {
   constructor(options = {}, changeHandler = null) {
@@ -47,10 +50,6 @@ class text_input_component_engine {
     // Animation constants
     this.ANIMATION_DURATION = 800; // Match slider exactly
     this.MONITOR_INTERVAL = 100;
-    
-    // Global mouse tracking
-    this.globalMouseX = 0;
-    this.globalMouseY = 0;
     
     // Bound methods
     this.handleMousePositionUpdate = this.handleMousePositionUpdate.bind(this);
@@ -424,15 +423,12 @@ class text_input_component_engine {
   
   /**
    * Setup mouse tracking for global position
+   * Now uses global mouse tracker instead of local tracking
    */
   setupMouseTracking() {
-    document.addEventListener('mousemove', (e) => {
-      this.globalMouseX = e.clientX;
-      this.globalMouseY = e.clientY;
-      
-      // Update position when mouse moves
-      this.handleMousePositionUpdate();
-    });
+    // No longer need to add our own mousemove listener
+    // Global mouse tracker handles this for all components
+    console.log('[text_input_component_engine] Using global mouse tracker');
   }
   
   /**
@@ -446,9 +442,22 @@ class text_input_component_engine {
       this.updateInputState(true);
     });
     
-    // Mouse leave
+    // Mouse leave - handle exit direction
     this.wrapper.addEventListener('mouseleave', () => {
-      this.updateInputState(false);
+      // Force immediate state update
+      this.animationState.insideInput = false;
+      
+      // Animate out if not focused
+      if (!this.element.matches(':focus')) {
+        // Determine exit direction based on current mouse position
+        const rect = this.wrapper.getBoundingClientRect();
+        const exitDirection = globalMouseTracker.getRelativeDirection(rect);
+        
+        // Update entry direction to exit direction for smooth animation
+        this.animationState.entryDirection = exitDirection;
+        
+        this.animateBordersOut();
+      }
     });
     
     // Focus/blur for additional animation triggers
@@ -484,11 +493,7 @@ class text_input_component_engine {
     
     // Check if mouse is inside the input
     const rect = this.wrapper.getBoundingClientRect();
-    const isInside = 
-      this.globalMouseX >= rect.left &&
-      this.globalMouseX <= rect.right &&
-      this.globalMouseY >= rect.top &&
-      this.globalMouseY <= rect.bottom;
+    const isInside = globalMouseTracker.isInsideBounds(rect);
       
     // Update state if changed
     if (isInside !== this.animationState.insideInput) {
@@ -507,11 +512,10 @@ class text_input_component_engine {
     if (isInside) {
       // Determine entry direction based on mouse position
       const rect = this.wrapper.getBoundingClientRect();
-      const midpoint = rect.left + rect.width / 2;
-      const enteredFromRight = this.globalMouseX > midpoint;
+      const direction = globalMouseTracker.getRelativeDirection(rect);
       
       // Set direction and animate in
-      this.animationState.entryDirection = enteredFromRight ? 'right' : 'left';
+      this.animationState.entryDirection = direction;
       
       if (!this.animationState.isAnimating && !this.animationState.currentlyHovered) {
         this.animateBordersIn();

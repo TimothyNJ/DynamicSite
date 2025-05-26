@@ -13,7 +13,10 @@
  * - Added MutationObserver for dynamic text changes
  * - Added getCSSVariable utility function
  * - Full feature parity with main branch achieved
+ * - Refactored to use global mouse tracker for performance
  */
+
+import { globalMouseTracker } from '../core/mouse-tracker.js';
 
 class slider_component_engine {
   constructor(options, handler) {
@@ -41,10 +44,6 @@ class slider_component_engine {
     // Animation constants (from main branch)
     this.ANIMATION_DURATION = 800;
     this.MONITOR_INTERVAL = 100;
-    
-    // Global mouse tracking
-    this.globalMouseX = 0;
-    this.globalMouseY = 0;
     
     // Element references
     this._themeSelector = null;
@@ -470,11 +469,12 @@ class slider_component_engine {
 
       // If mouse has moved to a different button during animation
       if (this.sliderState.insideSlider) {
-        const currentHoveredOption = this.findHoveredOption(this.globalMouseX);
+        const { x: mouseX } = globalMouseTracker.getPosition();
+        const currentHoveredOption = this.findHoveredOption(mouseX);
 
         if (currentHoveredOption && currentHoveredOption !== hoveredOption) {
           // Animate to the current position
-          this.updateBorderPosition(this.globalMouseX);
+          this.updateBorderPosition(mouseX);
         }
       } else {
         // If mouse is no longer in the slider, animate out
@@ -580,11 +580,7 @@ class slider_component_engine {
 
     // Check if mouse is inside the slider
     const rect = this._themeSelector.getBoundingClientRect();
-    const isInside =
-      this.globalMouseX >= rect.left &&
-      this.globalMouseX <= rect.right &&
-      this.globalMouseY >= rect.top &&
-      this.globalMouseY <= rect.bottom;
+    const isInside = globalMouseTracker.isInsideBounds(rect);
 
     // Update slider state if mouse state has changed
     if (isInside !== this.sliderState.insideSlider) {
@@ -593,7 +589,8 @@ class slider_component_engine {
       // When inside, keep updating border position based on mouse
       if (!this.sliderState.isAnimating) {
         // Get the hovered option to check if we should enable animations
-        const hoveredOption = this.findHoveredOption(this.globalMouseX);
+        const { x: mouseX } = globalMouseTracker.getPosition();
+        const hoveredOption = this.findHoveredOption(mouseX);
 
         // If a button was just selected and we're hovering the active button, don't trigger
         if (
@@ -609,7 +606,7 @@ class slider_component_engine {
           this.sliderState.buttonJustSelected = false;
         }
 
-        this.updateBorderPosition(this.globalMouseX);
+        this.updateBorderPosition(mouseX);
       }
     }
   }
@@ -624,12 +621,13 @@ class slider_component_engine {
 
     if (isInside) {
       const selectorRect = this._themeSelector.getBoundingClientRect();
-      const selectorMidpoint = selectorRect.left + selectorRect.width / 2;
-      this.sliderState.mouseEnteredFromRight = this.globalMouseX > selectorMidpoint;
+      const direction = globalMouseTracker.getRelativeDirection(selectorRect);
+      this.sliderState.mouseEnteredFromRight = direction === 'right';
 
       // If borders are not animating and not visible
       if (!this.sliderState.isAnimating && !this.sliderState.currentHoveredOption) {
-        const hoveredOption = this.findHoveredOption(this.globalMouseX);
+        const { x: mouseX } = globalMouseTracker.getPosition();
+        const hoveredOption = this.findHoveredOption(mouseX);
         if (hoveredOption) {
           // Skip animation if a button was just selected and we're hovering the active button
           if (
@@ -751,15 +749,12 @@ class slider_component_engine {
 
   /**
    * Setup mouse tracking (from slider-buttons.js)
+   * Now uses global mouse tracker instead of local tracking
    */
   setupMouseTracking() {
-    document.addEventListener("mousemove", (e) => {
-      this.globalMouseX = e.clientX;
-      this.globalMouseY = e.clientY;
-
-      // Update mouse position every move
-      this.handleMousePositionUpdate();
-    });
+    // No longer need to add our own mousemove listener
+    // Global mouse tracker handles this for all components
+    console.log('[slider_component_engine] Using global mouse tracker');
   }
 
   /**
@@ -773,7 +768,8 @@ class slider_component_engine {
       this.updateSliderState(true);
 
       // Find which option the mouse is over
-      const hoveredOption = this.findHoveredOption(this.globalMouseX);
+      const { x: mouseX } = globalMouseTracker.getPosition();
+      const hoveredOption = this.findHoveredOption(mouseX);
 
       if (hoveredOption && !this.sliderState.isAnimating) {
         // Skip animation if a button was just selected and we're hovering the active button
@@ -794,14 +790,15 @@ class slider_component_engine {
     this._themeSelector.addEventListener("mousemove", () => {
       // Update border position based on mouse
       if (this.sliderState.insideSlider && !this.sliderState.isAnimating) {
-        const hoveredOption = this.findHoveredOption(this.globalMouseX);
+        const { x: mouseX } = globalMouseTracker.getPosition();
+        const hoveredOption = this.findHoveredOption(mouseX);
 
         // Always check if we're hovering a non-active button to reset the flag
         if (hoveredOption && !hoveredOption.classList.contains("active")) {
           this.sliderState.buttonJustSelected = false;
         }
 
-        this.updateBorderPosition(this.globalMouseX);
+        this.updateBorderPosition(mouseX);
       }
     });
 
