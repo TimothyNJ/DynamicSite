@@ -70,7 +70,7 @@ class slider_component_engine {
     }).join('');
 
     return `
-      <div class="${this.sliderClass}">
+      <div class="slider-selector ${this.sliderClass}">
         <div class="border-container">
           <div class="border-segment border-top"></div>
           <div class="border-segment border-bottom"></div>
@@ -104,7 +104,7 @@ class slider_component_engine {
     
     // Get reference to created slider
     console.log(`[slider_component_engine] CONTAINER STEP 7: Looking for slider element with class: ${this.sliderClass}`);
-    this.sliderElement = container.querySelector(`.${this.sliderClass}`);
+    this.sliderElement = container.querySelector(`.slider-selector.${this.sliderClass}`);
     
     const success = this.sliderElement !== null;
     console.log(`[slider_component_engine] CONTAINER STEP 8: Slider element found: ${success}`);
@@ -130,11 +130,11 @@ class slider_component_engine {
 
     // Get element references (from slider-buttons.js pattern)
     console.log('[slider_component_engine] INIT STEP 5: Getting element references...');
-    this._themeSelector = document.querySelector(`.${this.sliderClass}`);
-    this._selectorBackground = document.querySelector(`.${this.sliderClass} .selector-background`);
-    this._options = document.querySelectorAll(`.${this.sliderClass} .option`);
-    this._borderTop = document.querySelector(`.${this.sliderClass} .border-top`);
-    this._borderBottom = document.querySelector(`.${this.sliderClass} .border-bottom`);
+    this._themeSelector = document.querySelector(`.slider-selector.${this.sliderClass}`);
+    this._selectorBackground = document.querySelector(`.slider-selector.${this.sliderClass} .selector-background`);
+    this._options = document.querySelectorAll(`.slider-selector.${this.sliderClass} .option`);
+    this._borderTop = document.querySelector(`.slider-selector.${this.sliderClass} .border-top`);
+    this._borderBottom = document.querySelector(`.slider-selector.${this.sliderClass} .border-bottom`);
 
     console.log(`[slider_component_engine] INIT STEP 6: Elements found:`);
     console.log(`  - themeSelector: ${!!this._themeSelector}`);
@@ -226,7 +226,7 @@ class slider_component_engine {
     tempSpan.style.whiteSpace = "nowrap";
 
     // Get font style from an option's h3
-    const sampleH3 = document.querySelector(`.${this.sliderClass} .option h3`);
+    const sampleH3 = document.querySelector(`.slider-selector.${this.sliderClass} .option h3`);
     if (sampleH3) {
       tempSpan.style.font = getComputedStyle(sampleH3).font;
     } else {
@@ -261,7 +261,7 @@ class slider_component_engine {
     }
 
     // Get the active option
-    const activeOption = document.querySelector(`.${this.sliderClass} .option.active`);
+    const activeOption = document.querySelector(`.slider-selector.${this.sliderClass} .option.active`);
     if (!activeOption) {
       console.warn("No active option found");
       return false;
@@ -402,7 +402,7 @@ class slider_component_engine {
       if (!this._themeSelector || !this._selectorBackground) return;
 
       // Update active button background
-      const activeOption = document.querySelector(`.${this.sliderClass} .option.active`);
+      const activeOption = document.querySelector(`.slider-selector.${this.sliderClass} .option.active`);
       if (!activeOption) return;
 
       const selectorRect = this._themeSelector.getBoundingClientRect();
