@@ -392,5 +392,3 @@ class multi_select_component_engine {
 
 // Export for ES6 modules
 export { multi_select_component_engine };
-
-console.log('[multi_select_component_engine] Engine class loaded as ES6 module');

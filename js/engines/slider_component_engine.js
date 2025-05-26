@@ -454,5 +454,3 @@ class slider_component_engine {
 
 // Export as ES6 module
 export { slider_component_engine };
-
-console.log('[slider_component_engine] Engine class loaded as ES6 module [Deployment: 20250522201023]');

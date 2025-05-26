@@ -414,5 +414,3 @@ class text_input_component_engine {
 
 // Export for ES6 modules
 export { text_input_component_engine };
-
-console.log('[text_input_component_engine] Engine class loaded as ES6 module');

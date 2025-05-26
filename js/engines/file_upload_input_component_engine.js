@@ -557,5 +557,3 @@ class file_upload_input_component_engine {
 
 // Export for ES6 modules
 export { file_upload_input_component_engine };
-
-console.log('[file_upload_input_component_engine] Engine class loaded as ES6 module');

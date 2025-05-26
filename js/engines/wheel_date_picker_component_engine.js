@@ -833,5 +833,3 @@ class wheel_date_picker_component_engine {
 
 // Export for ES6 modules
 export { wheel_date_picker_component_engine };
-
-console.log('[wheel_date_picker_component_engine] Engine class loaded as ES6 module');

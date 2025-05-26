@@ -678,5 +678,3 @@ class wheel_time_selector_component_engine {
 
 // Export for ES6 modules
 export { wheel_time_selector_component_engine };
-
-console.log('[wheel_time_selector_component_engine] Engine class loaded as ES6 module');

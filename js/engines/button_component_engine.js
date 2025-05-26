@@ -402,5 +402,3 @@ class button_component_engine {
 
 // Export for ES6 modules
 export { button_component_engine };
-
-console.log('[button_component_engine] Engine class loaded as ES6 module');
