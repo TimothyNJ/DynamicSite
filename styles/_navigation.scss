@@ -1,0 +1,185 @@
+// _navigation.scss - Navigation bar and menu styles
+// Extracted from styles.css and slider-buttons.css during consolidation
+// Created: 26-May-2025
+
+// ==============================================
+// Navigation Bar
+// ==============================================
+.nav-bar {
+  font-size: inherit;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  background-color: black;
+  border: 2px solid yellow;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  
+  // Buffer containers (1 & 5)
+  .nav-container:nth-child(1),
+  .nav-container:nth-child(5) {
+    border: 2px solid rgb(94, 255, 0);
+  }
+  
+  // Title container (2)
+  .nav-container:nth-child(2) {
+    justify-content: flex-start;
+    flex: 0 1 auto;
+    border: 2px solid green;
+  }
+  
+  // Center spacer (3)
+  .nav-container:nth-child(3) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid orange;
+    flex: 1;
+    min-width: 2vw;
+  }
+  
+  // Button container (4)
+  .nav-container:nth-child(4) {
+    font-size: inherit;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 0 1 auto;
+    border: 2px solid purple;
+    position: relative;
+    
+    button.active {
+      background-color: royalblue;
+      color: white;
+    }
+  }
+  
+  // Navigation buttons
+  button {
+    font-size: inherit;
+    flex: 0 1 auto;
+    background-color: black;
+    color: white;
+    border: 1px solid rgba(51, 51, 51, 0.729);
+    padding: 2px 2px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      cursor: pointer;
+      border: 1px solid royalblue;
+    }
+  }
+}
+
+// ==============================================
+// Collapsed Navigation (Mobile)
+// ==============================================
+.collapsed-navbar {
+  display: none;
+  
+  h3 {
+    font-size: 80%;
+    line-height: 0.9;
+  }
+}
+
+.collapsed-menu {
+  display: none;
+  flex-direction: column !important;
+  text-align: right;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: black;
+  color: white;
+  border: 1px solid rgba(51, 51, 51, 0.729);
+  border-radius: 5px;
+  padding: 0;
+  width: fit-content;
+  z-index: 9999;
+  overflow: visible;
+  font-size: inherit;
+  
+  button {
+    display: flex !important;
+    text-align: right;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    flex: 0 1 auto;
+    padding: 2px 2px;
+    background-color: black;
+    color: white;
+    border: 1px solid rgba(51, 51, 51, 0.729);
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: visible !important;
+    font-size: inherit;
+    max-width: none !important;
+    text-overflow: clip !important;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      cursor: pointer;
+      border: 1px solid royalblue;
+    }
+  }
+}
+
+// ==============================================
+// Responsive Behavior
+// ==============================================
+@media (max-width: 600px) {
+  // Hide inactive buttons on mobile
+  .nav-container:nth-child(4) button:not(.active):not(.collapsed-navbar) {
+    display: none;
+  }
+  
+  // Adjust navbar container width
+  .nav-bar .nav-container:nth-child(4) {
+    flex: 0 0 auto;
+    width: calc(50vw + 10px);
+    min-width: 20px;
+    flex-basis: content;
+  }
+  
+  // Show collapsed navbar button
+  .nav-container:nth-child(4) .collapsed-navbar {
+    display: flex;
+    margin: calc(0.03vw + 0.03vh);
+    padding: 0;
+    background-color: black;
+    color: white;
+  }
+  
+  // Keep collapsed menu width in sync
+  .collapsed-menu {
+    width: calc(50vw + 10px);
+  }
+  
+  // Show menu on hover
+  .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
+  .collapsed-menu:hover:not(.show) {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 601px) {
+  // Hide collapsed elements on desktop
+  .nav-container:nth-child(4) .collapsed-navbar,
+  .collapsed-menu {
+    display: none !important;
+  }
+}

@@ -10,12 +10,8 @@
 
 console.log('[main.js] Starting application initialization [Deployment: 20250526005128]');
 
-// Import CSS files that were dynamically loaded in main branch
-import '../styles/styles.css';  // MAIN STYLES - This was missing!
-import '../styles/slider-buttons.css';
-import '../styles/time-display.css';
-import './core/slider-styles.css';
-import './inputs/input-styles.css';
+// Import styles - Single source of truth (SCSS)
+import '../styles/styles.scss';
 
 // Import core modules
 import { globalMouseTracker } from './core/mouse-tracker.js';

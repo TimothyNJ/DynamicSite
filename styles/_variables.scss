@@ -1,0 +1,174 @@
+// _variables.scss - All CSS and SCSS variables
+// Extracted from multiple CSS files during consolidation
+// Created: 26-May-2025
+
+// ==============================================
+// Color System
+// ==============================================
+
+// Theme Colors - Page Gradients
+$light-page-start: #4b5b62;
+$light-page-end: #ffffff;
+$dark-page-start: #000000;
+$dark-page-end: #96b7c4;
+
+// Theme Colors - Slider Container Gradients
+$light-slider-start: #7c8e94; // 34% of range between light page colors
+$light-slider-end: #a0b2b8;   // 68% of range between light page colors
+$dark-slider-start: #384c59;  // 34% of range between dark page colors
+$dark-slider-end: #6c7f8b;    // 68% of range between dark page colors
+
+// Active State Colors
+$active-button-start: #6a0dad; // Purple
+$active-button-end: #4169e1;   // Royal Blue
+
+// Additional Colors (from other files)
+$nav-primary: #007bff;
+$nav-hover: #0056b3;
+$text-primary: #4a90e2;
+$text-secondary: #6c757d;
+$border-color: #e0e0e0;
+$focus-color: #0066cc;
+$error-color: #dc3545;
+$success-color: #28a745;
+
+// ==============================================
+// Spacing System
+// ==============================================
+$spacing-unit: 8px;
+$spacing-xs: $spacing-unit * 0.5;  // 4px
+$spacing-sm: $spacing-unit;        // 8px
+$spacing-md: $spacing-unit * 2;    // 16px
+$spacing-lg: $spacing-unit * 3;    // 24px
+$spacing-xl: $spacing-unit * 4;    // 32px
+
+// ==============================================
+// Typography
+// ==============================================
+$font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+$font-size-base: 16px;
+$font-size-sm: 14px;
+$font-size-lg: 18px;
+$line-height-base: 1.5;
+
+// ==============================================
+// Animation Timing
+// ==============================================
+$transition-fast: 0.2s;
+$transition-normal: 0.3s;
+$transition-slow: 0.5s;
+$transition-very-slow: 0.8s;
+$easing-default: ease;
+$easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+$easing-bounce: cubic-bezier(0.1, 0.8, 0.2, 1);
+
+// ==============================================
+// Layout
+// ==============================================
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 16px;
+$border-radius-pill: 9999px;
+
+// ==============================================
+// Z-Index Scale
+// ==============================================
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// ==============================================
+// CSS Variables (for runtime theme switching)
+// ==============================================
+:root {
+  // Layout Variables
+  --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.2)), 30vw);
+  --collapse-breakpoint: 600px;
+  --navbar-height: auto;
+  
+  // Component Variables
+  --component-spacing: 5px;
+  --component-padding: 8px 12px;
+  --component-gap: 4px;
+  --component-border-radius: 9999px;
+  --component-height: auto;
+  --border-thickness: 1px;
+  --component-font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  --component-font-weight: bold;
+  --component-text-color: #ffffff;
+  
+  // Typography Variables
+  --h1-font-size: clamp(0.7rem, 1.6vw, 2.5rem);
+  --h2-font-size: clamp(0.6rem, 1.4vw, 2.4rem);
+  --h3-font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  --p-font-size: clamp(0.5rem, 1.2vw, 2.3rem);
+  --font-family-primary: Helvetica, Tahoma, sans-serif;
+  --h1-margin-bottom: 2rem;
+  --h2-margin-bottom: 1.5rem;
+  
+  // Theme-specific text colors
+  --text-color-dark: #ffffff;
+  --text-color-light: #333333;
+  --text-color-dark-secondary: rgba(255, 255, 255, 0.9);
+  --text-color-light-secondary: rgba(0, 0, 0, 0.9);
+  
+  // Theme Colors - Page Gradients
+  --light-page-start: #{$light-page-start};
+  --light-page-end: #{$light-page-end};
+  --dark-page-start: #{$dark-page-start};
+  --dark-page-end: #{$dark-page-end};
+
+  // Theme Colors - Slider Container Gradients
+  --light-slider-start: #{$light-slider-start};
+  --light-slider-end: #{$light-slider-end};
+  --dark-slider-start: #{$dark-slider-start};
+  --dark-slider-end: #{$dark-slider-end};
+  
+  // Component container colors (alias for sliders)
+  --light-component-start: #{$light-slider-start};
+  --light-component-end: #{$light-slider-end};
+  --dark-component-start: #{$dark-slider-start};
+  --dark-component-end: #{$dark-slider-end};
+  
+  // Active State Colors
+  --active-button-start: #{$active-button-start};
+  --active-button-end: #{$active-button-end};
+  --active-element-start: #{$active-button-start};
+  --active-element-end: #{$active-button-end};
+  
+  // Percentage values for JavaScript
+  --light-slider-start-percent: 34;
+  --light-slider-end-percent: 68;
+  --dark-slider-start-percent: 34;
+  --dark-slider-end-percent: 68;
+  --light-component-start-percent: 34;
+  --light-component-end-percent: 68;
+  --dark-component-start-percent: 34;
+  --dark-component-end-percent: 68;
+  
+  // Navigation Colors
+  --nav-primary: #{$nav-primary};
+  --nav-hover: #{$nav-hover};
+  
+  // Text Colors
+  --text-primary: #{$text-primary};
+  --text-secondary: #{$text-secondary};
+  
+  // UI Colors
+  --border-color: #{$border-color};
+  --focus-color: #{$focus-color};
+  --error-color: #{$error-color};
+  --success-color: #{$success-color};
+  
+  // Spacing
+  --spacing-unit: #{$spacing-unit};
+  --spacing-xs: #{$spacing-xs};
+  --spacing-sm: #{$spacing-sm};
+  --spacing-md: #{$spacing-md};
+  --spacing-lg: #{$spacing-lg};
+  --spacing-xl: #{$spacing-xl};
+}

@@ -1,0 +1,243 @@
+// _base.scss - Base styles for body, layout, and general elements
+// Extracted from styles.css during consolidation
+// Created: 26-May-2025
+
+// ==============================================
+// Reset & Global Rules
+// ==============================================
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  position: relative;
+  
+  // Fixed background layer using pseudo-element
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%);
+    z-index: -1;
+    pointer-events: none;
+  }
+  
+  // Theme-specific backgrounds
+  &[data-theme="dark"]::before {
+    background-image: linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%);
+  }
+  
+  &[data-theme="light"]::before {
+    background-image: linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%);
+  }
+}
+
+// ==============================================
+// Typography
+// ==============================================
+h1, h2, h3, p, button, span, a {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+}
+
+h1, h2, h3, p {
+  font-family: var(--font-family-primary);
+  color: var(--text-color-dark);
+}
+
+h1 {
+  font-size: var(--h1-font-size);
+  margin: calc(0.03vw + 0.03vh);
+  font-weight: bold;
+}
+
+h2 {
+  font-size: var(--h2-font-size);
+  margin: calc(0.03vw + 0.03vh);
+  font-weight: bold;
+}
+
+h3 {
+  font-size: var(--h3-font-size);
+  margin: calc(0.03vw + 0.03vh);
+  font-weight: bold;
+}
+
+p {
+  font-size: var(--p-font-size);
+  margin: calc(0.03vw + 0.03vh);
+  font-weight: normal;
+}
+
+// ==============================================
+// Layout Structure
+// ==============================================
+.site-container {
+  font-size: inherit;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100%;
+  border-right: 1px solid royalblue;
+  border-bottom: 1px solid royalblue;
+  border-left: 1px solid royalblue;
+  
+  &.round-bottom {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+}
+
+.dimension-container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.content-wrapper {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  overflow: visible;
+  border: 2px solid rgb(181, 58, 230);
+}
+
+.content-buffer {
+  flex: 0 0 auto;
+  width: var(--side-buffer-width);
+  top: 0;
+  bottom: 0;
+  border: 2px solid rgb(94, 255, 0);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.content-container {
+  font-size: inherit;
+  flex: 1;
+  border: 2px solid green;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+}
+
+// ==============================================
+// Virtual Pages
+// ==============================================
+.virtual-page {
+  display: none;
+  
+  &.active {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.page-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+// ==============================================
+// Bottom Buffer
+// ==============================================
+.bottom-buffer-bar {
+  width: 100%;
+  height: var(--navbar-height);
+  background-color: transparent;
+  border: 2px solid yellow;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+// ==============================================
+// Utility Classes
+// ==============================================
+.border-toggle-btn {
+  margin: 10px;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  
+  &:hover {
+    background-color: #0056b3;
+  }
+}
+
+.borders-hidden *:not(button):not(.nav-bar button) {
+  border-color: transparent !important;
+}
+
+// ==============================================
+// Loading Indicator
+// ==============================================
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  width: 100%;
+  font-size: 1.2rem;
+  background-color: transparent;
+  position: relative;
+  
+  &::after {
+    content: "";
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(100, 100, 100, 0.2);
+    border-top-color: royalblue;
+    border-radius: 50%;
+    position: absolute;
+    left: calc(50% - 15px);
+    top: calc(50% + 30px);
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+// Settings container fade-in
+.settings-container {
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+.theme-selector {
+  transition: opacity 0.3s ease;
+}

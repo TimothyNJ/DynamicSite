@@ -1,0 +1,94 @@
+// _animations.scss - All animations and transitions
+// Extracted from multiple CSS files during consolidation
+// Created: 26-May-2025
+
+// ==============================================
+// Keyframe Animations
+// ==============================================
+
+// Spinner animation (loading indicators)
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// Fade in animation
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// ==============================================
+// Time Display Animations
+// ==============================================
+// Note: The actual time display digit animations will be added here
+// when we find them in the JavaScript files or other CSS files
+
+// ==============================================
+// Loading Indicators
+// ==============================================
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  width: 100%;
+  font-size: 1.2rem;
+  background-color: transparent;
+  position: relative;
+  
+  &::after {
+    content: "";
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(100, 100, 100, 0.2);
+    border-top-color: var(--active-button-end);
+    border-radius: 50%;
+    position: absolute;
+    left: calc(50% - 15px);
+    top: calc(50% + 15px);
+    animation: spin 0.5s linear infinite;
+  }
+}
+
+// ==============================================
+// Container Animations
+// ==============================================
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 5px 0;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+// ==============================================
+// Transition Utilities
+// ==============================================
+// These can be used as mixins if needed
+.transition-fast {
+  transition: all $transition-fast $easing-default;
+}
+
+.transition-normal {
+  transition: all $transition-normal $easing-default;
+}
+
+.transition-slow {
+  transition: all $transition-slow $easing-default;
+}
+
+.transition-smooth {
+  transition: all $transition-normal $easing-smooth;
+}

@@ -1,0 +1,79 @@
+// _components.scss - Generic reusable component styles
+// Extracted from component-styles.css during consolidation
+// Created: 26-May-2025
+
+// ==============================================
+// Component Base Classes
+// ==============================================
+.component-base {
+  display: inline-flex;
+  position: relative;
+  height: var(--component-height);
+  border-radius: var(--component-border-radius);
+  background: linear-gradient(
+    -25deg,
+    var(--light-component-start) 0%,
+    var(--light-component-end) 100%
+  );
+  overflow: visible;
+  padding: 0;
+  gap: var(--component-gap);
+  
+  // Dark theme styling
+  body[data-theme="dark"] & {
+    background: linear-gradient(
+      -25deg,
+      var(--dark-component-start) 0%,
+      var(--dark-component-end) 100%
+    );
+  }
+  
+  // Option text styling
+  .option h3 {
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
+    font-size: var(--component-font-size);
+    margin: 0;
+    font-weight: var(--component-font-weight);
+    position: relative;
+    z-index: 3;
+    transition: color 0.5s ease;
+    padding: 2px 8px;
+  }
+  
+  // Border container
+  .border-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    clip-path: inset(0 0 0 0 round var(--component-border-radius));
+  }
+}
+
+// ==============================================
+// Component Container
+// ==============================================
+.component-container {
+  display: flex;
+  justify-content: center;
+  margin: var(--component-spacing) 0;
+}
+
+// ==============================================
+// Settings Container
+// ==============================================
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--component-spacing);
+  margin: var(--component-spacing) 0;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+}

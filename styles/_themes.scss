@@ -1,0 +1,31 @@
+// _themes.scss - Theme-specific overrides
+// This file must be imported last to ensure overrides work properly
+// Created: 26-May-2025
+
+// ==============================================
+// Light Theme Text Colors
+// ==============================================
+body[data-theme="light"] {
+  h1, h2, h3, p {
+    color: var(--text-color-light);
+  }
+  
+  // Additional light theme overrides can go here
+}
+
+// ==============================================
+// Dark Theme Text Colors
+// ==============================================
+body[data-theme="dark"] {
+  h1, h2, h3, p {
+    color: var(--text-color-dark);
+  }
+  
+  // Additional dark theme overrides can go here
+}
+
+// ==============================================
+// Theme-specific Component Overrides
+// ==============================================
+// Add any theme-specific component styling here that needs to
+// override the base component styles
