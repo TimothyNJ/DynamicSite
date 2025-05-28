@@ -283,7 +283,15 @@ class ComponentFactory {
     }
     
     try {
-      const textInputEngine = new text_input_component_engine(options, changeHandler);
+      // Extract onChange from options for backward compatibility
+      const handler = changeHandler || options.onChange || null;
+      
+      // Create clean options without onChange to maintain separation of concerns
+      const cleanOptions = { ...options };
+      delete cleanOptions.onChange;
+      
+      // Pass handler as second parameter as expected by the engine
+      const textInputEngine = new text_input_component_engine(cleanOptions, handler);
       const element = textInputEngine.render(containerId);
       
       if (element) {
@@ -405,7 +413,15 @@ class ComponentFactory {
     }
     
     try {
-      const buttonEngine = new button_component_engine(options, clickHandler);
+      // Extract onClick from options for backward compatibility
+      const handler = clickHandler || options.onClick || null;
+      
+      // Create clean options without onClick to maintain separation of concerns
+      const cleanOptions = { ...options };
+      delete cleanOptions.onClick;
+      
+      // Pass handler as second parameter as expected by the engine
+      const buttonEngine = new button_component_engine(cleanOptions, handler);
       const element = buttonEngine.render(containerId);
       
       if (element) {
