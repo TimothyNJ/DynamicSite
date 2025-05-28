@@ -67,3 +67,64 @@
     color: rgba(255, 255, 255, 0.7);
   }
 }
+
+// ==============================================
+// Dynamic Input System (Horizontal Expansion)
+// ==============================================
+.dynamic-input-wrapper {
+  position: relative;
+  display: inline-flex;
+  min-width: max-content;
+  width: fit-content;
+  max-width: min(90%, 600px);
+  margin: 5px auto;
+  background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
+  border-radius: calc(min(9999px, 2em / var(--line-count, 1)));
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  body[data-theme="dark"] & {
+    background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
+  }
+  
+  // Ensure it's treated as a flex container
+  &[data-lines] {
+    display: inline-flex;
+  }
+}
+
+// Inner container for text
+.text-input-inner {
+  padding-inline: max(1em, 16px);
+  margin: 0.25em;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+// Update dynamic-text-input to be transparent
+.dynamic-text-input {
+  background: transparent !important;
+  border: none;
+  color: var(--text-color-dark);
+  font-size: var(--component-font-size);
+  font-weight: var(--component-font-weight);
+  font-family: var(--font-family-primary);
+  padding: 0.5em 0;
+  margin: 0;
+  resize: none;
+  overflow: hidden;
+  width: 100%;
+  line-height: 1.2;
+  text-align: center;
+  
+  // Remove default textarea styles
+  &:focus {
+    outline: none;
+  }
+  
+  // Placeholder styling with CSS variables
+  &::placeholder {
+    color: var(--text-color-dark-secondary);
+    opacity: 0.7;
+  }
+}

@@ -2,12 +2,16 @@
  * text_input_component_engine.js
  * 
  * Engine for creating consistent text input components that match
- * the DynamicSite design language. Handles dynamic expansion,
+ * the DynamicSite design language. Handles dynamic expansion (both horizontal and vertical),
  * localStorage persistence, and sophisticated hover animations.
  * 
- * Date: 26-May-2025
- * Features slider-style border animations
- * Updated to use global mouse tracker for performance
+ * Date: 27-May-2025
+ * Features: 
+ * - Slider-style border animations
+ * - Horizontal width expansion based on content
+ * - Dynamic border radius based on line count
+ * - Inner container to prevent text clipping
+ * - Global mouse tracker integration
  */
 
 import { globalMouseTracker } from '../core/mouse-tracker.js';
@@ -34,8 +38,10 @@ class text_input_component_engine {
     this.changeHandler = changeHandler;
     this.element = null;
     this.wrapper = null;
+    this.innerContainer = null;
     this.borderTop = null;
     this.borderBottom = null;
+    this.resizeObserver = null;
     
     // Animation state (similar to slider)
     this.animationState = {
@@ -47,12 +53,21 @@ class text_input_component_engine {
       inputWidth: 0
     };
     
+    // Width measurement state
+    this.widthState = {
+      measureElement: null,
+      currentLineCount: 1,
+      containerWidth: 0
+    };
+    
     // Animation constants
     this.ANIMATION_DURATION = 800; // Match slider exactly
     this.MONITOR_INTERVAL = 100;
     
     // Bound methods
     this.handleMousePositionUpdate = this.handleMousePositionUpdate.bind(this);
+    this.updateWidth = this.updateWidth.bind(this);
+    this.handleResize = this.handleResize.bind(this);
     
     console.log(`[text_input_component_engine] Initialized with hover animations:`, this.options);
   }
@@ -73,16 +88,10 @@ class text_input_component_engine {
       return null;
     }
     
-    // Create wrapper div with border container
+    // Create wrapper div with data-lines attribute
     this.wrapper = document.createElement('div');
     this.wrapper.className = 'dynamic-input-wrapper';
-    this.wrapper.style.cssText = `
-      position: relative;
-      width: 100%;
-      margin: 5px 0;
-      display: flex;
-      justify-content: center;
-    `;
+    this.wrapper.setAttribute('data-lines', '1');
     
     // Create border container
     const borderContainer = document.createElement('div');
@@ -95,7 +104,7 @@ class text_input_component_engine {
       bottom: 0;
       pointer-events: none;
       overflow: hidden;
-      border-radius: 9999px;
+      border-radius: inherit;
     `;
     
     // Create top and bottom borders
@@ -137,25 +146,17 @@ class text_input_component_engine {
     borderContainer.appendChild(this.borderBottom);
     this.wrapper.appendChild(borderContainer);
     
+    // Create inner container for text
+    this.innerContainer = document.createElement('div');
+    this.innerContainer.className = 'text-input-inner';
+    
     // Create the appropriate element based on options
     if (this.options.multiline || this.options.expandable) {
       this.element = document.createElement('textarea');
       this.element.rows = 1; // Single line to start
-      this.element.style.cssText = `
-        resize: none;
-        overflow-y: hidden;
-        line-height: 1.4;
-        text-align: ${this.options.textAlign || 'left'};
-      `;
-      
-      // Only set min-height if explicitly provided
-      if (this.options.minHeight !== 'auto') {
-        this.element.style.minHeight = this.options.minHeight;
-      }
     } else {
       this.element = document.createElement('input');
       this.element.type = this.options.type;
-      this.element.style.textAlign = this.options.textAlign || 'left';
     }
     
     // Common properties
@@ -164,9 +165,6 @@ class text_input_component_engine {
     this.element.className = 'dynamic-text-input';
     this.element.placeholder = this.options.placeholder;
     this.element.value = this.options.value;
-    
-    // Apply minimal, slider-matching styles
-    this.applyStyles();
     
     if (this.options.required) {
       this.element.required = true;
@@ -184,13 +182,24 @@ class text_input_component_engine {
     // Add event listeners
     this.attachEventListeners();
     
-    // Add to wrapper and container
-    this.wrapper.appendChild(this.element);
+    // Build DOM structure
+    this.innerContainer.appendChild(this.element);
+    this.wrapper.appendChild(this.innerContainer);
     containerEl.appendChild(this.wrapper);
     
-    // Initial height adjustment for expandable inputs
+    // Create width measurement element
+    this.createMeasurementElement();
+    
+    // Setup ResizeObserver
+    this.setupResizeObserver();
+    
+    // Initial adjustments
     if (this.options.expandable) {
-      setTimeout(() => this.adjustHeight(), 0);
+      setTimeout(() => {
+        this.adjustHeight();
+        this.updateWidth();
+        this.updateLineCount();
+      }, 0);
     }
     
     // Setup animation systems
@@ -198,80 +207,107 @@ class text_input_component_engine {
     this.setupHoverAnimation();
     this.startContinuousMonitoring();
     
-    console.log(`[text_input_component_engine] Rendered input with animations:`, this.options.id);
+    console.log(`[text_input_component_engine] Rendered input with horizontal expansion:`, this.options.id);
     
     return this.element;
   }
   
   /**
-   * Apply minimal styles matching slider aesthetic
+   * Create hidden element for measuring text width
    */
-  applyStyles() {
-    // Base styles matching slider components
-    const baseStyles = `
-      background: linear-gradient(
-        -25deg,
-        var(--light-slider-start) 0%,
-        var(--light-slider-end) 100%
-      );
-      border: none;
-      border-radius: 9999px;
-      padding: 2px 16px;
-      font-size: clamp(0.5rem, 1.2vw, 2.3rem);
-      font-weight: bold;
-      color: #ffffff;
-      width: 100%;
-      transition: height 0.2s ease;
-      font-family: inherit;
-      outline: none;
-      display: block;
+  createMeasurementElement() {
+    this.widthState.measureElement = document.createElement('div');
+    this.widthState.measureElement.style.cssText = `
+      position: absolute;
+      visibility: hidden;
+      height: auto;
+      width: auto;
+      white-space: nowrap;
+      font-size: var(--component-font-size);
+      font-weight: var(--component-font-weight);
+      font-family: var(--font-family-primary);
+      padding: 0 max(1em, 16px);
     `;
+    document.body.appendChild(this.widthState.measureElement);
+  }
+  
+  /**
+   * Update width based on content
+   */
+  updateWidth() {
+    if (!this.element || !this.widthState.measureElement || !this.wrapper) return;
     
-    // Add dark theme support
-    const darkThemeCheck = () => {
-      if (document.body.getAttribute('data-theme') === 'dark') {
-        this.element.style.background = `linear-gradient(
-          -25deg,
-          var(--dark-slider-start) 0%,
-          var(--dark-slider-end) 100%
-        )`;
+    const value = this.element.value || this.element.placeholder;
+    
+    // For multiline, measure the longest line
+    const lines = value.split('\n');
+    let maxWidth = 0;
+    
+    lines.forEach(line => {
+      this.widthState.measureElement.textContent = line || this.element.placeholder;
+      const lineWidth = this.widthState.measureElement.offsetWidth;
+      maxWidth = Math.max(maxWidth, lineWidth);
+    });
+    
+    // Add some padding for comfort
+    const desiredWidth = maxWidth + 40;
+    
+    // Get container constraints
+    const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
+    const maxAllowedWidth = Math.min(containerWidth * 0.9, 600);
+    
+    // Measure placeholder width as minimum
+    this.widthState.measureElement.textContent = this.element.placeholder;
+    const minWidth = this.widthState.measureElement.offsetWidth + 40;
+    
+    // Calculate final width
+    const finalWidth = Math.max(minWidth, Math.min(desiredWidth, maxAllowedWidth));
+    
+    // Apply width with smooth transition
+    this.wrapper.style.width = `${finalWidth}px`;
+    
+    // Update CSS variable for dynamic border radius
+    this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);
+  }
+  
+  /**
+   * Update line count for border radius calculation
+   */
+  updateLineCount() {
+    if (!this.element) return;
+    
+    // Calculate line count
+    const value = this.element.value || '';
+    const lines = value.split('\n').length;
+    
+    // Update if changed
+    if (lines !== this.widthState.currentLineCount) {
+      this.widthState.currentLineCount = lines;
+      this.wrapper.setAttribute('data-lines', lines);
+      this.wrapper.style.setProperty('--line-count', lines);
+    }
+  }
+  
+  /**
+   * Setup ResizeObserver for container width changes
+   */
+  setupResizeObserver() {
+    if (!window.ResizeObserver || !this.wrapper.parentElement) return;
+    
+    this.resizeObserver = new ResizeObserver(this.handleResize);
+    this.resizeObserver.observe(this.wrapper.parentElement);
+  }
+  
+  /**
+   * Handle container resize
+   */
+  handleResize(entries) {
+    for (let entry of entries) {
+      const newWidth = entry.contentRect.width;
+      if (newWidth !== this.widthState.containerWidth) {
+        this.widthState.containerWidth = newWidth;
+        this.updateWidth();
       }
-    };
-    
-    // Apply styles
-    this.element.style.cssText += baseStyles;
-    darkThemeCheck();
-    
-    // Watch for theme changes
-    const observer = new MutationObserver(darkThemeCheck);
-    observer.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
-    
-    // Simple placeholder and scrollbar styles
-    if (!document.getElementById('dynamic-input-styles')) {
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'dynamic-input-styles';
-      styleSheet.textContent = `
-        .dynamic-text-input::placeholder {
-          color: rgba(255, 255, 255, 0.5);
-          font-weight: normal;
-        }
-        
-        /* Scrollbar styling for expandable inputs */
-        .dynamic-text-input::-webkit-scrollbar {
-          width: 4px;
-        }
-        
-        .dynamic-text-input::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 2px;
-        }
-        
-        .dynamic-text-input::-webkit-scrollbar-thumb {
-          background: var(--active-button-start);
-          border-radius: 2px;
-        }
-      `;
-      document.head.appendChild(styleSheet);
     }
   }
   
@@ -311,10 +347,17 @@ class text_input_component_engine {
       // Handle expandable behavior
       if (this.options.expandable) {
         this.adjustHeight();
+        this.updateWidth();
+        this.updateLineCount();
       }
     });
     
-    // Focus/blur are now handled in setupHoverAnimation() for border animations
+    // Also update on focus to ensure proper width with placeholder
+    this.element.addEventListener('focus', () => {
+      if (this.options.expandable && !this.element.value) {
+        this.updateWidth();
+      }
+    });
   }
   
   /**
@@ -350,10 +393,8 @@ class text_input_component_engine {
     // Show/hide scrollbar based on content
     if (scrollHeight > maxHeight) {
       this.element.style.overflowY = 'auto';
-      this.element.style.borderRadius = '20px'; // Less rounded when scrolling
     } else {
       this.element.style.overflowY = 'hidden';
-      this.element.style.borderRadius = '9999px'; // Fully rounded when not scrolling
     }
   }
   
@@ -384,9 +425,11 @@ class text_input_component_engine {
         this.changeHandler(value, this.options.id);
       }
       
-      // Adjust height if expandable
+      // Adjust height and width if expandable
       if (this.options.expandable) {
         this.adjustHeight();
+        this.updateWidth();
+        this.updateLineCount();
       }
     }
   }
@@ -413,11 +456,26 @@ class text_input_component_engine {
    * Destroy the component and clean up
    */
   destroy() {
+    // Clean up ResizeObserver
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+    
+    // Clean up measurement element
+    if (this.widthState.measureElement && this.widthState.measureElement.parentNode) {
+      this.widthState.measureElement.parentNode.removeChild(this.widthState.measureElement);
+    }
+    
+    // Clean up main elements
     if (this.wrapper && this.wrapper.parentNode) {
       this.wrapper.parentNode.removeChild(this.wrapper);
     }
+    
     this.element = null;
     this.wrapper = null;
+    this.innerContainer = null;
+    
     console.log(`[text_input_component_engine] Destroyed:`, this.options.id);
   }
   
