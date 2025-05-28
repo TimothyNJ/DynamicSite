@@ -72,6 +72,7 @@ function initializeSettingsComponents() {
       id: 'demo-text-input',
       label: 'Text Input',
       placeholder: 'Text Input',
+      expandable: true,
       onChange: (value) => console.log('[Demo] Text input:', value)
     });
     
