@@ -77,6 +77,7 @@
   margin: 0; // No auto centering - fill available width
   padding: var(--component-spacing) 0; // Minimal vertical padding only
   box-sizing: border-box;
+  border: 1px solid red; // Temporary for visualization
   
   // Direct h1 and h2 children
   > h1 {
@@ -100,11 +101,13 @@
   flex-wrap: wrap;
   gap: var(--component-spacing);
   width: 100%;
+  border: 1px solid blue; // Temporary for visualization
   
   > div {
     flex: 1 1 300px; // Grow/shrink with 300px base
     display: flex;
     justify-content: center;
+    border: 1px solid cyan; // Temporary for visualization
   }
 }
 
@@ -120,6 +123,7 @@
   flex-direction: column;
   gap: calc(var(--component-spacing) * 2);
   width: 100%;
+  border: 1px solid orange; // Temporary for visualization
 }
 
 .demo-component {
@@ -127,6 +131,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--component-spacing);
+  border: 1px solid yellow; // Temporary for visualization
   
   > h3 {
     margin: 0; // Reset default margin
@@ -136,5 +141,6 @@
   > div {
     display: flex;
     justify-content: center;
+    border: 1px solid lime; // Temporary for visualization
   }
 }
