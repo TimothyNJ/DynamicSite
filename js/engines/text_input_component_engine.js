@@ -284,31 +284,13 @@ class text_input_component_engine {
     const desiredWidth = baseWidth + totalPadding + cursorBuffer;
     
     // Set the actual width based on content
-    // Get container constraints - look for the settings container or content container
-    let measureContainer = this.wrapper.parentElement;
-    
-    // Walk up the DOM tree to find a more appropriate container to measure
-    while (measureContainer && measureContainer.offsetWidth < 500) {
-      const parent = measureContainer.parentElement;
-      if (!parent) break;
-      
-      // Stop at settings-container or content-container
-      if (parent.classList.contains('settings-container') || 
-          parent.classList.contains('content-container') ||
-          parent.classList.contains('settings-grid')) {
-        measureContainer = parent;
-        break;
-      }
-      
-      measureContainer = parent;
-    }
-    
-    const containerWidth = measureContainer ? measureContainer.offsetWidth : window.innerWidth;
+    // Get container constraints
+    const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
     
     // Debug logging to see what container we're measuring
-    console.log(`[${this.options.id}] Measuring against:`, measureContainer);
-    console.log(`[${this.options.id}] Container class:`, measureContainer?.className);
-    console.log(`[${this.options.id}] Container width:`, containerWidth);
+    console.log(`[${this.options.id}] Parent element:`, this.wrapper.parentElement);
+    console.log(`[${this.options.id}] Parent class:`, this.wrapper.parentElement?.className);
+    console.log(`[${this.options.id}] Parent width:`, containerWidth);
     const maxAllowedWidth = containerWidth * 0.9;
     
     // Calculate minimum width
@@ -324,7 +306,9 @@ class text_input_component_engine {
     this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);
     
     // Debug logging
-    console.log(`[updateWidth] Text length: ${singleLineText.length} chars, Width: ${textWidth}px + ${totalPadding}px padding = ${desiredWidth}px → ${finalWidth}px`);
+    console.log(`[updateWidth] Text length: ${singleLineText.length} chars, Width: ${textWidth}px + ${totalPadding}px padding = ${desiredWidth}px`);
+    console.log(`[updateWidth] Container width: ${containerWidth}px, Max allowed: ${maxAllowedWidth}px`);
+    console.log(`[updateWidth] Final width will be: ${finalWidth}px`);
   }
   
   /**
