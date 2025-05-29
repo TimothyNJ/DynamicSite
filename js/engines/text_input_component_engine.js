@@ -286,6 +286,11 @@ class text_input_component_engine {
     // Set the actual width based on content
     // Get container constraints
     const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
+    
+    // Debug logging to see what container we're measuring
+    console.log(`[${this.options.id}] Parent element:`, this.wrapper.parentElement);
+    console.log(`[${this.options.id}] Parent class:`, this.wrapper.parentElement?.className);
+    console.log(`[${this.options.id}] Parent width:`, containerWidth);
     const maxAllowedWidth = containerWidth * 0.9;
     
     // Calculate minimum width

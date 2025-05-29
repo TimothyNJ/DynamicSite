@@ -97,6 +97,11 @@ class slider_component_engine {
       console.error(`[slider_component_engine] ERROR: Container ${this.containerId} not found in DOM`);
       return false;
     }
+    
+    // Debug logging to see what container we're in
+    console.log(`[${this.containerId}] Parent element:`, container.parentElement);
+    console.log(`[${this.containerId}] Parent class:`, container.parentElement?.className);
+    console.log(`[${this.containerId}] Parent width:`, container.parentElement?.offsetWidth);
 
     // Generate and inject HTML
     const html = this.generateHTML();
