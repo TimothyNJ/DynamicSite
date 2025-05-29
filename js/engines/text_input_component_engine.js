@@ -255,17 +255,13 @@ class text_input_component_engine {
     const hasValue = this.element.value && this.element.value.trim().length > 0;
     const textToMeasure = hasValue ? this.element.value : this.element.placeholder;
     
-    // For multiline, measure the longest line
-    const lines = textToMeasure.split('\n');
-    let maxTextWidth = 0;
+    // For width measurement, we want to know how wide the text would be on a single line
+    // Replace newlines with spaces for measurement
+    const singleLineText = textToMeasure.replace(/\n/g, ' ');
     
-    lines.forEach(line => {
-      // Use the line or placeholder if line is empty
-      const lineText = line || this.element.placeholder;
-      this.widthState.measureElement.textContent = lineText;
-      const lineWidth = this.widthState.measureElement.offsetWidth;
-      maxTextWidth = Math.max(maxTextWidth, lineWidth);
-    });
+    // Measure the full text as if it were on one line
+    this.widthState.measureElement.textContent = singleLineText;
+    const textWidth = this.widthState.measureElement.offsetWidth;
     
     // Always measure placeholder for minimum width
     this.widthState.measureElement.textContent = this.element.placeholder;
@@ -284,21 +280,28 @@ class text_input_component_engine {
     const cursorBuffer = 20;
     
     // Calculate minimum width needed
-    const baseWidth = hasValue ? Math.max(maxTextWidth, placeholderWidth) : placeholderWidth;
-    const minDesiredWidth = Math.max(200, placeholderWidth + totalPadding + cursorBuffer);
+    const baseWidth = hasValue ? Math.max(textWidth, placeholderWidth) : placeholderWidth;
+    const desiredWidth = baseWidth + totalPadding + cursorBuffer;
     
-    // NEW: Set constraints and let CSS handle the actual width
-    // Don't set a fixed width - let it flex naturally
-    this.wrapper.style.minWidth = `${minDesiredWidth}px`;
+    // Set the actual width based on content
+    // Get container constraints
+    const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
+    const maxAllowedWidth = containerWidth * 0.9;
+    
+    // Calculate minimum width
+    const minWidth = Math.max(200, placeholderWidth + totalPadding + cursorBuffer);
+    
+    // Set width to desired size, capped at 90% of container
+    const finalWidth = Math.min(desiredWidth, maxAllowedWidth);
+    this.wrapper.style.width = `${finalWidth}px`;
+    this.wrapper.style.minWidth = `${minWidth}px`;
     this.wrapper.style.maxWidth = '90%';
-    // Remove any fixed width to allow natural flexing
-    this.wrapper.style.width = 'auto';
     
     // Update CSS variable for dynamic border radius
     this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);
     
     // Debug logging
-    console.log(`[updateWidth] Text: "${hasValue ? this.element.value : '[placeholder]'}", Min width: ${minDesiredWidth}px (natural flex sizing)`);
+    console.log(`[updateWidth] Text length: ${singleLineText.length} chars, Width: ${textWidth}px + ${totalPadding}px padding = ${desiredWidth}px → ${finalWidth}px`);
   }
   
   /**

@@ -140,7 +140,7 @@
   
   > div {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start; // Changed from center to allow expansion
     border: 1px solid lime; // Temporary for visualization
   }
 }
