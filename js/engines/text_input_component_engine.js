@@ -249,19 +249,23 @@ class text_input_component_engine {
       maxWidth = Math.max(maxWidth, lineWidth);
     });
     
-    // Add some padding for comfort
-    const desiredWidth = maxWidth + 40;
+    // Measure placeholder width as minimum
+    this.widthState.measureElement.textContent = this.element.placeholder;
+    const placeholderWidth = this.widthState.measureElement.offsetWidth;
+    
+    // Use the larger of content or placeholder
+    const contentWidth = Math.max(maxWidth, placeholderWidth);
+    
+    // Add padding that matches the inner container padding
+    const padding = 40; // This should match the CSS padding
+    const desiredWidth = contentWidth + padding;
     
     // Get container constraints
     const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
-    const maxAllowedWidth = Math.min(containerWidth * 0.9, 600);
+    const maxAllowedWidth = containerWidth * 0.9; // Only 90% rule, no max limit
     
-    // Measure placeholder width as minimum
-    this.widthState.measureElement.textContent = this.element.placeholder;
-    const minWidth = this.widthState.measureElement.offsetWidth + 40;
-    
-    // Calculate final width
-    const finalWidth = Math.max(minWidth, Math.min(desiredWidth, maxAllowedWidth));
+    // Calculate final width - shrink to content but respect max
+    const finalWidth = Math.min(desiredWidth, maxAllowedWidth);
     
     // Apply width with smooth transition
     this.wrapper.style.width = `${finalWidth}px`;

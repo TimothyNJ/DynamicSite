@@ -10,7 +10,7 @@
   flex-direction: column;
   gap: 5px;
   width: 100%;
-  max-width: 500px;
+  // No max-width restriction
   margin: 5px auto;
 }
 
@@ -76,7 +76,7 @@
   display: inline-flex;
   min-width: max-content;
   width: fit-content;
-  max-width: min(90%, 600px);
+  max-width: 90%; // Only 90% of parent, no fixed max
   margin: 5px auto;
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
   border-radius: calc(min(9999px, 2em / var(--line-count, 1)));
