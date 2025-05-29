@@ -144,7 +144,7 @@ p {
   display: flex;
   flex-direction: column;
   overflow: visible;
-  padding: var(--component-spacing);
+  // No padding - fill the container completely
   // Remove centering to allow content to use full width
   // justify-content: center; // REMOVED
   // align-items: center; // REMOVED
