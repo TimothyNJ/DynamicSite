@@ -217,16 +217,20 @@ class text_input_component_engine {
    */
   createMeasurementElement() {
     this.widthState.measureElement = document.createElement('div');
+    this.widthState.measureElement.className = 'text-measurement-helper';
     this.widthState.measureElement.style.cssText = `
       position: absolute;
       visibility: hidden;
       height: auto;
       width: auto;
-      white-space: nowrap;
+      white-space: pre; // Preserve spaces
+      pointer-events: none;
+      // Copy exact styles from the input
       font-size: var(--component-font-size);
       font-weight: var(--component-font-weight);
       font-family: var(--font-family-primary);
-      padding: 0 max(1em, 16px);
+      line-height: 1.2;
+      // No padding here - we'll add it in calculation
     `;
     document.body.appendChild(this.widthState.measureElement);
   }
@@ -237,34 +241,59 @@ class text_input_component_engine {
   updateWidth() {
     if (!this.element || !this.widthState.measureElement || !this.wrapper) return;
     
-    const value = this.element.value || this.element.placeholder;
+    // Get the actual computed styles from the input element
+    const computedStyle = window.getComputedStyle(this.element);
+    const innerComputedStyle = window.getComputedStyle(this.innerContainer);
+    
+    // Apply matching styles to measurement element
+    this.widthState.measureElement.style.fontSize = computedStyle.fontSize;
+    this.widthState.measureElement.style.fontFamily = computedStyle.fontFamily;
+    this.widthState.measureElement.style.fontWeight = computedStyle.fontWeight;
+    this.widthState.measureElement.style.letterSpacing = computedStyle.letterSpacing;
+    
+    // Determine what to measure
+    const hasValue = this.element.value && this.element.value.trim().length > 0;
+    const textToMeasure = hasValue ? this.element.value : this.element.placeholder;
     
     // For multiline, measure the longest line
-    const lines = value.split('\n');
-    let maxWidth = 0;
+    const lines = textToMeasure.split('\n');
+    let maxTextWidth = 0;
     
     lines.forEach(line => {
-      this.widthState.measureElement.textContent = line || this.element.placeholder;
+      // Use the line or placeholder if line is empty
+      const lineText = line || this.element.placeholder;
+      this.widthState.measureElement.textContent = lineText;
       const lineWidth = this.widthState.measureElement.offsetWidth;
-      maxWidth = Math.max(maxWidth, lineWidth);
+      maxTextWidth = Math.max(maxTextWidth, lineWidth);
     });
     
-    // Measure placeholder width as minimum
+    // Always measure placeholder for minimum width
     this.widthState.measureElement.textContent = this.element.placeholder;
     const placeholderWidth = this.widthState.measureElement.offsetWidth;
     
-    // Use the larger of content or placeholder
-    const contentWidth = Math.max(maxWidth, placeholderWidth);
+    // Get actual padding from computed styles
+    const inputPaddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+    const inputPaddingRight = parseFloat(computedStyle.paddingRight) || 0;
+    const innerPaddingLeft = parseFloat(innerComputedStyle.paddingLeft) || 0;
+    const innerPaddingRight = parseFloat(innerComputedStyle.paddingRight) || 0;
     
-    // Add padding that matches the inner container padding
-    const padding = 40; // This should match the CSS padding
-    const desiredWidth = contentWidth + padding;
+    // Total horizontal padding
+    const totalPadding = inputPaddingLeft + inputPaddingRight + innerPaddingLeft + innerPaddingRight;
+    
+    // Add a small buffer for cursor and character spacing
+    const cursorBuffer = 20;
+    
+    // Calculate desired width
+    // If there's content, use the larger of content or placeholder
+    // If no content, just use placeholder
+    const baseWidth = hasValue ? Math.max(maxTextWidth, placeholderWidth) : placeholderWidth;
+    const desiredWidth = baseWidth + totalPadding + cursorBuffer;
     
     // Get container constraints
     const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
     const maxAllowedWidth = containerWidth * 0.9; // Only 90% rule, no max limit
     
-    // Calculate final width - shrink to content but respect max
+    // Calculate final width
     const finalWidth = Math.min(desiredWidth, maxAllowedWidth);
     
     // Apply width with smooth transition
@@ -272,6 +301,9 @@ class text_input_component_engine {
     
     // Update CSS variable for dynamic border radius
     this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);
+    
+    // Debug logging
+    console.log(`[updateWidth] Text: "${hasValue ? this.element.value : '[placeholder]'}", Width: ${baseWidth}px + ${totalPadding}px padding + ${cursorBuffer}px buffer = ${desiredWidth}px → ${finalWidth}px`);
   }
   
   /**
