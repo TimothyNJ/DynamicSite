@@ -76,6 +76,7 @@ h2 {
   font-size: var(--h2-font-size);
   margin: calc(0.03vw + 0.03vh);
   font-weight: bold;
+  text-align: center; // All h2 elements centered by default
 }
 
 h3 {
