@@ -283,27 +283,22 @@ class text_input_component_engine {
     // Add a small buffer for cursor and character spacing
     const cursorBuffer = 20;
     
-    // Calculate desired width
-    // If there's content, use the larger of content or placeholder
-    // If no content, just use placeholder
+    // Calculate minimum width needed
     const baseWidth = hasValue ? Math.max(maxTextWidth, placeholderWidth) : placeholderWidth;
-    const desiredWidth = baseWidth + totalPadding + cursorBuffer;
+    const minDesiredWidth = Math.max(200, placeholderWidth + totalPadding + cursorBuffer);
     
-    // Get container constraints
-    const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
-    const maxAllowedWidth = containerWidth * 0.9; // Only 90% rule, no max limit
-    
-    // Calculate final width
-    const finalWidth = Math.min(desiredWidth, maxAllowedWidth);
-    
-    // Apply width with smooth transition
-    this.wrapper.style.width = `${finalWidth}px`;
+    // NEW: Set constraints and let CSS handle the actual width
+    // Don't set a fixed width - let it flex naturally
+    this.wrapper.style.minWidth = `${minDesiredWidth}px`;
+    this.wrapper.style.maxWidth = '90%';
+    // Remove any fixed width to allow natural flexing
+    this.wrapper.style.width = 'auto';
     
     // Update CSS variable for dynamic border radius
     this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);
     
     // Debug logging
-    console.log(`[updateWidth] Text: "${hasValue ? this.element.value : '[placeholder]'}", Width: ${baseWidth}px + ${totalPadding}px padding + ${cursorBuffer}px buffer = ${desiredWidth}px → ${finalWidth}px`);
+    console.log(`[updateWidth] Text: "${hasValue ? this.element.value : '[placeholder]'}", Min width: ${minDesiredWidth}px (natural flex sizing)`);
   }
   
   /**

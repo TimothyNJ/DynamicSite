@@ -143,9 +143,11 @@ p {
   background-color: transparent;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
   overflow: visible;
+  padding: var(--component-spacing);
+  // Remove centering to allow content to use full width
+  // justify-content: center; // REMOVED
+  // align-items: center; // REMOVED
 }
 
 // ==============================================

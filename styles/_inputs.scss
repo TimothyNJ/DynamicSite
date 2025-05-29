@@ -74,21 +74,16 @@
 .dynamic-input-wrapper {
   position: relative;
   display: inline-flex;
-  min-width: max-content;
-  width: fit-content;
+  min-width: 200px; // Minimum width
+  width: auto; // Natural width based on content
   max-width: 90%; // Only 90% of parent, no fixed max
-  margin: 5px auto;
+  margin: var(--component-spacing) 0;
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
   border-radius: calc(min(9999px, 2em / var(--line-count, 1)));
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   body[data-theme="dark"] & {
     background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
-  }
-  
-  // Ensure it's treated as a flex container
-  &[data-lines] {
-    display: inline-flex;
   }
 }
 
