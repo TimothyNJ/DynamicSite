@@ -106,7 +106,7 @@
   > div {
     flex: 1 1 300px; // Grow/shrink with 300px base
     display: flex;
-    justify-content: flex-start; // Changed from center to allow expansion
+    justify-content: center;
     border: 1px solid cyan; // Temporary for visualization
   }
 }
