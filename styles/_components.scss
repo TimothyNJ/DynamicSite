@@ -73,8 +73,8 @@
   flex-direction: column;
   gap: calc(var(--component-spacing) * 3); // Slightly more gap between major sections
   width: 100%;
-  max-width: 1200px; // Reasonable reading width
-  margin: 0 auto; // Center within available space
+  // No max-width - fill available space dynamically
+  margin: 0; // No auto centering - fill available width
   padding: var(--component-spacing) 0; // Minimal vertical padding only
   box-sizing: border-box;
   
