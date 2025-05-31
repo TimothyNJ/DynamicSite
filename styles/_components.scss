@@ -103,7 +103,7 @@
   border: 1px solid blue; // Temporary for visualization
   
   > div {
-    flex: 1 1 300px; // Grow/shrink with 300px base
+    flex: 0 1 auto; // Don't grow, shrink if needed, size to content
     display: flex;
     justify-content: center;
     border: 1px solid cyan; // Temporary for visualization

@@ -62,10 +62,7 @@
 // ==============================================
 // Container Animations
 // ==============================================
-.settings-container {
-  opacity: 1;
-  animation: fadeIn 0.3s ease-in-out forwards;
-}
+// Settings container animation removed - should flex fluidly, not slowly
 
 // ==============================================
 // Transition Utilities
