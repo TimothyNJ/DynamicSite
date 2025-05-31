@@ -144,15 +144,9 @@ p {
   display: flex;
   flex-direction: column;
   overflow: visible;
-  // Default centering for home page
+  // Default centering for all pages
   justify-content: center;
   align-items: center;
-  
-  // Settings page needs different layout
-  &.settings-layout {
-    justify-content: flex-start;
-    align-items: stretch;
-  }
 }
 
 // ==============================================
