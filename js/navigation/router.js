@@ -86,6 +86,12 @@ export async function navigateToPage(pageName, pushState = true) {
 
     // Update the content container
     contentContainer.innerHTML = html;
+    
+    // Apply page-specific layout classes
+    contentContainer.classList.remove('settings-layout');
+    if (pageName === 'settings') {
+      contentContainer.classList.add('settings-layout');
+    }
 
     // Update active page tracking
     activePage = pageName;

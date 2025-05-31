@@ -144,10 +144,15 @@ p {
   display: flex;
   flex-direction: column;
   overflow: visible;
-  // No padding - fill the container completely
-  // Remove centering to allow content to use full width
-  // justify-content: center; // REMOVED
-  // align-items: center; // REMOVED
+  // Default centering for home page
+  justify-content: center;
+  align-items: center;
+  
+  // Settings page needs different layout
+  &.settings-layout {
+    justify-content: flex-start;
+    align-items: stretch;
+  }
 }
 
 // ==============================================
@@ -243,4 +248,14 @@ p {
 
 .theme-selector {
   transition: opacity 0.3s ease;
+}
+
+// ==============================================
+// Home Page Specific Styles
+// ==============================================
+#page-content > h1,
+#page-content > h2,
+#page-content > h3,
+#page-content > p {
+  text-align: center;
 }
