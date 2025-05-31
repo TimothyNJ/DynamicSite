@@ -63,12 +63,6 @@
 // Container Animations
 // ==============================================
 .settings-container {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin: 5px 0;
-  align-items: center;
-  justify-content: center;
   opacity: 1;
   animation: fadeIn 0.3s ease-in-out forwards;
 }

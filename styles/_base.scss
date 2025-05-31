@@ -235,10 +235,7 @@ p {
 }
 
 // Settings container fade-in
-.settings-container {
-  opacity: 0;
-  animation: fadeIn 0.3s ease-in-out forwards;
-}
+// Moved to _animations.scss
 
 .theme-selector {
   transition: opacity 0.3s ease;
