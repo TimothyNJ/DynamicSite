@@ -175,9 +175,9 @@
   }
 }
 
-// Inner container - matches slider padding
+// Inner container - minimal padding to match sliders
 .text-input-2-inner {
-  padding: var(--component-padding); // Use same padding as sliders
+  padding: 2px 8px; // Match the minimal padding that was in sliders
   display: flex;
   align-items: center;
 }

@@ -61,19 +61,12 @@
     );
   }
   
-  // Option text styling
+  // Option text styling - minimal overrides only
   .option h3 {
-    white-space: nowrap;
-    overflow: visible;
-    text-overflow: clip;
-    max-width: none;
     font-size: clamp(0.5rem, 1.2vw, 2.3rem);
-    margin: 0;
     font-weight: bold;
     position: relative;
     z-index: 3;
-    transition: color 0.5s ease;
-    padding: 2px 8px;
   }
   
   // Border container for animations
