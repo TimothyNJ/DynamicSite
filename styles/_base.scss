@@ -81,7 +81,7 @@ h2 {
 
 h3 {
   font-size: var(--h3-font-size);
-  margin: 0;
+  margin: calc(0.03vw + 0.03vh);
   font-weight: bold;
 }
 
