@@ -86,12 +86,11 @@ function initializeSettingsComponents() {
     
     // Create container for it after the first text input
     const textInput2Container = document.createElement('div');
-    textInput2Container.className = 'demo-component';
     textInput2Container.innerHTML = `
       <h3>text_input_component_engine_2</h3>
       <div id="demo-text-input-2-container"></div>
     `;
-    document.getElementById('demo-text-input-container').parentElement.parentElement.insertBefore(
+    document.getElementById('demo-text-input-container').parentElement.insertBefore(
       textInput2Container, 
       document.getElementById('demo-text-input-container').parentElement.nextSibling
     );

@@ -66,80 +66,22 @@
 }
 
 // ==============================================
-// Settings Container - Following navbar pattern
+// Settings Container - Simple vertical stack
 // ==============================================
 .settings-container {
   display: flex;
   flex-direction: column;
-  // No gap - sections should touch
-  // Let container size to content naturally
-  // No margin - fill available width
-  // No padding - fill completely
+  // No gap, margin, padding, or alignment overrides
+  // Let natural centering from parent container apply
   box-sizing: border-box;
   border: 1px solid red; // Temporary for visualization
   
-  // Direct h1 and h2 children
-  > h1 {
-    margin: 0; // No margin - touch container edges
-    text-align: center;
-  }
-  
-  > h2 {
-    margin: 0; // No margin - touch other elements
-    // Already has text-align: center from _base.scss
-  }
+  // All direct children will inherit centering
+  // No need to override anything
 }
 
 // ==============================================
 // Settings Layout Classes
 // ==============================================
-// Remove settings-section - not needed
-
-.settings-grid {
-  display: flex;
-  flex-wrap: wrap;
-  // No gap - items should touch
-  // Let grid size to content naturally
-  border: 1px solid blue; // Temporary for visualization
-  
-  > div {
-    flex: 0 1 auto; // Don't grow, shrink if needed, size to content
-    display: flex;
-    justify-content: center;
-    border: 1px solid cyan; // Temporary for visualization
-  }
-}
-
-.actions-section {
-  display: flex;
-  gap: var(--component-spacing);
-  justify-content: center; // Center the action buttons
-  margin-top: calc(var(--component-spacing) * 4);
-}
-
-.demo-components {
-  display: flex;
-  flex-direction: column;
-  // No gap - components should touch
-  // Let container size to content naturally
-  border: 1px solid orange; // Temporary for visualization
-}
-
-.demo-component {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  // No gap - elements should touch
-  border: 1px solid yellow; // Temporary for visualization
-  
-  > h3 {
-    margin: 0; // Reset default margin
-    font-size: var(--h3-font-size);
-  }
-  
-  > div {
-    display: flex;
-    justify-content: flex-start; // Changed from center to allow expansion
-    border: 1px solid lime; // Temporary for visualization
-  }
-}
+// All grid and demo component styles removed
+// Components stack naturally without special styling
