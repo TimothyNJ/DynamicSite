@@ -3,6 +3,62 @@
 // Created: 26-May-2025
 
 // ==============================================
+// Dynamic Input System (Horizontal Expansion) - Original
+// ==============================================
+.dynamic-input-wrapper {
+  position: relative;
+  display: inline-flex;
+  min-width: 200px; // Minimum width
+  // Let JavaScript control the width dynamically
+  max-width: 90%; // Only 90% of parent, no fixed max
+  margin: var(--component-spacing) 0;
+  background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
+  border-radius: calc(min(9999px, 2em / var(--line-count, 1)));
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  body[data-theme="dark"] & {
+    background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
+  }
+}
+
+// Inner container for text
+.text-input-inner {
+  padding-inline: max(1em, 16px);
+  margin: 0.25em;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+// Update dynamic-text-input to be transparent
+.dynamic-text-input {
+  background: transparent !important;
+  border: none;
+  color: var(--text-color-dark);
+  font-size: var(--component-font-size);
+  font-weight: var(--component-font-weight);
+  font-family: var(--font-family-primary);
+  padding: 0.5em 0;
+  margin: 0;
+  resize: none;
+  overflow: hidden;
+  width: 100%;
+  line-height: 1.2;
+  text-align: center;
+  
+  // Remove default textarea styles
+  &:focus {
+    outline: none;
+  }
+  
+  // Placeholder styling with CSS variables
+  &::placeholder {
+    color: var(--text-color-dark-secondary);
+    opacity: 0.7;
+  }
+}
+
+// ==============================================
 // Form Containers
 // ==============================================
 .form-container {
@@ -69,55 +125,79 @@
 }
 
 // ==============================================
-// Dynamic Input System (Horizontal Expansion)
+// Text Input Engine 2 - Natural Flex Sizing
 // ==============================================
-.dynamic-input-wrapper {
+.text-input-2-wrapper {
   position: relative;
   display: inline-flex;
-  min-width: 200px; // Minimum width
-  // Let JavaScript control the width dynamically
-  max-width: 90%; // Only 90% of parent, no fixed max
+  // No min-width - let it size naturally like sliders
+  max-width: 90%;
   margin: var(--component-spacing) 0;
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
-  border-radius: calc(min(9999px, 2em / var(--line-count, 1)));
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--component-border-radius); // Start with same radius as sliders
   
   body[data-theme="dark"] & {
     background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
   }
+  
+  // Border container for animations
+  .input-border-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+  
+  // Animated border segments
+  .input-border-segment {
+    position: absolute;
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(
+      to right,
+      var(--active-button-start),
+      var(--active-button-end)
+    );
+    transform: translateX(-100%);
+    transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1);
+    
+    &.input-border-top {
+      top: 0;
+    }
+    
+    &.input-border-bottom {
+      bottom: 0;
+    }
+  }
 }
 
-// Inner container for text
-.text-input-inner {
-  padding-inline: max(1em, 16px);
-  margin: 0.25em;
-  width: 100%;
+// Inner container - matches slider padding
+.text-input-2-inner {
+  padding: var(--component-padding); // Use same padding as sliders
   display: flex;
   align-items: center;
 }
 
-// Update dynamic-text-input to be transparent
-.dynamic-text-input {
-  background: transparent !important;
+// The actual input
+.text-input-2 {
+  background: transparent;
   border: none;
   color: var(--text-color-dark);
   font-size: var(--component-font-size);
   font-weight: var(--component-font-weight);
   font-family: var(--font-family-primary);
-  padding: 0.5em 0;
+  padding: 0;
   margin: 0;
-  resize: none;
-  overflow: hidden;
-  width: 100%;
-  line-height: 1.2;
+  outline: none;
+  min-width: 0; // Allow it to shrink completely
+  width: auto; // Natural sizing
+  white-space: nowrap; // Prevent wrapping
   text-align: center;
   
-  // Remove default textarea styles
-  &:focus {
-    outline: none;
-  }
-  
-  // Placeholder styling with CSS variables
   &::placeholder {
     color: var(--text-color-dark-secondary);
     opacity: 0.7;
