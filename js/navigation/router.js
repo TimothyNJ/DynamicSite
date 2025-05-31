@@ -110,6 +110,9 @@ export async function navigateToPage(pageName, pushState = true) {
     if (typeof window.updateMenuContent === "function") {
       window.updateMenuContent();
     }
+    
+    // Dispatch pageLoaded event for dimension updates
+    document.dispatchEvent(new Event('pageLoaded'));
   } catch (error) {
     console.error("Error loading page:", error);
   }
