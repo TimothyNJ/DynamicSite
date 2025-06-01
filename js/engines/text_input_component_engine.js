@@ -424,12 +424,10 @@ class text_input_component_engine {
     
     // Calculate minimum height
     let minHeight;
-    if (hasPlaceholder) {
-      // For placeholder, ensure it's visible (single line + padding)
+    if (this.options.minHeight === 'auto') {
+      // For auto, always use line height (matches font size) + padding
+      // This ensures consistent height whether placeholder exists or not
       minHeight = lineHeight + paddingTop + paddingBottom;
-    } else if (this.options.minHeight === 'auto') {
-      // Without placeholder, just enough for cursor (4px + padding)
-      minHeight = 4 + paddingTop + paddingBottom;
     } else {
       // Use specified minHeight
       minHeight = parseInt(this.options.minHeight);
