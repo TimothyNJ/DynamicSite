@@ -71,6 +71,8 @@
 .settings-container {
   display: flex;
   flex-direction: column;
+  width: fit-content;  // Only as wide as content needs
+  max-width: 100%;     // But never wider than parent
   // No gap, margin, padding, or alignment overrides
   // Let natural centering from parent container apply
   box-sizing: border-box;
