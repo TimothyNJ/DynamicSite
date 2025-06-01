@@ -255,8 +255,8 @@ class text_input_component_engine {
     const hasValue = this.element.value && this.element.value.trim().length > 0;
     const textToMeasure = hasValue ? this.element.value : this.element.placeholder;
     
-    // For width measurement, we want to know how wide the text would be on a single line
-    // Replace newlines with spaces for measurement
+    // For single line inputs, prevent wrapping by measuring as one line
+    // This ensures we expand BEFORE text wraps to line 2
     const singleLineText = textToMeasure.replace(/\n/g, ' ');
     
     // Measure the full text as if it were on one line
@@ -279,36 +279,29 @@ class text_input_component_engine {
     // Add a small buffer for cursor and character spacing
     const cursorBuffer = 20;
     
-    // Calculate minimum width needed
-    const baseWidth = hasValue ? Math.max(textWidth, placeholderWidth) : placeholderWidth;
+    // Calculate desired width - expand to fit all text on one line
+    const baseWidth = Math.max(textWidth, placeholderWidth);
     const desiredWidth = baseWidth + totalPadding + cursorBuffer;
     
-    // Set the actual width based on content
     // Get container constraints
     const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
-    
-    // Debug logging to see what container we're measuring
-    console.log(`[${this.options.id}] Parent element:`, this.wrapper.parentElement);
-    console.log(`[${this.options.id}] Parent class:`, this.wrapper.parentElement?.className);
-    console.log(`[${this.options.id}] Parent width:`, containerWidth);
-    const maxAllowedWidth = containerWidth;  // No restriction - use full width
     
     // Calculate minimum width
     const minWidth = Math.max(200, placeholderWidth + totalPadding + cursorBuffer);
     
-    // Set width to desired size, capped at container width
-    const finalWidth = Math.min(desiredWidth, maxAllowedWidth);
+    // Set width immediately to prevent wrapping
+    // Only constrain by container width when text actually needs more space
+    const finalWidth = Math.max(minWidth, Math.min(desiredWidth, containerWidth));
     this.wrapper.style.width = `${finalWidth}px`;
     this.wrapper.style.minWidth = `${minWidth}px`;
-    // No maxWidth restriction - allow full container usage
     
     // Update CSS variable for dynamic border radius
     this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);
     
     // Debug logging
-    console.log(`[updateWidth] Text length: ${singleLineText.length} chars, Width: ${textWidth}px + ${totalPadding}px padding = ${desiredWidth}px`);
-    console.log(`[updateWidth] Container width: ${containerWidth}px, Max allowed: ${maxAllowedWidth}px`);
-    console.log(`[updateWidth] Final width will be: ${finalWidth}px`);
+    console.log(`[updateWidth] Text: "${singleLineText}" (${singleLineText.length} chars)`);
+    console.log(`[updateWidth] Text width: ${textWidth}px, Total width needed: ${desiredWidth}px`);
+    console.log(`[updateWidth] Container width: ${containerWidth}px, Final width: ${finalWidth}px`);
   }
   
   /**

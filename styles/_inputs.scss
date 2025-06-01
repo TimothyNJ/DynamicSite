@@ -23,8 +23,8 @@
 
 // Inner container for text
 .text-input-inner {
-  padding-inline: max(1em, 16px);
-  margin: 0.25em;
+  padding-inline: 8px;  // Reduce padding to match sliders
+  margin: 2px;  // Minimal margin like sliders
   width: 100%;
   display: flex;
   align-items: center;
@@ -38,7 +38,7 @@
   font-size: var(--component-font-size);
   font-weight: var(--component-font-weight);
   font-family: var(--font-family-primary);
-  padding: 0.5em 0;
+  padding: 0;  // Remove vertical padding
   margin: 0;
   resize: none;
   overflow: hidden;
@@ -130,7 +130,8 @@
 .text-input-2-wrapper {
   position: relative;
   display: inline-flex;
-  // No min-width - let it size naturally like sliders
+  min-width: 200px; // Match text input 1 minimum
+  width: fit-content; // Size to content
   max-width: 90%;
   margin: var(--component-spacing) 0;
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
@@ -194,8 +195,7 @@
   margin: 0;
   outline: none;
   min-width: 0; // Allow it to shrink completely
-  width: auto; // Natural sizing
-  white-space: nowrap; // Prevent wrapping
+  width: 100%; // Fill the container
   text-align: center;
   
   &::placeholder {
