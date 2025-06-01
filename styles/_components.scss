@@ -71,6 +71,7 @@
 .settings-container {
   display: flex;
   flex-direction: column;
+  align-items: center;  // Center children horizontally
   width: fit-content;  // Only as wide as content needs
   max-width: 100%;     // But never wider than parent
   flex: 0 1 auto;      // Prevent growing beyond content
