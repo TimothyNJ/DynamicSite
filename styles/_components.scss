@@ -66,6 +66,21 @@
 }
 
 // ==============================================
+// Content Isolation Container
+// ==============================================
+.content-isolation-container {
+  width: 100%;              // Always exactly parent width
+  height: 100%;             // Fill parent height
+  display: flex;            // Maintain flex layout
+  flex-direction: column;   // Stack content vertically
+  align-items: center;      // Center children horizontally
+  justify-content: center;  // Center children vertically
+  overflow: visible;        // Allow visual overflow (dropdowns, etc.)
+  position: relative;       // Establish positioning context
+  border: 1px solid red;    // Red border for visualization
+}
+
+// ==============================================
 // Settings Container - Simple vertical stack
 // ==============================================
 .settings-container {
@@ -78,7 +93,7 @@
   // No gap, margin, padding, or alignment overrides
   // Let natural centering from parent container apply
   box-sizing: border-box;
-  border: 1px solid red; // Temporary for visualization
+  border: 1px solid orange; // Changed from red to orange
   
   // All direct children will inherit centering
   // No need to override anything
