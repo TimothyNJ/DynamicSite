@@ -10,7 +10,7 @@
   display: inline-flex;
   min-width: 200px; // Minimum width
   // Let JavaScript control the width dynamically
-  max-width: 90%; // Only 90% of parent, no fixed max
+  // No max-width restriction - allow full width usage
   margin: var(--component-spacing) 0;
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
   border-radius: calc(min(9999px, 2em / var(--line-count, 1)));
