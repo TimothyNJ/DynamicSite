@@ -84,17 +84,6 @@ function initializeSettingsComponents() {
       expandable: true
     }, (value) => console.log('[Demo] Text input v2:', value));
     
-    // Create container for it after the first text input
-    const textInput2Container = document.createElement('div');
-    textInput2Container.innerHTML = `
-      <h3>text_input_component_engine_2</h3>
-      <div id="demo-text-input-2-container"></div>
-    `;
-    document.getElementById('demo-text-input-container').parentElement.insertBefore(
-      textInput2Container, 
-      document.getElementById('demo-text-input-container').parentElement.nextSibling
-    );
-    
     // Render the new engine
     textInput2Demo.render('demo-text-input-2-container');
     

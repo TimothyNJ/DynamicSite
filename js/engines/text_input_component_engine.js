@@ -291,16 +291,16 @@ class text_input_component_engine {
     console.log(`[${this.options.id}] Parent element:`, this.wrapper.parentElement);
     console.log(`[${this.options.id}] Parent class:`, this.wrapper.parentElement?.className);
     console.log(`[${this.options.id}] Parent width:`, containerWidth);
-    const maxAllowedWidth = containerWidth * 0.9;
+    const maxAllowedWidth = containerWidth;  // No restriction - use full width
     
     // Calculate minimum width
     const minWidth = Math.max(200, placeholderWidth + totalPadding + cursorBuffer);
     
-    // Set width to desired size, capped at 90% of container
+    // Set width to desired size, capped at container width
     const finalWidth = Math.min(desiredWidth, maxAllowedWidth);
     this.wrapper.style.width = `${finalWidth}px`;
     this.wrapper.style.minWidth = `${minWidth}px`;
-    this.wrapper.style.maxWidth = '90%';
+    // No maxWidth restriction - allow full container usage
     
     // Update CSS variable for dynamic border radius
     this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);

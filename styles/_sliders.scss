@@ -124,7 +124,7 @@
   padding: 0;
   border-radius: 9999px;
   overflow: visible;
-  width: 110px; // Default width to prevent jumping
+  // Width will be set dynamically by JavaScript equalizeButtonWidths()
 }
 
 // Option icon styling
