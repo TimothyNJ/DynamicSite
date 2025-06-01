@@ -406,19 +406,32 @@ class text_input_component_engine {
   adjustHeight() {
     if (!this.element || this.element.tagName !== 'TEXTAREA') return;
     
-    // Reset height to calculate new height
-    this.element.style.height = 'auto';
+    // Force shrinkage by setting to minimum first
+    const hasPlaceholder = this.element.placeholder && this.element.placeholder.length > 0;
+    const forceMinHeight = hasPlaceholder ? '1px' : '4px'; // Will recalculate proper min
     
-    // Calculate new height based on content
+    this.element.style.height = forceMinHeight;
+    
+    // Force reflow to ensure height change is applied
+    void this.element.offsetHeight;
+    
+    // Now scrollHeight will give us the true content height
     const scrollHeight = this.element.scrollHeight;
     const computedStyle = window.getComputedStyle(this.element);
     const lineHeight = parseFloat(computedStyle.lineHeight);
+    const paddingTop = parseFloat(computedStyle.paddingTop);
+    const paddingBottom = parseFloat(computedStyle.paddingBottom);
     
-    // For auto min-height, use the natural single-line height
+    // Calculate minimum height
     let minHeight;
-    if (this.options.minHeight === 'auto') {
-      minHeight = lineHeight + parseFloat(computedStyle.paddingTop) + parseFloat(computedStyle.paddingBottom);
+    if (hasPlaceholder) {
+      // For placeholder, ensure it's visible (single line + padding)
+      minHeight = lineHeight + paddingTop + paddingBottom;
+    } else if (this.options.minHeight === 'auto') {
+      // Without placeholder, just enough for cursor (4px + padding)
+      minHeight = 4 + paddingTop + paddingBottom;
     } else {
+      // Use specified minHeight
       minHeight = parseInt(this.options.minHeight);
     }
     
