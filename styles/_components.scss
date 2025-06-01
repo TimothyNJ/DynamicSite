@@ -78,6 +78,7 @@
   overflow: visible;        // Allow visual overflow (dropdowns, etc.)
   position: relative;       // Establish positioning context
   border: 1px solid red;    // Red border for visualization
+  contain: layout;          // Prevent layout from affecting parent (no size containment)
 }
 
 // ==============================================
