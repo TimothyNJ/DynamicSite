@@ -14,7 +14,7 @@
   margin: var(--component-spacing) 0;
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
   border-radius: calc(min(9999px, 2em / var(--line-count, 1)));
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  // No transition on wrapper - width should change instantly
   
   body[data-theme="dark"] & {
     background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
