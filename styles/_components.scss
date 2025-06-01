@@ -107,5 +107,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
 }

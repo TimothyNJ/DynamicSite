@@ -8,6 +8,7 @@
 .dynamic-input-wrapper {
   position: relative;
   display: inline-flex;
+  max-width: 100%;  // Add constraint to prevent growing beyond parent
   // No fixed min-width - let JavaScript control based on content
   // Let JavaScript control the width dynamically
   // No max-width restriction - allow full width usage
@@ -130,6 +131,7 @@
 .text-input-2-wrapper {
   position: relative;
   display: inline-flex;
+  max-width: 100%;  // Add constraint to prevent growing beyond parent
   // No fixed min-width - size to content
   width: fit-content; // Size to content
   // No max-width restriction - let it use full width if needed
