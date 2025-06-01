@@ -23,7 +23,7 @@
 
 // Inner container for text
 .text-input-inner {
-  padding: 2px 8px;  // Match slider h3 padding exactly
+  padding: 2px 2px;  // Minimal padding like navbar
   margin: 0;
   width: 100%;
   display: flex;
@@ -178,7 +178,7 @@
 
 // Inner container - minimal padding to match sliders
 .text-input-2-inner {
-  padding: 2px 8px; // Match slider h3 padding exactly
+  padding: 2px 2px; // Minimal padding like navbar
   display: flex;
   align-items: center;
 }
