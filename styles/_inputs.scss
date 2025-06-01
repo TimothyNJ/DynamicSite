@@ -23,8 +23,8 @@
 
 // Inner container for text
 .text-input-inner {
-  padding-inline: 8px;  // Reduce padding to match sliders
-  margin: 2px;  // Minimal margin like sliders
+  padding: 0 8px;  // Only horizontal padding for edge spacing
+  margin: 0;  // No margin
   width: 100%;
   display: flex;
   align-items: center;
@@ -178,7 +178,7 @@
 
 // Inner container - minimal padding to match sliders
 .text-input-2-inner {
-  padding: 2px 8px; // Match the minimal padding that was in sliders
+  padding: 0 8px; // Only horizontal padding for edge spacing
   display: flex;
   align-items: center;
 }
