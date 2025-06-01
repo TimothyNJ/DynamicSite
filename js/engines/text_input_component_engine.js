@@ -280,20 +280,26 @@ class text_input_component_engine {
     const cursorBuffer = 20;
     
     // Calculate desired width - expand to fit all text on one line
-    const baseWidth = Math.max(textWidth, placeholderWidth);
-    const desiredWidth = baseWidth + totalPadding + cursorBuffer;
+    const currentTextWidth = hasValue ? textWidth : placeholderWidth;
+    const desiredWidth = currentTextWidth + totalPadding + cursorBuffer;
     
     // Get container constraints
     const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
     
-    // Calculate minimum width
-    const minWidth = Math.max(200, placeholderWidth + totalPadding + cursorBuffer);
+    // Calculate minimum width based on content
+    // If there's a placeholder, use its width as minimum
+    // Otherwise use 4px for single character inputs
+    let minWidth;
+    if (this.element.placeholder) {
+      minWidth = placeholderWidth + totalPadding + cursorBuffer;
+    } else {
+      minWidth = 4;
+    }
     
-    // Set width immediately to prevent wrapping
-    // Only constrain by container width when text actually needs more space
+    // Set width to exactly what's needed, respecting minimum and container constraints
     const finalWidth = Math.max(minWidth, Math.min(desiredWidth, containerWidth));
     this.wrapper.style.width = `${finalWidth}px`;
-    this.wrapper.style.minWidth = `${minWidth}px`;
+    // Don't set minWidth style - let the wrapper shrink as needed
     
     // Update CSS variable for dynamic border radius
     this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);
