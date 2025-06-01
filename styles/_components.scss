@@ -94,6 +94,18 @@
 // ==============================================
 // These are the rectangular bounding boxes, NOT the visual components
 // Temporary visualization borders - remove for production
+
+// Pink container for components below slider
+.pink-container {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  max-width: 40px;  // Limited to 40px as requested
+  flex: 0 1 auto;
+  border: 1px solid pink;
+  overflow: hidden;  // Hide content that exceeds 40px
+}
+
 #demo-text-input-container,
 #demo-text-input-2-container,
 #demo-slider-container,
