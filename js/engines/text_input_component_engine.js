@@ -298,8 +298,16 @@ class text_input_component_engine {
     
     // Set width to exactly what's needed, respecting minimum and container constraints
     const finalWidth = Math.max(minWidth, Math.min(desiredWidth, containerWidth));
+    
+    // QUICK TEST: Temporarily disable transitions to see if this fixes slow paste growth
+    this.wrapper.style.transition = 'none';
     this.wrapper.style.width = `${finalWidth}px`;
     // Don't set minWidth style - let the wrapper shrink as needed
+    
+    // Restore transitions after a brief delay
+    setTimeout(() => {
+      this.wrapper.style.transition = ''; // Restore to whatever CSS defines
+    }, 50);
     
     // Update CSS variable for dynamic border radius
     this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);
