@@ -14,8 +14,8 @@
   // No max-width restriction - allow full width usage
   margin: var(--component-spacing) 0;
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
-  border-radius: 20px; // More rounded than navbar buttons
-  overflow: hidden; // Clip content to respect border radius
+  border-radius: var(--input-border-radius);
+  // No overflow:hidden needed - padding prevents clipping
   // No transition on wrapper - width should change instantly
   
   body[data-theme="dark"] & {
@@ -25,7 +25,7 @@
 
 // Inner container for text
 .text-input-inner {
-  padding: 2px 2px;  // Minimal padding like navbar
+  padding: var(--input-safe-padding);  // Dynamic safe padding based on border radius
   margin: 0;
   width: 100%;
   display: flex;
