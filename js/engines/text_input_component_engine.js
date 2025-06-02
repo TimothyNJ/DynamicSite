@@ -73,6 +73,96 @@ class text_input_component_engine {
   }
   
   /**
+   * Handle paste approximation for instant sizing
+   * @param {string} pastedText - The text being pasted
+   * @returns {boolean} - Whether approximation was handled
+   */
+  handlePasteApproximation(pastedText) {
+    // Only for substantial pastes
+    if (!pastedText || pastedText.length < 50) return false;
+    
+    // Get container constraints
+    const containerWidth = this.getContentContainerWidth();
+    if (!containerWidth) return false;
+    
+    // Get current styles for accurate measurement
+    const computedStyle = window.getComputedStyle(this.element);
+    const innerComputedStyle = window.getComputedStyle(this.innerContainer);
+    
+    // Apply exact styles to measurement element
+    this.widthState.measureElement.style.fontSize = computedStyle.fontSize;
+    this.widthState.measureElement.style.fontFamily = computedStyle.fontFamily;
+    this.widthState.measureElement.style.fontWeight = computedStyle.fontWeight;
+    this.widthState.measureElement.style.letterSpacing = computedStyle.letterSpacing;
+    
+    // Measure straight-line width
+    this.widthState.measureElement.textContent = pastedText;
+    const straightLineWidth = this.widthState.measureElement.offsetWidth;
+    
+    // Get padding values
+    const inputPaddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+    const inputPaddingRight = parseFloat(computedStyle.paddingRight) || 0;
+    const inputPaddingTop = parseFloat(computedStyle.paddingTop) || 0;
+    const inputPaddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
+    const innerPaddingLeft = parseFloat(innerComputedStyle.paddingLeft) || 0;
+    const innerPaddingRight = parseFloat(innerComputedStyle.paddingRight) || 0;
+    
+    const totalPadding = inputPaddingLeft + inputPaddingRight + innerPaddingLeft + innerPaddingRight;
+    const cursorBuffer = 20;
+    
+    // Calculate dimensions
+    let approximateWidth, approximateRows;
+    const usableContainerWidth = containerWidth * 0.9; // 90% of container
+    
+    if (straightLineWidth <= usableContainerWidth - totalPadding - cursorBuffer) {
+      // Fits in one line
+      approximateWidth = straightLineWidth + totalPadding + cursorBuffer;
+      approximateRows = 1;
+    } else {
+      // Needs multiple lines
+      const contentWidth = usableContainerWidth - totalPadding - cursorBuffer;
+      approximateRows = Math.ceil(straightLineWidth / contentWidth) + 1; // +1 buffer for word wrap
+      approximateWidth = usableContainerWidth;
+    }
+    
+    // Apply instantly without transitions
+    this.wrapper.style.transition = 'none';
+    this.wrapper.style.width = `${approximateWidth}px`;
+    
+    // Set approximate height
+    const lineHeight = parseFloat(computedStyle.lineHeight) || 20;
+    const approximateHeight = (approximateRows * lineHeight) + inputPaddingTop + inputPaddingBottom;
+    this.element.style.height = `${approximateHeight}px`;
+    
+    // Schedule precise refinement
+    setTimeout(() => {
+      this.wrapper.style.transition = '';
+      this.updateWidth();
+      this.adjustHeight();
+    }, 50);
+    
+    return true; // Handled
+  }
+  
+  /**
+   * Get content container width for constraints
+   */
+  getContentContainerWidth() {
+    if (!this.wrapper) return null;
+    
+    let element = this.wrapper.parentElement;
+    while (element) {
+      if (element.classList && element.classList.contains('content-container')) {
+        return element.offsetWidth || null;
+      }
+      element = element.parentElement;
+    }
+    
+    // Fallback to wrapper parent
+    return this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : null;
+  }
+  
+  /**
    * Render the text input into the specified container
    * @param {string|HTMLElement} container - Container ID or element
    * @returns {HTMLElement} The created input element
@@ -298,16 +388,8 @@ class text_input_component_engine {
     
     // Set width to exactly what's needed, respecting minimum and container constraints
     const finalWidth = Math.max(minWidth, Math.min(desiredWidth, containerWidth));
-    
-    // QUICK TEST: Temporarily disable transitions to see if this fixes slow paste growth
-    this.wrapper.style.transition = 'none';
     this.wrapper.style.width = `${finalWidth}px`;
     // Don't set minWidth style - let the wrapper shrink as needed
-    
-    // Restore transitions after a brief delay
-    setTimeout(() => {
-      this.wrapper.style.transition = ''; // Restore to whatever CSS defines
-    }, 50);
     
     // Update CSS variable for dynamic border radius
     this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);
@@ -381,6 +463,17 @@ class text_input_component_engine {
    * Attach event listeners to the input
    */
   attachEventListeners() {
+    // Handle paste events for instant approximation
+    this.element.addEventListener('paste', (e) => {
+      if (this.options.expandable) {
+        const pastedText = e.clipboardData?.getData('text');
+        if (this.handlePasteApproximation(pastedText)) {
+          // Approximation handled it - let normal input event handle the rest
+          console.log('[text_input_component_engine] Paste approximation applied');
+        }
+      }
+    });
+    
     // Handle input changes
     this.element.addEventListener('input', (e) => {
       const value = e.target.value;
