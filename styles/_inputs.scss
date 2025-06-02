@@ -25,7 +25,7 @@
 
 // Inner container for text
 .text-input-inner {
-  padding: var(--input-safe-padding);  // Dynamic safe padding based on border radius
+  padding: 0 var(--input-safe-padding);  // 0 vertical, calculated horizontal only
   margin: 0;
   width: 100%;
   display: flex;
