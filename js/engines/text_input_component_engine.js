@@ -30,7 +30,7 @@ class text_input_component_engine {
       expandable: options.expandable !== false,
       multiline: options.multiline || false,
       minHeight: options.minHeight || 'auto', // Start at natural single-line height
-      maxHeight: options.maxHeight || '200px',
+      maxHeight: options.maxHeight || null, // No height restriction
       storageKey: options.storageKey || null,
       ...options
     };
@@ -293,7 +293,6 @@ class text_input_component_engine {
       setTimeout(() => {
         this.adjustHeight();
         this.updateWidth();
-        this.updateLineCount();
       }, 0);
     }
     
@@ -395,9 +394,6 @@ class text_input_component_engine {
     const finalWidth = Math.max(minWidth, Math.min(desiredWidth, containerWidth));
     this.wrapper.style.width = `${finalWidth}px`;
     // Don't set minWidth style - let the wrapper shrink as needed
-    
-    // Update CSS variable for dynamic border radius
-    this.wrapper.style.setProperty('--line-count', this.widthState.currentLineCount);
     
     // Debug logging
     console.log(`[updateWidth] Text: "${singleLineText}" (${singleLineText.length} chars)`);
@@ -505,7 +501,6 @@ class text_input_component_engine {
         } else {
           this.adjustHeight();
           this.updateWidth();
-          this.updateLineCount();
         }
       }
     });
@@ -552,7 +547,7 @@ class text_input_component_engine {
       minHeight = parseInt(this.options.minHeight);
     }
     
-    const maxHeight = parseInt(this.options.maxHeight);
+    const maxHeight = this.options.maxHeight ? parseInt(this.options.maxHeight) : Infinity;
     
     // Step 6: Grow from zero to exactly what's needed
     const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
@@ -561,7 +556,7 @@ class text_input_component_engine {
     this.element.style.height = newHeight + 'px';
     
     // Handle scrollbar
-    if (scrollHeight > maxHeight) {
+    if (this.options.maxHeight && scrollHeight > maxHeight) {
       this.element.style.overflowY = 'auto';
     } else {
       this.element.style.overflowY = 'hidden';
@@ -599,7 +594,6 @@ class text_input_component_engine {
       if (this.options.expandable) {
         this.adjustHeight();
         this.updateWidth();
-        this.updateLineCount();
       }
     }
   }

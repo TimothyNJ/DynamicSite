@@ -14,7 +14,7 @@
   // No max-width restriction - allow full width usage
   margin: var(--component-spacing) 0;
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
-  border-radius: calc(min(9999px, 2em / var(--line-count, 1)));
+  border-radius: 5px; // Match navbar buttons
   // No transition on wrapper - width should change instantly
   
   body[data-theme="dark"] & {
