@@ -114,17 +114,16 @@ class text_input_component_engine {
     
     // Calculate dimensions
     let approximateWidth, approximateRows;
-    const usableContainerWidth = containerWidth * 0.9; // 90% of container
     
-    if (straightLineWidth <= usableContainerWidth - totalPadding - cursorBuffer) {
+    if (straightLineWidth <= containerWidth - totalPadding - cursorBuffer) {
       // Fits in one line
       approximateWidth = straightLineWidth + totalPadding + cursorBuffer;
       approximateRows = 1;
     } else {
       // Needs multiple lines
-      const contentWidth = usableContainerWidth - totalPadding - cursorBuffer;
-      approximateRows = Math.ceil(straightLineWidth / contentWidth) + 1; // +1 buffer for word wrap
-      approximateWidth = usableContainerWidth;
+      const contentWidth = containerWidth - totalPadding - cursorBuffer;
+      approximateRows = Math.ceil(straightLineWidth / contentWidth);
+      approximateWidth = containerWidth;
     }
     
     // Apply instantly without transitions
