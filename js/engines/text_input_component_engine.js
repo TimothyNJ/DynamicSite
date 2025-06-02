@@ -406,42 +406,43 @@ class text_input_component_engine {
   adjustHeight() {
     if (!this.element || this.element.tagName !== 'TEXTAREA') return;
     
-    // Force shrinkage by setting to minimum first
-    const hasPlaceholder = this.element.placeholder && this.element.placeholder.length > 0;
-    const forceMinHeight = hasPlaceholder ? '1px' : '4px'; // Will recalculate proper min
+    // Step 1: Aggressively force to absolute minimum
+    // Remove any existing height to break browser's cached state
+    this.element.style.height = '';
     
-    this.element.style.height = forceMinHeight;
+    // Step 2: Set to truly minimal height
+    this.element.style.height = '0px';
     
-    // Force reflow to ensure height change is applied
+    // Step 3: Force multiple reflows to ensure browser acknowledges change
     void this.element.offsetHeight;
+    void this.element.scrollHeight;
     
-    // Now scrollHeight will give us the true content height
+    // Step 4: Now get the true content height from zero state
     const scrollHeight = this.element.scrollHeight;
+    
+    // Step 5: Calculate proper minimum based on content/placeholder
     const computedStyle = window.getComputedStyle(this.element);
     const lineHeight = parseFloat(computedStyle.lineHeight);
     const paddingTop = parseFloat(computedStyle.paddingTop);
     const paddingBottom = parseFloat(computedStyle.paddingBottom);
     
-    // Calculate minimum height
     let minHeight;
     if (this.options.minHeight === 'auto') {
-      // For auto, always use line height (matches font size) + padding
-      // This ensures consistent height whether placeholder exists or not
+      // Always use line height + padding for consistent minimum
       minHeight = lineHeight + paddingTop + paddingBottom;
     } else {
-      // Use specified minHeight
       minHeight = parseInt(this.options.minHeight);
     }
     
     const maxHeight = parseInt(this.options.maxHeight);
     
-    // Clamp height between min and max
+    // Step 6: Grow from zero to exactly what's needed
     const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
     
-    // Apply new height
+    // Apply final height
     this.element.style.height = newHeight + 'px';
     
-    // Show/hide scrollbar based on content
+    // Handle scrollbar
     if (scrollHeight > maxHeight) {
       this.element.style.overflowY = 'auto';
     } else {
