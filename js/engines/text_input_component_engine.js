@@ -42,6 +42,7 @@ class text_input_component_engine {
     this.borderTop = null;
     this.borderBottom = null;
     this.resizeObserver = null;
+    this.approximationTimeout = null;
     
     // Animation state (similar to slider)
     this.animationState = {
@@ -73,13 +74,14 @@ class text_input_component_engine {
   }
   
   /**
-   * Handle paste approximation for instant sizing
-   * @param {string} pastedText - The text being pasted
+   * Handle fast approximation for any text/container change
+   * @param {string} text - The text to size for
+   * @param {boolean} forceApproximation - Force approximation even for small text
    * @returns {boolean} - Whether approximation was handled
    */
-  handlePasteApproximation(pastedText) {
-    // Only for substantial pastes
-    if (!pastedText || pastedText.length < 50) return false;
+  handleSizeApproximation(text, forceApproximation = false) {
+    // Use approximation for substantial text or when forced (resize events)
+    if (!text || (!forceApproximation && text.length < 50)) return false;
     
     // Get container constraints
     const containerWidth = this.getContentContainerWidth();
@@ -96,7 +98,7 @@ class text_input_component_engine {
     this.widthState.measureElement.style.letterSpacing = computedStyle.letterSpacing;
     
     // Measure straight-line width
-    this.widthState.measureElement.textContent = pastedText;
+    this.widthState.measureElement.textContent = text;
     const straightLineWidth = this.widthState.measureElement.offsetWidth;
     
     // Get padding values
@@ -135,10 +137,14 @@ class text_input_component_engine {
     this.element.style.height = `${approximateHeight}px`;
     
     // Schedule precise refinement
-    setTimeout(() => {
+    if (this.approximationTimeout) {
+      clearTimeout(this.approximationTimeout);
+    }
+    this.approximationTimeout = setTimeout(() => {
       this.wrapper.style.transition = '';
       this.updateWidth();
       this.adjustHeight();
+      this.approximationTimeout = null;
     }, 50);
     
     return true; // Handled
@@ -436,11 +442,14 @@ class text_input_component_engine {
       const newWidth = entry.contentRect.width;
       if (newWidth !== this.widthState.containerWidth) {
         this.widthState.containerWidth = newWidth;
-        this.updateWidth();
-      }
-      // Also recalculate height when container resizes (viewport changes affect font size)
-      if (this.options.expandable) {
-        this.adjustHeight();
+        
+        // Use approximation for instant resize response
+        if (this.options.expandable && this.element.value) {
+          // Force approximation even for smaller text during resize
+          this.handleSizeApproximation(this.element.value, true);
+        } else {
+          this.updateWidth();
+        }
       }
     }
   }
@@ -467,7 +476,7 @@ class text_input_component_engine {
     this.element.addEventListener('paste', (e) => {
       if (this.options.expandable) {
         const pastedText = e.clipboardData?.getData('text');
-        if (this.handlePasteApproximation(pastedText)) {
+        if (this.handleSizeApproximation(pastedText)) {
           // Approximation handled it - let normal input event handle the rest
           console.log('[text_input_component_engine] Paste approximation applied');
         }
@@ -491,9 +500,14 @@ class text_input_component_engine {
       
       // Handle expandable behavior
       if (this.options.expandable) {
-        this.adjustHeight();
-        this.updateWidth();
-        this.updateLineCount();
+        // Use approximation for large text, otherwise use precise calculation
+        if (value.length >= 50) {
+          this.handleSizeApproximation(value);
+        } else {
+          this.adjustHeight();
+          this.updateWidth();
+          this.updateLineCount();
+        }
       }
     });
     
