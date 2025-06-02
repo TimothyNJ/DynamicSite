@@ -348,6 +348,10 @@ class text_input_component_engine {
         this.widthState.containerWidth = newWidth;
         this.updateWidth();
       }
+      // Also recalculate height when container resizes (viewport changes affect font size)
+      if (this.options.expandable) {
+        this.adjustHeight();
+      }
     }
   }
   
