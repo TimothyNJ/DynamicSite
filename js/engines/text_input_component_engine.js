@@ -150,55 +150,11 @@ class text_input_component_engine {
     // Keep width at container max
     this.wrapper.style.width = `${containerWidth}px`;
     
-    // Get available width for text (container minus padding)
-    const computedStyle = window.getComputedStyle(this.element);
-    const innerComputedStyle = window.getComputedStyle(this.innerContainer);
-    const horizontalPadding = 
-      parseFloat(computedStyle.paddingLeft) + parseFloat(computedStyle.paddingRight) +
-      parseFloat(innerComputedStyle.paddingLeft) + parseFloat(innerComputedStyle.paddingRight);
-    const availableWidth = containerWidth - horizontalPadding - 20; // cursor buffer
+    // Use scrollHeight for accurate height calculation
+    this.element.style.height = 'auto';
+    this.element.style.height = this.element.scrollHeight + 'px';
     
-    // Split by newlines to handle explicit line breaks
-    const lines = text.split('\n');
-    
-    // For wrapped mode, we mainly care about whether we need more height
-    // We can get the current scroll height and just check if it's growing
-    const currentHeight = this.element.offsetHeight;
-    const currentScrollHeight = this.element.scrollHeight;
-    
-    // If scrollHeight > offsetHeight, we need more space
-    if (currentScrollHeight > currentHeight) {
-      // Add one more row worth of height
-      const newHeight = currentHeight + lineHeight;
-      this.element.style.height = `${newHeight}px`;
-      console.log(`[handleWrappedMode] Growing: ${currentHeight}px -> ${newHeight}px`);
-    } else {
-      // For shrinking, we need to be more careful
-      // Count actual content rows
-      let totalRows = 0;
-      
-      lines.forEach(line => {
-        if (!line) {
-          totalRows += 1; // Empty line still takes a row
-        } else {
-          // Measure this line
-          this.widthState.measureElement.textContent = line;
-          const lineWidth = this.widthState.measureElement.offsetWidth;
-          const rowsForLine = Math.ceil(lineWidth / availableWidth);
-          totalRows += rowsForLine;
-        }
-      });
-      
-      // Set height based on total rows
-      const approximateHeight = (totalRows * lineHeight) + paddingTop + paddingBottom;
-      if (approximateHeight < currentHeight) {
-        this.element.style.height = `${approximateHeight}px`;
-        console.log(`[handleWrappedMode] Shrinking: ${currentHeight}px -> ${approximateHeight}px`);
-      } else {
-        // Keep current height if not shrinking
-        console.log(`[handleWrappedMode] Maintaining height: ${currentHeight}px`);
-      }
-    }
+    console.log(`[handleWrappedMode] Using scrollHeight: ${this.element.scrollHeight}px`);
   }
   
   /**
