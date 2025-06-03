@@ -117,7 +117,7 @@ class text_input_component_engine {
     const lineHeight = parseFloat(computedStyle.lineHeight) || 20;
     
     // Handle based on wrapped state and text amount
-    if (isWrapped && !forceApproximation && !isEmpty) {
+    if (isWrapped && !isEmpty) {
       // WRAPPED MODE: Only calculate height based on last line
       this.handleWrappedMode(textToSize, containerWidth, lineHeight, inputPaddingTop, inputPaddingBottom);
     } else {
