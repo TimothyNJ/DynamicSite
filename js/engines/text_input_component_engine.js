@@ -80,16 +80,19 @@ class text_input_component_engine {
    * @returns {boolean} - Whether approximation was handled
    */
   handleSizeApproximation(text, forceApproximation = false) {
-    // Always use approximation for smooth experience
-    if (!text) return false;
-    
     // Get container constraints
     const containerWidth = this.getContentContainerWidth();
     if (!containerWidth) return false;
     
+    // Handle empty text case - use placeholder for sizing
+    const textToSize = text || this.element.placeholder || '';
+    
     // Detect if we're in wrapped mode (already at max width)
     const currentWidth = this.wrapper.offsetWidth;
     const isWrapped = currentWidth >= (containerWidth * 0.95);
+    
+    // Check if text is minimal (should exit wrapped mode)
+    const isMinimalText = textToSize.length < 20 || !textToSize.trim();
     
     // Get current styles for accurate measurement
     const computedStyle = window.getComputedStyle(this.element);
@@ -113,13 +116,14 @@ class text_input_component_engine {
     const cursorBuffer = 20;
     const lineHeight = parseFloat(computedStyle.lineHeight) || 20;
     
-    // Handle based on wrapped state
-    if (isWrapped && !forceApproximation) {
+    // Handle based on wrapped state and text amount
+    if (isWrapped && !forceApproximation && !isMinimalText) {
       // WRAPPED MODE: Only calculate height based on last line
-      this.handleWrappedMode(text, containerWidth, lineHeight, inputPaddingTop, inputPaddingBottom);
+      this.handleWrappedMode(textToSize, containerWidth, lineHeight, inputPaddingTop, inputPaddingBottom);
     } else {
       // UNWRAPPED MODE: Calculate both width and height
-      this.handleUnwrappedMode(text, containerWidth, totalPadding, cursorBuffer, lineHeight, inputPaddingTop, inputPaddingBottom);
+      // This includes: new text, minimal text after deletion, or forced recalculation
+      this.handleUnwrappedMode(textToSize, containerWidth, totalPadding, cursorBuffer, lineHeight, inputPaddingTop, inputPaddingBottom);
     }
     
     // Schedule precise refinement
@@ -128,8 +132,8 @@ class text_input_component_engine {
     }
     this.approximationTimeout = setTimeout(() => {
       this.wrapper.style.transition = '';
-      // Only update width if not wrapped
-      if (!isWrapped || forceApproximation) {
+      // Only update width if not wrapped or if text is minimal
+      if (!isWrapped || forceApproximation || isMinimalText) {
         this.updateWidth();
       }
       this.adjustHeight();
