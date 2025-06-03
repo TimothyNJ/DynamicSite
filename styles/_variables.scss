@@ -173,6 +173,6 @@ $z-index-tooltip: 1070;
   --spacing-xl: #{$spacing-xl};
   
   // Input Component Variables (Dynamic Safe Padding)
-  --input-border-radius: 20px;
-  --input-safe-padding: calc(var(--input-border-radius) * 0.5);
+  --input-border-radius: 5px;
+  --input-safe-padding: calc(var(--input-border-radius) * 0.3);
 }
