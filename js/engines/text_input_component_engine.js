@@ -104,133 +104,38 @@ class text_input_component_engine {
     this.widthState.measureElement.style.fontWeight = computedStyle.fontWeight;
     this.widthState.measureElement.style.letterSpacing = computedStyle.letterSpacing;
     
-    // Get padding values (needed for both modes)
+    // Get padding values for width calculation
     const inputPaddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
     const inputPaddingRight = parseFloat(computedStyle.paddingRight) || 0;
-    const inputPaddingTop = parseFloat(computedStyle.paddingTop) || 0;
-    const inputPaddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
     const innerPaddingLeft = parseFloat(innerComputedStyle.paddingLeft) || 0;
     const innerPaddingRight = parseFloat(innerComputedStyle.paddingRight) || 0;
     
     const totalPadding = inputPaddingLeft + inputPaddingRight + innerPaddingLeft + innerPaddingRight;
     const cursorBuffer = 20;
-    const lineHeight = parseFloat(computedStyle.lineHeight) || 20;
     
-    // Handle based on wrapped state and text amount
-    if (isWrapped && !forceApproximation && !isEmpty) {
-      // WRAPPED MODE: Only calculate height based on last line
-      this.handleWrappedMode(textToSize, containerWidth, lineHeight, inputPaddingTop, inputPaddingBottom);
-    } else {
-      // UNWRAPPED MODE: Calculate both width and height
-      // This includes: new text, empty text after deletion, or forced recalculation
-      this.handleUnwrappedMode(textToSize, containerWidth, totalPadding, cursorBuffer, lineHeight, inputPaddingTop, inputPaddingBottom);
+    // Handle width calculation
+    if (!isWrapped || forceApproximation || isEmpty) {
+      // Calculate width based on content
+      this.updateWidth();
     }
     
-    // Schedule precise refinement
+    // Use standard scrollHeight approach for height
+    this.element.style.height = 'auto';
+    this.element.style.height = this.element.scrollHeight + 'px';
+    
+    // Schedule refinement for smooth transitions
     if (this.approximationTimeout) {
       clearTimeout(this.approximationTimeout);
     }
     this.approximationTimeout = setTimeout(() => {
       this.wrapper.style.transition = '';
-      // Only update width if not wrapped or if text is minimal
-      if (!isWrapped || forceApproximation || isEmpty) {
-        this.updateWidth();
-      }
-      this.adjustHeight();
+      // Final height adjustment using scrollHeight
+      this.element.style.height = 'auto';
+      this.element.style.height = this.element.scrollHeight + 'px';
       this.approximationTimeout = null;
     }, 200);
     
     return true; // Handled
-  }
-  
-  /**
-   * Handle sizing for wrapped text (width at max, only adjust height)
-   */
-  handleWrappedMode(text, containerWidth, lineHeight, paddingTop, paddingBottom) {
-    // Keep width at container max
-    this.wrapper.style.width = `${containerWidth}px`;
-    
-    // Get available width for text (container minus padding)
-    const computedStyle = window.getComputedStyle(this.element);
-    const innerComputedStyle = window.getComputedStyle(this.innerContainer);
-    const horizontalPadding = 
-      parseFloat(computedStyle.paddingLeft) + parseFloat(computedStyle.paddingRight) +
-      parseFloat(innerComputedStyle.paddingLeft) + parseFloat(innerComputedStyle.paddingRight);
-    const availableWidth = containerWidth - horizontalPadding - 20; // cursor buffer
-    
-    // Split by newlines to handle explicit line breaks
-    const lines = text.split('\n');
-    
-    // For wrapped mode, we mainly care about whether we need more height
-    // We can get the current scroll height and just check if it's growing
-    const currentHeight = this.element.offsetHeight;
-    const currentScrollHeight = this.element.scrollHeight;
-    
-    // If scrollHeight > offsetHeight, we need more space
-    if (currentScrollHeight > currentHeight) {
-      // Add one more row worth of height
-      const newHeight = currentHeight + lineHeight;
-      this.element.style.height = `${newHeight}px`;
-      console.log(`[handleWrappedMode] Growing: ${currentHeight}px -> ${newHeight}px`);
-    } else {
-      // For shrinking, we need to be more careful
-      // Count actual content rows
-      let totalRows = 0;
-      
-      lines.forEach(line => {
-        if (!line) {
-          totalRows += 1; // Empty line still takes a row
-        } else {
-          // Measure this line
-          this.widthState.measureElement.textContent = line;
-          const lineWidth = this.widthState.measureElement.offsetWidth;
-          const rowsForLine = Math.ceil(lineWidth / availableWidth);
-          totalRows += rowsForLine;
-        }
-      });
-      
-      // Set height based on total rows
-      const approximateHeight = (totalRows * lineHeight) + paddingTop + paddingBottom;
-      if (approximateHeight < currentHeight) {
-        this.element.style.height = `${approximateHeight}px`;
-        console.log(`[handleWrappedMode] Shrinking: ${currentHeight}px -> ${approximateHeight}px`);
-      } else {
-        // Keep current height if not shrinking
-        console.log(`[handleWrappedMode] Maintaining height: ${currentHeight}px`);
-      }
-    }
-  }
-  
-  /**
-   * Handle sizing for unwrapped text (calculate both width and height)
-   */
-  handleUnwrappedMode(text, containerWidth, totalPadding, cursorBuffer, lineHeight, paddingTop, paddingBottom) {
-    // Measure straight-line width
-    this.widthState.measureElement.textContent = text;
-    const straightLineWidth = this.widthState.measureElement.offsetWidth;
-    
-    // Calculate dimensions
-    let approximateWidth, approximateRows;
-    
-    if (straightLineWidth <= containerWidth - totalPadding - cursorBuffer) {
-      // Fits in one line
-      approximateWidth = straightLineWidth + totalPadding + cursorBuffer;
-      approximateRows = 1;
-    } else {
-      // Needs multiple lines
-      const contentWidth = containerWidth - totalPadding - cursorBuffer;
-      approximateRows = Math.ceil(straightLineWidth / contentWidth);
-      approximateWidth = containerWidth;
-    }
-    
-    // Apply dimensions with smooth transitions
-    this.wrapper.style.width = `${approximateWidth}px`;
-    
-    // Set approximate height
-    const approximateHeight = (approximateRows * lineHeight) + paddingTop + paddingBottom;
-    this.element.style.height = `${approximateHeight}px`;
-    
-    console.log(`[handleUnwrappedMode] Width: ${approximateWidth}px, Rows: ${approximateRows}, Height: ${approximateHeight}px`);
   }
   
   /**
@@ -598,52 +503,24 @@ class text_input_component_engine {
   }
   
   /**
-   * Adjust height for expandable inputs
+   * Adjust height for expandable inputs using scrollHeight
    */
   adjustHeight() {
     if (!this.element || this.element.tagName !== 'TEXTAREA') return;
     
-    // Step 1: Aggressively force to absolute minimum
-    // Remove any existing height to break browser's cached state
-    this.element.style.height = '';
+    // Use standard scrollHeight approach
+    this.element.style.height = 'auto';
+    this.element.style.height = this.element.scrollHeight + 'px';
     
-    // Step 2: Set to truly minimal height
-    this.element.style.height = '0px';
-    
-    // Step 3: Force multiple reflows to ensure browser acknowledges change
-    void this.element.offsetHeight;
-    void this.element.scrollHeight;
-    
-    // Step 4: Now get the true content height from zero state
-    const scrollHeight = this.element.scrollHeight;
-    
-    // Step 5: Calculate proper minimum based on content/placeholder
-    const computedStyle = window.getComputedStyle(this.element);
-    const lineHeight = parseFloat(computedStyle.lineHeight);
-    const paddingTop = parseFloat(computedStyle.paddingTop);
-    const paddingBottom = parseFloat(computedStyle.paddingBottom);
-    
-    let minHeight;
-    if (this.options.minHeight === 'auto') {
-      // Always use line height + padding for consistent minimum
-      minHeight = lineHeight + paddingTop + paddingBottom;
-    } else {
-      minHeight = parseInt(this.options.minHeight);
-    }
-    
-    const maxHeight = this.options.maxHeight ? parseInt(this.options.maxHeight) : Infinity;
-    
-    // Step 6: Grow from zero to exactly what's needed
-    const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
-    
-    // Apply final height
-    this.element.style.height = newHeight + 'px';
-    
-    // Handle scrollbar
-    if (this.options.maxHeight && scrollHeight > maxHeight) {
-      this.element.style.overflowY = 'auto';
-    } else {
-      this.element.style.overflowY = 'hidden';
+    // Handle scrollbar for max-height
+    if (this.options.maxHeight) {
+      const maxHeight = parseInt(this.options.maxHeight);
+      if (this.element.scrollHeight > maxHeight) {
+        this.element.style.height = maxHeight + 'px';
+        this.element.style.overflowY = 'auto';
+      } else {
+        this.element.style.overflowY = 'hidden';
+      }
     }
   }
   
