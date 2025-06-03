@@ -94,6 +94,9 @@ class text_input_component_engine {
     // Check if text is empty (should exit wrapped mode)
     const isEmpty = !textToSize.trim();
     
+    // Check if text has explicit line breaks
+    const hasLineBreaks = textToSize.includes('\n');
+    
     // Get current styles for accurate measurement
     const computedStyle = window.getComputedStyle(this.element);
     const innerComputedStyle = window.getComputedStyle(this.innerContainer);
@@ -117,12 +120,12 @@ class text_input_component_engine {
     const lineHeight = parseFloat(computedStyle.lineHeight) || 20;
     
     // Handle based on wrapped state and text amount
-    if (isWrapped && !isEmpty) {
-      // WRAPPED MODE: Only calculate height based on last line
+    if ((isWrapped || hasLineBreaks) && !isEmpty) {
+      // WRAPPED MODE or LINE BREAKS: Use scrollHeight for accurate height
       this.handleWrappedMode(textToSize, containerWidth, lineHeight, inputPaddingTop, inputPaddingBottom);
     } else {
       // UNWRAPPED MODE: Calculate both width and height
-      // This includes: new text, empty text after deletion, or forced recalculation
+      // This includes: new text, empty text after deletion
       this.handleUnwrappedMode(textToSize, containerWidth, totalPadding, cursorBuffer, lineHeight, inputPaddingTop, inputPaddingBottom);
     }
     
