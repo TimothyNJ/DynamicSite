@@ -138,7 +138,7 @@ class text_input_component_engine {
       }
       this.adjustHeight();
       this.approximationTimeout = null;
-    }, 50);
+    }, 200);
     
     return true; // Handled
   }
