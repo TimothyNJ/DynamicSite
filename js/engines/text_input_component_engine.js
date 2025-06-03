@@ -80,8 +80,8 @@ class text_input_component_engine {
    * @returns {boolean} - Whether approximation was handled
    */
   handleSizeApproximation(text, forceApproximation = false) {
-    // Use approximation for substantial text or when forced (resize events)
-    if (!text || (!forceApproximation && text.length < 50)) return false;
+    // Always use approximation for smooth experience
+    if (!text) return false;
     
     // Get container constraints
     const containerWidth = this.getContentContainerWidth();
@@ -291,8 +291,13 @@ class text_input_component_engine {
     // Initial adjustments
     if (this.options.expandable) {
       setTimeout(() => {
-        this.adjustHeight();
-        this.updateWidth();
+        // Use approximation if there's initial value, otherwise just set initial size
+        if (this.element.value) {
+          this.handleSizeApproximation(this.element.value);
+        } else {
+          this.adjustHeight();
+          this.updateWidth();
+        }
       }, 0);
     }
     
@@ -495,13 +500,8 @@ class text_input_component_engine {
       
       // Handle expandable behavior
       if (this.options.expandable) {
-        // Use approximation for large text, otherwise use precise calculation
-        if (value.length >= 50) {
-          this.handleSizeApproximation(value);
-        } else {
-          this.adjustHeight();
-          this.updateWidth();
-        }
+        // Always use approximation first for smooth experience
+        this.handleSizeApproximation(value);
       }
     });
     
@@ -592,8 +592,8 @@ class text_input_component_engine {
       
       // Adjust height and width if expandable
       if (this.options.expandable) {
-        this.adjustHeight();
-        this.updateWidth();
+        // Use approximation for smooth update
+        this.handleSizeApproximation(value);
       }
     }
   }
