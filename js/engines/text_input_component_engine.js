@@ -91,8 +91,8 @@ class text_input_component_engine {
     const currentWidth = this.wrapper.offsetWidth;
     const isWrapped = currentWidth >= (containerWidth * 0.95);
     
-    // Check if text is minimal (should exit wrapped mode)
-    const isMinimalText = textToSize.length < 20 || !textToSize.trim();
+    // Check if text is empty (should exit wrapped mode)
+    const isEmpty = !textToSize.trim();
     
     // Get current styles for accurate measurement
     const computedStyle = window.getComputedStyle(this.element);
@@ -117,12 +117,12 @@ class text_input_component_engine {
     const lineHeight = parseFloat(computedStyle.lineHeight) || 20;
     
     // Handle based on wrapped state and text amount
-    if (isWrapped && !forceApproximation && !isMinimalText) {
+    if (isWrapped && !forceApproximation && !isEmpty) {
       // WRAPPED MODE: Only calculate height based on last line
       this.handleWrappedMode(textToSize, containerWidth, lineHeight, inputPaddingTop, inputPaddingBottom);
     } else {
       // UNWRAPPED MODE: Calculate both width and height
-      // This includes: new text, minimal text after deletion, or forced recalculation
+      // This includes: new text, empty text after deletion, or forced recalculation
       this.handleUnwrappedMode(textToSize, containerWidth, totalPadding, cursorBuffer, lineHeight, inputPaddingTop, inputPaddingBottom);
     }
     
@@ -133,7 +133,7 @@ class text_input_component_engine {
     this.approximationTimeout = setTimeout(() => {
       this.wrapper.style.transition = '';
       // Only update width if not wrapped or if text is minimal
-      if (!isWrapped || forceApproximation || isMinimalText) {
+      if (!isWrapped || forceApproximation || isEmpty) {
         this.updateWidth();
       }
       this.adjustHeight();
