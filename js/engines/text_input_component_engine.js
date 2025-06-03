@@ -87,6 +87,10 @@ class text_input_component_engine {
     const containerWidth = this.getContentContainerWidth();
     if (!containerWidth) return false;
     
+    // Detect if we're in wrapped mode (already at max width)
+    const currentWidth = this.wrapper.offsetWidth;
+    const isWrapped = currentWidth >= (containerWidth * 0.95);
+    
     // Get current styles for accurate measurement
     const computedStyle = window.getComputedStyle(this.element);
     const innerComputedStyle = window.getComputedStyle(this.innerContainer);
@@ -97,11 +101,7 @@ class text_input_component_engine {
     this.widthState.measureElement.style.fontWeight = computedStyle.fontWeight;
     this.widthState.measureElement.style.letterSpacing = computedStyle.letterSpacing;
     
-    // Measure straight-line width
-    this.widthState.measureElement.textContent = text;
-    const straightLineWidth = this.widthState.measureElement.offsetWidth;
-    
-    // Get padding values
+    // Get padding values (needed for both modes)
     const inputPaddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
     const inputPaddingRight = parseFloat(computedStyle.paddingRight) || 0;
     const inputPaddingTop = parseFloat(computedStyle.paddingTop) || 0;
@@ -111,6 +111,100 @@ class text_input_component_engine {
     
     const totalPadding = inputPaddingLeft + inputPaddingRight + innerPaddingLeft + innerPaddingRight;
     const cursorBuffer = 20;
+    const lineHeight = parseFloat(computedStyle.lineHeight) || 20;
+    
+    // Handle based on wrapped state
+    if (isWrapped && !forceApproximation) {
+      // WRAPPED MODE: Only calculate height based on last line
+      this.handleWrappedMode(text, containerWidth, lineHeight, inputPaddingTop, inputPaddingBottom);
+    } else {
+      // UNWRAPPED MODE: Calculate both width and height
+      this.handleUnwrappedMode(text, containerWidth, totalPadding, cursorBuffer, lineHeight, inputPaddingTop, inputPaddingBottom);
+    }
+    
+    // Schedule precise refinement
+    if (this.approximationTimeout) {
+      clearTimeout(this.approximationTimeout);
+    }
+    this.approximationTimeout = setTimeout(() => {
+      this.wrapper.style.transition = '';
+      // Only update width if not wrapped
+      if (!isWrapped || forceApproximation) {
+        this.updateWidth();
+      }
+      this.adjustHeight();
+      this.approximationTimeout = null;
+    }, 50);
+    
+    return true; // Handled
+  }
+  
+  /**
+   * Handle sizing for wrapped text (width at max, only adjust height)
+   */
+  handleWrappedMode(text, containerWidth, lineHeight, paddingTop, paddingBottom) {
+    // Keep width at container max
+    this.wrapper.style.transition = 'none';
+    this.wrapper.style.width = `${containerWidth}px`;
+    
+    // Get available width for text (container minus padding)
+    const computedStyle = window.getComputedStyle(this.element);
+    const innerComputedStyle = window.getComputedStyle(this.innerContainer);
+    const horizontalPadding = 
+      parseFloat(computedStyle.paddingLeft) + parseFloat(computedStyle.paddingRight) +
+      parseFloat(innerComputedStyle.paddingLeft) + parseFloat(innerComputedStyle.paddingRight);
+    const availableWidth = containerWidth - horizontalPadding - 20; // cursor buffer
+    
+    // Split by newlines to handle explicit line breaks
+    const lines = text.split('\n');
+    
+    // For wrapped mode, we mainly care about whether we need more height
+    // We can get the current scroll height and just check if it's growing
+    const currentHeight = this.element.offsetHeight;
+    const currentScrollHeight = this.element.scrollHeight;
+    
+    // If scrollHeight > offsetHeight, we need more space
+    if (currentScrollHeight > currentHeight) {
+      // Add one more row worth of height
+      const newHeight = currentHeight + lineHeight;
+      this.element.style.height = `${newHeight}px`;
+      console.log(`[handleWrappedMode] Growing: ${currentHeight}px -> ${newHeight}px`);
+    } else {
+      // For shrinking, we need to be more careful
+      // Count actual content rows
+      let totalRows = 0;
+      
+      lines.forEach(line => {
+        if (!line) {
+          totalRows += 1; // Empty line still takes a row
+        } else {
+          // Measure this line
+          this.widthState.measureElement.textContent = line;
+          const lineWidth = this.widthState.measureElement.offsetWidth;
+          const rowsForLine = Math.ceil(lineWidth / availableWidth);
+          totalRows += rowsForLine;
+        }
+      });
+      
+      // Set height based on total rows
+      const approximateHeight = (totalRows * lineHeight) + paddingTop + paddingBottom;
+      if (approximateHeight < currentHeight) {
+        this.element.style.height = `${approximateHeight}px`;
+        console.log(`[handleWrappedMode] Shrinking: ${currentHeight}px -> ${approximateHeight}px`);
+      } else {
+        // Keep current height if not shrinking
+        console.log(`[handleWrappedMode] Maintaining height: ${currentHeight}px`);
+      }
+    }
+  }
+  
+  /**
+   * Handle sizing for unwrapped text (calculate both width and height)
+   */
+  handleUnwrappedMode(text, containerWidth, totalPadding, cursorBuffer, lineHeight, paddingTop, paddingBottom) {
+    // Measure straight-line width
+    this.widthState.measureElement.textContent = text;
+    const straightLineWidth = this.widthState.measureElement.offsetWidth;
     
     // Calculate dimensions
     let approximateWidth, approximateRows;
@@ -131,22 +225,10 @@ class text_input_component_engine {
     this.wrapper.style.width = `${approximateWidth}px`;
     
     // Set approximate height
-    const lineHeight = parseFloat(computedStyle.lineHeight) || 20;
-    const approximateHeight = (approximateRows * lineHeight) + inputPaddingTop + inputPaddingBottom;
+    const approximateHeight = (approximateRows * lineHeight) + paddingTop + paddingBottom;
     this.element.style.height = `${approximateHeight}px`;
     
-    // Schedule precise refinement
-    if (this.approximationTimeout) {
-      clearTimeout(this.approximationTimeout);
-    }
-    this.approximationTimeout = setTimeout(() => {
-      this.wrapper.style.transition = '';
-      this.updateWidth();
-      this.adjustHeight();
-      this.approximationTimeout = null;
-    }, 50);
-    
-    return true; // Handled
+    console.log(`[handleUnwrappedMode] Width: ${approximateWidth}px, Rows: ${approximateRows}, Height: ${approximateHeight}px`);
   }
   
   /**
@@ -445,7 +527,7 @@ class text_input_component_engine {
         
         // Use approximation for instant resize response
         if (this.options.expandable && this.element.value) {
-          // Force approximation even for smaller text during resize
+          // Force full recalculation on resize (viewport/container change)
           this.handleSizeApproximation(this.element.value, true);
         } else {
           this.updateWidth();
