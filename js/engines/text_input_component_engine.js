@@ -148,7 +148,6 @@ class text_input_component_engine {
    */
   handleWrappedMode(text, containerWidth, lineHeight, paddingTop, paddingBottom) {
     // Keep width at container max
-    this.wrapper.style.transition = 'none';
     this.wrapper.style.width = `${containerWidth}px`;
     
     // Get available width for text (container minus padding)
@@ -224,8 +223,7 @@ class text_input_component_engine {
       approximateWidth = containerWidth;
     }
     
-    // Apply instantly without transitions
-    this.wrapper.style.transition = 'none';
+    // Apply dimensions with smooth transitions
     this.wrapper.style.width = `${approximateWidth}px`;
     
     // Set approximate height
