@@ -444,13 +444,12 @@ class text_input_component_engine {
     const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
     
     // Calculate minimum width based on content
-    // If there's a placeholder, use its width as minimum
-    // Otherwise use 4px for single character inputs
+    // Only use placeholder width as minimum when input is empty (placeholder visible)
     let minWidth;
-    if (this.element.placeholder) {
+    if (!hasValue && this.element.placeholder) {
       minWidth = placeholderWidth + totalPadding + cursorBuffer;
     } else {
-      minWidth = 4;
+      minWidth = 4;  // Minimal width for empty input without placeholder
     }
     
     // Set width to exactly what's needed, respecting minimum and container constraints
