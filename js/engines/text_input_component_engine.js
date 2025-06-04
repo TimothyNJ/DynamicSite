@@ -87,11 +87,7 @@ class text_input_component_engine {
     // Handle empty text case - use placeholder for sizing
     const textToSize = text || this.element.placeholder || '';
     
-    // Detect if we're in wrapped mode (already at max width)
-    const currentWidth = this.wrapper.offsetWidth;
-    const isWrapped = currentWidth >= (containerWidth * 0.95);
-    
-    // Check if text is empty (should exit wrapped mode)
+    // Check if text is empty
     const isEmpty = !textToSize.trim();
     
     // Check if text has explicit line breaks
@@ -119,15 +115,12 @@ class text_input_component_engine {
     const cursorBuffer = 20;
     const lineHeight = parseFloat(computedStyle.lineHeight) || 20;
     
-    // Handle based on wrapped state and text amount
-    if (isWrapped && !isEmpty) {
-      // TRUE WRAPPED MODE: Text naturally wraps due to width constraints
-      this.handleWrappedMode(textToSize, containerWidth, lineHeight, inputPaddingTop, inputPaddingBottom);
-    } else if (hasLineBreaks && !isEmpty) {
-      // LINE BREAK MODE: Has explicit breaks but may not need full width
+    // Simplified two-mode system
+    if (hasLineBreaks && !isEmpty) {
+      // LINE BREAK MODE: Has explicit breaks or needs text wrapping
       this.handleLineBreakMode(textToSize, containerWidth, totalPadding, cursorBuffer, lineHeight, inputPaddingTop, inputPaddingBottom);
     } else {
-      // UNWRAPPED MODE: Normal typing without line breaks
+      // UNWRAPPED MODE: Normal single-line typing
       this.handleUnwrappedMode(textToSize, containerWidth, totalPadding, cursorBuffer, lineHeight, inputPaddingTop, inputPaddingBottom);
     }
     
@@ -137,29 +130,12 @@ class text_input_component_engine {
     }
     this.approximationTimeout = setTimeout(() => {
       this.wrapper.style.transition = '';
-      // Only update width if not wrapped or if text is minimal
-      if (!isWrapped || forceApproximation || isEmpty) {
-        this.updateWidth();
-      }
+      this.updateWidth();
       this.adjustHeight();
       this.approximationTimeout = null;
     }, 200);
     
     return true; // Handled
-  }
-  
-  /**
-   * Handle sizing for wrapped text (width at max, only adjust height)
-   */
-  handleWrappedMode(text, containerWidth, lineHeight, paddingTop, paddingBottom) {
-    // Keep width at container max
-    this.wrapper.style.width = `${containerWidth}px`;
-    
-    // Use scrollHeight for accurate height calculation
-    this.element.style.height = 'auto';
-    this.element.style.height = this.element.scrollHeight + 'px';
-    
-    console.log(`[handleWrappedMode] Using scrollHeight: ${this.element.scrollHeight}px`);
   }
   
   /**
