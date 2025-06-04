@@ -45,7 +45,7 @@
   overflow: hidden;
   width: 100%;
   line-height: 1.2;
-  text-align: left;
+  text-align: center;
   
   // Remove default textarea styles
   &:focus {
@@ -198,7 +198,7 @@
   outline: none;
   min-width: 0; // Allow it to shrink completely
   width: 100%; // Fill the container
-  text-align: left;
+  text-align: center;
   
   &::placeholder {
     color: var(--text-color-dark-secondary);
