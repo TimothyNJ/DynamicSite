@@ -120,12 +120,14 @@ class text_input_component_engine {
     const lineHeight = parseFloat(computedStyle.lineHeight) || 20;
     
     // Handle based on wrapped state and text amount
-    if ((isWrapped || hasLineBreaks) && !isEmpty) {
-      // WRAPPED MODE or LINE BREAKS: Use scrollHeight for accurate height
+    if (isWrapped && !isEmpty) {
+      // TRUE WRAPPED MODE: Text naturally wraps due to width constraints
       this.handleWrappedMode(textToSize, containerWidth, lineHeight, inputPaddingTop, inputPaddingBottom);
+    } else if (hasLineBreaks && !isEmpty) {
+      // LINE BREAK MODE: Has explicit breaks but may not need full width
+      this.handleLineBreakMode(textToSize, containerWidth, totalPadding, cursorBuffer, lineHeight, inputPaddingTop, inputPaddingBottom);
     } else {
-      // UNWRAPPED MODE: Calculate both width and height
-      // This includes: new text, empty text after deletion
+      // UNWRAPPED MODE: Normal typing without line breaks
       this.handleUnwrappedMode(textToSize, containerWidth, totalPadding, cursorBuffer, lineHeight, inputPaddingTop, inputPaddingBottom);
     }
     
@@ -158,6 +160,50 @@ class text_input_component_engine {
     this.element.style.height = this.element.scrollHeight + 'px';
     
     console.log(`[handleWrappedMode] Using scrollHeight: ${this.element.scrollHeight}px`);
+  }
+  
+  /**
+   * Handle sizing for text with line breaks (may not need full width)
+   */
+  handleLineBreakMode(text, containerWidth, totalPadding, cursorBuffer, lineHeight, paddingTop, paddingBottom) {
+    // Split text by lines and find widest line
+    const lines = text.split('\n');
+    let maxLineWidth = 0;
+    
+    // Measure each line to find the widest
+    lines.forEach(line => {
+      // Use a space for empty lines to ensure measurement
+      this.widthState.measureElement.textContent = line || ' ';
+      const lineWidth = this.widthState.measureElement.offsetWidth;
+      maxLineWidth = Math.max(maxLineWidth, lineWidth);
+    });
+    
+    // Calculate needed width (with padding and cursor buffer)
+    const neededWidth = maxLineWidth + totalPadding + cursorBuffer;
+    const currentWidth = this.wrapper.offsetWidth;
+    
+    // Determine final width: expand if needed, but don't shrink (prevents jumps)
+    // Also check if we need to transition to wrapped mode
+    let finalWidth;
+    if (neededWidth >= containerWidth * 0.95) {
+      // Content is wide enough to trigger wrapped mode
+      finalWidth = containerWidth;
+    } else if (neededWidth > currentWidth) {
+      // Expand to accommodate content
+      finalWidth = neededWidth;
+    } else {
+      // Maintain current width (don't shrink)
+      finalWidth = currentWidth;
+    }
+    
+    // Apply width
+    this.wrapper.style.width = `${finalWidth}px`;
+    
+    // Use scrollHeight for accurate height calculation
+    this.element.style.height = 'auto';
+    this.element.style.height = this.element.scrollHeight + 'px';
+    
+    console.log(`[handleLineBreakMode] Widest line: ${maxLineWidth}px, Final width: ${finalWidth}px, Height: ${this.element.scrollHeight}px`);
   }
   
   /**
