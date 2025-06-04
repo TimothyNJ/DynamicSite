@@ -20,3 +20,5 @@ yarn-error.log*
 # Environment variables
 .env
 .env.local
+dist/bundle.js
+dist/bundle.js.LICENSE.txt
