@@ -180,20 +180,15 @@ class text_input_component_engine {
     
     // Calculate needed width (with padding and cursor buffer)
     const neededWidth = maxLineWidth + totalPadding + cursorBuffer;
-    const currentWidth = this.wrapper.offsetWidth;
     
-    // Determine final width: expand if needed, but don't shrink (prevents jumps)
-    // Also check if we need to transition to wrapped mode
+    // Determine final width based on actual need, not current width
     let finalWidth;
     if (neededWidth >= containerWidth * 0.95) {
       // Content is wide enough to trigger wrapped mode
       finalWidth = containerWidth;
-    } else if (neededWidth > currentWidth) {
-      // Expand to accommodate content
-      finalWidth = neededWidth;
     } else {
-      // Maintain current width (don't shrink)
-      finalWidth = currentWidth;
+      // Use the actual needed width
+      finalWidth = neededWidth;
     }
     
     // Apply width
@@ -203,7 +198,7 @@ class text_input_component_engine {
     this.element.style.height = 'auto';
     this.element.style.height = this.element.scrollHeight + 'px';
     
-    console.log(`[handleLineBreakMode] Widest line: ${maxLineWidth}px, Final width: ${finalWidth}px, Height: ${this.element.scrollHeight}px`);
+    console.log(`[handleLineBreakMode] Widest line: ${maxLineWidth}px, Needed: ${neededWidth}px, Final: ${finalWidth}px, Height: ${this.element.scrollHeight}px`);
   }
   
   /**
@@ -411,14 +406,12 @@ class text_input_component_engine {
       visibility: hidden;
       height: auto;
       width: auto;
-      white-space: pre; // Preserve spaces
+      white-space: pre;
       pointer-events: none;
-      // Copy exact styles from the input
       font-size: var(--component-font-size);
       font-weight: var(--component-font-weight);
       font-family: var(--font-family-primary);
       line-height: 1.2;
-      // No padding here - we'll add it in calculation
     `;
     document.body.appendChild(this.widthState.measureElement);
   }
