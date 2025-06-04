@@ -58,8 +58,7 @@ class text_input_component_engine {
     this.widthState = {
       measureElement: null,
       currentLineCount: 1,
-      containerWidth: 0,
-      previousTextLength: 0  // Track text length for deletion detection
+      containerWidth: 0
     };
     
     // Animation constants
@@ -181,30 +180,16 @@ class text_input_component_engine {
     
     // Calculate needed width (with padding and cursor buffer)
     const neededWidth = maxLineWidth + totalPadding + cursorBuffer;
-    const currentWidth = this.wrapper.offsetWidth;
-    const currentTextLength = text.length;
     
-    // Detect if this is a deletion (significant reduction in text length)
-    const isDelete = currentTextLength < this.widthState.previousTextLength - 5;
-    
-    // Determine final width based on context
+    // Determine final width based on actual need, not current width
     let finalWidth;
     if (neededWidth >= containerWidth * 0.95) {
       // Content is wide enough to trigger wrapped mode
       finalWidth = containerWidth;
-    } else if (isDelete) {
-      // Deletion detected - allow shrinking to actual needed width
-      finalWidth = neededWidth;
-    } else if (neededWidth > currentWidth) {
-      // Normal typing - expand if needed
-      finalWidth = neededWidth;
     } else {
-      // Normal typing - maintain current width to prevent jumping
-      finalWidth = currentWidth;
+      // Use the actual needed width
+      finalWidth = neededWidth;
     }
-    
-    // Update previous text length for next comparison
-    this.widthState.previousTextLength = currentTextLength;
     
     // Apply width
     this.wrapper.style.width = `${finalWidth}px`;
@@ -213,7 +198,7 @@ class text_input_component_engine {
     this.element.style.height = 'auto';
     this.element.style.height = this.element.scrollHeight + 'px';
     
-    console.log(`[handleLineBreakMode] Delete: ${isDelete}, Previous: ${this.widthState.previousTextLength}, Current: ${currentTextLength}, Width: ${finalWidth}px`);
+    console.log(`[handleLineBreakMode] Widest line: ${maxLineWidth}px, Needed: ${neededWidth}px, Final: ${finalWidth}px, Height: ${this.element.scrollHeight}px`);
   }
   
   /**
