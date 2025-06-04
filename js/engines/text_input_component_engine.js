@@ -133,7 +133,7 @@ class text_input_component_engine {
       this.updateWidth();
       this.adjustHeight();
       this.approximationTimeout = null;
-    }, 200);
+    }, 0);
     
     return true; // Handled
   }
