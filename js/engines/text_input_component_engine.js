@@ -157,15 +157,8 @@ class text_input_component_engine {
     // Calculate needed width (with padding and cursor buffer)
     const neededWidth = maxLineWidth + totalPadding + cursorBuffer;
     
-    // Determine final width based on actual need, not current width
-    let finalWidth;
-    if (neededWidth >= containerWidth * 0.95) {
-      // Content is wide enough to trigger wrapped mode
-      finalWidth = containerWidth;
-    } else {
-      // Use the actual needed width
-      finalWidth = neededWidth;
-    }
+    // Use the actual needed width, up to container width
+    const finalWidth = Math.min(neededWidth, containerWidth);
     
     // Apply width
     this.wrapper.style.width = `${finalWidth}px`;
@@ -174,7 +167,7 @@ class text_input_component_engine {
     this.element.style.height = 'auto';
     this.element.style.height = this.element.scrollHeight + 'px';
     
-    console.log(`[handleLineBreakMode] Widest line: ${maxLineWidth}px, Needed: ${neededWidth}px, Final: ${finalWidth}px, Height: ${this.element.scrollHeight}px`);
+    console.log(`[handleLineBreakMode] Lines: ${lines.length}, Widest: ${maxLineWidth}px, Final width: ${finalWidth}px, Height: ${this.element.scrollHeight}px`);
   }
   
   /**
