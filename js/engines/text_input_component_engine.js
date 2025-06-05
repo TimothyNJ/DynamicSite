@@ -80,6 +80,11 @@ class text_input_component_engine {
    * @returns {boolean} - Whether approximation was handled
    */
   handleSizeApproximation(text, forceApproximation = false) {
+    // Skip if using native field-sizing (unless forced)
+    if (this.useNativeFieldSizing && !forceApproximation) {
+      return true; // Let CSS handle it
+    }
+    
     // Get container constraints
     const containerWidth = this.getContentContainerWidth();
     if (!containerWidth) return false;
@@ -312,6 +317,25 @@ class text_input_component_engine {
     this.element.className = 'dynamic-text-input';
     this.element.placeholder = this.options.placeholder;
     this.element.value = this.options.value;
+    
+    // Progressive enhancement: Use field-sizing if supported
+    // Check if browser supports field-sizing
+    const supportsFieldSizing = CSS.supports && CSS.supports('field-sizing', 'content');
+    
+    if (supportsFieldSizing) {
+      this.element.style.fieldSizing = 'content';
+      // Set minimum constraints
+      this.element.style.minWidth = '1ch';
+      this.element.style.minHeight = '1.2lh'; // or use rlh for root line height
+      // Set maximum constraints to match container behavior
+      this.element.style.maxWidth = '100%';
+      // Note: We're not setting max-height to allow unlimited vertical growth
+      
+      // Store flag to potentially skip some JS calculations
+      this.useNativeFieldSizing = true;
+    } else {
+      this.useNativeFieldSizing = false;
+    }
     
     if (this.options.required) {
       this.element.required = true;
