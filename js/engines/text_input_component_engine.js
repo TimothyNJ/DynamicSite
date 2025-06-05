@@ -131,7 +131,6 @@ class text_input_component_engine {
     this.approximationTimeout = setTimeout(() => {
       this.wrapper.style.transition = '';
       this.updateWidth();
-      this.adjustHeight();
       this.approximationTimeout = null;
     }, 0);
     
