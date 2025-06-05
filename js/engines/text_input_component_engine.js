@@ -177,24 +177,24 @@ class text_input_component_engine {
     this.widthState.measureElement.textContent = text;
     const straightLineWidth = this.widthState.measureElement.offsetWidth;
     
-    // Calculate dimensions
-    let approximateWidth, approximateRows;
+    // Always calculate actual rows needed - no assumptions
+    const contentWidth = containerWidth - totalPadding - cursorBuffer;
+    const approximateRows = Math.ceil(straightLineWidth / contentWidth);
     
+    // Calculate width - can be partial or full container
+    let approximateWidth;
     if (straightLineWidth <= containerWidth - totalPadding - cursorBuffer) {
-      // Fits in one line
+      // Text doesn't fill container - use actual width needed
       approximateWidth = straightLineWidth + totalPadding + cursorBuffer;
-      approximateRows = 1;
     } else {
-      // Needs multiple lines
-      const contentWidth = containerWidth - totalPadding - cursorBuffer;
-      approximateRows = Math.ceil(straightLineWidth / contentWidth);
+      // Text fills container
       approximateWidth = containerWidth;
     }
     
     // Apply dimensions with smooth transitions
     this.wrapper.style.width = `${approximateWidth}px`;
     
-    // Set approximate height
+    // Set height based on calculated rows (not assumed)
     const approximateHeight = (approximateRows * lineHeight) + paddingTop + paddingBottom;
     this.element.style.height = `${approximateHeight}px`;
     
