@@ -159,14 +159,17 @@ class text_input_component_engine {
     // Use the actual needed width, up to container width
     const finalWidth = Math.min(neededWidth, containerWidth);
     
-    // Apply width
-    this.wrapper.style.width = `${finalWidth}px`;
+    // Convert to percentage for responsive sizing
+    const widthPercent = (finalWidth / containerWidth) * 100;
+    
+    // Apply width as percentage
+    this.wrapper.style.width = `${widthPercent}%`;
     
     // Use scrollHeight for accurate height calculation
     this.element.style.height = 'auto';
     this.element.style.height = this.element.scrollHeight + 'px';
     
-    console.log(`[handleLineBreakMode] Lines: ${lines.length}, Widest: ${maxLineWidth}px, Final width: ${finalWidth}px, Height: ${this.element.scrollHeight}px`);
+    console.log(`[handleLineBreakMode] Lines: ${lines.length}, Widest: ${maxLineWidth}px, Final width: ${widthPercent}%, Height: ${this.element.scrollHeight}px`);
   }
   
   /**
@@ -191,14 +194,17 @@ class text_input_component_engine {
       approximateWidth = containerWidth;
     }
     
-    // Apply dimensions with smooth transitions
-    this.wrapper.style.width = `${approximateWidth}px`;
+    // Convert to percentage for responsive sizing
+    const widthPercent = (approximateWidth / containerWidth) * 100;
+    
+    // Apply width as percentage
+    this.wrapper.style.width = `${widthPercent}%`;
     
     // Set height based on calculated rows (not assumed)
     const approximateHeight = (approximateRows * lineHeight) + paddingTop + paddingBottom;
     this.element.style.height = `${approximateHeight}px`;
     
-    console.log(`[handleUnwrappedMode] Width: ${approximateWidth}px, Rows: ${approximateRows}, Height: ${approximateHeight}px`);
+    console.log(`[handleUnwrappedMode] Width: ${widthPercent}%, Rows: ${approximateRows}, Height: ${approximateHeight}px`);
   }
   
   /**
