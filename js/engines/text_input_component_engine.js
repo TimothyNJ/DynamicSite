@@ -198,6 +198,11 @@ class text_input_component_engine {
     // Calculate desired width
     const desiredWidth = straightLineWidth + totalPadding + cursorBuffer;
     
+    // DEBUG: Log measurement details
+    const measuredFontSize = window.getComputedStyle(this.widthState.measureElement).fontSize;
+    const actualFontSize = window.getComputedStyle(this.element).fontSize;
+    console.log(`[DEBUG handleUnwrappedMode] Text: "${text.substring(0, 20)}...", Measured font: ${measuredFontSize}, Actual font: ${actualFontSize}, Text width: ${straightLineWidth}px`);
+    
     // Calculate minimum width - only use placeholder width when empty
     let minWidth;
     if (!text || text.trim().length === 0) {
@@ -213,6 +218,10 @@ class text_input_component_engine {
     // Determine if we need to wrap
     const willWrap = desiredWidth > containerWidth;
     const finalWidth = willWrap ? containerWidth : Math.max(minWidth, desiredWidth);
+    
+    // DEBUG: Log width calculations
+    const oldWidth = this.wrapper.style.width;
+    console.log(`[DEBUG handleUnwrappedMode] Old width: ${oldWidth}, Desired: ${desiredWidth}px, Final: ${finalWidth}px, Will wrap: ${willWrap}`);
     
     // Set the calculated width
     this.wrapper.style.width = `${finalWidth}px`;
@@ -524,6 +533,7 @@ class text_input_component_engine {
     for (let entry of entries) {
       const newWidth = entry.contentRect.width;
       if (newWidth !== this.widthState.containerWidth) {
+        console.log(`[DEBUG handleResize] Container width changed from ${this.widthState.containerWidth}px to ${newWidth}px`);
         this.widthState.containerWidth = newWidth;
         
         // Use approximation for instant resize response
