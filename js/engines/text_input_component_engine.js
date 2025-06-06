@@ -222,13 +222,11 @@ class text_input_component_engine {
     this.wrapper.style.maxWidth = '100%';
     this.wrapper.style.minWidth = `${minWidth}px`;
     
-    // Calculate height based on wrapping
-    const contentWidth = containerWidth - totalPadding - cursorBuffer;
-    const approximateRows = willWrap ? Math.ceil(straightLineWidth / contentWidth) : 1;
-    const approximateHeight = (approximateRows * lineHeight) + paddingTop + paddingBottom;
-    this.element.style.height = `${approximateHeight}px`;
+    // Use scrollHeight for accurate height calculation
+    this.element.style.height = 'auto';
+    this.element.style.height = `${this.element.scrollHeight}px`;
     
-    console.log(`[handleUnwrappedMode] Width: ${finalWidth}px, Rows: ${approximateRows}, Using hybrid flex approach`);
+    console.log(`[handleUnwrappedMode] Width: ${finalWidth}px, Height: ${this.element.scrollHeight}px`);
   }
   
   /**
