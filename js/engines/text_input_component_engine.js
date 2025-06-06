@@ -168,8 +168,8 @@ class text_input_component_engine {
     // Remove explicit width - let flex handle sizing
     this.wrapper.style.width = '';  // Clear any previous width
     
-    // Apply flex-based solution (Option 2) with flex-grow
-    this.wrapper.style.flex = '1 1 auto';  // Grow, shrink, auto basis
+    // Apply flex-based solution - content-based sizing
+    this.wrapper.style.flex = '0 1 auto';  // No grow, shrink, auto basis
     this.wrapper.style.maxWidth = '100%';
     this.wrapper.style.minWidth = `${minWidth}px`;
     
@@ -203,8 +203,8 @@ class text_input_component_engine {
     // Remove explicit width - let flex handle sizing
     this.wrapper.style.width = '';  // Clear any previous width
     
-    // Apply flex-based solution (Option 2) with flex-grow
-    this.wrapper.style.flex = '1 1 auto';  // Grow, shrink, auto basis
+    // Apply flex-based solution - content-based sizing
+    this.wrapper.style.flex = '0 1 auto';  // No grow, shrink, auto basis
     this.wrapper.style.maxWidth = '100%';
     this.wrapper.style.minWidth = `${minWidth}px`;
     
@@ -466,8 +466,8 @@ class text_input_component_engine {
     // Remove explicit width - let flex handle sizing
     this.wrapper.style.width = '';  // Clear any previous width
     
-    // Apply flex-based solution (Option 2) with flex-grow
-    this.wrapper.style.flex = '1 1 auto';  // Grow, shrink, auto basis
+    // Apply flex-based solution - content-based sizing
+    this.wrapper.style.flex = '0 1 auto';  // No grow, shrink, auto basis
     this.wrapper.style.maxWidth = '100%';
     this.wrapper.style.minWidth = `${minWidth}px`;
     
