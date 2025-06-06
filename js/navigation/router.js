@@ -85,7 +85,7 @@ export async function navigateToPage(pageName, pushState = true) {
     const html = await response.text();
 
     // Update the content container
-    contentContainer.innerHTML = `<div class="content-isolation-container">${html}</div>`;
+    contentContainer.innerHTML = `<div class="content-isolation-container"><div class="content-flex-container">${html}</div></div>`;
 
     // Update active page tracking
     activePage = pageName;
