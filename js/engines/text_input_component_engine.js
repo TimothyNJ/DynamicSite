@@ -97,11 +97,8 @@ class text_input_component_engine {
     const computedStyle = window.getComputedStyle(this.element);
     const innerComputedStyle = window.getComputedStyle(this.innerContainer);
     
-    // Apply exact styles to measurement element
-    this.widthState.measureElement.style.fontSize = computedStyle.fontSize;
-    this.widthState.measureElement.style.fontFamily = computedStyle.fontFamily;
-    this.widthState.measureElement.style.fontWeight = computedStyle.fontWeight;
-    this.widthState.measureElement.style.letterSpacing = computedStyle.letterSpacing;
+    // Don't apply inline styles - let CSS variables control the measurement element
+    // This allows viewport-based font sizing to propagate correctly
     
     // Get padding values (needed for both modes)
     const inputPaddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
@@ -431,11 +428,8 @@ class text_input_component_engine {
     const computedStyle = window.getComputedStyle(this.element);
     const innerComputedStyle = window.getComputedStyle(this.innerContainer);
     
-    // Apply matching styles to measurement element
-    this.widthState.measureElement.style.fontSize = computedStyle.fontSize;
-    this.widthState.measureElement.style.fontFamily = computedStyle.fontFamily;
-    this.widthState.measureElement.style.fontWeight = computedStyle.fontWeight;
-    this.widthState.measureElement.style.letterSpacing = computedStyle.letterSpacing;
+    // Don't apply inline styles - let CSS variables control the measurement element
+    // This allows viewport-based font sizing to propagate correctly
     
     // Determine what to measure
     const hasValue = this.element.value && this.element.value.trim().length > 0;
