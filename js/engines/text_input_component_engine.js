@@ -65,12 +65,35 @@ class text_input_component_engine {
     this.ANIMATION_DURATION = 800; // Match slider exactly
     this.MONITOR_INTERVAL = 100;
     
+    // Viewport resize state
+    this.viewportResizeTimeout = null;
+    
     // Bound methods
     this.handleMousePositionUpdate = this.handleMousePositionUpdate.bind(this);
     this.updateWidth = this.updateWidth.bind(this);
     this.handleResize = this.handleResize.bind(this);
+    this.handleViewportResize = this.handleViewportResize.bind(this);
     
     console.log(`[text_input_component_engine] Initialized with hover animations:`, this.options);
+  }
+  
+  /**
+   * Refresh measurement element styles from input element
+   * This ensures measurement uses current viewport-based font sizes
+   */
+  refreshMeasurementStyles() {
+    if (!this.element || !this.widthState.measureElement) return;
+    
+    // Get fresh computed styles from the input element
+    const computedStyle = window.getComputedStyle(this.element);
+    
+    // Apply fresh styles to measurement element
+    this.widthState.measureElement.style.fontSize = computedStyle.fontSize;
+    this.widthState.measureElement.style.fontFamily = computedStyle.fontFamily;
+    this.widthState.measureElement.style.fontWeight = computedStyle.fontWeight;
+    this.widthState.measureElement.style.letterSpacing = computedStyle.letterSpacing;
+    
+    console.log('[refreshMeasurementStyles] Updated font size:', computedStyle.fontSize);
   }
   
   /**
@@ -97,8 +120,8 @@ class text_input_component_engine {
     const computedStyle = window.getComputedStyle(this.element);
     const innerComputedStyle = window.getComputedStyle(this.innerContainer);
     
-    // Don't apply inline styles - let CSS variables control the measurement element
-    // This allows viewport-based font sizing to propagate correctly
+    // Refresh measurement element styles to ensure current viewport sizing
+    this.refreshMeasurementStyles();
     
     // Get padding values (needed for both modes)
     const inputPaddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
@@ -392,6 +415,9 @@ class text_input_component_engine {
     this.setupHoverAnimation();
     this.startContinuousMonitoring();
     
+    // Setup viewport resize handling
+    this.setupViewportResizeHandling();
+    
     console.log(`[text_input_component_engine] Rendered input with horizontal expansion:`, this.options.id);
     
     return this.element;
@@ -428,8 +454,8 @@ class text_input_component_engine {
     const computedStyle = window.getComputedStyle(this.element);
     const innerComputedStyle = window.getComputedStyle(this.innerContainer);
     
-    // Don't apply inline styles - let CSS variables control the measurement element
-    // This allows viewport-based font sizing to propagate correctly
+    // Refresh measurement element styles to ensure current viewport sizing
+    this.refreshMeasurementStyles();
     
     // Determine what to measure
     const hasValue = this.element.value && this.element.value.trim().length > 0;
@@ -490,6 +516,49 @@ class text_input_component_engine {
     console.log(`[updateWidth] Text: "${singleLineText}" (${singleLineText.length} chars)`);
     console.log(`[updateWidth] Text width: ${textWidth}px, Final width: ${finalWidth}px`);
     console.log(`[updateWidth] Using hybrid approach with flex properties`);
+  }
+  
+  /**
+   * Setup viewport resize handling
+   */
+  setupViewportResizeHandling() {
+    // Static tracker for all instances
+    if (!text_input_component_engine.viewportListenerAdded) {
+      text_input_component_engine.viewportListenerAdded = true;
+      text_input_component_engine.instances = new Set();
+      
+      // Add single global viewport resize listener
+      window.addEventListener('resize', () => {
+        // Notify all text input instances
+        text_input_component_engine.instances.forEach(instance => {
+          instance.handleViewportResize();
+        });
+      });
+    }
+    
+    // Add this instance to the set
+    text_input_component_engine.instances.add(this);
+  }
+  
+  /**
+   * Handle viewport resize events
+   */
+  handleViewportResize() {
+    // Debounce viewport resize events
+    if (this.viewportResizeTimeout) {
+      clearTimeout(this.viewportResizeTimeout);
+    }
+    
+    this.viewportResizeTimeout = setTimeout(() => {
+      console.log('[handleViewportResize] Viewport resized, updating measurements');
+      
+      // Refresh measurement styles and recalculate
+      if (this.options.expandable) {
+        this.handleSizeApproximation(this.element.value || '', true);
+      } else {
+        this.updateWidth();
+      }
+    }, 100); // 100ms debounce
   }
   
   /**
@@ -707,6 +776,17 @@ class text_input_component_engine {
    * Destroy the component and clean up
    */
   destroy() {
+    // Remove from global instances set
+    if (text_input_component_engine.instances) {
+      text_input_component_engine.instances.delete(this);
+    }
+    
+    // Clear viewport resize timeout
+    if (this.viewportResizeTimeout) {
+      clearTimeout(this.viewportResizeTimeout);
+      this.viewportResizeTimeout = null;
+    }
+    
     // Clean up ResizeObserver
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
