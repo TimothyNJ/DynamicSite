@@ -2,7 +2,7 @@
 node_modules/
 
 # Build output
-# dist/ - Temporarily allowing dist for deployment
+dist/
 
 # OS files
 .DS_Store
@@ -20,5 +20,3 @@ yarn-error.log*
 # Environment variables
 .env
 .env.local
-dist/bundle.js
-dist/bundle.js.LICENSE.txt

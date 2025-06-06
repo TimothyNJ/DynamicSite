@@ -156,17 +156,28 @@ class text_input_component_engine {
     // Calculate needed width (with padding and cursor buffer)
     const neededWidth = maxLineWidth + totalPadding + cursorBuffer;
     
-    // Use the actual needed width, up to container width
-    const finalWidth = Math.min(neededWidth, containerWidth);
+    // Calculate minimum width based on placeholder
+    this.widthState.measureElement.textContent = this.element.placeholder || '';
+    const placeholderWidth = this.widthState.measureElement.offsetWidth;
+    const minWidth = placeholderWidth + totalPadding + cursorBuffer;
     
-    // Apply width
-    this.wrapper.style.width = `${finalWidth}px`;
+    // Get container constraints
+    const maxWidth = Math.min(neededWidth, containerWidth);
+    const finalWidth = Math.max(minWidth, maxWidth);
+    
+    // Remove explicit width - let flex handle sizing
+    this.wrapper.style.width = '';  // Clear any previous width
+    
+    // Apply flex-based solution (Option 2) with flex-grow
+    this.wrapper.style.flex = '1 1 auto';  // Grow, shrink, auto basis
+    this.wrapper.style.maxWidth = '100%';
+    this.wrapper.style.minWidth = `${minWidth}px`;
     
     // Use scrollHeight for accurate height calculation
     this.element.style.height = 'auto';
     this.element.style.height = this.element.scrollHeight + 'px';
     
-    console.log(`[handleLineBreakMode] Lines: ${lines.length}, Widest: ${maxLineWidth}px, Final width: ${finalWidth}px, Height: ${this.element.scrollHeight}px`);
+    console.log(`[handleLineBreakMode] Lines: ${lines.length}, Width: ${finalWidth}px, Using hybrid flex approach`);
   }
   
   /**
@@ -177,28 +188,33 @@ class text_input_component_engine {
     this.widthState.measureElement.textContent = text;
     const straightLineWidth = this.widthState.measureElement.offsetWidth;
     
-    // Always calculate actual rows needed - no assumptions
+    // Calculate desired width
+    const desiredWidth = straightLineWidth + totalPadding + cursorBuffer;
+    
+    // Calculate minimum width based on placeholder
+    this.widthState.measureElement.textContent = this.element.placeholder || '';
+    const placeholderWidth = this.widthState.measureElement.offsetWidth;
+    const minWidth = placeholderWidth + totalPadding + cursorBuffer;
+    
+    // Determine if we need to wrap
+    const willWrap = desiredWidth > containerWidth;
+    const finalWidth = willWrap ? containerWidth : Math.max(minWidth, desiredWidth);
+    
+    // Remove explicit width - let flex handle sizing
+    this.wrapper.style.width = '';  // Clear any previous width
+    
+    // Apply flex-based solution (Option 2) with flex-grow
+    this.wrapper.style.flex = '1 1 auto';  // Grow, shrink, auto basis
+    this.wrapper.style.maxWidth = '100%';
+    this.wrapper.style.minWidth = `${minWidth}px`;
+    
+    // Calculate height based on wrapping
     const contentWidth = containerWidth - totalPadding - cursorBuffer;
-    const approximateRows = Math.ceil(straightLineWidth / contentWidth);
-    
-    // Calculate width - can be partial or full container
-    let approximateWidth;
-    if (straightLineWidth <= containerWidth - totalPadding - cursorBuffer) {
-      // Text doesn't fill container - use actual width needed
-      approximateWidth = straightLineWidth + totalPadding + cursorBuffer;
-    } else {
-      // Text fills container
-      approximateWidth = containerWidth;
-    }
-    
-    // Apply dimensions with smooth transitions
-    this.wrapper.style.width = `${approximateWidth}px`;
-    
-    // Set height based on calculated rows (not assumed)
+    const approximateRows = willWrap ? Math.ceil(straightLineWidth / contentWidth) : 1;
     const approximateHeight = (approximateRows * lineHeight) + paddingTop + paddingBottom;
     this.element.style.height = `${approximateHeight}px`;
     
-    console.log(`[handleUnwrappedMode] Width: ${approximateWidth}px, Rows: ${approximateRows}, Height: ${approximateHeight}px`);
+    console.log(`[handleUnwrappedMode] Width: ${finalWidth}px, Rows: ${approximateRows}, Using hybrid flex approach`);
   }
   
   /**
@@ -446,13 +462,19 @@ class text_input_component_engine {
     
     // Set width to exactly what's needed, respecting minimum and container constraints
     const finalWidth = Math.max(minWidth, Math.min(desiredWidth, containerWidth));
-    this.wrapper.style.width = `${finalWidth}px`;
-    // Don't set minWidth style - let the wrapper shrink as needed
+    
+    // Remove explicit width - let flex handle sizing
+    this.wrapper.style.width = '';  // Clear any previous width
+    
+    // Apply flex-based solution (Option 2) with flex-grow
+    this.wrapper.style.flex = '1 1 auto';  // Grow, shrink, auto basis
+    this.wrapper.style.maxWidth = '100%';
+    this.wrapper.style.minWidth = `${minWidth}px`;
     
     // Debug logging
     console.log(`[updateWidth] Text: "${singleLineText}" (${singleLineText.length} chars)`);
-    console.log(`[updateWidth] Text width: ${textWidth}px, Total width needed: ${desiredWidth}px`);
-    console.log(`[updateWidth] Container width: ${containerWidth}px, Final width: ${finalWidth}px`);
+    console.log(`[updateWidth] Text width: ${textWidth}px, Final width: ${finalWidth}px`);
+    console.log(`[updateWidth] Using hybrid approach with flex properties`);
   }
   
   /**
