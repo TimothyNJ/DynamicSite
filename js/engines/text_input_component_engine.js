@@ -156,10 +156,17 @@ class text_input_component_engine {
     // Calculate needed width (with padding and cursor buffer)
     const neededWidth = maxLineWidth + totalPadding + cursorBuffer;
     
-    // Calculate minimum width based on placeholder
-    this.widthState.measureElement.textContent = this.element.placeholder || '';
-    const placeholderWidth = this.widthState.measureElement.offsetWidth;
-    const minWidth = placeholderWidth + totalPadding + cursorBuffer;
+    // Calculate minimum width - only use placeholder width when empty
+    let minWidth;
+    if (!text || text.trim().length === 0) {
+      // Empty input - use placeholder width as minimum
+      this.widthState.measureElement.textContent = this.element.placeholder || '';
+      const placeholderWidth = this.widthState.measureElement.offsetWidth;
+      minWidth = placeholderWidth + totalPadding + cursorBuffer;
+    } else {
+      // Has content - allow it to shrink to content size
+      minWidth = 4;  // Minimal width
+    }
     
     // Get container constraints
     const maxWidth = Math.min(neededWidth, containerWidth);
@@ -191,10 +198,17 @@ class text_input_component_engine {
     // Calculate desired width
     const desiredWidth = straightLineWidth + totalPadding + cursorBuffer;
     
-    // Calculate minimum width based on placeholder
-    this.widthState.measureElement.textContent = this.element.placeholder || '';
-    const placeholderWidth = this.widthState.measureElement.offsetWidth;
-    const minWidth = placeholderWidth + totalPadding + cursorBuffer;
+    // Calculate minimum width - only use placeholder width when empty
+    let minWidth;
+    if (!text || text.trim().length === 0) {
+      // Empty input - use placeholder width as minimum
+      this.widthState.measureElement.textContent = this.element.placeholder || '';
+      const placeholderWidth = this.widthState.measureElement.offsetWidth;
+      minWidth = placeholderWidth + totalPadding + cursorBuffer;
+    } else {
+      // Has content - allow it to shrink to content size
+      minWidth = 4;  // Minimal width
+    }
     
     // Determine if we need to wrap
     const willWrap = desiredWidth > containerWidth;
