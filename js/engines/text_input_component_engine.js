@@ -79,21 +79,12 @@ class text_input_component_engine {
   
   /**
    * Refresh measurement element styles from input element
-   * This ensures measurement uses current viewport-based font sizes
+   * With CSS approach, this is no longer needed as CSS variables handle it
    */
   refreshMeasurementStyles() {
-    if (!this.element || !this.widthState.measureElement) return;
-    
-    // Get fresh computed styles from the input element
-    const computedStyle = window.getComputedStyle(this.element);
-    
-    // Apply fresh styles to measurement element
-    this.widthState.measureElement.style.fontSize = computedStyle.fontSize;
-    this.widthState.measureElement.style.fontFamily = computedStyle.fontFamily;
-    this.widthState.measureElement.style.fontWeight = computedStyle.fontWeight;
-    this.widthState.measureElement.style.letterSpacing = computedStyle.letterSpacing;
-    
-    console.log('[refreshMeasurementStyles] Updated font size:', computedStyle.fontSize);
+    // CSS variables now handle all style synchronization
+    // No JavaScript copying needed
+    console.log('[refreshMeasurementStyles] CSS variables handle style sync');
   }
   
   /**
@@ -429,18 +420,7 @@ class text_input_component_engine {
   createMeasurementElement() {
     this.widthState.measureElement = document.createElement('div');
     this.widthState.measureElement.className = 'text-measurement-helper';
-    this.widthState.measureElement.style.cssText = `
-      position: absolute;
-      visibility: hidden;
-      height: auto;
-      width: auto;
-      white-space: pre;
-      pointer-events: none;
-      font-size: var(--component-font-size);
-      font-weight: var(--component-font-weight);
-      font-family: var(--font-family-primary);
-      line-height: 1.2;
-    `;
+    // All styles now handled by CSS class - no inline styles needed
     document.body.appendChild(this.widthState.measureElement);
   }
   

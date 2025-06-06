@@ -126,6 +126,35 @@
 }
 
 // ==============================================
+// Text Measurement Helper
+// ==============================================
+.text-measurement-helper {
+  // Mirror all text input styles using CSS variables
+  font-size: var(--component-font-size) !important;
+  font-weight: var(--component-font-weight) !important;
+  font-family: var(--font-family-primary) !important;
+  line-height: 1.2 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  
+  // Ensure measurement accuracy
+  position: absolute !important;
+  visibility: hidden !important;
+  height: auto !important;
+  width: auto !important;
+  white-space: pre !important;
+  pointer-events: none !important;
+  
+  // Reset any inherited styles
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: none !important;
+  color: var(--text-color-dark) !important;
+}
+
+// ==============================================
 // Text Input Engine 2 - Natural Flex Sizing
 // ==============================================
 .text-input-2-wrapper {
