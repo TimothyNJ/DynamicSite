@@ -165,8 +165,8 @@ class text_input_component_engine {
     const maxWidth = Math.min(neededWidth, containerWidth);
     const finalWidth = Math.max(minWidth, maxWidth);
     
-    // Remove explicit width - let flex handle sizing
-    this.wrapper.style.width = '';  // Clear any previous width
+    // Set the calculated width
+    this.wrapper.style.width = `${finalWidth}px`;
     
     // Apply flex-based solution - content-based sizing
     this.wrapper.style.flex = '0 1 auto';  // No grow, shrink, auto basis
@@ -200,8 +200,8 @@ class text_input_component_engine {
     const willWrap = desiredWidth > containerWidth;
     const finalWidth = willWrap ? containerWidth : Math.max(minWidth, desiredWidth);
     
-    // Remove explicit width - let flex handle sizing
-    this.wrapper.style.width = '';  // Clear any previous width
+    // Set the calculated width
+    this.wrapper.style.width = `${finalWidth}px`;
     
     // Apply flex-based solution - content-based sizing
     this.wrapper.style.flex = '0 1 auto';  // No grow, shrink, auto basis
@@ -463,8 +463,8 @@ class text_input_component_engine {
     // Set width to exactly what's needed, respecting minimum and container constraints
     const finalWidth = Math.max(minWidth, Math.min(desiredWidth, containerWidth));
     
-    // Remove explicit width - let flex handle sizing
-    this.wrapper.style.width = '';  // Clear any previous width
+    // Set the calculated width
+    this.wrapper.style.width = `${finalWidth}px`;
     
     // Apply flex-based solution - content-based sizing
     this.wrapper.style.flex = '0 1 auto';  // No grow, shrink, auto basis
