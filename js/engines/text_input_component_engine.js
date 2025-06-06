@@ -65,9 +65,6 @@ class text_input_component_engine {
     this.ANIMATION_DURATION = 800; // Match slider exactly
     this.MONITOR_INTERVAL = 100;
     
-    // Viewport resize state
-    this.viewportResizeTimeout = null;
-    
     // Bound methods
     this.handleMousePositionUpdate = this.handleMousePositionUpdate.bind(this);
     this.updateWidth = this.updateWidth.bind(this);
@@ -544,21 +541,14 @@ class text_input_component_engine {
    * Handle viewport resize events
    */
   handleViewportResize() {
-    // Debounce viewport resize events
-    if (this.viewportResizeTimeout) {
-      clearTimeout(this.viewportResizeTimeout);
-    }
+    console.log('[handleViewportResize] Viewport resized, updating measurements');
     
-    this.viewportResizeTimeout = setTimeout(() => {
-      console.log('[handleViewportResize] Viewport resized, updating measurements');
-      
-      // Refresh measurement styles and recalculate
-      if (this.options.expandable) {
-        this.handleSizeApproximation(this.element.value || '', true);
-      } else {
-        this.updateWidth();
-      }
-    }, 100); // 100ms debounce
+    // Refresh measurement styles and recalculate immediately - no debouncing
+    if (this.options.expandable) {
+      this.handleSizeApproximation(this.element.value || '', true);
+    } else {
+      this.updateWidth();
+    }
   }
   
   /**
@@ -779,12 +769,6 @@ class text_input_component_engine {
     // Remove from global instances set
     if (text_input_component_engine.instances) {
       text_input_component_engine.instances.delete(this);
-    }
-    
-    // Clear viewport resize timeout
-    if (this.viewportResizeTimeout) {
-      clearTimeout(this.viewportResizeTimeout);
-      this.viewportResizeTimeout = null;
     }
     
     // Clean up ResizeObserver
