@@ -149,47 +149,139 @@ function initializeSettingsComponents() {
     // User Settings Components
     console.log('[Settings Page] Initializing User Settings components...');
     
-    // Time Format Slider (12-hour / 24-hour)
-    const savedTimeFormat = localStorage.getItem('userTimeFormat') || '24-hour';
+    // Time Format Slider (12-hour / 24-hour) with live time display
+    const savedTimeFormat = localStorage.getItem('userTimeFormatPreference') || '12';
+    let timeUpdateInterval = null;
+    
+    // Utility function to format current time
+    function formatCurrentTime(use24Hour = false) {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+
+      if (use24Hour) {
+        // 24-hour format
+        hours = hours.toString().padStart(2, '0');
+        return `24h ${hours}:${minutes}`;
+      } else {
+        // 12-hour format with AM/PM
+        const period = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // Convert 0 to 12 for 12 AM
+        return `12h ${hours}:${minutes}${period}`;
+      }
+    }
+    
+    // Function to update time displays
+    function updateTimeDisplay() {
+      const option12h = document.querySelector('.time-format-slider .option[data-format="12"] h3');
+      const option24h = document.querySelector('.time-format-slider .option[data-format="24"] h3');
+      
+      if (option12h) {
+        option12h.textContent = formatCurrentTime(false);
+      }
+      if (option24h) {
+        option24h.textContent = formatCurrentTime(true);
+      }
+    }
+    
     componentFactory.createSlider({
       containerId: 'time-format-slider-container',
       sliderClass: 'time-format-slider',
       options: [
-        { text: '12-hour', value: '12-hour', position: 1, active: savedTimeFormat === '12-hour' },
-        { text: '24-hour', value: '24-hour', position: 2, active: savedTimeFormat === '24-hour' }
+        { text: formatCurrentTime(false), value: '12', position: 1, active: savedTimeFormat === '12', dataAttributes: 'data-format="12"' },
+        { text: formatCurrentTime(true), value: '24', position: 2, active: savedTimeFormat === '24', dataAttributes: 'data-format="24"' }
       ]
     }, (selectedOption) => {
-      const value = selectedOption.querySelector('h3').textContent;
-      console.log('[Time Format] Selected:', value);
-      localStorage.setItem('userTimeFormat', value);
-      // TODO: Add live time display update functionality
+      const format = selectedOption.getAttribute('data-format');
+      console.log('[Time Format] Selected:', format);
+      localStorage.setItem('userTimeFormatPreference', format);
     });
     
-    // Theme Selector Slider (Light / System / Dark)
+    // Start updating time display
+    updateTimeDisplay();
+    timeUpdateInterval = setInterval(updateTimeDisplay, 1000);
+    
+    // Theme Selector Slider (Light / System / Dark) with proper theme application
     const savedTheme = localStorage.getItem('userThemePreference') || 'dark';
+    
+    // Utility function for theme application
+    function applyThemeByName(themeName, skipThemeDetection = false) {
+      console.log('[Theme] Applying theme:', themeName);
+      const body = document.body;
+
+      if (themeName === 'light') {
+        console.log('[Theme] Setting light theme attributes');
+        body.setAttribute('data-theme', 'light');
+        body.style.backgroundImage = 'linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)';
+
+        // Update slider background if available
+        const themeSelector = document.querySelector('.theme-selector-slider');
+        if (themeSelector) {
+          themeSelector.style.background = 'linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)';
+        }
+      } else if (themeName === 'dark') {
+        console.log('[Theme] Setting dark theme attributes');
+        body.setAttribute('data-theme', 'dark');
+        body.style.backgroundImage = 'linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)';
+
+        // Update slider background if available
+        const themeSelector = document.querySelector('.theme-selector-slider');
+        if (themeSelector) {
+          themeSelector.style.background = 'linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)';
+        }
+      } else if (themeName === 'system' && !skipThemeDetection) {
+        console.log('[Theme] Setting system theme based on preference');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyThemeByName(prefersDark ? 'dark' : 'light', true);
+      }
+    }
+    
+    // Check system theme preference
+    function applySystemTheme() {
+      const currentTheme = localStorage.getItem('userThemePreference');
+      if (currentTheme === 'system') {
+        applyThemeByName('system');
+      }
+    }
+    
     componentFactory.createSlider({
       containerId: 'theme-selector-slider-container',
-      sliderClass: 'theme-selector-slider',
+      sliderClass: 'theme-selector-slider theme-selector',
       options: [
         { text: 'Light', value: 'light', position: 1, active: savedTheme === 'light', dataAttributes: 'data-theme="light"' },
         { text: 'System', value: 'system', position: 2, active: savedTheme === 'system', dataAttributes: 'data-theme="system"' },
         { text: 'Dark', value: 'dark', position: 3, active: savedTheme === 'dark', dataAttributes: 'data-theme="dark"' }
       ]
     }, (selectedOption) => {
-      const value = selectedOption.getAttribute('data-theme') || selectedOption.querySelector('h3').textContent.toLowerCase();
-      console.log('[Theme] Selected:', value);
+      const themeName = selectedOption.getAttribute('data-theme') || selectedOption.querySelector('h3').textContent.toLowerCase();
+      console.log('[Theme] Selected:', themeName);
       
-      // Apply theme
-      if (value === 'system') {
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-      } else {
-        document.body.setAttribute('data-theme', value);
-      }
+      // Apply the selected theme
+      applyThemeByName(themeName);
       
       // Save preference
-      localStorage.setItem('userThemePreference', value);
+      localStorage.setItem('userThemePreference', themeName);
     });
+    
+    // Set up listeners for system theme changes
+    if (window.matchMedia) {
+      try {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', applySystemTheme);
+      } catch (e) {
+        console.warn('[Theme] Media query listener error:', e);
+        // Fallback for older browsers
+        try {
+          window.matchMedia('(prefers-color-scheme: dark)').addListener(applySystemTheme);
+        } catch (e2) {
+          console.warn('[Theme] Media query addListener error:', e2);
+        }
+      }
+    }
+    
+    // Apply initial theme
+    applyThemeByName(savedTheme);
     
     console.log('[Settings Page] All components initialized successfully');
     
