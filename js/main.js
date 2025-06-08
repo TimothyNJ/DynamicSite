@@ -146,6 +146,51 @@ function initializeSettingsComponents() {
     
     console.log('[Settings Page] Demo components initialized');
     
+    // User Settings Components
+    console.log('[Settings Page] Initializing User Settings components...');
+    
+    // Time Format Slider (12-hour / 24-hour)
+    const savedTimeFormat = localStorage.getItem('userTimeFormat') || '24-hour';
+    componentFactory.createSlider({
+      containerId: 'time-format-slider-container',
+      sliderClass: 'time-format-slider',
+      options: [
+        { text: '12-hour', value: '12-hour', position: 1, active: savedTimeFormat === '12-hour' },
+        { text: '24-hour', value: '24-hour', position: 2, active: savedTimeFormat === '24-hour' }
+      ]
+    }, (selectedOption) => {
+      const value = selectedOption.querySelector('h3').textContent;
+      console.log('[Time Format] Selected:', value);
+      localStorage.setItem('userTimeFormat', value);
+      // TODO: Add live time display update functionality
+    });
+    
+    // Theme Selector Slider (Light / System / Dark)
+    const savedTheme = localStorage.getItem('userThemePreference') || 'dark';
+    componentFactory.createSlider({
+      containerId: 'theme-selector-slider-container',
+      sliderClass: 'theme-selector-slider',
+      options: [
+        { text: 'Light', value: 'light', position: 1, active: savedTheme === 'light', dataAttributes: 'data-theme="light"' },
+        { text: 'System', value: 'system', position: 2, active: savedTheme === 'system', dataAttributes: 'data-theme="system"' },
+        { text: 'Dark', value: 'dark', position: 3, active: savedTheme === 'dark', dataAttributes: 'data-theme="dark"' }
+      ]
+    }, (selectedOption) => {
+      const value = selectedOption.getAttribute('data-theme') || selectedOption.querySelector('h3').textContent.toLowerCase();
+      console.log('[Theme] Selected:', value);
+      
+      // Apply theme
+      if (value === 'system') {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      } else {
+        document.body.setAttribute('data-theme', value);
+      }
+      
+      // Save preference
+      localStorage.setItem('userThemePreference', value);
+    });
+    
     console.log('[Settings Page] All components initialized successfully');
     
   } catch (error) {
