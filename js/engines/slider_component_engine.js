@@ -98,6 +98,16 @@ class slider_component_engine {
       return false;
     }
     
+    // Apply container styling for proper spacing and debug borders
+    container.style.border = '1px solid yellow';
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.alignItems = 'center';
+    container.style.margin = '5px 0';  // Match the spacing from main branch
+    container.style.width = 'fit-content';
+    container.style.maxWidth = '100%';
+    container.style.flex = '0 1 auto';
+    
     // Debug logging to see what container we're in
     console.log(`[${this.containerId}] Parent element:`, container.parentElement);
     console.log(`[${this.containerId}] Parent class:`, container.parentElement?.className);

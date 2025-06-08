@@ -214,22 +214,10 @@ function initializeSettingsComponents() {
         console.log('[Theme] Setting light theme attributes');
         body.setAttribute('data-theme', 'light');
         body.style.backgroundImage = 'linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)';
-
-        // Update slider background if available
-        const themeSelector = document.querySelector('.theme-selector-slider');
-        if (themeSelector) {
-          themeSelector.style.background = 'linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)';
-        }
       } else if (themeName === 'dark') {
         console.log('[Theme] Setting dark theme attributes');
         body.setAttribute('data-theme', 'dark');
         body.style.backgroundImage = 'linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)';
-
-        // Update slider background if available
-        const themeSelector = document.querySelector('.theme-selector-slider');
-        if (themeSelector) {
-          themeSelector.style.background = 'linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)';
-        }
       } else if (themeName === 'system' && !skipThemeDetection) {
         console.log('[Theme] Setting system theme based on preference');
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
