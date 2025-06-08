@@ -67,6 +67,7 @@
     font-weight: bold;
     position: relative;
     z-index: 3;
+    padding: 2px 8px; // Override default 2px 2px to match main branch slider appearance
   }
   
   // Border container for animations
