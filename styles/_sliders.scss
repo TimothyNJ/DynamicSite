@@ -68,6 +68,11 @@
     position: relative;
     z-index: 3;
     padding: 2px 8px; // Override default 2px 2px to match main branch slider appearance
+    // Override base styles that cause text truncation
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
   }
   
   // Border container for animations

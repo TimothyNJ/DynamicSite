@@ -244,7 +244,10 @@ class slider_component_engine {
     this._options.forEach((option) => {
       const width = option.offsetWidth;
       maxWidth = Math.max(maxWidth, width);
+      console.log(`[slider_component_engine] Button '${option.textContent.trim()}' natural width: ${width}px`);
     });
+
+    console.log(`[slider_component_engine] Setting all buttons to max width: ${maxWidth}px`);
 
     // Set all buttons to the max width
     this._options.forEach((option) => {
@@ -874,6 +877,7 @@ class slider_component_engine {
 
       // If text changed, recalculate shortest width and equalize buttons
       if (textChanged) {
+        console.log(`[slider_component_engine] Text change detected in ${this.sliderClass}, recalculating button widths`);
         this.equalizeButtonWidths();
       }
     });
