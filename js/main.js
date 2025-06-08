@@ -23,7 +23,7 @@ import { updateDimensions } from './layout/dimensions.js';
 // Import component system modules
 import { slider_component_engine } from './engines/slider_component_engine.js';
 import { text_input_component_engine } from './engines/text_input_component_engine.js';
-import { text_input_component_engine_2 } from './engines/text_input_component_engine_2.js';
+
 import { button_component_engine } from './engines/button_component_engine.js';
 import { multi_select_component_engine } from './engines/multi_select_component_engine.js';
 import { file_upload_input_component_engine } from './engines/file_upload_input_component_engine.js';
@@ -77,15 +77,7 @@ function initializeSettingsComponents() {
       onChange: (value) => console.log('[Demo] Text input:', value)
     });
     
-    // 2b. Text Input Engine 2 demo - New simplified version
-    const textInput2Demo = new text_input_component_engine_2({
-      id: 'demo-text-input-2',
-      placeholder: 'Text Input v2',
-      expandable: true
-    }, (value) => console.log('[Demo] Text input v2:', value));
-    
-    // Render the new engine
-    textInput2Demo.render('demo-text-input-2-container');
+
     
     // 3. Button demo
     componentFactory.createButton('demo-button-container', {
