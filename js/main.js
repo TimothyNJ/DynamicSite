@@ -145,66 +145,6 @@ function initializeSettingsComponents() {
     });
     
     console.log('[Settings Page] Demo components initialized');
-    // Personal Info
-    componentFactory.createFirstNameInput('first-name-container');
-    componentFactory.createLastNameInput('last-name-container');
-    componentFactory.createNicknameInput('nickname-container');
-    
-    // Appearance & Language
-    componentFactory.createThemeSelector('theme-selector-container');
-    componentFactory.createLanguageSelector('language-selector-container');
-    
-    // Time & Date
-    componentFactory.createTimezoneSelector('timezone-selector-container');
-    componentFactory.createFirstDayOfWeekSelector('first-day-selector-container');
-    componentFactory.createDateFormatSelector('date-format-selector-container');
-    componentFactory.createTimeFormatSelector('time-format-selector-container');
-    
-    // Work Hours
-    componentFactory.createMorningHoursSelector('morning-hours-container');
-    componentFactory.createAfternoonHoursSelector('afternoon-hours-container');
-    
-    // Units & Currency
-    componentFactory.createCurrencySelector('currency-selector-container');
-    
-    // Units selector - create a wheel selector for metric/imperial
-    componentFactory.createWheelSelector('units-selector-container', {
-      id: 'units-selector',
-      label: 'Units of Measurement',
-      options: [
-        { value: 'metric', text: 'Metric' },
-        { value: 'imperial', text: 'Imperial' }
-      ],
-      defaultValue: 'metric',
-      storageKey: 'userUnitsPreference',
-      onChange: (value) => {
-        console.log('[Settings] Units selected:', value);
-      }
-    });
-    
-    // Contact Info
-    componentFactory.createEmailInput('email-container');
-    componentFactory.createPhoneInput('phone-container');
-    
-    // Notifications
-    componentFactory.createNotificationPreferences('notification-preferences-container');
-    
-    // Profile
-    componentFactory.createProfilePictureUpload('profile-picture-container', (files) => {
-      console.log('[Settings] Profile picture selected:', files);
-    });
-    componentFactory.createBirthdatePicker('birthdate-container');
-    
-    // Action Buttons
-    componentFactory.createSaveButton('save-button-container', () => {
-      console.log('[Settings] Save clicked - would save all settings');
-      // Here you would collect all values and save them
-    });
-    
-    componentFactory.createCancelButton('cancel-button-container', () => {
-      console.log('[Settings] Cancel clicked - would revert changes');
-      // Here you would revert any unsaved changes
-    });
     
     console.log('[Settings Page] All components initialized successfully');
     
