@@ -51,9 +51,17 @@ function initializeSettingsComponents() {
   
   console.log('[Settings Page] Initializing all components...');
   
-  try {
-    // Demo Components - Base Models
-    console.log('[Settings Page] Initializing demo components...');
+  // Apply theme BEFORE creating components so CSS selectors work correctly
+  const savedTheme = localStorage.getItem('userThemePreference') || 'dark';
+  if (!document.body.hasAttribute('data-theme')) {
+      document.body.setAttribute('data-theme', savedTheme === 'system' 
+        ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : savedTheme);
+    }
+    
+    try {
+      // Demo Components - Base Models
+      console.log('[Settings Page] Initializing demo components...');
     
     // 1. Slider demo
     componentFactory.createSlider({
@@ -203,7 +211,7 @@ function initializeSettingsComponents() {
     timeUpdateInterval = setInterval(updateTimeDisplay, 1000);
     
     // Theme Selector Slider (Light / System / Dark) with proper theme application
-    const savedTheme = localStorage.getItem('userThemePreference') || 'dark';
+    // savedTheme already declared at the top of the function
     
     // Utility function for theme application
     function applyThemeByName(themeName, skipThemeDetection = false) {
