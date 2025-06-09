@@ -213,11 +213,13 @@ function initializeSettingsComponents() {
       if (themeName === 'light') {
         console.log('[Theme] Setting light theme attributes');
         body.setAttribute('data-theme', 'light');
-        body.style.backgroundImage = 'linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%)';
+        // Remove inline style - let CSS handle the background
+        body.style.removeProperty('background-image');
       } else if (themeName === 'dark') {
         console.log('[Theme] Setting dark theme attributes');
         body.setAttribute('data-theme', 'dark');
-        body.style.backgroundImage = 'linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%)';
+        // Remove inline style - let CSS handle the background
+        body.style.removeProperty('background-image');
       } else if (themeName === 'system' && !skipThemeDetection) {
         console.log('[Theme] Setting system theme based on preference');
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
