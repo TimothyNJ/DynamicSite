@@ -245,7 +245,7 @@ function initializeSettingsComponents() {
     
     componentFactory.createSlider({
       containerId: 'theme-selector-slider-container',
-      sliderClass: 'theme-selector-slider theme-selector',
+      sliderClass: 'theme-slider',
       options: [
         { text: 'Light', value: 'light', position: 1, active: savedTheme === 'light', dataAttributes: 'data-theme="light"' },
         { text: 'System', value: 'system', position: 2, active: savedTheme === 'system', dataAttributes: 'data-theme="system"' },

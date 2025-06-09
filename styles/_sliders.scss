@@ -32,13 +32,9 @@
 // ==============================================
 // Base Slider Styles
 // ==============================================
-.slider-selector,
-.theme-selector,
-.time-format-selector,
-.language-selector,
-.first-day-selector,
-.date-format-selector,
-.units-selector {
+// All sliders use the base .slider-selector class
+// Additional classes like .theme-slider are for specific styling if needed
+.slider-selector {
   display: inline-flex;
   position: relative;
   height: auto;

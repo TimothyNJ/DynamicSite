@@ -60,6 +60,16 @@ class slider_component_engine {
   }
 
   /**
+   * Get the primary selector class for querySelector usage
+   * Handles multiple classes by splitting on spaces and using the first one
+   */
+  getSelectorClass() {
+    // If sliderClass contains spaces, use only the first class for selectors
+    const firstClass = this.sliderClass.split(' ')[0];
+    return firstClass;
+  }
+
+  /**
    * Generate HTML structure for slider based on configuration
    * Replicates exact main branch HTML structure
    */
@@ -118,7 +128,7 @@ class slider_component_engine {
     container.innerHTML = html;
     
     // Get reference to created slider
-    this.sliderElement = container.querySelector(`.slider-selector.${this.sliderClass}`);
+    this.sliderElement = container.querySelector('.slider-selector');
     
     const success = this.sliderElement !== null;
     console.log(`[slider_component_engine] Slider element created: ${success}`);
@@ -138,15 +148,16 @@ class slider_component_engine {
       return false;
     }
 
-    // Get element references
-    this._themeSelector = document.querySelector(`.slider-selector.${this.sliderClass}`);
-    this._selectorBackground = document.querySelector(`.slider-selector.${this.sliderClass} .selector-background`);
-    this._options = document.querySelectorAll(`.slider-selector.${this.sliderClass} .option`);
-    this._borderTop = document.querySelector(`.slider-selector.${this.sliderClass} .border-top`);
-    this._borderBottom = document.querySelector(`.slider-selector.${this.sliderClass} .border-bottom`);
+    // Get element references using the primary selector class
+    const selectorClass = this.getSelectorClass();
+    this._themeSelector = document.querySelector(`.slider-selector.${selectorClass}`);
+    this._selectorBackground = document.querySelector(`.slider-selector.${selectorClass} .selector-background`);
+    this._options = document.querySelectorAll(`.slider-selector.${selectorClass} .option`);
+    this._borderTop = document.querySelector(`.slider-selector.${selectorClass} .border-top`);
+    this._borderBottom = document.querySelector(`.slider-selector.${selectorClass} .border-bottom`);
 
     if (!this._themeSelector) {
-      console.error(`[slider_component_engine] Core slider element not found for ${this.sliderClass}`);
+      console.error(`[slider_component_engine] Core slider element not found for ${selectorClass}`);
       return false;
     }
 
@@ -275,7 +286,8 @@ class slider_component_engine {
     tempSpan.style.whiteSpace = "nowrap";
 
     // Get font style from an option's h3
-    const sampleH3 = document.querySelector(`.slider-selector.${this.sliderClass} .option h3`);
+    const selectorClass = this.getSelectorClass();
+    const sampleH3 = document.querySelector(`.slider-selector.${selectorClass} .option h3`);
     if (sampleH3) {
       tempSpan.style.font = getComputedStyle(sampleH3).font;
     } else {
@@ -310,7 +322,8 @@ class slider_component_engine {
     }
 
     // Get the active option
-    const activeOption = document.querySelector(`.slider-selector.${this.sliderClass} .option.active`);
+    const selectorClass = this.getSelectorClass();
+    const activeOption = document.querySelector(`.slider-selector.${selectorClass} .option.active`);
     if (!activeOption) {
       console.warn("No active option found");
       return false;
@@ -839,7 +852,8 @@ class slider_component_engine {
       if (!this._themeSelector || !this._selectorBackground) return;
 
       // Update active button background
-      const activeOption = document.querySelector(`.slider-selector.${this.sliderClass} .option.active`);
+      const selectorClass = this.getSelectorClass();
+      const activeOption = document.querySelector(`.slider-selector.${selectorClass} .option.active`);
       if (!activeOption) return;
 
       const selectorRect = this._themeSelector.getBoundingClientRect();
