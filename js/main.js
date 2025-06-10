@@ -88,7 +88,7 @@ function initializeSettingsComponents() {
     // 3. Button demo
     componentFactory.createButton('demo-button-container', {
       id: 'demo-button',
-      text: 'O', // Single capital O to test flexibility
+      text: '•', // Bullet point dot
       onClick: () => console.log('[Demo] Button clicked')
     });
     
