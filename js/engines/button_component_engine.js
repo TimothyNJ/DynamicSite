@@ -29,7 +29,6 @@ class button_component_engine {
     this.clickHandler = clickHandler;
     this.element = null;
     this.container = null;
-    this.background = null;
     
     // Determine if using default dot
     this.isDefaultDot = this.options.text === '•';
@@ -87,10 +86,6 @@ class button_component_engine {
     this.element.className = buttonClasses.join(' ');
     this.element.id = this.options.id;
     
-    // Background layer (like selector-background)
-    this.background = document.createElement('div');
-    this.background.className = 'button-background';
-    
     // Content layer
     const content = document.createElement('div');
     content.className = 'button-content';
@@ -101,7 +96,6 @@ class button_component_engine {
     content.appendChild(h3);
     
     // Build DOM structure
-    this.element.appendChild(this.background);
     this.element.appendChild(content);
     
     // Add event listeners
@@ -124,7 +118,7 @@ class button_component_engine {
       this.disable();
     }
     
-    console.log(`[button_component_engine] Rendered ${this.isCircle ? 'circle' : 'text'} button:`, this.options.id);
+    console.log(`[button_component_engine] Rendered button:`, this.options.id);
     
     return this.element;
   }
@@ -240,7 +234,6 @@ class button_component_engine {
     
     this.element = null;
     this.container = null;
-    this.background = null;
     console.log(`[button_component_engine] Destroyed:`, this.options.id);
   }
 }
