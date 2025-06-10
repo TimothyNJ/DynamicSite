@@ -311,6 +311,10 @@ function initializeApp() {
   
   // Router will handle page loading and component initialization
   console.log('[main.js] Application initialized');
+  
+  // Show the body now that styles are loaded (prevent FOUC)
+  document.body.style.visibility = 'visible';
+  document.body.style.opacity = '1';
 }
 
 // Set up initialization

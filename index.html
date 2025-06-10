@@ -4,6 +4,14 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Dynamic Site</title>
+    <style>
+      /* Hide everything until styled to prevent FOUC */
+      body { 
+        visibility: hidden; 
+        opacity: 0; 
+        transition: opacity 0.3s ease-in-out;
+      }
+    </style>
   </head>
   <body>
     <div class="site-container">
