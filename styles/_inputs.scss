@@ -25,7 +25,7 @@
 
 // Inner container for text
 .text-input-inner {
-  padding: 0 var(--input-safe-padding);  // 0 vertical, calculated horizontal only
+  padding: 2px var(--input-safe-padding);  // 2px vertical to match slider buttons, calculated horizontal
   margin: 0;
   width: 100%;
   display: flex;
