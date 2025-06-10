@@ -88,7 +88,7 @@ function initializeSettingsComponents() {
     // 3. Button demo
     componentFactory.createButton('demo-button-container', {
       id: 'demo-button',
-      text: '•', // Bullet point dot
+      // text not specified - will use default invisible dot
       onClick: () => console.log('[Demo] Button clicked')
     });
     

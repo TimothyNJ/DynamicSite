@@ -43,6 +43,19 @@
     }
   }
   
+  // Default dot button (invisible dot placeholder)
+  &.button-default-dot {
+    height: auto; // Let content determine height
+    
+    .button-content {
+      padding: 2px 2px; // Minimal padding for default dot
+      
+      h3 {
+        opacity: 0; // Make the dot invisible
+      }
+    }
+  }
+  
   // Text button
   &.button-text {
     height: auto; // Let content determine height

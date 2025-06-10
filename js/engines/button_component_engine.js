@@ -19,7 +19,7 @@ class button_component_engine {
     // Default options
     this.options = {
       id: options.id || `button-${Date.now()}`,
-      text: options.text !== undefined ? options.text : 'Button', // Allow empty string
+      text: options.text !== undefined ? options.text : '•', // Default to bullet dot
       value: options.value || options.text || 'button',
       disabled: options.disabled || false,
       active: options.active || false,
@@ -31,7 +31,8 @@ class button_component_engine {
     this.container = null;
     this.background = null;
     
-    // Determine button type based on text
+    // Determine button type and if using default dot
+    this.isDefaultDot = this.options.text === '•';
     this.isCircle = !this.options.text || this.options.text.trim() === '';
     
     console.log(`[button_component_engine] Initialized ${this.isCircle ? 'circle' : 'text'} button:`, this.options);
@@ -59,7 +60,15 @@ class button_component_engine {
     
     // Create button element (matches slider structure)
     this.element = document.createElement('div');
-    this.element.className = `button-component ${this.isCircle ? 'button-circle' : 'button-text'}`;
+    const buttonClasses = ['button-component'];
+    if (this.isCircle) {
+      buttonClasses.push('button-circle');
+    } else if (this.isDefaultDot) {
+      buttonClasses.push('button-default-dot');
+    } else {
+      buttonClasses.push('button-text');
+    }
+    this.element.className = buttonClasses.join(' ');
     this.element.id = this.options.id;
     
     // Background layer (like selector-background)
@@ -165,14 +174,22 @@ class button_component_engine {
   setText(text) {
     this.options.text = text;
     
-    // Update button type if needed
+    // Update button type flags
     const wasCircle = this.isCircle;
+    const wasDefaultDot = this.isDefaultDot;
     this.isCircle = !text || text.trim() === '';
+    this.isDefaultDot = text === '•';
     
     // Update classes if type changed
-    if (wasCircle !== this.isCircle) {
-      this.element.classList.toggle('button-circle', this.isCircle);
-      this.element.classList.toggle('button-text', !this.isCircle);
+    if (wasCircle !== this.isCircle || wasDefaultDot !== this.isDefaultDot) {
+      this.element.classList.remove('button-circle', 'button-default-dot', 'button-text');
+      if (this.isCircle) {
+        this.element.classList.add('button-circle');
+      } else if (this.isDefaultDot) {
+        this.element.classList.add('button-default-dot');
+      } else {
+        this.element.classList.add('button-text');
+      }
     }
     
     // Update content
