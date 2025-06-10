@@ -17,13 +17,7 @@
 // ==============================================
 // Slider Containers
 // ==============================================
-.slider-container,
-.theme-container,
-.time-format-container,
-.language-container,
-.first-day-container,
-.date-format-container,
-.units-container {
+.slider-container {
   display: flex;
   justify-content: center;
   margin: 5px 0;
@@ -33,7 +27,7 @@
 // Base Slider Styles
 // ==============================================
 // All sliders use the base .slider-selector class
-// Additional classes like .theme-slider are for specific styling if needed
+// Instance-specific classes (theme-slider, time-format-slider, etc.) can be added for custom styling
 .slider-selector {
   display: inline-flex;
   position: relative;
