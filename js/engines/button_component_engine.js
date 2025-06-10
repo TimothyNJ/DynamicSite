@@ -124,8 +124,15 @@ class button_component_engine {
       
       console.log(`[button_component_engine] Button clicked:`, this.options.id);
       
-      // Toggle active state on click
-      this.setActive(!this.options.active);
+      // Visual feedback - brief active state if not already active
+      if (!this.options.active) {
+        this.element.classList.add('active');
+        setTimeout(() => {
+          if (!this.options.active) { // Check again in case it was set active
+            this.element.classList.remove('active');
+          }
+        }, 150);
+      }
       
       // Call click handler
       if (this.clickHandler) {
