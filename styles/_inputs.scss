@@ -12,7 +12,7 @@
   // No fixed min-width - let JavaScript control based on content
   // Let JavaScript control the width dynamically
   // No max-width restriction - allow full width usage
-  margin: var(--component-spacing) 0;
+  margin: 10px 0;  // Updated from var(--component-spacing) for consistency
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
   border-radius: var(--input-border-radius);
   // No overflow:hidden needed - padding prevents clipping

@@ -20,7 +20,11 @@
 .slider-container {
   display: flex;
   justify-content: center;
-  margin: 5px 0;
+  align-items: center;
+  margin: 10px 0;  // Updated from 5px for better visual spacing
+  width: fit-content;
+  max-width: 100%;
+  flex: 0 1 auto;
 }
 
 // ==============================================
