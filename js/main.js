@@ -54,9 +54,7 @@ function initializeSettingsComponents() {
   // Apply theme BEFORE creating components so CSS selectors work correctly
   const savedTheme = localStorage.getItem('userThemePreference') || 'dark';
   if (!document.body.hasAttribute('data-theme')) {
-      document.body.setAttribute('data-theme', savedTheme === 'system' 
-        ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-        : savedTheme);
+      document.body.setAttribute('data-theme', savedTheme);
     }
     
     try {
@@ -197,8 +195,8 @@ function initializeSettingsComponents() {
       containerId: 'time-format-slider-container',
       sliderClass: 'time-format-slider',
       options: [
-        { text: formatCurrentTime(false), value: '12', position: 1, active: savedTimeFormat === '12', dataAttributes: 'data-format="12"' },
-        { text: formatCurrentTime(true), value: '24', position: 2, active: savedTimeFormat === '24', dataAttributes: 'data-format="24"' }
+        { text: formatCurrentTime(true), value: '24', position: 1, active: savedTimeFormat === '24', dataAttributes: 'data-format="24"' },
+        { text: formatCurrentTime(false), value: '12', position: 2, active: savedTimeFormat === '12', dataAttributes: 'data-format="12"' }
       ]
     }, (selectedOption) => {
       const format = selectedOption.getAttribute('data-format');
@@ -214,7 +212,7 @@ function initializeSettingsComponents() {
     // savedTheme already declared at the top of the function
     
     // Utility function for theme application
-    function applyThemeByName(themeName, skipThemeDetection = false) {
+    function applyThemeByName(themeName) {
       console.log('[Theme] Applying theme:', themeName);
       const body = document.body;
 
@@ -228,18 +226,6 @@ function initializeSettingsComponents() {
         body.setAttribute('data-theme', 'dark');
         // Remove inline style - let CSS handle the background
         body.style.removeProperty('background-image');
-      } else if (themeName === 'system' && !skipThemeDetection) {
-        console.log('[Theme] Setting system theme based on preference');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        applyThemeByName(prefersDark ? 'dark' : 'light', true);
-      }
-    }
-    
-    // Check system theme preference
-    function applySystemTheme() {
-      const currentTheme = localStorage.getItem('userThemePreference');
-      if (currentTheme === 'system') {
-        applyThemeByName('system');
       }
     }
     
@@ -247,9 +233,8 @@ function initializeSettingsComponents() {
       containerId: 'theme-selector-slider-container',
       sliderClass: 'theme-slider',
       options: [
-        { text: 'Light', value: 'light', position: 1, active: savedTheme === 'light', dataAttributes: 'data-theme="light"' },
-        { text: 'System', value: 'system', position: 2, active: savedTheme === 'system', dataAttributes: 'data-theme="system"' },
-        { text: 'Dark', value: 'dark', position: 3, active: savedTheme === 'dark', dataAttributes: 'data-theme="dark"' }
+        { text: 'Dark', value: 'dark', position: 1, active: savedTheme === 'dark', dataAttributes: 'data-theme="dark"' },
+        { text: 'Light', value: 'light', position: 2, active: savedTheme === 'light', dataAttributes: 'data-theme="light"' }
       ]
     }, (selectedOption) => {
       const themeName = selectedOption.getAttribute('data-theme') || selectedOption.querySelector('h3').textContent.toLowerCase();
@@ -261,22 +246,6 @@ function initializeSettingsComponents() {
       // Save preference
       localStorage.setItem('userThemePreference', themeName);
     });
-    
-    // Set up listeners for system theme changes
-    if (window.matchMedia) {
-      try {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        mediaQuery.addEventListener('change', applySystemTheme);
-      } catch (e) {
-        console.warn('[Theme] Media query listener error:', e);
-        // Fallback for older browsers
-        try {
-          window.matchMedia('(prefers-color-scheme: dark)').addListener(applySystemTheme);
-        } catch (e2) {
-          console.warn('[Theme] Media query addListener error:', e2);
-        }
-      }
-    }
     
     // Apply initial theme
     applyThemeByName(savedTheme);
@@ -330,15 +299,7 @@ function initializeApp() {
   // Apply saved theme preference if it exists, default to dark
   const savedTheme = localStorage.getItem("userThemePreference");
   if (savedTheme) {
-    document.body.setAttribute(
-      "data-theme",
-      savedTheme === "system"
-        ? window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light"
-        : savedTheme
-    );
+    document.body.setAttribute("data-theme", savedTheme);
   } else {
     // No saved preference - default to dark theme
     document.body.setAttribute("data-theme", "dark");
