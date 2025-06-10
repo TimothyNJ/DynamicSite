@@ -62,14 +62,6 @@ class button_component_engine {
     this.element.className = `button-component ${this.isCircle ? 'button-circle' : 'button-text'}`;
     this.element.id = this.options.id;
     
-    // Create inner structure matching slider
-    const borderContainer = document.createElement('div');
-    borderContainer.className = 'border-container';
-    borderContainer.innerHTML = `
-      <div class="border-segment border-top"></div>
-      <div class="border-segment border-bottom"></div>
-    `;
-    
     // Background layer (like selector-background)
     this.background = document.createElement('div');
     this.background.className = 'button-background';
@@ -86,7 +78,6 @@ class button_component_engine {
     }
     
     // Build DOM structure
-    this.element.appendChild(borderContainer);
     this.element.appendChild(this.background);
     this.element.appendChild(content);
     

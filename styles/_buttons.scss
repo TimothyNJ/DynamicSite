@@ -101,40 +101,6 @@
 }
 
 // ==============================================
-// Border Container (matches slider border system)
-// ==============================================
-.button-component .border-container {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  overflow: hidden;
-  z-index: 3;
-}
-
-.button-component .border-segment {
-  position: absolute;
-  background: linear-gradient(to right, var(--active-button-start), var(--active-button-end));
-  height: 1px;
-  width: 100%;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.button-component .border-top {
-  top: 0;
-}
-
-.button-component .border-bottom {
-  bottom: 0;
-}
-
-// Show borders on hover (not active)
-.button-component:hover:not(.active) .border-segment {
-  opacity: 1;
-}
-
-// ==============================================
 // Click Feedback
 // ==============================================
 .button-component:active:not(.disabled) {
