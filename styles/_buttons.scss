@@ -1,0 +1,158 @@
+// _buttons.scss - Button component styles
+// Matches slider engine architecture for consistency
+// Created: 10-Jun-2025
+
+// ==============================================
+// Button Container (matches slider-container)
+// ==============================================
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: var(--component-spacing) 0;
+  border: 1px solid yellow; // Debug border to match sliders
+}
+
+// ==============================================
+// Button Component (matches slider-selector)
+// ==============================================
+.button-component {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
+  border-radius: 9999px;
+  cursor: pointer;
+  overflow: visible;
+  transition: all 0.3s ease;
+  
+  // Dark theme support
+  body[data-theme="dark"] & {
+    background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
+  }
+  
+  // Circle button (no text)
+  &.button-circle {
+    width: calc(1.2em + 8px); // Match slider height exactly
+    height: calc(1.2em + 8px); // line-height + padding top/bottom + borders
+    padding: 0;
+    
+    .button-content {
+      padding: 0;
+    }
+  }
+  
+  // Text button
+  &.button-text {
+    height: auto; // Let content determine height
+    
+    .button-content {
+      padding: 2px 16px; // Match slider button padding
+    }
+  }
+}
+
+// ==============================================
+// Button Content (matches slider option content)
+// ==============================================
+.button-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  h3 {
+    font-size: var(--component-font-size);
+    font-weight: var(--component-font-weight);
+    font-family: var(--font-family-primary);
+    color: var(--text-color-dark);
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
+    transition: color 0.3s ease;
+  }
+}
+
+// ==============================================
+// Active State Background (like selector-background)
+// ==============================================
+.button-background {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+// Active state
+.button-component.active .button-background {
+  opacity: 1;
+}
+
+.button-component.active .button-content h3 {
+  color: #ffffff;
+}
+
+// ==============================================
+// Border Container (matches slider border system)
+// ==============================================
+.button-component .border-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  overflow: hidden;
+  z-index: 3;
+}
+
+.button-component .border-segment {
+  position: absolute;
+  background: linear-gradient(to right, var(--active-button-start), var(--active-button-end));
+  height: 1px;
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.button-component .border-top {
+  top: 0;
+}
+
+.button-component .border-bottom {
+  bottom: 0;
+}
+
+// Show borders on hover (not active)
+.button-component:hover:not(.active) .border-segment {
+  opacity: 1;
+}
+
+// ==============================================
+// Click Feedback
+// ==============================================
+.button-component:active:not(.disabled) {
+  transform: scale(0.98);
+}
+
+// ==============================================
+// Disabled State
+// ==============================================
+.button-component.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  
+  &:active {
+    transform: none;
+  }
+  
+  .border-segment {
+    opacity: 0 !important;
+  }
+}

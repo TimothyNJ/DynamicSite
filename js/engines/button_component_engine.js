@@ -2,11 +2,16 @@
  * button_component_engine.js
  * 
  * Engine for creating consistent button components that match
- * the DynamicSite design language. Buttons are styled like
- * single-option sliders for visual consistency.
+ * the slider component architecture exactly. Inherits all root
+ * CSS variables and maintains dimensional parity with sliders.
  * 
- * Date: 22-May-2025
- * Deployment Timestamp: [TO BE UPDATED ON DEPLOYMENT]
+ * Features:
+ * - Circle button when no text provided
+ * - Text button with slider-matching dimensions
+ * - Complete CSS variable inheritance
+ * - Theme-aware gradients
+ * 
+ * Date: 10-Jun-2025
  */
 
 class button_component_engine {
@@ -14,21 +19,22 @@ class button_component_engine {
     // Default options
     this.options = {
       id: options.id || `button-${Date.now()}`,
-      text: options.text || 'Button',
+      text: options.text !== undefined ? options.text : 'Button', // Allow empty string
       value: options.value || options.text || 'button',
-      type: options.type || 'primary', // primary, secondary, danger
-      size: options.size || 'medium', // small, medium, large
       disabled: options.disabled || false,
       active: options.active || false,
-      icon: options.icon || null,
       ...options
     };
     
     this.clickHandler = clickHandler;
     this.element = null;
     this.container = null;
+    this.background = null;
     
-    console.log(`[button_component_engine] Initialized with options:`, this.options);
+    // Determine button type based on text
+    this.isCircle = !this.options.text || this.options.text.trim() === '';
+    
+    console.log(`[button_component_engine] Initialized ${this.isCircle ? 'circle' : 'text'} button:`, this.options);
   }
   
   /**
@@ -47,35 +53,42 @@ class button_component_engine {
       return null;
     }
     
-    // Create button container (like slider container)
+    // Create button container (matches slider-container)
     this.container = document.createElement('div');
     this.container.className = 'button-container';
-    this.container.style.cssText = `
-      display: flex;
-      justify-content: center;
-      margin: 5px 0;
-    `;
     
-    // Create button element (styled like a single-option slider)
+    // Create button element (matches slider structure)
     this.element = document.createElement('div');
-    this.element.className = 'button-selector';
+    this.element.className = `button-component ${this.isCircle ? 'button-circle' : 'button-text'}`;
     this.element.id = this.options.id;
     
-    // Apply slider-like styles
-    this.applyStyles();
-    
     // Create inner structure matching slider
-    this.element.innerHTML = `
-      <div class="border-container">
-        <div class="border-segment border-top"></div>
-        <div class="border-segment border-bottom"></div>
-      </div>
-      <div class="button-background"></div>
-      <div class="button-content">
-        ${this.options.icon ? `<span class="button-icon">${this.options.icon}</span>` : ''}
-        <h3>${this.options.text}</h3>
-      </div>
+    const borderContainer = document.createElement('div');
+    borderContainer.className = 'border-container';
+    borderContainer.innerHTML = `
+      <div class="border-segment border-top"></div>
+      <div class="border-segment border-bottom"></div>
     `;
+    
+    // Background layer (like selector-background)
+    this.background = document.createElement('div');
+    this.background.className = 'button-background';
+    
+    // Content layer
+    const content = document.createElement('div');
+    content.className = 'button-content';
+    
+    // Add text if provided
+    if (!this.isCircle) {
+      const h3 = document.createElement('h3');
+      h3.textContent = this.options.text;
+      content.appendChild(h3);
+    }
+    
+    // Build DOM structure
+    this.element.appendChild(borderContainer);
+    this.element.appendChild(this.background);
+    this.element.appendChild(content);
     
     // Add event listeners
     this.attachEventListeners();
@@ -93,200 +106,9 @@ class button_component_engine {
       this.disable();
     }
     
-    console.log(`[button_component_engine] Rendered button:`, this.options.id);
+    console.log(`[button_component_engine] Rendered ${this.isCircle ? 'circle' : 'text'} button:`, this.options.id);
     
     return this.element;
-  }
-  
-  /**
-   * Apply slider-matching styles to button
-   */
-  applyStyles() {
-    // Base styles matching slider selector
-    const baseStyles = `
-      display: inline-flex;
-      position: relative;
-      height: auto;
-      border-radius: 9999px;
-      background: linear-gradient(
-        -25deg,
-        var(--light-slider-start) 0%,
-        var(--light-slider-end) 100%
-      );
-      overflow: visible;
-      padding: 0;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    `;
-    
-    this.element.style.cssText = baseStyles;
-    
-    // Add dynamic styles
-    if (!document.getElementById('button-engine-styles')) {
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'button-engine-styles';
-      styleSheet.textContent = `
-        /* Dark theme support */
-        body[data-theme="dark"] .button-selector {
-          background: linear-gradient(
-            -25deg,
-            var(--dark-slider-start) 0%,
-            var(--dark-slider-end) 100%
-          );
-        }
-        
-        /* Border container */
-        .button-selector .border-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-          z-index: 1;
-          clip-path: inset(0 0 0 0 round 9999px);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-        
-        /* Show borders on hover and active */
-        .button-selector:hover .border-container,
-        .button-selector.active .border-container {
-          opacity: 1;
-        }
-        
-        /* Border segments */
-        .button-selector .border-segment {
-          position: absolute;
-          background: linear-gradient(
-            to right,
-            var(--active-button-start),
-            var(--active-button-end)
-          );
-          height: 1px;
-          width: 100%;
-          transition: transform 0.3s ease;
-        }
-        
-        .button-selector .border-top {
-          top: 0;
-        }
-        
-        .button-selector .border-bottom {
-          bottom: 0;
-        }
-        
-        /* Button background (like selector-background) */
-        .button-selector .button-background {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          height: 100%;
-          width: 100%;
-          border-radius: 9999px;
-          background: linear-gradient(
-            145deg,
-            var(--active-button-start),
-            var(--active-button-end)
-          );
-          z-index: 0;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-        
-        /* Active state shows background */
-        .button-selector.active .button-background {
-          opacity: 1;
-        }
-        
-        /* Button content */
-        .button-selector .button-content {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          position: relative;
-          z-index: 2;
-          padding: 2px 16px;
-          gap: 5px;
-        }
-        
-        .button-selector .button-content h3 {
-          white-space: nowrap;
-          overflow: visible;
-          text-overflow: clip;
-          max-width: none;
-          font-size: clamp(0.5rem, 1.2vw, 2.3rem);
-          margin: 0;
-          font-weight: bold;
-          color: #ffffff;
-          transition: color 0.3s ease;
-        }
-        
-        /* Active text color */
-        .button-selector.active .button-content h3 {
-          color: #ffffff;
-        }
-        
-        /* Icon styling */
-        .button-selector .button-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          font-size: inherit;
-          color: inherit;
-        }
-        
-        /* Disabled state */
-        .button-selector.disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .button-selector.disabled .border-container,
-        .button-selector.disabled:hover .border-container {
-          opacity: 0;
-        }
-        
-        /* Size variations */
-        .button-selector.small .button-content {
-          padding: 1px 12px;
-        }
-        
-        .button-selector.small .button-content h3 {
-          font-size: clamp(0.4rem, 1vw, 2rem);
-        }
-        
-        .button-selector.large .button-content {
-          padding: 4px 20px;
-        }
-        
-        .button-selector.large .button-content h3 {
-          font-size: clamp(0.6rem, 1.4vw, 2.6rem);
-        }
-        
-        /* Type variations (using opacity/filters for now) */
-        .button-selector.secondary {
-          filter: hue-rotate(180deg);
-        }
-        
-        .button-selector.danger {
-          filter: hue-rotate(320deg);
-        }
-      `;
-      document.head.appendChild(styleSheet);
-    }
-    
-    // Add size class
-    if (this.options.size !== 'medium') {
-      this.element.classList.add(this.options.size);
-    }
-    
-    // Add type class
-    if (this.options.type !== 'primary') {
-      this.element.classList.add(this.options.type);
-    }
   }
   
   /**
@@ -302,11 +124,13 @@ class button_component_engine {
       
       console.log(`[button_component_engine] Button clicked:`, this.options.id);
       
-      // Visual feedback - brief active state
+      // Visual feedback - brief active state if not already active
       if (!this.options.active) {
         this.element.classList.add('active');
         setTimeout(() => {
-          this.element.classList.remove('active');
+          if (!this.options.active) { // Check again in case it was set active
+            this.element.classList.remove('active');
+          }
         }, 150);
       }
       
@@ -357,34 +181,41 @@ class button_component_engine {
    */
   setText(text) {
     this.options.text = text;
-    const h3 = this.element.querySelector('.button-content h3');
-    if (h3) {
-      h3.textContent = text;
+    
+    // Update button type if needed
+    const wasCircle = this.isCircle;
+    this.isCircle = !text || text.trim() === '';
+    
+    // Update classes if type changed
+    if (wasCircle !== this.isCircle) {
+      this.element.classList.toggle('button-circle', this.isCircle);
+      this.element.classList.toggle('button-text', !this.isCircle);
+    }
+    
+    // Update content
+    const content = this.element.querySelector('.button-content');
+    if (content) {
+      if (this.isCircle) {
+        // Remove text
+        content.innerHTML = '';
+      } else {
+        // Add or update text
+        let h3 = content.querySelector('h3');
+        if (!h3) {
+          h3 = document.createElement('h3');
+          content.appendChild(h3);
+        }
+        h3.textContent = text;
+      }
     }
   }
   
   /**
-   * Update button icon
-   * @param {string} icon - New icon HTML/text
+   * Get current text
+   * @returns {string} Current button text
    */
-  setIcon(icon) {
-    this.options.icon = icon;
-    const iconEl = this.element.querySelector('.button-icon');
-    const content = this.element.querySelector('.button-content');
-    
-    if (icon && !iconEl) {
-      // Add icon
-      const newIcon = document.createElement('span');
-      newIcon.className = 'button-icon';
-      newIcon.innerHTML = icon;
-      content.insertBefore(newIcon, content.firstChild);
-    } else if (icon && iconEl) {
-      // Update icon
-      iconEl.innerHTML = icon;
-    } else if (!icon && iconEl) {
-      // Remove icon
-      iconEl.remove();
-    }
+  getText() {
+    return this.options.text;
   }
   
   /**
@@ -396,6 +227,7 @@ class button_component_engine {
     }
     this.element = null;
     this.container = null;
+    this.background = null;
     console.log(`[button_component_engine] Destroyed:`, this.options.id);
   }
 }

@@ -88,7 +88,7 @@ function initializeSettingsComponents() {
     // 3. Button demo
     componentFactory.createButton('demo-button-container', {
       id: 'demo-button',
-      text: 'Button',
+      text: '', // Empty text for circle button
       onClick: () => console.log('[Demo] Button clicked')
     });
     
