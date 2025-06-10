@@ -38,6 +38,25 @@ class button_component_engine {
   }
   
   /**
+   * Ensure button is circular when width < height
+   */
+  ensureCircular() {
+    // Use requestAnimationFrame to ensure DOM has rendered
+    requestAnimationFrame(() => {
+      if (!this.element) return;
+      
+      const computed = window.getComputedStyle(this.element);
+      const height = this.element.offsetHeight;
+      const width = this.element.offsetWidth;
+      
+      // If height > width, set width = height to make it circular
+      if (height > width) {
+        this.element.style.width = `${height}px`;
+      }
+    });
+  }
+  
+  /**
    * Render the button into the specified container
    * @param {string|HTMLElement} container - Container ID or element
    * @returns {HTMLElement} The created button element
@@ -90,6 +109,11 @@ class button_component_engine {
     
     // Add to container
     this.container.appendChild(this.element);
+    
+    // For default dot, ensure circular shape if height > width
+    if (this.isDefaultDot) {
+      this.ensureCircular();
+    }
     
     // Set initial state
     if (this.options.active) {
@@ -178,8 +202,10 @@ class button_component_engine {
       this.element.classList.remove('button-default-dot', 'button-text');
       if (this.isDefaultDot) {
         this.element.classList.add('button-default-dot');
+        this.ensureCircular(); // Make circular if needed
       } else {
         this.element.classList.add('button-text');
+        this.element.style.width = ''; // Remove fixed width for text buttons
       }
     }
     
