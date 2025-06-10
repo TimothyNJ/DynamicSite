@@ -178,7 +178,7 @@ p {
   width: 100%;
   height: var(--navbar-height);
   background-color: transparent;
-  border: 2px solid yellow;
+  // border: 2px solid yellow; // Debug border - removed for production
   display: flex;
   justify-content: center;
   align-items: center;
