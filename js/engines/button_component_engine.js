@@ -53,9 +53,9 @@ class button_component_engine {
       return null;
     }
     
-    // Create button container (matches slider-container)
-    this.container = document.createElement('div');
-    this.container.className = 'button-container';
+    // Apply container class to existing container (matches slider approach)
+    containerEl.classList.add('button-container');
+    this.container = containerEl;
     
     // Create button element (matches slider structure)
     this.element = document.createElement('div');
@@ -95,7 +95,6 @@ class button_component_engine {
     
     // Add to container
     this.container.appendChild(this.element);
-    containerEl.appendChild(this.container);
     
     // Set initial state
     if (this.options.active) {
@@ -124,15 +123,8 @@ class button_component_engine {
       
       console.log(`[button_component_engine] Button clicked:`, this.options.id);
       
-      // Visual feedback - brief active state if not already active
-      if (!this.options.active) {
-        this.element.classList.add('active');
-        setTimeout(() => {
-          if (!this.options.active) { // Check again in case it was set active
-            this.element.classList.remove('active');
-          }
-        }, 150);
-      }
+      // Toggle active state on click
+      this.setActive(!this.options.active);
       
       // Call click handler
       if (this.clickHandler) {
@@ -222,9 +214,16 @@ class button_component_engine {
    * Destroy the component
    */
   destroy() {
-    if (this.container && this.container.parentNode) {
-      this.container.parentNode.removeChild(this.container);
+    // Remove the button element from container
+    if (this.element && this.element.parentNode) {
+      this.element.parentNode.removeChild(this.element);
     }
+    
+    // Remove the button-container class we added
+    if (this.container) {
+      this.container.classList.remove('button-container');
+    }
+    
     this.element = null;
     this.container = null;
     this.background = null;
