@@ -64,7 +64,7 @@
   &::after {
     content: '';
     position: absolute;
-    z-index: -1;
+    z-index: 0; // Changed from -1 to be above the glow but below content
     left: 1px; // 1px border as requested
     top: 1px;
     width: calc(100% - 2px);
@@ -123,7 +123,7 @@
 // ==============================================
 .button-content {
   position: relative;
-  z-index: 1; // Changed from 2 to work with glow effect
+  z-index: 1; // Above the background pseudo-element
   display: flex;
   align-items: center;
   justify-content: center;
