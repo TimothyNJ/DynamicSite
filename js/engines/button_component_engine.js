@@ -31,11 +31,10 @@ class button_component_engine {
     this.container = null;
     this.background = null;
     
-    // Determine button type and if using default dot
+    // Determine if using default dot
     this.isDefaultDot = this.options.text === '•';
-    this.isCircle = !this.options.text || this.options.text.trim() === '';
     
-    console.log(`[button_component_engine] Initialized ${this.isCircle ? 'circle' : 'text'} button:`, this.options);
+    console.log(`[button_component_engine] Initialized button with ${this.isDefaultDot ? 'default dot' : 'custom text'}:`, this.options);
   }
   
   /**
@@ -61,9 +60,7 @@ class button_component_engine {
     // Create button element (matches slider structure)
     this.element = document.createElement('div');
     const buttonClasses = ['button-component'];
-    if (this.isCircle) {
-      buttonClasses.push('button-circle');
-    } else if (this.isDefaultDot) {
+    if (this.isDefaultDot) {
       buttonClasses.push('button-default-dot');
     } else {
       buttonClasses.push('button-text');
@@ -79,12 +76,10 @@ class button_component_engine {
     const content = document.createElement('div');
     content.className = 'button-content';
     
-    // Add text if provided
-    if (!this.isCircle) {
-      const h3 = document.createElement('h3');
-      h3.textContent = this.options.text;
-      content.appendChild(h3);
-    }
+    // Add text
+    const h3 = document.createElement('h3');
+    h3.textContent = this.options.text;
+    content.appendChild(h3);
     
     // Build DOM structure
     this.element.appendChild(this.background);
@@ -174,18 +169,14 @@ class button_component_engine {
   setText(text) {
     this.options.text = text;
     
-    // Update button type flags
-    const wasCircle = this.isCircle;
+    // Update button type flag
     const wasDefaultDot = this.isDefaultDot;
-    this.isCircle = !text || text.trim() === '';
     this.isDefaultDot = text === '•';
     
     // Update classes if type changed
-    if (wasCircle !== this.isCircle || wasDefaultDot !== this.isDefaultDot) {
-      this.element.classList.remove('button-circle', 'button-default-dot', 'button-text');
-      if (this.isCircle) {
-        this.element.classList.add('button-circle');
-      } else if (this.isDefaultDot) {
+    if (wasDefaultDot !== this.isDefaultDot) {
+      this.element.classList.remove('button-default-dot', 'button-text');
+      if (this.isDefaultDot) {
         this.element.classList.add('button-default-dot');
       } else {
         this.element.classList.add('button-text');
@@ -193,20 +184,9 @@ class button_component_engine {
     }
     
     // Update content
-    const content = this.element.querySelector('.button-content');
-    if (content) {
-      if (this.isCircle) {
-        // Remove text
-        content.innerHTML = '';
-      } else {
-        // Add or update text
-        let h3 = content.querySelector('h3');
-        if (!h3) {
-          h3 = document.createElement('h3');
-          content.appendChild(h3);
-        }
-        h3.textContent = text;
-      }
+    const h3 = this.element.querySelector('.button-content h3');
+    if (h3) {
+      h3.textContent = text;
     }
   }
   

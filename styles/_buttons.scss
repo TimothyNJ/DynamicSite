@@ -32,17 +32,6 @@
     background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
   }
   
-  // Circle button (no text)
-  &.button-circle {
-    width: calc(1.2em + 8px); // Match slider height exactly
-    height: calc(1.2em + 8px); // line-height + padding top/bottom + borders
-    padding: 0;
-    
-    .button-content {
-      padding: 0;
-    }
-  }
-  
   // Default dot button (invisible dot placeholder)
   &.button-default-dot {
     height: auto; // Let content determine height
