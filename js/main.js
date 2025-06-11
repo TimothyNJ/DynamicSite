@@ -92,22 +92,7 @@ function initializeSettingsComponents() {
       onClick: () => console.log('[Demo] Button clicked')
     });
     
-    // 4. Wheel Selector demo (single casino-style wheel)
-    componentFactory.createWheelSelector('demo-wheel-selector-container', {
-      id: 'demo-wheel-selector',
-      label: 'Wheel Selector',
-      options: [
-        { value: 'item1', text: 'Item 1' },
-        { value: 'item2', text: 'Item 2' },
-        { value: 'item3', text: 'Item 3' },
-        { value: 'item4', text: 'Item 4' },
-        { value: 'item5', text: 'Item 5' }
-      ],
-      defaultValue: 'item1',
-      onChange: (value) => console.log('[Demo] Wheel selected:', value)
-    });
-    
-    // 5. Multi Select demo
+    // 4. Multi Select demo
     componentFactory.createMultiSelect('demo-multi-select-container', {
       id: 'demo-multi-select',
       label: 'Multi Select',
@@ -118,6 +103,20 @@ function initializeSettingsComponents() {
       ],
       defaultValues: ['check1'],
       onChange: (values) => console.log('[Demo] Multi-select values:', values)
+    });
+    
+    // 5. Wheel Selector demo (single casino-style wheel)
+    componentFactory.createWheelSelector('demo-wheel-selector-container', {
+      id: 'demo-wheel-selector',
+      options: [
+        { value: 'item1', text: 'Item 1' },
+        { value: 'item2', text: 'Item 2' },
+        { value: 'item3', text: 'Item 3' },
+        { value: 'item4', text: 'Item 4' },
+        { value: 'item5', text: 'Item 5' }
+      ],
+      defaultValue: 'item1',
+      onChange: (value) => console.log('[Demo] Wheel selected:', value)
     });
     
     // 6. Calendar Picker demo
