@@ -10,9 +10,13 @@
  * - Text button with slider-matching dimensions
  * - Complete CSS variable inheritance
  * - Theme-aware gradients
+ * - Border hover animations matching slider behavior
  * 
  * Date: 10-Jun-2025
+ * Updated: 10-Jun-2025 - Added border hover animations
  */
+
+import { globalMouseTracker } from '../core/mouse-tracker.js';
 
 class button_component_engine {
   constructor(options = {}, clickHandler = null) {
@@ -32,6 +36,26 @@ class button_component_engine {
     
     // Determine if using default dot
     this.isDefaultDot = this.options.text === '•';
+    
+    // Hover animation state (from slider engine)
+    this.hoverState = {
+      isHovering: false,
+      isAnimating: false,
+      mouseEnteredFromRight: null,
+      entryDirection: null,
+      lastCheckTime: 0
+    };
+    
+    // Animation constants
+    this.ANIMATION_DURATION = 800;
+    this.MONITOR_INTERVAL = 100;
+    
+    // Element references for borders
+    this._borderTop = null;
+    this._borderBottom = null;
+    
+    // Bound method for mouse tracking
+    this.handleMousePositionUpdate = this.handleMousePositionUpdate.bind(this);
     
     console.log(`[button_component_engine] Initialized button with ${this.isDefaultDot ? 'default dot' : 'custom text'}:`, this.options);
   }
@@ -94,10 +118,12 @@ class button_component_engine {
     const borderTop = document.createElement('div');
     borderTop.className = 'border-segment border-top';
     borderContainer.appendChild(borderTop);
+    this._borderTop = borderTop;
     
     const borderBottom = document.createElement('div');
     borderBottom.className = 'border-segment border-bottom';
     borderContainer.appendChild(borderBottom);
+    this._borderBottom = borderBottom;
     
     // Add border container to button
     this.element.appendChild(borderContainer);
@@ -133,6 +159,9 @@ class button_component_engine {
     if (this.options.disabled) {
       this.disable();
     }
+    
+    // Initialize hover animations
+    this.initializeHoverAnimations();
     
     console.log(`[button_component_engine] Rendered button:`, this.options.id);
     
@@ -235,6 +264,216 @@ class button_component_engine {
   }
   
   /**
+   * Initialize hover animations
+   */
+  initializeHoverAnimations() {
+    if (!this.element || !this._borderTop || !this._borderBottom) return;
+    
+    // Set initial border positions off-screen
+    this.resetBorderAnimation();
+    
+    // Setup mouse events
+    this.setupMouseEvents();
+    
+    // Start continuous monitoring
+    this.startContinuousMonitoring();
+  }
+  
+  /**
+   * Calculate border width based on button text
+   */
+  calculateBorderWidth() {
+    // For buttons, use 90% of text width
+    const h3 = this.element.querySelector('.button-content h3');
+    if (!h3) return 50;
+    
+    // Create temporary span to measure text
+    const tempSpan = document.createElement('span');
+    tempSpan.style.visibility = 'hidden';
+    tempSpan.style.position = 'absolute';
+    tempSpan.style.whiteSpace = 'nowrap';
+    tempSpan.style.font = getComputedStyle(h3).font;
+    tempSpan.textContent = h3.textContent;
+    
+    document.body.appendChild(tempSpan);
+    const width = tempSpan.offsetWidth;
+    document.body.removeChild(tempSpan);
+    
+    return Math.max(width * 0.9, 20); // Minimum 20px
+  }
+  
+  /**
+   * Reset border animation
+   */
+  resetBorderAnimation() {
+    if (!this.element || !this._borderTop || !this._borderBottom) return;
+    
+    const rect = this.element.getBoundingClientRect();
+    const direction = this.hoverState.entryDirection || 'left';
+    
+    // Set border width
+    const borderWidth = this.calculateBorderWidth();
+    this._borderTop.style.width = `${borderWidth}px`;
+    this._borderBottom.style.width = `${borderWidth}px`;
+    
+    // Instantly position off-screen
+    this.setBorderTransition(true);
+    
+    if (direction === 'left') {
+      this._borderTop.style.transform = 'translateX(-100%)';
+      this._borderBottom.style.transform = 'translateX(-100%)';
+    } else {
+      this._borderTop.style.transform = `translateX(${rect.width}px)`;
+      this._borderBottom.style.transform = `translateX(${rect.width}px)`;
+    }
+    
+    // Restore transition
+    this.setBorderTransition(false);
+    
+    this.hoverState.isHovering = false;
+    this.hoverState.isAnimating = false;
+  }
+  
+  /**
+   * Set border transition state
+   */
+  setBorderTransition(immediate = false) {
+    if (!this._borderTop || !this._borderBottom) return;
+    
+    this._borderTop.style.transition = immediate
+      ? 'none'
+      : 'transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)';
+    this._borderBottom.style.transition = immediate
+      ? 'none'
+      : 'transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1)';
+    
+    if (immediate) {
+      // Force reflow
+      void this._borderTop.offsetWidth;
+    }
+  }
+  
+  /**
+   * Animate borders in
+   */
+  animateBordersIn(fromDirection) {
+    if (!this.element || this.hoverState.isAnimating) return;
+    
+    this.hoverState.isAnimating = true;
+    this.hoverState.entryDirection = fromDirection;
+    
+    // Get button dimensions
+    const rect = this.element.getBoundingClientRect();
+    const borderWidth = this.calculateBorderWidth();
+    
+    // Calculate centered position
+    const centerX = (rect.width - borderWidth) / 2;
+    
+    // Reset borders to entry position
+    this.resetBorderAnimation();
+    
+    // Animate to center
+    this._borderTop.style.transform = `translateX(${centerX}px)`;
+    this._borderBottom.style.transform = `translateX(${centerX}px)`;
+    
+    // After animation completes
+    setTimeout(() => {
+      this.hoverState.isAnimating = false;
+    }, this.ANIMATION_DURATION);
+  }
+  
+  /**
+   * Animate borders out
+   */
+  animateBordersOut() {
+    if (this.hoverState.isAnimating || !this.element) return;
+    
+    this.hoverState.isAnimating = true;
+    
+    const rect = this.element.getBoundingClientRect();
+    const direction = this.hoverState.entryDirection || 'left';
+    
+    // Animate off-screen
+    if (direction === 'left') {
+      this._borderTop.style.transform = 'translateX(-100%)';
+      this._borderBottom.style.transform = 'translateX(-100%)';
+    } else {
+      this._borderTop.style.transform = `translateX(${rect.width}px)`;
+      this._borderBottom.style.transform = `translateX(${rect.width}px)`;
+    }
+    
+    // After animation completes
+    setTimeout(() => {
+      this.hoverState.isAnimating = false;
+      this.hoverState.isHovering = false;
+    }, this.ANIMATION_DURATION);
+  }
+  
+  /**
+   * Setup mouse events
+   */
+  setupMouseEvents() {
+    if (!this.element) return;
+    
+    this.element.addEventListener('mouseenter', () => {
+      this.updateHoverState(true);
+      
+      if (!this.hoverState.isAnimating) {
+        const rect = this.element.getBoundingClientRect();
+        const direction = globalMouseTracker.getRelativeDirection(rect);
+        this.hoverState.mouseEnteredFromRight = direction === 'right';
+        const fromDirection = direction === 'right' ? 'right' : 'left';
+        this.animateBordersIn(fromDirection);
+      }
+    });
+    
+    this.element.addEventListener('mouseleave', () => {
+      this.updateHoverState(false);
+    });
+  }
+  
+  /**
+   * Update hover state
+   */
+  updateHoverState(isInside) {
+    this.hoverState.isHovering = isInside;
+    
+    if (!isInside && !this.hoverState.isAnimating) {
+      this.animateBordersOut();
+    }
+  }
+  
+  /**
+   * Handle mouse position update
+   */
+  handleMousePositionUpdate() {
+    const now = Date.now();
+    if (now - this.hoverState.lastCheckTime < this.MONITOR_INTERVAL) {
+      return;
+    }
+    
+    this.hoverState.lastCheckTime = now;
+    
+    if (!this.element) return;
+    
+    const rect = this.element.getBoundingClientRect();
+    const isInside = globalMouseTracker.isInsideBounds(rect);
+    
+    if (isInside !== this.hoverState.isHovering) {
+      this.updateHoverState(isInside);
+    }
+  }
+  
+  /**
+   * Start continuous monitoring
+   */
+  startContinuousMonitoring() {
+    setInterval(() => {
+      this.handleMousePositionUpdate();
+    }, this.MONITOR_INTERVAL);
+  }
+  
+  /**
    * Destroy the component
    */
   destroy() {
@@ -250,6 +489,8 @@ class button_component_engine {
     
     this.element = null;
     this.container = null;
+    this._borderTop = null;
+    this._borderBottom = null;
     console.log(`[button_component_engine] Destroyed:`, this.options.id);
   }
 }
