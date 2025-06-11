@@ -9,6 +9,22 @@ window.addEventListener("load", () => {
 
   // Apply initial corner rounding
   updateCornerRounding();
+  
+  // Hide borders and dimensions by default
+  const siteContainer = document.querySelector(".site-container");
+  if (siteContainer && !siteContainer.classList.contains("borders-hidden")) {
+    siteContainer.classList.add("borders-hidden");
+    
+    // Hide all dimension elements
+    document.querySelectorAll('[id$="-dimensions"]').forEach((el) => {
+      el.style.display = "none";
+    });
+    
+    // Hide dimension containers
+    document.querySelectorAll(".dimension-container").forEach((el) => {
+      el.style.display = "none";
+    });
+  }
 });
 
 // Function to toggle borders for debugging
