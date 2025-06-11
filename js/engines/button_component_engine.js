@@ -86,6 +86,22 @@ class button_component_engine {
     this.element.className = buttonClasses.join(' ');
     this.element.id = this.options.id;
     
+    // Border container for animations (matches slider)
+    const borderContainer = document.createElement('div');
+    borderContainer.className = 'border-container';
+    
+    // Border segments
+    const borderTop = document.createElement('div');
+    borderTop.className = 'border-segment border-top';
+    borderContainer.appendChild(borderTop);
+    
+    const borderBottom = document.createElement('div');
+    borderBottom.className = 'border-segment border-bottom';
+    borderContainer.appendChild(borderBottom);
+    
+    // Add border container to button
+    this.element.appendChild(borderContainer);
+    
     // Content layer
     const content = document.createElement('div');
     content.className = 'button-content';

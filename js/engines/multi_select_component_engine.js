@@ -71,6 +71,27 @@ class multi_select_component_engine {
     const selector = document.createElement('div');
     selector.className = this.options.containerClass;
     
+    // Border container for animations (matches slider)
+    const borderContainer = document.createElement('div');
+    borderContainer.className = 'border-container';
+    
+    // Border segments
+    const borderTop = document.createElement('div');
+    borderTop.className = 'border-segment border-top';
+    borderContainer.appendChild(borderTop);
+    
+    const borderBottom = document.createElement('div');
+    borderBottom.className = 'border-segment border-bottom';
+    borderContainer.appendChild(borderBottom);
+    
+    // Add border container to selector
+    selector.appendChild(borderContainer);
+    
+    // Selector background for active options (matches slider)
+    const selectorBackground = document.createElement('div');
+    selectorBackground.className = 'selector-background';
+    selector.appendChild(selectorBackground);
+    
     // Add options
     this.options.options.forEach((option, index) => {
       const optionEl = this.createOption(option, index);
