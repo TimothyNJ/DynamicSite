@@ -2,9 +2,10 @@
  * multi_select_component_engine.js
  * 
  * Engine for creating multi-select components that look exactly like
- * sliders but allow multiple options to be selected simultaneously.
+ * buttons but allow multiple options to be selected simultaneously.
  * Each option acts as an independent toggle button.
  * 
+ * Updated: 10-Jun-2025 - Aligned with button engine architecture
  * Date: 22-May-2025
  * Deployment Timestamp: [TO BE UPDATED ON DEPLOYMENT]
  */
@@ -53,7 +54,7 @@ class multi_select_component_engine {
     // Set initial selections
     this.updateSelections();
     
-    console.log(`[multi_select_component_engine] Multi-select initialized: ${this.options.containerClass}`);
+    console.log(`[multi_select_component_engine] Multi-select initialized: ${this.options.id}`);
     return true;
   }
   
@@ -62,46 +63,23 @@ class multi_select_component_engine {
    * @param {HTMLElement} containerEl - Container element
    */
   createMultiSelect(containerEl) {
-    // Create wrapper (like slider-container)
-    const wrapper = document.createElement('div');
-    wrapper.className = `${this.options.containerClass}-container`;
-    wrapper.style.cssText = `
-      display: flex;
-      justify-content: center;
-      margin: 5px 0;
-    `;
+    // Apply container class to existing container (matches button approach)
+    containerEl.classList.add('multi-select-container');
+    this.container = containerEl;
     
-    // Create multi-select container (like slider-selector)
-    this.container = document.createElement('div');
-    this.container.className = this.options.containerClass;
-    this.container.style.cssText = `
-      display: inline-flex;
-      position: relative;
-      height: auto;
-      border-radius: 9999px;
-      background: linear-gradient(
-        -25deg,
-        var(--light-slider-start) 0%,
-        var(--light-slider-end) 100%
-      );
-      overflow: visible;
-      padding: 0;
-      gap: 4px;
-    `;
+    // Create multi-select selector
+    const selector = document.createElement('div');
+    selector.className = this.options.containerClass;
     
     // Add options
     this.options.options.forEach((option, index) => {
       const optionEl = this.createOption(option, index);
-      this.container.appendChild(optionEl);
+      selector.appendChild(optionEl);
       this.optionElements.set(option.value, optionEl);
     });
     
-    // Add to wrapper and container
-    wrapper.appendChild(this.container);
-    containerEl.appendChild(wrapper);
-    
-    // Apply dark theme support
-    this.applyThemeSupport();
+    // Add to container
+    this.container.appendChild(selector);
   }
   
   /**
@@ -126,29 +104,25 @@ class multi_select_component_engine {
       });
     }
     
-    // Style like slider option
-    optionEl.style.cssText = `
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      cursor: pointer;
-      z-index: 1;
-      transition: all 0.3s ease;
-      padding: 0;
-      border-radius: 9999px;
-      overflow: visible;
-      min-width: 80px;
-    `;
-    
     // Create option content
-    optionEl.innerHTML = `
-      <div class="option-background"></div>
-      <div class="option-content">
-        ${option.icon ? `<span class="option-icon">${option.icon}</span>` : ''}
-        <h3>${option.text || option.value}</h3>
-      </div>
-    `;
+    const content = document.createElement('div');
+    content.className = 'option-content';
+    
+    // Add icon if provided
+    if (option.icon) {
+      const icon = document.createElement('span');
+      icon.className = 'option-icon';
+      icon.innerHTML = option.icon;
+      content.appendChild(icon);
+    }
+    
+    // Add text
+    const h3 = document.createElement('h3');
+    h3.textContent = option.text || option.value;
+    content.appendChild(h3);
+    
+    // Build DOM structure
+    optionEl.appendChild(content);
     
     // Add click handler
     optionEl.addEventListener('click', () => this.toggleOption(option.value));
@@ -165,10 +139,11 @@ class multi_select_component_engine {
     if (!optionEl) return;
     
     const isActive = optionEl.classList.contains('active');
+    const selector = this.container.querySelector(`.${this.options.containerClass}`);
     
     // Check selection limits
     if (!isActive && this.options.maxSelection) {
-      const currentCount = this.container.querySelectorAll('.option.active').length;
+      const currentCount = selector.querySelectorAll('.option.active').length;
       if (currentCount >= this.options.maxSelection) {
         console.log(`[multi_select_component_engine] Maximum selection limit reached: ${this.options.maxSelection}`);
         return;
@@ -176,7 +151,7 @@ class multi_select_component_engine {
     }
     
     if (isActive && this.options.minSelection) {
-      const currentCount = this.container.querySelectorAll('.option.active').length;
+      const currentCount = selector.querySelectorAll('.option.active').length;
       if (currentCount <= this.options.minSelection) {
         console.log(`[multi_select_component_engine] Minimum selection limit reached: ${this.options.minSelection}`);
         return;
@@ -237,98 +212,7 @@ class multi_select_component_engine {
     });
   }
   
-  /**
-   * Apply theme support and styles
-   */
-  applyThemeSupport() {
-    // Add styles if not already present
-    if (!document.getElementById('multi-select-engine-styles')) {
-      const styleSheet = document.createElement('style');
-      styleSheet.id = 'multi-select-engine-styles';
-      styleSheet.textContent = `
-        /* Dark theme support */
-        body[data-theme="dark"] .${this.options.containerClass} {
-          background: linear-gradient(
-            -25deg,
-            var(--dark-slider-start) 0%,
-            var(--dark-slider-end) 100%
-          );
-        }
-        
-        /* Option background */
-        .${this.options.containerClass} .option-background {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          height: 100%;
-          width: 100%;
-          border-radius: 9999px;
-          background: linear-gradient(
-            145deg,
-            var(--active-button-start),
-            var(--active-button-end)
-          );
-          z-index: 0;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-        
-        /* Active state shows background */
-        .${this.options.containerClass} .option.active .option-background {
-          opacity: 1;
-        }
-        
-        /* Option content */
-        .${this.options.containerClass} .option-content {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          position: relative;
-          z-index: 2;
-          padding: 2px 16px;
-          gap: 5px;
-        }
-        
-        .${this.options.containerClass} .option-content h3 {
-          white-space: nowrap;
-          overflow: visible;
-          text-overflow: clip;
-          max-width: none;
-          font-size: clamp(0.5rem, 1.2vw, 2.3rem);
-          margin: 0;
-          font-weight: bold;
-          color: #ffffff;
-          transition: color 0.3s ease;
-        }
-        
-        /* Hover effect */
-        .${this.options.containerClass} .option:hover {
-          transform: scale(1.05);
-        }
-        
-        /* Icon styling */
-        .${this.options.containerClass} .option-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          font-size: inherit;
-        }
-      `;
-      document.head.appendChild(styleSheet);
-    }
-    
-    // Watch for theme changes
-    const observer = new MutationObserver(() => {
-      const isDark = document.body.getAttribute('data-theme') === 'dark';
-      this.container.style.background = isDark
-        ? 'linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%)'
-        : 'linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%)';
-    });
-    observer.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
-  }
-  
+
   /**
    * Get selected values
    * @returns {Array} Selected values
@@ -381,12 +265,20 @@ class multi_select_component_engine {
    * Destroy the component
    */
   destroy() {
-    if (this.container && this.container.parentNode) {
-      this.container.parentNode.parentNode.removeChild(this.container.parentNode);
+    // Remove the selector element from container
+    const selector = this.container.querySelector(`.${this.options.containerClass}`);
+    if (selector && selector.parentNode) {
+      selector.parentNode.removeChild(selector);
     }
+    
+    // Remove the multi-select-container class we added
+    if (this.container) {
+      this.container.classList.remove('multi-select-container');
+    }
+    
     this.container = null;
     this.optionElements.clear();
-    console.log(`[multi_select_component_engine] Destroyed:`, this.options.containerClass);
+    console.log(`[multi_select_component_engine] Destroyed:`, this.options.id);
   }
 }
 
