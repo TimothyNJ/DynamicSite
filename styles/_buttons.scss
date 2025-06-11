@@ -69,11 +69,30 @@
       display: none;
     }
     
-    // Circular hover ring effect
-    &.hover-ring {
-      // Create a 1px border inside the circle using box-shadow
-      box-shadow: inset 0 0 0 1px var(--active-button-end);
-      transition: box-shadow 0.3s ease;
+    // Circular hover ring element
+    .hover-ring {
+      position: absolute;
+      inset: -1px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      z-index: -1;
+      
+      // Inner mask to create ring effect
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 1px;
+        border-radius: 50%;
+        background: var(--bg-color);
+      }
+    }
+    
+    // Show ring on hover (but not when active)
+    &.hover-ring-active:not(.active) .hover-ring {
+      opacity: 1;
     }
   }
   

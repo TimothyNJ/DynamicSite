@@ -128,6 +128,13 @@ class button_component_engine {
     // Add border container to button
     this.element.appendChild(borderContainer);
     
+    // Add hover ring element for default dot buttons
+    if (this.isDefaultDot) {
+      const hoverRing = document.createElement('div');
+      hoverRing.className = 'hover-ring';
+      this.element.appendChild(hoverRing);
+    }
+    
     // Content layer
     const content = document.createElement('div');
     content.className = 'button-content';
@@ -399,7 +406,7 @@ class button_component_engine {
     this.hoverState.isAnimating = true;
     
     // Add a CSS class to trigger circular border
-    this.element.classList.add('hover-ring');
+    this.element.classList.add('hover-ring-active');
     
     // Animation completes quickly for border
     setTimeout(() => {
@@ -449,7 +456,7 @@ class button_component_engine {
     this.hoverState.isAnimating = true;
     
     // Remove the CSS class to hide circular border
-    this.element.classList.remove('hover-ring');
+    this.element.classList.remove('hover-ring-active');
     
     // Animation completes quickly
     setTimeout(() => {
