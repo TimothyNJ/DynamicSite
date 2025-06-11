@@ -38,6 +38,12 @@
   height: auto; // Let content determine height
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
   
+  // Prevent text selection
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
   // Dark theme support
   body[data-theme="dark"] & {
     background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
@@ -162,6 +168,12 @@
   transition: all 0.3s ease;
   z-index: 0;
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
+  
+  // Prevent text selection
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   
   // Dark theme support
   body[data-theme="dark"] & {
