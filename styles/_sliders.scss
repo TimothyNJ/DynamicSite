@@ -46,6 +46,12 @@
   padding: 0;
   gap: 4px;
   
+  // Prevent text selection
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
   // Dark theme styling
   body[data-theme="dark"] & {
     background: linear-gradient(

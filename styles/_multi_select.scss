@@ -33,6 +33,12 @@
   padding: 0;
   gap: 4px;
   
+  // Prevent text selection
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
   // Dark theme support
   body[data-theme="dark"] & {
     background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
