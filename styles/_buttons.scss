@@ -37,7 +37,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
+  // Remove background - it will be handled by ::after pseudo-element
   border-radius: 9999px;
   cursor: pointer;
   overflow: hidden; // Changed from visible to hidden for glow effect
@@ -88,11 +88,6 @@
   &:hover::before {
     opacity: 1;
     animation: rotate 4s linear infinite;
-  }
-  
-  // Dark theme support
-  body[data-theme="dark"] & {
-    background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
   }
   
   // Default dot button (invisible dot placeholder)
