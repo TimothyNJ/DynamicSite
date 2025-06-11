@@ -1,18 +1,22 @@
 // _buttons.scss - Button component styles
-// Matches slider engine architecture for consistency
+// Separate styles for text and circle button engines
 // Created: 10-Jun-2025
 
 // ==============================================
-// Active State
+// Shared Button Variables
 // ==============================================
-.button-component.active .button-content h3 {
-  color: #ffffff;
+:root {
+  // Active state colors (shared by both button types)
+  --active-button-start: #6B46C1;
+  --active-button-end: #2563EB;
 }
 
 // ==============================================
-// Button Container (matches slider-container)
+// Text Button Component
 // ==============================================
-.button-container {
+
+// Container
+.text-button-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -20,10 +24,8 @@
   border: 1px solid yellow; // Debug border to match sliders
 }
 
-// ==============================================
-// Button Component (matches slider-selector)
-// ==============================================
-.button-component {
+// Main component
+.text-button-component {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -33,6 +35,7 @@
   overflow: visible; // Allow borders to animate outside
   transition: all 0.3s ease;
   z-index: 0;
+  height: auto; // Let content determine height
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
   
   // Dark theme support
@@ -40,7 +43,7 @@
     background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
   }
   
-  // Border container for animations (matches slider)
+  // Border container for animations
   .border-container {
     position: absolute;
     top: 0;
@@ -52,108 +55,45 @@
     clip-path: inset(0 0 0 0 round 9999px);
   }
   
-  // Default dot button (invisible dot placeholder)
-  &.button-default-dot {
-    height: auto; // Let content determine height
-    
-    .button-content {
-      padding: 2px 2px; // Minimal padding for default dot
-      
-      h3 {
-        opacity: 0; // Make the dot invisible
-      }
-    }
-    
-    // Hide sliding borders for circular button
-    .border-container {
-      display: none;
-    }
-    
-    // Circular hover ring element
-    .hover-ring {
-      position: absolute;
-      inset: -1px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-      z-index: -1;
-      
-      // Inner mask to create ring effect
-      &::after {
-        content: '';
-        position: absolute;
-        inset: 1px;
-        border-radius: 50%;
-        background: var(--bg-color);
-      }
-    }
-    
-    // Show ring on hover (but not when active)
-    &.hover-ring-active:not(.active) .hover-ring {
-      opacity: 1;
-    }
-  }
-  
-  // Text button
-  &.button-text {
-    height: auto; // Let content determine height
-    
-    .button-content {
-      padding: var(--component-content-padding); // Standardized content padding
-    }
-  }
-  
-  // Active state background (for toggle buttons) - MUST BE LAST for specificity
+  // Active state
   &.active {
     background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
   }
   
-  // Higher specificity for active state to override theme backgrounds
+  // Higher specificity for active state
   body[data-theme="light"] &.active,
   body[data-theme="dark"] &.active {
     background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
   }
+  
+  // Disabled state
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    
+    &:active {
+      transform: none;
+    }
+    
+    .border-segment {
+      opacity: 0 !important;
+    }
+  }
+  
+  // Click feedback
+  &:active:not(.disabled) {
+    transform: scale(0.98);
+  }
 }
 
-// ==============================================
-// Border Hover Animation System (matches slider)
-// ==============================================
-.button-component .border-segment {
-  position: absolute;
-  background: linear-gradient(
-    to right,
-    var(--active-button-start),
-    var(--active-button-end)
-  );
-  opacity: 1;
-  transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1);
-}
-
-.button-component .border-top,
-.button-component .border-bottom {
-  height: 1px;
-  width: 100px; // Default width, will be set in JS
-}
-
-.button-component .border-top {
-  top: 0;
-}
-
-.button-component .border-bottom {
-  bottom: 0;
-}
-
-// ==============================================
-// Button Content (matches slider option content)
-// ==============================================
-.button-content {
+// Text button content
+.text-button-content {
   position: relative;
-  z-index: 1; // Above the background pseudo-element
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--component-content-padding); // Standardized padding
   
   h3 {
     font-size: var(--component-font-size);
@@ -170,25 +110,155 @@
   }
 }
 
-// ==============================================
-// Click Feedback
-// ==============================================
-.button-component:active:not(.disabled) {
-  transform: scale(0.98);
+// Active state text color
+.text-button-component.active .text-button-content h3 {
+  color: #ffffff;
+}
+
+// Border segments for text buttons
+.text-button-component .border-segment {
+  position: absolute;
+  background: linear-gradient(
+    to right,
+    var(--active-button-start),
+    var(--active-button-end)
+  );
+  opacity: 1;
+  transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1);
+  height: 1px;
+  width: 100px; // Default width, will be set in JS
+}
+
+.text-button-component .border-top {
+  top: 0;
+}
+
+.text-button-component .border-bottom {
+  bottom: 0;
 }
 
 // ==============================================
-// Disabled State
+// Circle Button Component
 // ==============================================
-.button-component.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+
+// Container
+.circle-button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: var(--component-spacing) 0;
+  border: 1px solid yellow; // Debug border to match sliders
+}
+
+// Main component
+.circle-button-component {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; // Perfect circle
+  cursor: pointer;
+  overflow: visible;
+  transition: all 0.3s ease;
+  z-index: 0;
+  background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
   
-  &:active {
-    transform: none;
+  // Dark theme support
+  body[data-theme="dark"] & {
+    background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
   }
   
-  .border-segment {
-    opacity: 0 !important;
+  // Gradient ring hover element
+  .hover-ring {
+    position: absolute;
+    inset: -1px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: -1;
+    
+    // Inner mask to create ring effect
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 1px;
+      border-radius: 50%;
+      background: var(--bg-color);
+    }
   }
+  
+  // Show ring on hover (but not when active)
+  &.hover-ring-active:not(.active) .hover-ring {
+    opacity: 1;
+  }
+  
+  // Active state
+  &.active {
+    background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
+  }
+  
+  // Higher specificity for active state
+  body[data-theme="light"] &.active,
+  body[data-theme="dark"] &.active {
+    background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
+  }
+  
+  // Disabled state
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    
+    &:active {
+      transform: none;
+    }
+    
+    .hover-ring {
+      display: none;
+    }
+  }
+  
+  // Click feedback
+  &:active:not(.disabled) {
+    transform: scale(0.98);
+  }
+}
+
+// Circle button content
+.circle-button-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 2px; // Minimal padding for circle
+  
+  h3 {
+    font-size: var(--component-font-size);
+    font-weight: var(--component-font-weight);
+    font-family: var(--font-family-primary);
+    color: var(--text-color-dark);
+    margin: 0;
+    padding: 0;
+    opacity: 0; // Default dot is invisible
+    transition: color 0.3s ease;
+  }
+}
+
+// Active state text color
+.circle-button-component.active .circle-button-content h3 {
+  color: #ffffff;
+}
+
+// ==============================================
+// Legacy Button Component (to be removed)
+// ==============================================
+// Keeping old styles temporarily for backward compatibility
+.button-container {
+  display: none; // Hide old button containers
+}
+
+.button-component {
+  display: none; // Hide old buttons
 }

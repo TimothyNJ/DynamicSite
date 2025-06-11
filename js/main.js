@@ -85,14 +85,21 @@ function initializeSettingsComponents() {
     
 
     
-    // 3. Button demo
-    componentFactory.createButton('demo-button-container', {
-      id: 'demo-button',
-      // text not specified - will use default invisible dot
-      onClick: () => console.log('[Demo] Button clicked')
+    // 3. Text Button demo
+    componentFactory.createTextButton('demo-text-button-container', {
+      id: 'demo-text-button',
+      text: 'Click Me',
+      onClick: () => console.log('[Demo] Text button clicked')
     });
     
-    // 4. Multi Select demo
+    // 4. Circle Button demo
+    componentFactory.createCircleButton('demo-circle-button-container', {
+      id: 'demo-circle-button',
+      icon: '•', // Default dot
+      onClick: () => console.log('[Demo] Circle button clicked')
+    });
+    
+    // 5. Multi Select demo
     componentFactory.createMultiSelect('demo-multi-select-container', {
       id: 'demo-multi-select',
       label: 'Multi Select',
@@ -105,7 +112,7 @@ function initializeSettingsComponents() {
       onChange: (values) => console.log('[Demo] Multi-select values:', values)
     });
     
-    // 5. Wheel Selector demo (single casino-style wheel)
+    // 6. Wheel Selector demo (single casino-style wheel)
     componentFactory.createWheelSelector('demo-wheel-selector-container', {
       id: 'demo-wheel-selector',
       options: [
@@ -119,14 +126,14 @@ function initializeSettingsComponents() {
       onChange: (value) => console.log('[Demo] Wheel selected:', value)
     });
     
-    // 6. Calendar Picker demo
+    // 7. Calendar Picker demo
     componentFactory.createCalendarPicker('demo-calendar-picker-container', {
       id: 'demo-calendar-picker',
       label: 'Calendar Picker',
       onChange: (date) => console.log('[Demo] Calendar date selected:', date)
     });
     
-    // 7. Wheel Time Selector demo
+    // 8. Wheel Time Selector demo
     componentFactory.createWheelTimeSelector('demo-wheel-time-selector-container', {
       id: 'demo-wheel-time-selector',
       label: 'Time Selector',
@@ -134,7 +141,7 @@ function initializeSettingsComponents() {
       onChange: (time) => console.log('[Demo] Time selected:', time)
     });
     
-    // 8. Wheel Date Picker demo
+    // 9. Wheel Date Picker demo
     componentFactory.createWheelDatePicker('demo-wheel-date-picker-container', {
       id: 'demo-wheel-date-picker',
       label: 'Date Picker',
@@ -142,7 +149,7 @@ function initializeSettingsComponents() {
       onChange: (date) => console.log('[Demo] Date selected:', date)
     });
     
-    // 9. File Upload demo
+    // 10. File Upload demo
     componentFactory.createFileUpload('demo-file-upload-container', {
       id: 'demo-file-upload',
       label: 'File Upload',
