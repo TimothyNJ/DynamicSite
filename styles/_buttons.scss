@@ -52,11 +52,6 @@
     clip-path: inset(0 0 0 0 round 9999px);
   }
   
-  // Active state background (for toggle buttons)
-  &.active {
-    background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
-  }
-  
   // Default dot button (invisible dot placeholder)
   &.button-default-dot {
     height: auto; // Let content determine height
@@ -77,6 +72,17 @@
     .button-content {
       padding: var(--component-content-padding); // Standardized content padding
     }
+  }
+  
+  // Active state background (for toggle buttons) - MUST BE LAST for specificity
+  &.active {
+    background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
+  }
+  
+  // Higher specificity for active state to override theme backgrounds
+  body[data-theme="light"] &.active,
+  body[data-theme="dark"] &.active {
+    background: linear-gradient(145deg, var(--active-button-start), var(--active-button-end));
   }
 }
 
