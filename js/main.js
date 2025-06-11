@@ -232,8 +232,8 @@ function initializeSettingsComponents() {
       containerId: 'theme-selector-slider-container',
       sliderClass: 'theme-slider',
       options: [
-        { text: 'Dark', value: 'dark', position: 1, active: savedTheme === 'dark', dataAttributes: 'data-theme="dark"' },
-        { text: 'Light', value: 'light', position: 2, active: savedTheme === 'light', dataAttributes: 'data-theme="light"' }
+        { text: 'Dark Theme', value: 'dark', position: 1, active: savedTheme === 'dark', dataAttributes: 'data-theme="dark"' },
+        { text: 'Light Theme', value: 'light', position: 2, active: savedTheme === 'light', dataAttributes: 'data-theme="light"' }
       ]
     }, (selectedOption) => {
       const themeName = selectedOption.getAttribute('data-theme') || selectedOption.querySelector('h3').textContent.toLowerCase();
@@ -248,6 +248,20 @@ function initializeSettingsComponents() {
     
     // Apply initial theme
     applyThemeByName(savedTheme);
+    
+    // Size Guides and Borders Button
+    componentFactory.createButton('borders-toggle-button-container', {
+      id: 'borders-toggle-button',
+      text: 'Size Guides and Borders',
+      onClick: () => {
+        // Call the global toggleBorders function from script.js
+        if (window.toggleBorders) {
+          window.toggleBorders();
+        } else {
+          console.error('[Borders Toggle] toggleBorders function not found');
+        }
+      }
+    });
     
     console.log('[Settings Page] All components initialized successfully');
     
