@@ -90,7 +90,7 @@
   // Show glow on hover (both active and inactive)
   &:hover::before {
     opacity: 1;
-    animation: rotate 4s linear infinite;
+    animation: rotate 3s linear infinite;
   }
   
   // Default dot button (invisible dot placeholder)
