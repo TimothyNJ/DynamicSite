@@ -123,7 +123,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 8px; // Match button padding
+  padding: var(--component-content-padding); // Standardized content padding
   gap: 5px;
   
   h3 {

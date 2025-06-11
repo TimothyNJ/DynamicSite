@@ -65,16 +65,16 @@
 .form-container {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--component-gap); // Standardized to 4px
   width: 100%;
   // No max-width restriction
-  margin: 5px auto;
+  margin: var(--component-spacing) auto;
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
-  margin: 5px 0;
+  margin: var(--component-spacing) 0;
   
   // Hide labels by default
   label {

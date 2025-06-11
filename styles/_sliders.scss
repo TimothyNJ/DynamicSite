@@ -21,7 +21,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 5px 0;
+  margin: var(--component-spacing) 0;
   width: fit-content;
   max-width: 100%;
   flex: 0 1 auto;
@@ -61,7 +61,7 @@
     font-weight: bold;
     position: relative;
     z-index: 3;
-    padding: 2px 8px; // Override default 2px 2px to match main branch slider appearance
+    padding: var(--component-content-padding); // Standardized content padding
     // Override base styles that cause text truncation
     white-space: nowrap;
     overflow: visible;
