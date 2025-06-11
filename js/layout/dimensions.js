@@ -4,6 +4,20 @@ export function updateDimensions() {
   updateContentDimensions();
   updateBufferDimensions();
   handleCollapsedNavbar();
+  
+  // After updating dimensions, check if they should be hidden
+  const siteContainer = document.querySelector(".site-container");
+  if (siteContainer && siteContainer.classList.contains("borders-hidden")) {
+    // Hide all dimension elements
+    document.querySelectorAll('[id$="-dimensions"]').forEach((el) => {
+      el.style.display = "none";
+    });
+    
+    // Hide dimension containers
+    document.querySelectorAll(".dimension-container").forEach((el) => {
+      el.style.display = "none";
+    });
+  }
 }
 
 function updateNavbarDimensions() {
