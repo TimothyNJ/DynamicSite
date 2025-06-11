@@ -83,49 +83,6 @@
 }
 
 // ==============================================
-// Text Input Styling
-// ==============================================
-.text-input {
-  background: linear-gradient(
-    -25deg,
-    var(--light-slider-start) 0%,
-    var(--light-slider-end) 100%
-  );
-  border: none;
-  border-radius: 9999px;
-  padding: 8px 12px;
-  font-size: clamp(0.5rem, 1.2vw, 2.3rem);
-  color: #ffffff;
-  width: 100%;
-  transition: box-shadow 0.3s ease;
-  
-  // Dark theme styling
-  body[data-theme="dark"] & {
-    background: linear-gradient(
-      -25deg,
-      var(--dark-slider-start) 0%,
-      var(--dark-slider-end) 100%
-    );
-  }
-  
-  // Focus state
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(106, 13, 173, 0.3);
-  }
-  
-  // Hover state to match sliders
-  &:hover {
-    box-shadow: 0 0 0 1px var(--active-button-start);
-  }
-  
-  // Placeholder styling
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-  }
-}
-
-// ==============================================
 // Text Measurement Helper
 // ==============================================
 .text-measurement-helper {
