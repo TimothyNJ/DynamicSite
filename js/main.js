@@ -257,7 +257,7 @@ function initializeSettingsComponents() {
     applyThemeByName(savedTheme);
     
     // Size Guides and Borders Button
-    componentFactory.createButton('borders-toggle-button-container', {
+    componentFactory.createTextButton('borders-toggle-button-container', {
       id: 'borders-toggle-button',
       text: 'Size Guides and Borders',
       onClick: () => {

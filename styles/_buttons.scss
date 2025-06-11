@@ -179,14 +179,24 @@
     pointer-events: none;
     z-index: -1;
     
-    // Inner mask to create ring effect
+    // Inner mask to create ring effect - must match button background
     &::after {
       content: '';
       position: absolute;
       inset: 1px;
       border-radius: 50%;
-      background: var(--bg-color);
+      background: inherit; // Use parent's background first
     }
+  }
+  
+  // Light theme: mask needs light gradient
+  body[data-theme="light"] & .hover-ring::after {
+    background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
+  }
+  
+  // Dark theme: mask needs dark gradient  
+  body[data-theme="dark"] & .hover-ring::after {
+    background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
   }
   
   // Show ring on hover (but not when active)
