@@ -63,6 +63,18 @@
         opacity: 0; // Make the dot invisible
       }
     }
+    
+    // Hide sliding borders for circular button
+    .border-container {
+      display: none;
+    }
+    
+    // Circular hover ring effect
+    &.hover-ring {
+      // Create a 1px border inside the circle using box-shadow
+      box-shadow: inset 0 0 0 1px var(--active-button-end);
+      transition: box-shadow 0.3s ease;
+    }
   }
   
   // Text button

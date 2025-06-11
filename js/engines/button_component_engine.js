@@ -269,8 +269,10 @@ class button_component_engine {
   initializeHoverAnimations() {
     if (!this.element || !this._borderTop || !this._borderBottom) return;
     
-    // Set initial border positions off-screen
-    this.resetBorderAnimation();
+    // Set initial border positions off-screen (only for non-circular buttons)
+    if (!this.isDefaultDot) {
+      this.resetBorderAnimation();
+    }
     
     // Setup mouse events
     this.setupMouseEvents();
@@ -359,6 +361,12 @@ class button_component_engine {
   animateBordersIn(fromDirection) {
     if (!this.element || this.hoverState.isAnimating) return;
     
+    // Check if this is a default dot button (circular)
+    if (this.isDefaultDot) {
+      this.animateCircularBorderIn();
+      return;
+    }
+    
     this.hoverState.isAnimating = true;
     this.hoverState.entryDirection = fromDirection;
     
@@ -383,10 +391,33 @@ class button_component_engine {
   }
   
   /**
+   * Animate circular border in for default dot button
+   */
+  animateCircularBorderIn() {
+    if (!this.element) return;
+    
+    this.hoverState.isAnimating = true;
+    
+    // Add a CSS class to trigger circular border
+    this.element.classList.add('hover-ring');
+    
+    // Animation completes quickly for border
+    setTimeout(() => {
+      this.hoverState.isAnimating = false;
+    }, 300);
+  }
+  
+  /**
    * Animate borders out
    */
   animateBordersOut() {
     if (this.hoverState.isAnimating || !this.element) return;
+    
+    // Check if this is a default dot button (circular)
+    if (this.isDefaultDot) {
+      this.animateCircularBorderOut();
+      return;
+    }
     
     this.hoverState.isAnimating = true;
     
@@ -407,6 +438,24 @@ class button_component_engine {
       this.hoverState.isAnimating = false;
       this.hoverState.isHovering = false;
     }, this.ANIMATION_DURATION);
+  }
+  
+  /**
+   * Animate circular border out for default dot button
+   */
+  animateCircularBorderOut() {
+    if (!this.element) return;
+    
+    this.hoverState.isAnimating = true;
+    
+    // Remove the CSS class to hide circular border
+    this.element.classList.remove('hover-ring');
+    
+    // Animation completes quickly
+    setTimeout(() => {
+      this.hoverState.isAnimating = false;
+      this.hoverState.isHovering = false;
+    }, 300);
   }
   
   /**
