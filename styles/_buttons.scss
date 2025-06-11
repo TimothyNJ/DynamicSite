@@ -65,10 +65,10 @@
     content: '';
     position: absolute;
     z-index: 0; // Changed from -1 to be above the glow but below content
-    left: 1.5px; // 1.5px border as requested
-    top: 1.5px;
-    width: calc(100% - 3px);
-    height: calc(100% - 3px);
+    left: 0; // No inset - fill the entire button
+    top: 0;
+    width: 100%;
+    height: 100%;
     background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
     border-radius: inherit;
     transition: background 0.3s ease;
