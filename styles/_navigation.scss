@@ -163,10 +163,8 @@
     color: white;
   }
   
-  // Keep collapsed menu width in sync
-  .collapsed-menu {
-    width: calc(50vw + 10px);
-  }
+  // Let collapsed menu size to content
+  // Removed fixed width - menu now uses fit-content from base styles
   
   // Show menu on hover
   .nav-container:nth-child(4) .collapsed-navbar:hover + .collapsed-menu:not(.show),
