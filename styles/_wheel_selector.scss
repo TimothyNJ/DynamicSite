@@ -1,0 +1,220 @@
+// _wheel_selector.scss - Wheel selector component styles
+// Created: 11-Jun-2025
+
+// ==============================================
+// Wheel Selector Component
+// ==============================================
+
+// Container
+.wheel-selector-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: var(--component-spacing) 0;
+  border: 1px solid yellow; // Debug border
+}
+
+// Main component wrapper
+.wheel-selector-component {
+  position: relative;
+  width: 100%;
+  font-family: var(--font-family-primary);
+  user-select: none;
+  outline: none;
+  
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  // Optional label
+  .wheel-selector-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 8px;
+    
+    body[data-theme="dark"] & {
+      color: #999;
+    }
+  }
+  
+  // The text button container inside wheel selector
+  // No additional styling needed - uses standard text button styles
+}
+
+// Wheel panel that appears when open
+.wheel-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--component-border-radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  overflow: hidden;
+  height: 200px;
+  
+  body[data-theme="dark"] & {
+    background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+// Wheel content area
+.wheel-content {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  padding: 0 var(--component-content-padding);
+}
+
+// The scrollable wheel
+.options-wheel {
+  height: 100%;
+  cursor: grab;
+  position: relative;
+  
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+// Container for wheel items
+.wheel-items {
+  position: absolute;
+  width: 100%;
+  transition: none;
+  padding: 80px 0;
+}
+
+// Individual wheel items
+.wheel-item {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--component-gap);
+  font-size: var(--component-font-size);
+  color: rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  padding: 0 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  body[data-theme="dark"] & {
+    color: rgba(255, 255, 255, 0.4);
+  }
+  
+  &:hover {
+    color: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    
+    body[data-theme="dark"] & {
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+  
+  &.active {
+    color: var(--text-color-dark);
+    transform: scale(1.05);
+    
+    body[data-theme="dark"] & {
+      color: #ffffff;
+    }
+  }
+  
+  &.selected {
+    color: #3b82f6;
+    font-weight: var(--component-font-weight);
+  }
+}
+
+// Option icon if provided
+.option-icon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+}
+
+// Gradient overlays for scroll indication
+.wheel-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 80px;
+  pointer-events: none;
+  z-index: 2;
+  
+  &.top {
+    top: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(245, 245, 245, 1) 0%,
+      rgba(245, 245, 245, 0.8) 40%,
+      transparent 100%
+    );
+    
+    body[data-theme="dark"] & {
+      background: linear-gradient(
+        to bottom,
+        rgba(26, 26, 26, 1) 0%,
+        rgba(26, 26, 26, 0.8) 40%,
+        transparent 100%
+      );
+    }
+  }
+  
+  &.bottom {
+    bottom: 0;
+    background: linear-gradient(
+      to top,
+      rgba(245, 245, 245, 1) 0%,
+      rgba(245, 245, 245, 0.8) 40%,
+      transparent 100%
+    );
+    
+    body[data-theme="dark"] & {
+      background: linear-gradient(
+        to top,
+        rgba(26, 26, 26, 1) 0%,
+        rgba(26, 26, 26, 0.8) 40%,
+        transparent 100%
+      );
+    }
+  }
+}
+
+// Selection indicator lines
+.wheel-selection-indicator {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  right: 20px;
+  height: 40px;
+  transform: translateY(-50%);
+  border-top: 1px solid rgba(59, 130, 246, 0.3);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+  pointer-events: none;
+  z-index: 1;
+}
+
+// Mobile responsive adjustments
+@media (max-width: 480px) {
+  .wheel-panel {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: var(--component-border-radius) var(--component-border-radius) 0 0;
+    height: 250px;
+  }
+}

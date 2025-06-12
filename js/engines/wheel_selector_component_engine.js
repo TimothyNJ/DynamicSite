@@ -1,37 +1,115 @@
 // wheel_selector_component_engine.js
 
-class WheelSelectorComponentEngine {
-    constructor(container, componentId, config = {}) {
-        this.container = container;
-        this.componentId = componentId;
+import { text_button_component_engine } from './text_button_component_engine.js';
+
+class wheel_selector_component_engine {
+    constructor(options = {}, changeHandler = null) {
         this.config = {
-            label: config.label || '',
-            options: config.options || [],
-            defaultValue: config.defaultValue || null,
-            placeholder: config.placeholder || 'Select an option',
-            icon: config.icon || null,
-            onChange: config.onChange || (() => {}),
-            disabled: config.disabled || false,
-            required: config.required || false,
-            storageKey: config.storageKey || null,
-            ...config
+            label: options.label || '',
+            options: options.options || [],
+            defaultValue: options.defaultValue || null,
+            placeholder: options.placeholder || 'Select an option',
+            icon: options.icon || null,
+            onChange: changeHandler || options.onChange || (() => {}),
+            disabled: options.disabled || false,
+            required: options.required || false,
+            storageKey: options.storageKey || null,
+            ...options
         };
         
         this.isOpen = false;
         this.selectedIndex = -1;
         this.selectedValue = null;
         this.wheelInstance = null;
-        
-        this.init();
+        this.componentId = `wheel-selector-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        this.triggerButton = null;
     }
     
-    init() {
+    render(containerId) {
+        const container = typeof containerId === 'string' 
+            ? document.getElementById(containerId) 
+            : containerId;
+            
+        if (!container) {
+            console.error('[WheelSelector] Container not found:', containerId);
+            return null;
+        }
+        
+        this.container = container;
         this.container.innerHTML = '';
+        
+        // Load stored value before rendering
         this.loadStoredValue();
-        this.render();
+        
+        // Get display text
+        const selectedOption = this.selectedIndex >= 0 ? this.config.options[this.selectedIndex] : null;
+        const displayText = selectedOption ? 
+            (typeof selectedOption === 'object' ? selectedOption.text : selectedOption) : 
+            this.config.placeholder;
+        
+        // Create main component wrapper
+        const componentWrapper = document.createElement('div');
+        componentWrapper.className = 'wheel-selector-container';
+        
+        const component = document.createElement('div');
+        component.className = `wheel-selector-component ${this.config.disabled ? 'disabled' : ''}`;
+        component.id = this.componentId;
+        component.dataset.open = 'false';
+        component.tabIndex = 0;
+        
+        // Add label if provided
+        if (this.config.label) {
+            const label = document.createElement('label');
+            label.className = 'wheel-selector-label';
+            label.textContent = this.config.label;
+            component.appendChild(label);
+        }
+        
+        // Create button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.id = `${this.componentId}-button`;
+        component.appendChild(buttonContainer);
+        
+        // Create wheel panel
+        const wheelPanel = document.createElement('div');
+        wheelPanel.className = 'wheel-panel';
+        wheelPanel.style.display = 'none';
+        wheelPanel.innerHTML = `
+            <div class="wheel-overlay top"></div>
+            <div class="wheel-content">
+                <div class="options-wheel" data-wheel="options">
+                    <div class="wheel-items">
+                        ${this.renderOptions()}
+                    </div>
+                </div>
+            </div>
+            <div class="wheel-overlay bottom"></div>
+            <div class="wheel-selection-indicator"></div>
+        `;
+        component.appendChild(wheelPanel);
+        
+        // Add to container
+        componentWrapper.appendChild(component);
+        this.container.appendChild(componentWrapper);
+        
+        // Create text button as trigger
+        this.triggerButton = new text_button_component_engine({
+            text: displayText,
+            active: false,
+            disabled: this.config.disabled
+        }, () => {
+            if (!this.config.disabled) {
+                this.toggleWheel();
+            }
+        });
+        
+        // Render the button
+        this.triggerButton.render(buttonContainer);
+        
+        // Attach remaining event listeners
         this.attachEventListeners();
         
-        // Set default selection
+        // Set default selection if not already set
         if (this.config.defaultValue && !this.selectedValue) {
             const defaultIndex = this.config.options.findIndex(opt => 
                 opt.value === this.config.defaultValue || opt === this.config.defaultValue
@@ -40,6 +118,8 @@ class WheelSelectorComponentEngine {
                 this.selectOption(defaultIndex);
             }
         }
+        
+        return component;
     }
     
     loadStoredValue() {
@@ -61,43 +141,6 @@ class WheelSelectorComponentEngine {
         }
     }
     
-    render() {
-        const selectedOption = this.selectedIndex >= 0 ? this.config.options[this.selectedIndex] : null;
-        const displayText = selectedOption ? 
-            (typeof selectedOption === 'object' ? selectedOption.text : selectedOption) : 
-            this.config.placeholder;
-        
-        const dropdownHtml = `
-            <div class="dropdown-menu-component ${this.config.disabled ? 'disabled' : ''}" 
-                 id="${this.componentId}"
-                 data-open="false">
-                ${this.config.label ? `<label class="dropdown-label">${this.config.label}</label>` : ''}
-                <div class="dropdown-trigger">
-                    ${this.config.icon ? `<span class="dropdown-icon">${this.config.icon}</span>` : ''}
-                    <span class="dropdown-text">${displayText}</span>
-                    <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none">
-                        <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="dropdown-wheel-container" style="display: none;">
-                    <div class="wheel-overlay top"></div>
-                    <div class="wheel-content">
-                        <div class="options-wheel" data-wheel="options">
-                            <div class="wheel-items">
-                                ${this.renderOptions()}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="wheel-overlay bottom"></div>
-                    <div class="wheel-selection-indicator"></div>
-                </div>
-            </div>
-        `;
-        
-        this.container.innerHTML = dropdownHtml;
-        this.addStyles();
-    }
-    
     renderOptions() {
         return this.config.options.map((option, index) => {
             const isObject = typeof option === 'object';
@@ -117,27 +160,18 @@ class WheelSelectorComponentEngine {
     }
     
     attachEventListeners() {
-        const component = this.container.querySelector('.dropdown-menu-component');
-        const trigger = component.querySelector('.dropdown-trigger');
-        const wheelContainer = component.querySelector('.dropdown-wheel-container');
-        
-        // Toggle dropdown
-        trigger.addEventListener('click', (e) => {
-            if (!this.config.disabled) {
-                e.stopPropagation();
-                this.toggleDropdown();
-            }
-        });
+        const component = this.container.querySelector('.wheel-selector-component');
+        const wheelPanel = component.querySelector('.wheel-panel');
         
         // Close on outside click
         document.addEventListener('click', (e) => {
             if (this.isOpen && !component.contains(e.target)) {
-                this.closeDropdown();
+                this.closeWheel();
             }
         });
         
         // Initialize wheel scrolling
-        if (wheelContainer) {
+        if (wheelPanel) {
             this.initializeWheel(component.querySelector('.options-wheel'));
         }
         
@@ -150,14 +184,14 @@ class WheelSelectorComponentEngine {
                 case ' ':
                     e.preventDefault();
                     if (!this.isOpen) {
-                        this.openDropdown();
+                        this.openWheel();
                     } else {
                         this.confirmSelection();
                     }
                     break;
                 case 'Escape':
                     if (this.isOpen) {
-                        this.closeDropdown();
+                        this.closeWheel();
                     }
                     break;
                 case 'ArrowUp':
@@ -171,7 +205,7 @@ class WheelSelectorComponentEngine {
                     if (this.isOpen) {
                         this.scrollWheel(1);
                     } else {
-                        this.openDropdown();
+                        this.openWheel();
                     }
                     break;
             }
@@ -332,28 +366,28 @@ class WheelSelectorComponentEngine {
         }, 300);
     }
     
-    toggleDropdown() {
+    toggleWheel() {
         if (this.isOpen) {
-            this.closeDropdown();
+            this.closeWheel();
         } else {
-            this.openDropdown();
+            this.openWheel();
         }
     }
     
-    openDropdown() {
+    openWheel() {
         if (this.isOpen) return;
         
-        const component = this.container.querySelector('.dropdown-menu-component');
-        const wheelContainer = component.querySelector('.dropdown-wheel-container');
+        const component = this.container.querySelector('.wheel-selector-component');
+        const wheelPanel = component.querySelector('.wheel-panel');
         
         this.isOpen = true;
         component.dataset.open = 'true';
-        wheelContainer.style.display = 'block';
+        wheelPanel.style.display = 'block';
         
         // Ensure selected item is centered
         if (this.selectedIndex >= 0) {
             const itemHeight = 40;
-            const wheelItems = wheelContainer.querySelector('.wheel-items');
+            const wheelItems = wheelPanel.querySelector('.wheel-items');
             const offset = -(this.selectedIndex * itemHeight) + (itemHeight * 2);
             wheelItems.style.transform = `translateY(${offset}px)`;
             this.updateActiveItem(offset, itemHeight);
@@ -363,15 +397,15 @@ class WheelSelectorComponentEngine {
         component.focus();
     }
     
-    closeDropdown() {
+    closeWheel() {
         if (!this.isOpen) return;
         
-        const component = this.container.querySelector('.dropdown-menu-component');
-        const wheelContainer = component.querySelector('.dropdown-wheel-container');
+        const component = this.container.querySelector('.wheel-selector-component');
+        const wheelPanel = component.querySelector('.wheel-panel');
         
         this.isOpen = false;
         component.dataset.open = 'false';
-        wheelContainer.style.display = 'none';
+        wheelPanel.style.display = 'none';
     }
     
     confirmSelection() {
@@ -381,7 +415,7 @@ class WheelSelectorComponentEngine {
             const index = parseInt(activeItem.dataset.index);
             this.selectOption(index);
         }
-        this.closeDropdown();
+        this.closeWheel();
     }
     
     selectOption(index) {
@@ -394,10 +428,9 @@ class WheelSelectorComponentEngine {
         this.selectedIndex = index;
         this.selectedValue = value;
         
-        // Update display
-        const dropdownText = this.container.querySelector('.dropdown-text');
-        if (dropdownText) {
-            dropdownText.textContent = text;
+        // Update button text using text button's method
+        if (this.triggerButton) {
+            this.triggerButton.setText(text);
         }
         
         // Update visual selection
@@ -432,281 +465,31 @@ class WheelSelectorComponentEngine {
         this.config.options = newOptions;
         this.selectedIndex = -1;
         this.selectedValue = null;
-        this.render();
-        this.attachEventListeners();
+        this.render(this.container);
     }
     
     disable() {
         this.config.disabled = true;
-        const component = this.container.querySelector('.dropdown-menu-component');
+        const component = this.container.querySelector('.wheel-selector-component');
         if (component) {
             component.classList.add('disabled');
+        }
+        if (this.triggerButton) {
+            this.triggerButton.disable();
         }
     }
     
     enable() {
         this.config.disabled = false;
-        const component = this.container.querySelector('.dropdown-menu-component');
+        const component = this.container.querySelector('.wheel-selector-component');
         if (component) {
             component.classList.remove('disabled');
         }
-    }
-    
-    addStyles() {
-        if (document.getElementById('dropdown-menu-styles')) return;
-        
-        const styles = document.createElement('style');
-        styles.id = 'dropdown-menu-styles';
-        styles.textContent = `
-            .dropdown-menu-component {
-                position: relative;
-                width: 100%;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                user-select: none;
-                outline: none;
-            }
-            
-            .dropdown-menu-component.disabled {
-                opacity: 0.6;
-                pointer-events: none;
-            }
-            
-            .dropdown-label {
-                display: block;
-                font-size: 14px;
-                font-weight: 500;
-                color: #666;
-                margin-bottom: 8px;
-            }
-            
-            .dropdown-trigger {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 24px;
-                padding: 12px 20px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                color: #ffffff;
-                min-height: 48px;
-            }
-            
-            .dropdown-trigger:hover {
-                border-color: rgba(255, 255, 255, 0.2);
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            }
-            
-            .dropdown-menu-component[data-open="true"] .dropdown-trigger {
-                border-color: #3b82f6;
-                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            }
-            
-            .dropdown-icon {
-                font-size: 18px;
-                display: flex;
-                align-items: center;
-            }
-            
-            .dropdown-text {
-                flex: 1;
-                font-size: 16px;
-                font-weight: 400;
-            }
-            
-            .dropdown-arrow {
-                transition: transform 0.3s ease;
-                opacity: 0.6;
-            }
-            
-            .dropdown-menu-component[data-open="true"] .dropdown-arrow {
-                transform: rotate(180deg);
-            }
-            
-            .dropdown-wheel-container {
-                position: absolute;
-                top: calc(100% + 8px);
-                left: 0;
-                right: 0;
-                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 24px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-                z-index: 1000;
-                overflow: hidden;
-                height: 200px;
-            }
-            
-            .wheel-content {
-                position: relative;
-                height: 100%;
-                overflow: hidden;
-                padding: 0 20px;
-            }
-            
-            .options-wheel {
-                height: 100%;
-                cursor: grab;
-                position: relative;
-            }
-            
-            .options-wheel:active {
-                cursor: grabbing;
-            }
-            
-            .wheel-items {
-                position: absolute;
-                width: 100%;
-                transition: none;
-                padding: 80px 0;
-            }
-            
-            .wheel-item {
-                height: 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                font-size: 16px;
-                color: rgba(255, 255, 255, 0.4);
-                transition: all 0.3s ease;
-                cursor: pointer;
-                padding: 0 16px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            
-            .wheel-item:hover {
-                color: rgba(255, 255, 255, 0.7);
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 8px;
-            }
-            
-            .wheel-item.active {
-                color: #ffffff;
-                transform: scale(1.05);
-            }
-            
-            .wheel-item.selected {
-                color: #3b82f6;
-                font-weight: 500;
-            }
-            
-            .option-icon {
-                font-size: 18px;
-                display: flex;
-                align-items: center;
-            }
-            
-            .wheel-overlay {
-                position: absolute;
-                left: 0;
-                right: 0;
-                height: 80px;
-                pointer-events: none;
-                z-index: 2;
-            }
-            
-            .wheel-overlay.top {
-                top: 0;
-                background: linear-gradient(
-                    to bottom,
-                    rgba(26, 26, 26, 1) 0%,
-                    rgba(26, 26, 26, 0.8) 40%,
-                    transparent 100%
-                );
-            }
-            
-            .wheel-overlay.bottom {
-                bottom: 0;
-                background: linear-gradient(
-                    to top,
-                    rgba(26, 26, 26, 1) 0%,
-                    rgba(26, 26, 26, 0.8) 40%,
-                    transparent 100%
-                );
-            }
-            
-            .wheel-selection-indicator {
-                position: absolute;
-                top: 50%;
-                left: 20px;
-                right: 20px;
-                height: 40px;
-                transform: translateY(-50%);
-                border-top: 1px solid rgba(59, 130, 246, 0.3);
-                border-bottom: 1px solid rgba(59, 130, 246, 0.3);
-                pointer-events: none;
-                z-index: 1;
-            }
-            
-            /* Dark theme adjustments */
-            [data-theme="dark"] .dropdown-label {
-                color: #999;
-            }
-            
-            /* Light theme adjustments */
-            [data-theme="light"] .dropdown-trigger {
-                background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
-                color: #333;
-                border-color: rgba(0, 0, 0, 0.1);
-            }
-            
-            [data-theme="light"] .dropdown-trigger:hover {
-                border-color: rgba(0, 0, 0, 0.2);
-            }
-            
-            [data-theme="light"] .dropdown-wheel-container {
-                background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
-                border-color: rgba(0, 0, 0, 0.1);
-            }
-            
-            [data-theme="light"] .wheel-item {
-                color: rgba(0, 0, 0, 0.4);
-            }
-            
-            [data-theme="light"] .wheel-item.active {
-                color: #333;
-            }
-            
-            [data-theme="light"] .wheel-overlay.top {
-                background: linear-gradient(
-                    to bottom,
-                    rgba(245, 245, 245, 1) 0%,
-                    rgba(245, 245, 245, 0.8) 40%,
-                    transparent 100%
-                );
-            }
-            
-            [data-theme="light"] .wheel-overlay.bottom {
-                background: linear-gradient(
-                    to top,
-                    rgba(245, 245, 245, 1) 0%,
-                    rgba(245, 245, 245, 0.8) 40%,
-                    transparent 100%
-                );
-            }
-            
-            /* Mobile responsive */
-            @media (max-width: 480px) {
-                .dropdown-wheel-container {
-                    position: fixed;
-                    top: auto;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    border-radius: 24px 24px 0 0;
-                    height: 250px;
-                }
-            }
-        `;
-        
-        document.head.appendChild(styles);
+        if (this.triggerButton) {
+            this.triggerButton.enable();
+        }
     }
 }
 
-// Export with snake_case name for consistency
-export { WheelSelectorComponentEngine as wheel_selector_component_engine };
+// Export the class directly
+export { wheel_selector_component_engine };
