@@ -14,6 +14,7 @@ class wheel_selector_component_engine {
             disabled: options.disabled || false,
             required: options.required || false,
             storageKey: options.storageKey || null,
+            showOnHover: options.showOnHover !== false, // Default true
             ...options
         };
         
@@ -23,6 +24,8 @@ class wheel_selector_component_engine {
         this.wheelInstance = null;
         this.componentId = `wheel-selector-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         this.triggerButton = null;
+        this.hoverTimeout = null;
+        this.closeTimeout = null;
     }
     
     render(containerId) {
@@ -98,7 +101,7 @@ class wheel_selector_component_engine {
             active: false,
             disabled: this.config.disabled
         }, () => {
-            if (!this.config.disabled) {
+            if (!this.config.disabled && !this.config.showOnHover) {
                 this.toggleWheel();
             }
         });
@@ -142,15 +145,24 @@ class wheel_selector_component_engine {
     }
     
     renderOptions() {
-        return this.config.options.map((option, index) => {
+        // Triple the options for seamless looping effect
+        const tripleOptions = [
+            ...this.config.options,
+            ...this.config.options,
+            ...this.config.options
+        ];
+        
+        return tripleOptions.map((option, index) => {
+            const realIndex = index % this.config.options.length;
             const isObject = typeof option === 'object';
             const text = isObject ? option.text : option;
             const value = isObject ? option.value : option;
             const icon = isObject ? option.icon : null;
             
             return `
-                <div class="wheel-item ${index === this.selectedIndex ? 'selected' : ''}" 
-                     data-index="${index}"
+                <div class="wheel-item ${realIndex === this.selectedIndex ? 'selected' : ''}" 
+                     data-index="${realIndex}"
+                     data-real-index="${index}"
                      data-value="${value}">
                     ${icon ? `<span class="option-icon">${icon}</span>` : ''}
                     <span class="option-text">${text}</span>
@@ -162,6 +174,36 @@ class wheel_selector_component_engine {
     attachEventListeners() {
         const component = this.container.querySelector('.wheel-selector-component');
         const wheelPanel = component.querySelector('.wheel-panel');
+        const buttonContainer = component.querySelector(`#${this.componentId}-button`);
+        
+        // Hover functionality
+        if (this.config.showOnHover) {
+            component.addEventListener('mouseenter', () => {
+                if (!this.config.disabled) {
+                    clearTimeout(this.closeTimeout);
+                    this.hoverTimeout = setTimeout(() => {
+                        this.openWheel();
+                    }, 200); // Small delay to prevent accidental opens
+                }
+            });
+            
+            component.addEventListener('mouseleave', () => {
+                clearTimeout(this.hoverTimeout);
+                this.closeTimeout = setTimeout(() => {
+                    this.closeWheel();
+                }, 300); // Delay before closing to allow moving to wheel
+            });
+        }
+        
+        // Click functionality (only if not hover mode)
+        if (!this.config.showOnHover) {
+            buttonContainer.addEventListener('click', (e) => {
+                if (!this.config.disabled) {
+                    e.stopPropagation();
+                    this.toggleWheel();
+                }
+            });
+        }
         
         // Close on outside click
         document.addEventListener('click', (e) => {
@@ -221,11 +263,17 @@ class wheel_selector_component_engine {
         let animationId = null;
         
         const wheelItems = wheel.querySelector('.wheel-items');
+        const optionsLength = this.config.options.length;
         
-        // Set initial position if there's a selected item
+        // Start in the middle set for seamless looping
+        const middleOffset = -(optionsLength * itemHeight) + (itemHeight * 2);
+        
+        // Set initial position
         if (this.selectedIndex >= 0) {
-            const offset = -(this.selectedIndex * itemHeight) + (itemHeight * 2);
+            const offset = middleOffset - (this.selectedIndex * itemHeight);
             wheelItems.style.transform = `translateY(${offset}px)`;
+        } else {
+            wheelItems.style.transform = `translateY(${middleOffset}px)`;
         }
         
         const handleStart = (e) => {
@@ -250,15 +298,18 @@ class wheel_selector_component_engine {
             
             const transform = wheelItems.style.transform;
             const currentTranslateY = transform ? parseFloat(transform.match(/translateY\(([-\d.]+)px\)/)?.[1] || 0) : 0;
-            const newTranslateY = currentTranslateY + deltaY;
+            let newTranslateY = currentTranslateY + deltaY;
             
-            // Apply boundaries
-            const maxTranslateY = itemHeight * 2;
-            const minTranslateY = -(this.config.options.length - 1) * itemHeight + (itemHeight * 2);
-            const boundedTranslateY = Math.max(minTranslateY, Math.min(maxTranslateY, newTranslateY));
+            // Handle looping
+            const totalHeight = optionsLength * itemHeight;
+            if (newTranslateY > middleOffset + totalHeight) {
+                newTranslateY -= totalHeight;
+            } else if (newTranslateY < middleOffset - totalHeight) {
+                newTranslateY += totalHeight;
+            }
             
-            wheelItems.style.transform = `translateY(${boundedTranslateY}px)`;
-            this.updateActiveItem(boundedTranslateY, itemHeight);
+            wheelItems.style.transform = `translateY(${newTranslateY}px)`;
+            this.updateActiveItem(newTranslateY, itemHeight);
         };
         
         const handleEnd = () => {
@@ -266,21 +317,25 @@ class wheel_selector_component_engine {
             isDragging = false;
             wheel.style.cursor = 'grab';
             
-            // Momentum scrolling
+            // Enhanced momentum scrolling for casino wheel effect
             const decelerate = () => {
                 if (Math.abs(velocity) > 0.5) {
-                    velocity *= 0.95;
+                    velocity *= 0.92; // Slower deceleration for longer spin
                     
                     const transform = wheelItems.style.transform;
                     const currentTranslateY = parseFloat(transform.match(/translateY\(([-\d.]+)px\)/)?.[1] || 0);
-                    const newTranslateY = currentTranslateY + velocity;
+                    let newTranslateY = currentTranslateY + velocity;
                     
-                    const maxTranslateY = itemHeight * 2;
-                    const minTranslateY = -(this.config.options.length - 1) * itemHeight + (itemHeight * 2);
-                    const boundedTranslateY = Math.max(minTranslateY, Math.min(maxTranslateY, newTranslateY));
+                    // Handle looping during momentum
+                    const totalHeight = optionsLength * itemHeight;
+                    if (newTranslateY > middleOffset + totalHeight) {
+                        newTranslateY -= totalHeight;
+                    } else if (newTranslateY < middleOffset - totalHeight) {
+                        newTranslateY += totalHeight;
+                    }
                     
-                    wheelItems.style.transform = `translateY(${boundedTranslateY}px)`;
-                    this.updateActiveItem(boundedTranslateY, itemHeight);
+                    wheelItems.style.transform = `translateY(${newTranslateY}px)`;
+                    this.updateActiveItem(newTranslateY, itemHeight);
                     
                     animationId = requestAnimationFrame(decelerate);
                 } else {
@@ -315,13 +370,17 @@ class wheel_selector_component_engine {
     
     updateActiveItem(translateY, itemHeight) {
         const centerOffset = -translateY + (itemHeight * 2);
-        const activeIndex = Math.round(centerOffset / itemHeight);
-        const clampedIndex = Math.max(0, Math.min(this.config.options.length - 1, activeIndex));
+        const optionsLength = this.config.options.length;
+        
+        // Calculate which item is in the center, accounting for the tripled options
+        let activeIndex = Math.round(centerOffset / itemHeight);
+        activeIndex = ((activeIndex % optionsLength) + optionsLength) % optionsLength;
         
         // Update visual selection
         const items = this.container.querySelectorAll('.wheel-item');
-        items.forEach((item, index) => {
-            item.classList.toggle('active', index === clampedIndex);
+        items.forEach((item) => {
+            const itemIndex = parseInt(item.dataset.index);
+            item.classList.toggle('active', itemIndex === activeIndex);
         });
     }
     
@@ -329,14 +388,24 @@ class wheel_selector_component_engine {
         const wheelItems = this.container.querySelector('.wheel-items');
         const transform = wheelItems.style.transform;
         const currentTranslateY = parseFloat(transform.match(/translateY\(([-\d.]+)px\)/)?.[1] || 0);
+        const optionsLength = this.config.options.length;
         
         const centerOffset = -currentTranslateY + (itemHeight * 2);
-        const activeIndex = Math.round(centerOffset / itemHeight);
-        const clampedIndex = Math.max(0, Math.min(this.config.options.length - 1, activeIndex));
+        let activeIndex = Math.round(centerOffset / itemHeight);
         
-        const targetTranslateY = -(clampedIndex * itemHeight) + (itemHeight * 2);
+        // Keep within the middle set for seamless appearance
+        const middleStart = optionsLength;
+        const middleEnd = optionsLength * 2;
         
-        wheelItems.style.transition = 'transform 0.3s ease';
+        if (activeIndex < middleStart) {
+            activeIndex += optionsLength;
+        } else if (activeIndex >= middleEnd) {
+            activeIndex -= optionsLength;
+        }
+        
+        const targetTranslateY = -(activeIndex * itemHeight) + (itemHeight * 2);
+        
+        wheelItems.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
         wheelItems.style.transform = `translateY(${targetTranslateY}px)`;
         
         setTimeout(() => {
@@ -350,19 +419,17 @@ class wheel_selector_component_engine {
         const transform = wheelItems.style.transform;
         const currentTranslateY = parseFloat(transform.match(/translateY\(([-\d.]+)px\)/)?.[1] || 0);
         
-        const centerOffset = -currentTranslateY + (itemHeight * 2);
-        const currentIndex = Math.round(centerOffset / itemHeight);
-        const newIndex = Math.max(0, Math.min(this.config.options.length - 1, currentIndex + direction));
-        
-        const targetTranslateY = -(newIndex * itemHeight) + (itemHeight * 2);
+        const newTranslateY = currentTranslateY - (direction * itemHeight);
         
         wheelItems.style.transition = 'transform 0.3s ease';
-        wheelItems.style.transform = `translateY(${targetTranslateY}px)`;
+        wheelItems.style.transform = `translateY(${newTranslateY}px)`;
         
-        this.updateActiveItem(targetTranslateY, itemHeight);
+        this.updateActiveItem(newTranslateY, itemHeight);
         
         setTimeout(() => {
             wheelItems.style.transition = '';
+            // Snap to ensure we're on an item
+            this.snapToItem(itemHeight);
         }, 300);
     }
     
@@ -384,14 +451,10 @@ class wheel_selector_component_engine {
         component.dataset.open = 'true';
         wheelPanel.style.display = 'block';
         
-        // Ensure selected item is centered
-        if (this.selectedIndex >= 0) {
-            const itemHeight = 40;
-            const wheelItems = wheelPanel.querySelector('.wheel-items');
-            const offset = -(this.selectedIndex * itemHeight) + (itemHeight * 2);
-            wheelItems.style.transform = `translateY(${offset}px)`;
-            this.updateActiveItem(offset, itemHeight);
-        }
+        // Add opening animation
+        setTimeout(() => {
+            wheelPanel.classList.add('open');
+        }, 10);
         
         // Focus for keyboard navigation
         component.focus();
@@ -405,7 +468,12 @@ class wheel_selector_component_engine {
         
         this.isOpen = false;
         component.dataset.open = 'false';
-        wheelPanel.style.display = 'none';
+        wheelPanel.classList.remove('open');
+        
+        // Hide after animation
+        setTimeout(() => {
+            wheelPanel.style.display = 'none';
+        }, 300);
     }
     
     confirmSelection() {
@@ -435,8 +503,9 @@ class wheel_selector_component_engine {
         
         // Update visual selection
         const items = this.container.querySelectorAll('.wheel-item');
-        items.forEach((item, i) => {
-            item.classList.toggle('selected', i === index);
+        items.forEach((item) => {
+            const itemIndex = parseInt(item.dataset.index);
+            item.classList.toggle('selected', itemIndex === index);
         });
         
         // Save to storage

@@ -112,17 +112,24 @@ function initializeSettingsComponents() {
       onChange: (values) => console.log('[Demo] Multi-select values:', values)
     });
     
-    // 6. Wheel Selector demo (single casino-style wheel)
+    // 6. Wheel Selector demo (casino-style wheel with numbers 1-10)
     componentFactory.createWheelSelector('demo-wheel-selector-container', {
       id: 'demo-wheel-selector',
       options: [
-        { value: 'item1', text: 'Item 1' },
-        { value: 'item2', text: 'Item 2' },
-        { value: 'item3', text: 'Item 3' },
-        { value: 'item4', text: 'Item 4' },
-        { value: 'item5', text: 'Item 5' }
+        { value: '1', text: '1' },
+        { value: '2', text: '2' },
+        { value: '3', text: '3' },
+        { value: '4', text: '4' },
+        { value: '5', text: '5' },
+        { value: '6', text: '6' },
+        { value: '7', text: '7' },
+        { value: '8', text: '8' },
+        { value: '9', text: '9' },
+        { value: '10', text: '10' }
       ],
-      defaultValue: 'item1',
+      defaultValue: '1',
+      placeholder: 'Roll the wheel',
+      showOnHover: true, // Enable hover to show wheel
       onChange: (value) => console.log('[Demo] Wheel selected:', value)
     });
     
