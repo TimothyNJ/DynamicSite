@@ -1082,17 +1082,26 @@ class ComponentFactory {
     }
     
     try {
-      const container = document.getElementById(containerId);
-      if (!container) {
-        console.error(`[ComponentFactory] Container not found: ${containerId}`);
+      // Extract onChange from config for backward compatibility
+      const handler = config.onChange || null;
+      
+      // Create clean options without onChange to maintain separation of concerns
+      const cleanOptions = { ...config };
+      delete cleanOptions.onChange;
+      
+      // Pass handler as second parameter as expected by the engine
+      const wheelSelectorEngine = new wheel_selector_component_engine(cleanOptions, handler);
+      const element = wheelSelectorEngine.render(containerId);
+      
+      if (element) {
+        const key = config.id || containerId;
+        this.wheelSelectorInstances.set(key, wheelSelectorEngine);
+        console.log(`[ComponentFactory] Wheel selector created successfully: ${key}`);
+        return wheelSelectorEngine;
+      } else {
+        console.error(`[ComponentFactory] Failed to render wheel selector in: ${containerId}`);
         return null;
       }
-      
-      const wheelSelectorEngine = new wheel_selector_component_engine(container, config.id || containerId, config);
-      const key = config.id || containerId;
-      this.wheelSelectorInstances.set(key, wheelSelectorEngine);
-      console.log(`[ComponentFactory] Wheel selector created successfully: ${key}`);
-      return wheelSelectorEngine;
     } catch (error) {
       console.error('[ComponentFactory] Error creating wheel selector:', error);
       return null;
