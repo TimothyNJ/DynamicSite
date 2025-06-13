@@ -1,11 +1,6 @@
-// _wheel_selector.scss - iOS7-style wheel selector
-// Based on https://codepen.io/billdami/pen/ExZEoJ
+// _wheel_selector.scss - iOS7 picker from https://codepen.io/billdami/pen/ExZEoJ
 
-// ==============================================
-// Wheel Selector Component
-// ==============================================
-
-// Container
+// Container wrapper for our component system
 .wheel-selector-container {
   display: flex;
   justify-content: center;
@@ -41,8 +36,8 @@
   }
 }
 
-// iOS Picker Container
-.ios-picker-container {
+// iOS UI Select - Direct from CodePen
+.ios-ui-select {
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
@@ -58,146 +53,183 @@
   }
 }
 
-// iOS Picker
-.ios-picker {
+.ios-ui-select-inner {
   position: relative;
-  width: 100%;
-  height: 220px;
-  background: #fafafa;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+}
+
+.ios-ui-select-options {
+  width: 320px;
+  height: 222px;
+  position: relative;
+  background: -webkit-gradient(linear, left top, left bottom, from(#f7f7f7), to(#cfcfcf));
+  background: -webkit-linear-gradient(top, #f7f7f7 0%, #cfcfcf 100%);
+  background: -moz-linear-gradient(top, #f7f7f7 0%, #cfcfcf 100%);
+  background: -ms-linear-gradient(top, #f7f7f7 0%, #cfcfcf 100%);
+  background: -o-linear-gradient(top, #f7f7f7 0%, #cfcfcf 100%);
+  background: linear-gradient(to bottom, #f7f7f7 0%, #cfcfcf 100%);
+  -webkit-perspective: 1000px;
+  -moz-perspective: 1000px;
+  -ms-perspective: 1000px;
+  perspective: 1000px;
   overflow: hidden;
-  perspective: 1200px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   
   body[data-theme="dark"] & {
-    background: #2a2a2a;
-    border-color: #444;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    background: -webkit-gradient(linear, left top, left bottom, from(#3a3a3a), to(#2a2a2a));
+    background: -webkit-linear-gradient(top, #3a3a3a 0%, #2a2a2a 100%);
+    background: -moz-linear-gradient(top, #3a3a3a 0%, #2a2a2a 100%);
+    background: -ms-linear-gradient(top, #3a3a3a 0%, #2a2a2a 100%);
+    background: -o-linear-gradient(top, #3a3a3a 0%, #2a2a2a 100%);
+    background: linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 100%);
   }
 }
 
-// Scrollable area
-.ios-picker-scroll {
+.ios-ui-select-options-container {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  -webkit-transform-style: preserve-3d;
+  -moz-transform-style: preserve-3d;
+  -ms-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  margin-top: -22px;
+  -webkit-transform: translateZ(-100px) rotateX(0deg);
+  -moz-transform: translateZ(-100px) rotateX(0deg);
+  -ms-transform: translateZ(-100px) rotateX(0deg);
+  transform: translateZ(-100px) rotateX(0deg);
+}
+
+.ios-ui-select-options-option {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  transform-style: preserve-3d;
-  transition: transform 0.3s ease-out;
-  cursor: grab;
-  
-  &:active {
-    cursor: grabbing;
-  }
-}
-
-// Individual cells
-.ios-picker-cell {
-  position: absolute;
   width: 100%;
   height: 44px;
-  line-height: 44px;
-  padding: 0 10px;
-  text-align: center;
-  font-size: 18px;
-  color: #333;
-  transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -ms-backface-visibility: hidden;
   backface-visibility: hidden;
-  transform-origin: center center;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-sizing: border-box;
+  color: #222;
+  font-size: 23px;
+  font-weight: 300;
+  line-height: 44px;
+  text-align: center;
   
   body[data-theme="dark"] & {
-    color: #ccc;
-  }
-  
-  &.selected {
-    color: #007AFF;
-    font-weight: 500;
-    
-    body[data-theme="dark"] & {
-      color: #4DA6FF;
-    }
-  }
-  
-  &:hover {
-    background: rgba(0, 122, 255, 0.05);
-    
-    body[data-theme="dark"] & {
-      background: rgba(77, 166, 255, 0.1);
-    }
+    color: #ddd;
   }
 }
 
-// Highlight bar
-.ios-picker-highlight {
-  position: absolute;
-  top: 88px;
-  left: 10px;
-  right: 10px;
-  height: 44px;
-  border-top: 1px solid #d3d3d3;
-  border-bottom: 1px solid #d3d3d3;
-  pointer-events: none;
+.ios-ui-select-options-option.ios-ui-select-options-selected {
+  color: #278cea;
   
   body[data-theme="dark"] & {
-    border-color: #555;
+    color: #4da6ff;
   }
 }
 
-// Gradient overlays for depth
-.ios-picker::before,
-.ios-picker::after {
-  content: '';
+.ios-ui-select-overlay {
   position: absolute;
+  top: 0;
   left: 0;
   right: 0;
-  height: 88px;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.ios-picker::before {
-  top: 0;
-  background: linear-gradient(to bottom,
-    rgba(250, 250, 250, 1) 0%,
-    rgba(250, 250, 250, 0.9) 50%,
-    rgba(250, 250, 250, 0) 100%
-  );
-  
-  body[data-theme="dark"] & {
-    background: linear-gradient(to bottom,
-      rgba(42, 42, 42, 1) 0%,
-      rgba(42, 42, 42, 0.9) 50%,
-      rgba(42, 42, 42, 0) 100%
-    );
-  }
-}
-
-.ios-picker::after {
   bottom: 0;
-  background: linear-gradient(to top,
-    rgba(250, 250, 250, 1) 0%,
-    rgba(250, 250, 250, 0.9) 50%,
-    rgba(250, 250, 250, 0) 100%
-  );
-  
+  background: -webkit-gradient(linear, left top, left bottom, 
+    from(rgba(255,255,255,0.9)), 
+    color-stop(0.12, transparent), 
+    color-stop(0.88, transparent), 
+    to(rgba(255,255,255,0.9)));
+  background: -webkit-linear-gradient(top, 
+    rgba(255,255,255,0.9) 0%, 
+    transparent 12%, 
+    transparent 88%, 
+    rgba(255,255,255,0.9) 100%);
+  background: -moz-linear-gradient(top, 
+    rgba(255,255,255,0.9) 0%, 
+    transparent 12%, 
+    transparent 88%, 
+    rgba(255,255,255,0.9) 100%);
+  background: -ms-linear-gradient(top, 
+    rgba(255,255,255,0.9) 0%, 
+    transparent 12%, 
+    transparent 88%, 
+    rgba(255,255,255,0.9) 100%);
+  background: -o-linear-gradient(top, 
+    rgba(255,255,255,0.9) 0%, 
+    transparent 12%, 
+    transparent 88%, 
+    rgba(255,255,255,0.9) 100%);
+  background: linear-gradient(to bottom, 
+    rgba(255,255,255,0.9) 0%, 
+    transparent 12%, 
+    transparent 88%, 
+    rgba(255,255,255,0.9) 100%);
+    
   body[data-theme="dark"] & {
-    background: linear-gradient(to top,
-      rgba(42, 42, 42, 1) 0%,
-      rgba(42, 42, 42, 0.9) 50%,
-      rgba(42, 42, 42, 0) 100%
-    );
+    background: -webkit-gradient(linear, left top, left bottom, 
+      from(rgba(42,42,42,0.9)), 
+      color-stop(0.12, transparent), 
+      color-stop(0.88, transparent), 
+      to(rgba(42,42,42,0.9)));
+    background: -webkit-linear-gradient(top, 
+      rgba(42,42,42,0.9) 0%, 
+      transparent 12%, 
+      transparent 88%, 
+      rgba(42,42,42,0.9) 100%);
+    background: -moz-linear-gradient(top, 
+      rgba(42,42,42,0.9) 0%, 
+      transparent 12%, 
+      transparent 88%, 
+      rgba(42,42,42,0.9) 100%);
+    background: -ms-linear-gradient(top, 
+      rgba(42,42,42,0.9) 0%, 
+      transparent 12%, 
+      transparent 88%, 
+      rgba(42,42,42,0.9) 100%);
+    background: -o-linear-gradient(top, 
+      rgba(42,42,42,0.9) 0%, 
+      transparent 12%, 
+      transparent 88%, 
+      rgba(42,42,42,0.9) 100%);
+    background: linear-gradient(to bottom, 
+      rgba(42,42,42,0.9) 0%, 
+      transparent 12%, 
+      transparent 88%, 
+      rgba(42,42,42,0.9) 100%);
   }
 }
 
-// Mobile responsive adjustments
+.ios-ui-select-highlight {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 44px;
+  margin-top: -22px;
+  pointer-events: none;
+}
+
+.ios-ui-select-highlight-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #007aff;
+  opacity: 0.15;
+  border-top: 1px solid #278cea;
+  border-bottom: 1px solid #278cea;
+  
+  body[data-theme="dark"] & {
+    background: #4da6ff;
+    opacity: 0.2;
+    border-color: #4da6ff;
+  }
+}
+
+// Mobile responsive
 @media (max-width: 480px) {
-  .ios-picker-container {
+  .ios-ui-select {
     position: fixed;
     top: auto;
     bottom: 0;
@@ -220,8 +252,8 @@
     }
   }
   
-  .ios-picker {
+  .ios-ui-select-options {
     width: 100%;
-    margin-top: 10px;
+    margin: 10px 0;
   }
 }
