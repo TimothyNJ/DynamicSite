@@ -30,8 +30,8 @@ class wheel_selector_component_engine {
         // iOS picker specific properties
         this.cellHeight = 44;
         this.cellAngle = 360 / 58;
-        this.currentAngle = 0;
-        this.distance = 0;
+        this.radius = 150;
+        this.rotation = 0;
         this.startY = 0;
         this.scroll = null;
         this.selected = null;
@@ -96,35 +96,27 @@ class wheel_selector_component_engine {
         scroll.className = 'ios-picker-scroll';
         this.scroll = scroll;
         
-        // Add empty cells at beginning and end for scrolling
-        for (let i = 0; i < 3; i++) {
-            const emptyCell = document.createElement('div');
-            emptyCell.className = 'ios-picker-cell';
-            scroll.appendChild(emptyCell);
-        }
-        
-        // Add option cells
-        this.config.options.forEach((option, index) => {
+        // Create all cells positioned around cylinder
+        const totalOptions = this.config.options.length;
+        for (let i = 0; i < totalOptions; i++) {
             const cell = document.createElement('div');
             cell.className = 'ios-picker-cell';
-            cell.dataset.index = index;
+            cell.dataset.index = i;
             
+            const option = this.config.options[i];
             const text = typeof option === 'object' ? option.text : option;
             cell.textContent = text;
             
-            if (index === this.selectedIndex) {
+            if (i === this.selectedIndex) {
                 cell.classList.add('selected');
                 this.selected = cell;
             }
             
+            // Position cell on cylinder
+            const angle = i * this.cellAngle;
+            cell.style.transform = `rotateX(${angle}deg) translateZ(${this.radius}px)`;
+            
             scroll.appendChild(cell);
-        });
-        
-        // Add empty cells at end
-        for (let i = 0; i < 3; i++) {
-            const emptyCell = document.createElement('div');
-            emptyCell.className = 'ios-picker-cell';
-            scroll.appendChild(emptyCell);
         }
         
         // Create highlight overlay
@@ -167,10 +159,10 @@ class wheel_selector_component_engine {
             }
         }
         
-        // Initialize scroll position if we have a selection
+        // Initialize rotation if we have a selection
         if (this.selectedIndex >= 0) {
-            this.currentAngle = this.selectedIndex * this.cellAngle;
-            this.scroll.style.transform = `translateY(${-this.selectedIndex * this.cellHeight + 88}px)`;
+            this.rotation = -this.selectedIndex * this.cellAngle;
+            this.updateRotation();
         }
         
         return component;
@@ -199,7 +191,7 @@ class wheel_selector_component_engine {
         const component = this.container.querySelector('.wheel-selector-component');
         const pickerContainer = component.querySelector('.ios-picker-container');
         const buttonContainer = component.querySelector(`#${this.componentId}-button`);
-        const scroll = this.scroll;
+        const picker = component.querySelector('.ios-picker');
         
         // Hover functionality
         if (this.config.showOnHover) {
@@ -243,7 +235,6 @@ class wheel_selector_component_engine {
             
             this.isScrolling = true;
             this.startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-            scroll.style.transition = 'none';
             e.preventDefault();
         };
         
@@ -252,18 +243,11 @@ class wheel_selector_component_engine {
             
             const currentY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
             const deltaY = currentY - this.startY;
-            
-            const currentTransform = scroll.style.transform || 'translateY(88px)';
-            const currentY_transform = parseInt(currentTransform.match(/translateY\((-?\d+)px\)/)[1]);
-            
-            scroll.style.transform = `translateY(${currentY_transform + deltaY}px)`;
             this.startY = currentY;
             
-            // Update current angle based on position
-            this.currentAngle = -(currentY_transform + deltaY - 88) / this.cellHeight * this.cellAngle;
-            
-            // Apply 3D rotation to cells
-            this.updateCellRotations();
+            // Convert pixel movement to rotation
+            this.rotation += deltaY * 0.3; // Adjust sensitivity
+            this.updateRotation();
             
             e.preventDefault();
         };
@@ -272,7 +256,6 @@ class wheel_selector_component_engine {
             if (!this.isScrolling) return;
             
             this.isScrolling = false;
-            scroll.style.transition = 'transform 0.3s ease-out';
             
             // Snap to nearest item
             this.snapToNearest();
@@ -281,17 +264,17 @@ class wheel_selector_component_engine {
         };
         
         // Mouse events
-        scroll.addEventListener('mousedown', handleStart);
+        picker.addEventListener('mousedown', handleStart);
         document.addEventListener('mousemove', handleMove);
         document.addEventListener('mouseup', handleEnd);
         
         // Touch events
-        scroll.addEventListener('touchstart', handleStart, { passive: false });
+        picker.addEventListener('touchstart', handleStart, { passive: false });
         document.addEventListener('touchmove', handleMove, { passive: false });
         document.addEventListener('touchend', handleEnd, { passive: false });
         
         // Click on cells
-        scroll.addEventListener('click', (e) => {
+        picker.addEventListener('click', (e) => {
             if (this.isScrolling) return; // Don't select during scroll
             
             const cell = e.target.closest('.ios-picker-cell');
@@ -338,31 +321,32 @@ class wheel_selector_component_engine {
         });
     }
     
-    updateCellRotations() {
-        const cells = this.scroll.querySelectorAll('.ios-picker-cell');
-        const angle = this.currentAngle;
-        
-        cells.forEach((cell, index) => {
-            const cellAngle = angle - (index - 3) * this.cellAngle;
+    updateRotation() {
+        if (this.scroll) {
+            this.scroll.style.transform = `rotateX(${this.rotation}deg)`;
             
-            // Only apply rotation to cells near the center
-            if (Math.abs(cellAngle) < 90) {
-                cell.style.transform = `rotateX(${cellAngle}deg) translateZ(150px)`;
-                cell.style.opacity = Math.cos(cellAngle * Math.PI / 180);
-            } else {
-                cell.style.transform = 'none';
-                cell.style.opacity = 0;
-            }
-        });
+            // Update cell visibility based on rotation
+            const cells = this.scroll.querySelectorAll('.ios-picker-cell');
+            cells.forEach((cell, index) => {
+                const cellAngle = (index * this.cellAngle + this.rotation) % 360;
+                const normalizedAngle = cellAngle > 180 ? cellAngle - 360 : cellAngle;
+                
+                // Only show cells that are visible (front half of cylinder)
+                if (Math.abs(normalizedAngle) < 90) {
+                    cell.style.opacity = Math.cos(normalizedAngle * Math.PI / 180);
+                    cell.style.visibility = 'visible';
+                } else {
+                    cell.style.opacity = 0;
+                    cell.style.visibility = 'hidden';
+                }
+            });
+        }
     }
     
     snapToNearest() {
-        const currentTransform = this.scroll.style.transform || 'translateY(88px)';
-        const currentY = parseInt(currentTransform.match(/translateY\((-?\d+)px\)/)[1]);
-        
-        // Calculate nearest index
-        const offset = -(currentY - 88);
-        const nearestIndex = Math.round(offset / this.cellHeight);
+        // Calculate nearest index based on rotation
+        const totalRotation = -this.rotation;
+        const nearestIndex = Math.round(totalRotation / this.cellAngle);
         
         // Clamp to valid range
         const clampedIndex = Math.max(0, Math.min(nearestIndex, this.config.options.length - 1));
@@ -373,17 +357,23 @@ class wheel_selector_component_engine {
     animateToIndex(index) {
         if (index < 0 || index >= this.config.options.length) return;
         
-        // Calculate target position
-        const targetY = -index * this.cellHeight + 88;
-        this.scroll.style.transform = `translateY(${targetY}px)`;
+        // Calculate target rotation
+        const targetRotation = -index * this.cellAngle;
         
-        // Update angle
-        this.currentAngle = index * this.cellAngle;
+        // Animate to target
+        this.rotation = targetRotation;
         
-        // Update rotations with animation
-        setTimeout(() => {
-            this.updateCellRotations();
-        }, 10);
+        if (this.scroll) {
+            this.scroll.style.transition = 'transform 0.3s ease-out';
+            this.updateRotation();
+            
+            // Remove transition after animation
+            setTimeout(() => {
+                if (this.scroll) {
+                    this.scroll.style.transition = '';
+                }
+            }, 300);
+        }
         
         // Select the option
         this.selectOption(index);
@@ -407,9 +397,9 @@ class wheel_selector_component_engine {
         component.dataset.open = 'true';
         pickerContainer.style.display = 'block';
         
-        // Initialize rotation
+        // Initialize rotation and show
         setTimeout(() => {
-            this.updateCellRotations();
+            this.updateRotation();
             pickerContainer.classList.add('open');
         }, 10);
         
@@ -489,9 +479,9 @@ class wheel_selector_component_engine {
             if (this.isOpen) {
                 this.animateToIndex(index);
             } else {
-                // Set initial position
-                this.currentAngle = index * this.cellAngle;
-                this.scroll.style.transform = `translateY(${-index * this.cellHeight + 88}px)`;
+                // Set initial rotation
+                this.rotation = -index * this.cellAngle;
+                this.updateRotation();
             }
         }
     }
@@ -500,7 +490,7 @@ class wheel_selector_component_engine {
         this.config.options = newOptions;
         this.selectedIndex = -1;
         this.selectedValue = null;
-        this.currentAngle = 0;
+        this.rotation = 0;
         this.render(this.container);
     }
     
