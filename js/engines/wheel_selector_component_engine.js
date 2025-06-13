@@ -38,6 +38,7 @@ class wheel_selector_component_engine {
         this.ticker = null;
         this.lastY = 0;
         this.lastTime = 0;
+        this.lastDelta = 0; // Track last animation delta
         this.velocityBuffer = []; // Track last N velocities for smoothing
         this.maxVelocityBuffer = 5;
         this.friction = 0.95; // Deceleration factor
@@ -171,12 +172,11 @@ class wheel_selector_component_engine {
             
             // Check if we have enough velocity for momentum
             if (Math.abs(this.velocity) > this.snapThreshold) {
-                // TODO: Start momentum animation
-                console.log('[WheelSelector] Velocity at release:', this.velocity);
+                this.startMomentum();
+            } else {
+                // Low velocity, just snap
+                this.snapToItem();
             }
-            
-            // For now, still snap (will be replaced with momentum)
-            this.snapToItem();
         });
         
         // Mouse events
@@ -230,12 +230,11 @@ class wheel_selector_component_engine {
                 
                 // Check if we have enough velocity for momentum
                 if (Math.abs(this.velocity) > this.snapThreshold) {
-                    // TODO: Start momentum animation
-                    console.log('[WheelSelector] Mouse velocity at release:', this.velocity);
+                    this.startMomentum();
+                } else {
+                    // Low velocity, just snap
+                    this.snapToItem();
                 }
-                
-                // For now, still snap (will be replaced with momentum)
-                this.snapToItem();
             }
         });
         
@@ -281,6 +280,13 @@ class wheel_selector_component_engine {
     }
     
     snapToItem() {
+        // Cancel any ongoing momentum
+        if (this.ticker) {
+            cancelAnimationFrame(this.ticker);
+            this.ticker = null;
+        }
+        this.amplitude = 0;
+        
         const currentTransform = this.getCurrentTransform();
         const index = Math.round(-currentTransform / this.itemHeight);
         
@@ -319,26 +325,71 @@ class wheel_selector_component_engine {
     
     // Start momentum animation based on release velocity
     startMomentum() {
-        // This will be implemented in the next phase
-        // For now, just log that we would start momentum
-        console.log('[WheelSelector] Starting momentum with velocity:', this.velocity);
-        
-        // Set up amplitude based on velocity
-        this.amplitude = this.velocity * 0.8; // Adjust multiplier for feel
+        this.amplitude = this.velocity;
         this.timestamp = Date.now();
+        this.frame = this.getCurrentTransform();
         
-        // TODO: Implement requestAnimationFrame loop
-        // this.ticker = requestAnimationFrame(() => this.autoScroll());
+        // Start the animation loop
+        this.ticker = requestAnimationFrame(() => this.autoScroll());
     }
     
-    // Auto-scroll animation frame (stub for next phase)
+    // Auto-scroll animation frame
     autoScroll() {
-        // TODO: Implement deceleration physics
-        // - Calculate elapsed time
-        // - Apply friction to amplitude
-        // - Update position
-        // - Check for boundaries
-        // - Continue or stop animation
+        if (!this.amplitude) {
+            return;
+        }
+        
+        const elapsed = Date.now() - this.timestamp;
+        const delta = -this.amplitude * Math.exp(-elapsed / 325); // iOS-like deceleration
+        
+        if (Math.abs(delta) > 0.5) {
+            // Continue scrolling
+            const currentTransform = this.getCurrentTransform();
+            const newTransform = currentTransform + delta;
+            
+            // Check boundaries
+            const maxTransform = 0;
+            const minTransform = -(this.config.options.length - 1) * this.itemHeight;
+            
+            if (newTransform > maxTransform || newTransform < minTransform) {
+                // Hit boundary, stop momentum and bounce back
+                this.amplitude = 0;
+                this.bounceBack();
+            } else {
+                // Apply the transform
+                this.scroller.style.transform = `translateY(${newTransform}px)`;
+                
+                // Continue animation
+                this.ticker = requestAnimationFrame(() => this.autoScroll());
+            }
+        } else {
+            // Momentum exhausted, snap to nearest item
+            this.amplitude = 0;
+            this.snapToItem();
+        }
+    }
+    
+    // Bounce back from overscroll
+    bounceBack() {
+        const currentTransform = this.getCurrentTransform();
+        const maxTransform = 0;
+        const minTransform = -(this.config.options.length - 1) * this.itemHeight;
+        
+        let targetTransform = currentTransform;
+        if (currentTransform > maxTransform) {
+            targetTransform = maxTransform;
+        } else if (currentTransform < minTransform) {
+            targetTransform = minTransform;
+        }
+        
+        // Animate bounce back
+        this.scroller.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        this.scroller.style.transform = `translateY(${targetTransform}px)`;
+        
+        setTimeout(() => {
+            this.scroller.style.transition = '';
+            this.snapToItem();
+        }, 300);
     }
     
     setValue(value) {
