@@ -1,42 +1,31 @@
 // wheel_selector_component_engine.js
 // Based on vue-scroll-picker vanilla JS implementation
+// Creates iOS-style wheel picker components with smooth scrolling and 3D effects
 
 class wheel_selector_component_engine {
     constructor(options = {}, changeHandler = null) {
+        // Configuration with defaults
         this.config = {
-            label: options.label || '',
             options: options.options || [],
             defaultValue: options.defaultValue || null,
-            onChange: changeHandler || options.onChange || (() => {}),
             disabled: options.disabled || false,
-            storageKey: options.storageKey || null,
-            ...options
+            label: options.label || 'Select',
+            emptyText: options.emptyText || 'No options available',
+            dragSensitivity: options.dragSensitivity || 1.7,
+            touchSensitivity: options.touchSensitivity || 1.7,
+            wheelSensitivity: options.wheelSensitivity || 1
         };
         
-        this.container = null;
-        this.wrapper = null;
-        this.scroller = null;
-        this.overlay = null;
-        this.indicator = null;
+        // Store change handler
+        this.changeHandler = changeHandler;
         
-        this.value = this.config.defaultValue;
+        // Component properties
         this.itemHeight = 44; // Standard iOS picker height
         this.visibleItems = 5;
         this.currentIndex = 0;
+        this.value = this.config.defaultValue;
         
-        // 3D perspective properties
-        this.perspective = 1000;
-        this.rotationUnit = 0; // Will be calculated based on item count
-        this.radius = 150; // Cylinder radius
-        this.currentRotation = 0; // Track current rotation
-        
-        // Scrolling state
-        this.startY = 0;
-        this.currentY = 0;
-        this.isScrolling = false;
-        this.wheelTimeout = null;
-        
-        // Momentum physics properties
+        // Physics properties for momentum scrolling
         this.velocity = 0;
         this.amplitude = 0;
         this.frame = 0;
@@ -44,48 +33,73 @@ class wheel_selector_component_engine {
         this.ticker = null;
         this.lastY = 0;
         this.lastTime = 0;
-        this.lastDelta = 0; // Track last animation delta
-        this.velocityBuffer = []; // Track last N velocities for smoothing
+        this.velocityBuffer = [];
         this.maxVelocityBuffer = 5;
-        this.friction = 0.95; // Deceleration factor
-        this.snapThreshold = 0.5; // Velocity threshold for snapping
+        this.friction = 0.95;
+        this.snapThreshold = 0.5;
+        
+        // 3D perspective properties
+        this.perspective = 1000;
+        this.rotationUnit = 0;
+        this.radius = 150;
+        this.currentRotation = 0;
+        
+        // Touch/mouse state
+        this.isScrolling = false;
+        this.startY = 0;
+        this.currentY = 0;
+        
+        // Generate unique ID
+        this.id = 'wheel-' + Math.random().toString(36).substr(2, 9);
+        
+        // Initialize styles once per class
+        if (!wheel_selector_component_engine.stylesAdded) {
+            wheel_selector_component_engine.addStyles();
+            wheel_selector_component_engine.stylesAdded = true;
+        }
     }
     
     render(containerId) {
-        const container = typeof containerId === 'string' 
-            ? document.getElementById(containerId) 
-            : containerId;
-            
+        const container = document.getElementById(containerId);
         if (!container) {
-            console.error('[WheelSelector] Container not found:', containerId);
-            return null;
+            console.error(`Container with id "${containerId}" not found`);
+            return;
         }
         
-        this.container = container;
-        this.container.innerHTML = '';
+        // Create component wrapper
+        this.componentWrapper = document.createElement('div');
+        this.componentWrapper.className = 'component-wrapper wheel-selector-wrapper';
         
-        // Load stored value
-        this.loadStoredValue();
+        // Create label if provided
+        if (this.config.label) {
+            const label = document.createElement('label');
+            label.className = 'component-label';
+            label.textContent = this.config.label;
+            label.htmlFor = this.id;
+            this.componentWrapper.appendChild(label);
+        }
         
-        // Create HTML structure
+        // Create the scroll picker structure
         this.wrapper = document.createElement('div');
         this.wrapper.className = 'scroll-picker-wrapper';
+        this.wrapper.id = this.id;
         
         // Add 3D scene container
         this.scene = document.createElement('div');
         this.scene.className = 'scroll-picker-scene';
         
+        // Create scroller
         this.scroller = document.createElement('div');
         this.scroller.className = 'scroll-picker-scroller';
         
         // Calculate rotation unit based on visible items
-        this.rotationUnit = 360 / (this.visibleItems * 4); // Spread items around partial cylinder
+        this.rotationUnit = this.config.options.length > 0 ? 360 / (this.config.options.length * 4) : 30;
         
         // Create option elements with 3D positioning
         this.config.options.forEach((option, index) => {
             const elem = document.createElement('div');
             elem.className = 'scroll-picker-item';
-            elem.textContent = typeof option === 'object' ? option.name || option.text : option;
+            elem.textContent = typeof option === 'object' ? option.name : option;
             elem.dataset.value = typeof option === 'object' ? option.value : option;
             elem.dataset.index = index;
             
@@ -96,15 +110,6 @@ class wheel_selector_component_engine {
             this.scroller.appendChild(elem);
         });
         
-        // Add padding for centering
-        const paddingTop = document.createElement('div');
-        paddingTop.style.height = `${(this.visibleItems - 1) / 2 * this.itemHeight}px`;
-        this.scroller.insertBefore(paddingTop, this.scroller.firstChild);
-        
-        const paddingBottom = document.createElement('div');
-        paddingBottom.style.height = `${(this.visibleItems - 1) / 2 * this.itemHeight}px`;
-        this.scroller.appendChild(paddingBottom);
-        
         // Create overlay gradient
         this.overlay = document.createElement('div');
         this.overlay.className = 'scroll-picker-overlay';
@@ -113,265 +118,230 @@ class wheel_selector_component_engine {
         this.indicator = document.createElement('div');
         this.indicator.className = 'scroll-picker-indicator';
         
-        // Add label if provided
-        if (this.config.label) {
-            const label = document.createElement('label');
-            label.className = 'scroll-picker-label';
-            label.textContent = this.config.label;
-            this.container.appendChild(label);
-        }
-        
         // Assemble structure
         this.scene.appendChild(this.scroller);
         this.wrapper.appendChild(this.scene);
         this.wrapper.appendChild(this.overlay);
         this.wrapper.appendChild(this.indicator);
-        this.container.appendChild(this.wrapper);
+        this.componentWrapper.appendChild(this.wrapper);
         
-        // Add event listeners
+        // Add to container
+        container.appendChild(this.componentWrapper);
+        
+        // Setup event listeners
         this.setupEventListeners();
         
         // Set initial value
         if (this.value !== null) {
             this.setValue(this.value);
-        } else {
-            // Update visuals even if no initial value
-            this.updateItemVisuals();
+        } else if (this.config.options.length > 0) {
+            this.setValue(this.config.options[0]);
         }
         
-        return this.wrapper;
+        // Update visual states
+        this.updateItemVisuals();
     }
     
     setupEventListeners() {
         // Touch events
-        this.scroller.addEventListener('touchstart', (e) => {
-            if (this.config.disabled) return;
-            this.startY = e.touches[0].clientY;
-            this.lastY = this.startY;
-            this.lastTime = Date.now();
-            this.velocityBuffer = [];
-            this.isScrolling = true;
-            
-            // Stop any ongoing momentum animation
-            if (this.ticker) {
-                cancelAnimationFrame(this.ticker);
-                this.ticker = null;
-            }
-        });
-        
-        this.scroller.addEventListener('touchmove', (e) => {
-            if (!this.isScrolling || this.config.disabled) return;
-            e.preventDefault();
-            
-            this.currentY = e.touches[0].clientY;
-            const currentTime = Date.now();
-            const timeDelta = currentTime - this.lastTime;
-            
-            if (timeDelta > 0) {
-                const distance = this.currentY - this.lastY;
-                const velocity = distance / timeDelta * 16; // Increased from 1000 to 16 (frame-based)
-                
-                // Add to velocity buffer for smoothing
-                this.velocityBuffer.push(velocity);
-                if (this.velocityBuffer.length > this.maxVelocityBuffer) {
-                    this.velocityBuffer.shift();
-                }
-                
-                // Calculate average velocity
-                this.velocity = this.velocityBuffer.reduce((a, b) => a + b, 0) / this.velocityBuffer.length;
-            }
-            
-            const diff = this.currentY - this.startY;
-            this.scroll(diff);
-            this.startY = this.currentY;
-            this.lastY = this.currentY;
-            this.lastTime = currentTime;
-        });
-        
-        this.scroller.addEventListener('touchend', () => {
-            if (this.config.disabled) return;
-            this.isScrolling = false;
-            
-            // Check if we have enough velocity for momentum
-            if (Math.abs(this.velocity) > this.snapThreshold) {
-                this.startMomentum();
-            } else {
-                // Low velocity, just snap
-                this.snapToItem();
-            }
-        });
+        this.scroller.addEventListener('touchstart', this.handleTouchStart.bind(this));
+        this.scroller.addEventListener('touchmove', this.handleTouchMove.bind(this));
+        this.scroller.addEventListener('touchend', this.handleTouchEnd.bind(this));
         
         // Mouse events
-        this.scroller.addEventListener('mousedown', (e) => {
-            if (this.config.disabled) return;
-            this.startY = e.clientY;
-            this.lastY = this.startY;
-            this.lastTime = Date.now();
-            this.velocityBuffer = [];
-            this.isScrolling = true;
-            e.preventDefault();
-            
-            // Stop any ongoing momentum animation
-            if (this.ticker) {
-                cancelAnimationFrame(this.ticker);
-                this.ticker = null;
-            }
-        });
-        
-        document.addEventListener('mousemove', (e) => {
-            if (!this.isScrolling || this.config.disabled) return;
-            
-            this.currentY = e.clientY;
-            const currentTime = Date.now();
-            const timeDelta = currentTime - this.lastTime;
-            
-            if (timeDelta > 0) {
-                const distance = this.currentY - this.lastY;
-                const velocity = distance / timeDelta * 16; // Increased from 1000 to 16 (frame-based)
-                
-                // Add to velocity buffer for smoothing
-                this.velocityBuffer.push(velocity);
-                if (this.velocityBuffer.length > this.maxVelocityBuffer) {
-                    this.velocityBuffer.shift();
-                }
-                
-                // Calculate average velocity
-                this.velocity = this.velocityBuffer.reduce((a, b) => a + b, 0) / this.velocityBuffer.length;
-            }
-            
-            const diff = this.currentY - this.startY;
-            this.scroll(diff);
-            this.startY = this.currentY;
-            this.lastY = this.currentY;
-            this.lastTime = currentTime;
-        });
-        
-        document.addEventListener('mouseup', () => {
-            if (this.isScrolling && !this.config.disabled) {
-                this.isScrolling = false;
-                
-                // Check if we have enough velocity for momentum
-                if (Math.abs(this.velocity) > this.snapThreshold) {
-                    this.startMomentum();
-                } else {
-                    // Low velocity, just snap
-                    this.snapToItem();
-                }
-            }
-        });
+        this.scroller.addEventListener('mousedown', this.handleMouseDown.bind(this));
+        document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        document.addEventListener('mouseup', this.handleMouseUp.bind(this));
         
         // Wheel events
-        this.scroller.addEventListener('wheel', (e) => {
-            if (this.config.disabled) return;
-            e.preventDefault();
-            
-            // More sensitive wheel scrolling
-            const delta = -e.deltaY * 0.5; // Reduced multiplier for smoother control
-            this.scroll(delta);
-            
-            // Track velocity for momentum
-            const currentTime = Date.now();
-            if (this.lastTime && currentTime - this.lastTime < 100) {
-                this.velocity = delta * 2; // Simple velocity from wheel
-            }
-            this.lastTime = currentTime;
-            
-            clearTimeout(this.wheelTimeout);
-            this.wheelTimeout = setTimeout(() => {
-                // Only snap if velocity is low
-                if (Math.abs(this.velocity) < 2) {
-                    this.snapToItem();
-                } else {
-                    this.startMomentum();
-                }
-                this.velocity = 0;
-            }, 150);
-        });
+        this.scroller.addEventListener('wheel', this.handleWheel.bind(this));
+        
+        // Click events for item selection
+        this.scroller.addEventListener('click', this.handleClick.bind(this));
+        
+        // Keyboard events
+        this.wrapper.setAttribute('tabindex', '0');
+        this.wrapper.addEventListener('keydown', this.handleKeyDown.bind(this));
     }
     
-    scroll(delta) {
-        const currentTransform = this.getCurrentTransform();
-        const newRotation = currentTransform + (delta / this.itemHeight) * this.rotationUnit;
+    handleTouchStart(e) {
+        if (this.config.disabled) return;
         
-        // Apply rotation to the cylinder
-        this.scroller.style.transform = `translateZ(-${this.radius}px) rotateX(${newRotation}deg)`;
+        this.startY = e.touches[0].clientY;
+        this.lastY = this.startY;
+        this.lastTime = Date.now();
+        this.velocityBuffer = [];
+        this.isScrolling = true;
         
-        // Store rotation for reference
-        this.currentRotation = newRotation;
-        
-        // Update visual states based on current position
-        this.updateItemVisuals();
-    }
-    
-    getCurrentTransform() {
-        // Get current rotation instead of translation
-        if (this.currentRotation !== undefined) {
-            return this.currentRotation;
-        }
-        
-        const transform = window.getComputedStyle(this.scroller).transform;
-        if (transform === 'none') return 0;
-        
-        // Extract rotation from transform matrix
-        // This is a simplified approach - in production would need full matrix decomposition
-        return 0;
-    }
-    
-    snapToItem() {
-        // Cancel any ongoing momentum
+        // Stop any ongoing momentum
         if (this.ticker) {
             cancelAnimationFrame(this.ticker);
             this.ticker = null;
         }
-        this.amplitude = 0;
+    }
+    
+    handleTouchMove(e) {
+        if (!this.isScrolling || this.config.disabled) return;
+        e.preventDefault();
         
-        const currentRotation = this.currentRotation || 0;
+        this.currentY = e.touches[0].clientY;
+        const currentTime = Date.now();
+        const timeDelta = currentTime - this.lastTime;
         
-        // Find nearest item based on rotation
-        const itemAngle = this.rotationUnit;
-        const nearestIndex = Math.round(-currentRotation / itemAngle);
-        
-        this.currentIndex = Math.max(0, Math.min(nearestIndex, this.config.options.length - 1));
-        
-        // Calculate target rotation
-        const targetRotation = -this.currentIndex * itemAngle;
-        
-        // Animate to target
-        this.scroller.style.transition = 'transform 0.3s ease';
-        this.scroller.style.transform = `translateZ(-${this.radius}px) rotateX(${targetRotation}deg)`;
-        this.currentRotation = targetRotation;
-        
-        // Update value and trigger callback
-        const selectedOption = this.config.options[this.currentIndex];
-        this.value = typeof selectedOption === 'object' ? selectedOption.value : selectedOption;
-        this.config.onChange(this.value);
-        
-        // Save to storage
-        if (this.config.storageKey) {
-            localStorage.setItem(this.config.storageKey, JSON.stringify(this.value));
+        if (timeDelta > 0) {
+            const distance = this.currentY - this.lastY;
+            const velocity = (distance / timeDelta) * 1000 * this.config.touchSensitivity;
+            
+            this.velocityBuffer.push(velocity);
+            if (this.velocityBuffer.length > this.maxVelocityBuffer) {
+                this.velocityBuffer.shift();
+            }
+            
+            this.velocity = this.velocityBuffer.reduce((a, b) => a + b, 0) / this.velocityBuffer.length;
         }
         
-        // Update visual state
-        this.updateItemStates();
-        this.updateItemVisuals();
+        const diff = (this.currentY - this.startY) * this.config.touchSensitivity;
+        this.scroll(diff);
         
-        setTimeout(() => {
-            this.scroller.style.transition = '';
-        }, 300);
+        this.lastY = this.currentY;
+        this.lastTime = currentTime;
+        this.startY = this.currentY;
     }
     
-    updateItemStates() {
-        const items = this.scroller.querySelectorAll('.scroll-picker-item');
-        items.forEach((item, index) => {
-            if (index === this.currentIndex) {
-                item.classList.add('selected');
-            } else {
-                item.classList.remove('selected');
+    handleTouchEnd() {
+        if (!this.isScrolling || this.config.disabled) return;
+        this.isScrolling = false;
+        
+        if (Math.abs(this.velocity) > this.snapThreshold) {
+            this.startMomentum();
+        } else {
+            this.snapToItem();
+        }
+    }
+    
+    handleMouseDown(e) {
+        if (this.config.disabled) return;
+        
+        this.startY = e.clientY;
+        this.lastY = this.startY;
+        this.lastTime = Date.now();
+        this.velocityBuffer = [];
+        this.isScrolling = true;
+        e.preventDefault();
+        
+        if (this.ticker) {
+            cancelAnimationFrame(this.ticker);
+            this.ticker = null;
+        }
+    }
+    
+    handleMouseMove(e) {
+        if (!this.isScrolling || this.config.disabled) return;
+        
+        this.currentY = e.clientY;
+        const currentTime = Date.now();
+        const timeDelta = currentTime - this.lastTime;
+        
+        if (timeDelta > 0) {
+            const distance = this.currentY - this.lastY;
+            const velocity = (distance / timeDelta) * 1000 * this.config.dragSensitivity;
+            
+            this.velocityBuffer.push(velocity);
+            if (this.velocityBuffer.length > this.maxVelocityBuffer) {
+                this.velocityBuffer.shift();
             }
-        });
+            
+            this.velocity = this.velocityBuffer.reduce((a, b) => a + b, 0) / this.velocityBuffer.length;
+        }
+        
+        const diff = (this.currentY - this.startY) * this.config.dragSensitivity;
+        this.scroll(diff);
+        
+        this.lastY = this.currentY;
+        this.lastTime = currentTime;
+        this.startY = this.currentY;
     }
     
-    // Update visual properties of items based on their position
+    handleMouseUp() {
+        if (!this.isScrolling || this.config.disabled) return;
+        this.isScrolling = false;
+        
+        if (Math.abs(this.velocity) > this.snapThreshold) {
+            this.startMomentum();
+        } else {
+            this.snapToItem();
+        }
+    }
+    
+    handleWheel(e) {
+        if (this.config.disabled) return;
+        e.preventDefault();
+        
+        const delta = -e.deltaY * this.config.wheelSensitivity * 0.5;
+        this.scroll(delta);
+        
+        const currentTime = Date.now();
+        if (this.lastTime && currentTime - this.lastTime < 100) {
+            this.velocity = delta * 2;
+        }
+        this.lastTime = currentTime;
+        
+        clearTimeout(this.wheelTimeout);
+        this.wheelTimeout = setTimeout(() => {
+            if (Math.abs(this.velocity) < 2) {
+                this.snapToItem();
+            } else {
+                this.startMomentum();
+            }
+            this.velocity = 0;
+        }, 150);
+    }
+    
+    handleClick(e) {
+        if (this.config.disabled) return;
+        
+        const item = e.target.closest('.scroll-picker-item');
+        if (item) {
+            const index = parseInt(item.dataset.index);
+            this.animateToIndex(index);
+        }
+    }
+    
+    handleKeyDown(e) {
+        if (this.config.disabled) return;
+        
+        switch (e.key) {
+            case 'ArrowUp':
+                e.preventDefault();
+                this.selectPrevious();
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                this.selectNext();
+                break;
+            case 'Home':
+                e.preventDefault();
+                this.animateToIndex(0);
+                break;
+            case 'End':
+                e.preventDefault();
+                this.animateToIndex(this.config.options.length - 1);
+                break;
+        }
+    }
+    
+    scroll(delta) {
+        const currentRotation = this.currentRotation || 0;
+        const newRotation = currentRotation + (delta / this.itemHeight) * this.rotationUnit;
+        
+        // Apply rotation to the cylinder
+        this.scroller.style.transform = `translateZ(-${this.radius}px) rotateX(${newRotation}deg)`;
+        this.currentRotation = newRotation;
+        
+        // Update visual states
+        this.updateItemVisuals();
+    }
+    
     updateItemVisuals() {
         const items = this.scroller.querySelectorAll('.scroll-picker-item');
         const currentRotation = this.currentRotation || 0;
@@ -388,98 +358,172 @@ class wheel_selector_component_engine {
             // Items in front (near 0 degrees) are visible
             const absRotation = Math.abs(normalizedRotation);
             
-            // Calculate opacity based on rotation (visible in front, hidden in back)
+            // Calculate opacity based on rotation
             let opacity = 1;
             if (absRotation > 90) {
                 opacity = Math.max(0, 1 - ((absRotation - 90) / 90));
+            } else {
+                opacity = Math.max(0.3, 1 - (absRotation / 90) * 0.7);
             }
             
-            // Apply opacity
+            // Calculate scale
+            const scale = Math.max(0.85, 1 - (absRotation / 90) * 0.15);
+            
+            // Apply visual properties
             item.style.opacity = opacity;
             
-            // Highlight item closest to front
+            // Update selection state
             if (absRotation < this.rotationUnit / 2) {
+                item.classList.add('selected');
                 item.style.color = '#007AFF';
                 item.style.fontWeight = '500';
             } else {
+                item.classList.remove('selected');
                 item.style.color = '';
                 item.style.fontWeight = '';
             }
         });
     }
     
-    // Start momentum animation based on release velocity
     startMomentum() {
-        // Amplify the velocity for more dramatic momentum
-        this.amplitude = this.velocity * 2.5; // Increased from 1x to 2.5x
+        this.amplitude = this.velocity;
         this.timestamp = Date.now();
-        this.frame = this.getCurrentTransform();
+        this.frame = this.currentRotation;
         
-        // Start the animation loop
         this.ticker = requestAnimationFrame(() => this.autoScroll());
     }
     
-    // Auto-scroll animation frame
     autoScroll() {
         if (!this.amplitude) {
             return;
         }
         
         const elapsed = Date.now() - this.timestamp;
-        // Increased time constant from 325 to 500 for longer momentum
-        const delta = this.amplitude * Math.exp(-elapsed / 500);
+        const delta = -this.amplitude * Math.exp(-elapsed / 325);
         
         if (Math.abs(delta) > 0.5) {
-            // Apply delta directly as it already includes direction
-            const currentTransform = this.getCurrentTransform();
-            const newTransform = currentTransform + (delta * 0.016); // ~60fps frame time
+            const newRotation = this.currentRotation + (delta / this.itemHeight) * this.rotationUnit;
             
             // Check boundaries
-            const maxTransform = 50; // Allow overscroll
-            const minTransform = -(this.config.options.length - 1) * this.itemHeight - 50;
+            const maxRotation = this.rotationUnit * 2;
+            const minRotation = -(this.config.options.length - 1) * this.rotationUnit - this.rotationUnit * 2;
             
-            if (newTransform > maxTransform || newTransform < minTransform) {
-                // Hit boundary, stop momentum and bounce back
+            if (newRotation > maxRotation || newRotation < minRotation) {
                 this.amplitude = 0;
                 this.bounceBack();
             } else {
-                // Apply the transform
-                this.scroller.style.transform = `translateY(${newTransform}px)`;
-                
-                // Update visual states
+                this.scroller.style.transform = `translateZ(-${this.radius}px) rotateX(${newRotation}deg)`;
+                this.currentRotation = newRotation;
                 this.updateItemVisuals();
-                
-                // Continue animation
                 this.ticker = requestAnimationFrame(() => this.autoScroll());
             }
         } else {
-            // Momentum exhausted, snap to nearest item
             this.amplitude = 0;
             this.snapToItem();
         }
     }
     
-    // Bounce back from overscroll
     bounceBack() {
-        const currentTransform = this.getCurrentTransform();
-        const maxTransform = 0;
-        const minTransform = -(this.config.options.length - 1) * this.itemHeight;
+        const maxRotation = 0;
+        const minRotation = -(this.config.options.length - 1) * this.rotationUnit;
         
-        let targetTransform = currentTransform;
-        if (currentTransform > maxTransform) {
-            targetTransform = maxTransform;
-        } else if (currentTransform < minTransform) {
-            targetTransform = minTransform;
+        let targetRotation = this.currentRotation;
+        if (this.currentRotation > maxRotation) {
+            targetRotation = maxRotation;
+        } else if (this.currentRotation < minRotation) {
+            targetRotation = minRotation;
         }
         
-        // Animate bounce back
         this.scroller.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        this.scroller.style.transform = `translateY(${targetTransform}px)`;
+        this.scroller.style.transform = `translateZ(-${this.radius}px) rotateX(${targetRotation}deg)`;
+        this.currentRotation = targetRotation;
         
         setTimeout(() => {
             this.scroller.style.transition = '';
             this.snapToItem();
         }, 300);
+    }
+    
+    snapToItem() {
+        if (this.ticker) {
+            cancelAnimationFrame(this.ticker);
+            this.ticker = null;
+        }
+        this.amplitude = 0;
+        
+        const currentRotation = this.currentRotation || 0;
+        const itemAngle = this.rotationUnit;
+        const nearestIndex = Math.round(-currentRotation / itemAngle);
+        
+        this.currentIndex = Math.max(0, Math.min(nearestIndex, this.config.options.length - 1));
+        
+        const targetRotation = -this.currentIndex * itemAngle;
+        
+        this.scroller.style.transition = 'transform 0.3s ease';
+        this.scroller.style.transform = `translateZ(-${this.radius}px) rotateX(${targetRotation}deg)`;
+        this.currentRotation = targetRotation;
+        
+        // Update value and trigger callback
+        const selectedOption = this.config.options[this.currentIndex];
+        this.value = typeof selectedOption === 'object' ? selectedOption.value : selectedOption;
+        
+        if (this.changeHandler) {
+            this.changeHandler(this.value);
+        }
+        
+        // Store in localStorage
+        const storageKey = `wheel_${this.id}_value`;
+        localStorage.setItem(storageKey, JSON.stringify(this.value));
+        
+        this.updateItemVisuals();
+        
+        setTimeout(() => {
+            this.scroller.style.transition = '';
+        }, 300);
+    }
+    
+    animateToIndex(index) {
+        this.currentIndex = Math.max(0, Math.min(index, this.config.options.length - 1));
+        const targetRotation = -this.currentIndex * this.rotationUnit;
+        
+        this.scroller.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        this.scroller.style.transform = `translateZ(-${this.radius}px) rotateX(${targetRotation}deg)`;
+        this.currentRotation = targetRotation;
+        
+        // Update value
+        const selectedOption = this.config.options[this.currentIndex];
+        this.value = typeof selectedOption === 'object' ? selectedOption.value : selectedOption;
+        
+        if (this.changeHandler) {
+            this.changeHandler(this.value);
+        }
+        
+        // Store in localStorage
+        const storageKey = `wheel_${this.id}_value`;
+        localStorage.setItem(storageKey, JSON.stringify(this.value));
+        
+        this.updateItemVisuals();
+        
+        setTimeout(() => {
+            this.scroller.style.transition = '';
+        }, 500);
+    }
+    
+    selectNext() {
+        if (this.currentIndex < this.config.options.length - 1) {
+            this.animateToIndex(this.currentIndex + 1);
+        }
+    }
+    
+    selectPrevious() {
+        if (this.currentIndex > 0) {
+            this.animateToIndex(this.currentIndex - 1);
+        }
+    }
+    
+    // Public API methods
+    getValue() {
+        return this.value;
     }
     
     setValue(value) {
@@ -488,183 +532,162 @@ class wheel_selector_component_engine {
         });
         
         if (index !== -1) {
-            this.currentIndex = index;
-            this.scroller.style.transform = `translateY(${-index * this.itemHeight}px)`;
-            this.updateItemStates();
-            this.updateItemVisuals(); // Update visual states
-        }
-    }
-    
-    getValue() {
-        return this.value;
-    }
-    
-    loadStoredValue() {
-        if (this.config.storageKey) {
-            try {
-                const stored = localStorage.getItem(this.config.storageKey);
-                if (stored) {
-                    this.value = JSON.parse(stored);
-                }
-            } catch (e) {
-                console.error('[WheelSelector] Error loading stored value:', e);
-            }
+            this.animateToIndex(index);
         }
     }
     
     disable() {
         this.config.disabled = true;
-        if (this.wrapper) {
-            this.wrapper.classList.add('disabled');
-        }
+        this.wrapper.classList.add('disabled');
     }
     
     enable() {
         this.config.disabled = false;
-        if (this.wrapper) {
-            this.wrapper.classList.remove('disabled');
-        }
+        this.wrapper.classList.remove('disabled');
     }
     
     setOptions(newOptions) {
         this.config.options = newOptions;
+        
+        // Clear existing items
+        this.scroller.innerHTML = '';
+        
+        // Recreate items with 3D positioning
+        this.rotationUnit = newOptions.length > 0 ? 360 / (newOptions.length * 4) : 30;
+        
+        newOptions.forEach((option, index) => {
+            const elem = document.createElement('div');
+            elem.className = 'scroll-picker-item';
+            elem.textContent = typeof option === 'object' ? option.name : option;
+            elem.dataset.value = typeof option === 'object' ? option.value : option;
+            elem.dataset.index = index;
+            
+            const rotateX = index * this.rotationUnit;
+            elem.style.transform = `rotateX(${rotateX}deg) translateZ(${this.radius}px)`;
+            
+            this.scroller.appendChild(elem);
+        });
+        
+        // Reset to first item
         this.currentIndex = 0;
-        this.value = null;
-        this.render(this.container);
+        this.currentRotation = 0;
+        this.scroller.style.transform = `translateZ(-${this.radius}px) rotateX(0deg)`;
+        
+        if (newOptions.length > 0) {
+            this.setValue(newOptions[0]);
+        }
     }
     
-    // Add styles method for consistency with other engines
     static addStyles() {
-        const styleId = 'wheel-selector-styles';
-        if (!document.getElementById(styleId)) {
-            const style = document.createElement('style');
-            style.id = styleId;
-            style.textContent = `
-                .scroll-picker-wrapper {
-                    position: relative;
-                    height: 220px;
-                    overflow: hidden;
-                    background: #fff;
-                    user-select: none;
-                    border-radius: 10px;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                    perspective: 1000px;
-                }
-                
-                .scroll-picker-wrapper.disabled {
-                    opacity: 0.5;
-                    pointer-events: none;
-                }
-                
-                .scroll-picker-scene {
-                    width: 100%;
-                    height: 100%;
-                    position: relative;
-                    transform-style: preserve-3d;
-                }
-                
-                .scroll-picker-scroller {
-                    position: relative;
-                    width: 100%;
-                    height: 100%;
-                    transform-style: preserve-3d;
-                    transform: translateZ(-150px) rotateX(0deg);
-                    transition: none;
-                }
-                
-                .scroll-picker-item {
-                    position: absolute;
-                    width: 100%;
-                    height: 44px;
-                    line-height: 44px;
-                    text-align: center;
-                    color: #999;
-                    font-size: 16px;
-                    cursor: pointer;
-                    backface-visibility: hidden;
-                    top: 50%;
-                    margin-top: -22px;
-                }
-                
-                .scroll-picker-item.selected {
-                    color: #007AFF;
-                    font-weight: 500;
-                }
-                
-                .scroll-picker-overlay {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    pointer-events: none;
-                    background: linear-gradient(
-                        to bottom,
-                        rgba(255, 255, 255, 0.9) 0%,
-                        rgba(255, 255, 255, 0) 35%,
-                        rgba(255, 255, 255, 0) 65%,
-                        rgba(255, 255, 255, 0.9) 100%
-                    );
-                }
-                
-                /* Dark theme support */
-                .dark-mode .scroll-picker-overlay {
-                    background: linear-gradient(
-                        to bottom,
-                        rgba(0, 0, 0, 0.9) 0%,
-                        rgba(0, 0, 0, 0) 35%,
-                        rgba(0, 0, 0, 0) 65%,
-                        rgba(0, 0, 0, 0.9) 100%
-                    );
-                }
-                
-                .dark-mode .scroll-picker-wrapper {
-                    background: #1a1a1a;
-                }
-                
-                .dark-mode .scroll-picker-item {
-                    color: #666;
-                }
-                
-                .dark-mode .scroll-picker-item.selected {
-                    color: #007AFF;
-                }
-                
-                .scroll-picker-indicator {
-                    position: absolute;
-                    top: 50%;
-                    left: 0;
-                    right: 0;
-                    height: 44px;
-                    transform: translateY(-50%);
-                    pointer-events: none;
-                    border-top: 1px solid #ccc;
-                    border-bottom: 1px solid #ccc;
-                }
-                
-                .dark-mode .scroll-picker-indicator {
-                    border-color: #444;
-                }
-                
-                .scroll-picker-label {
-                    display: block;
-                    margin-bottom: 8px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: #333;
-                }
-                
-                .dark-mode .scroll-picker-label {
-                    color: #ccc;
-                }
-            `;
-            document.head.appendChild(style);
-        }
+        const style = document.createElement('style');
+        style.textContent = `
+            .wheel-selector-wrapper {
+                margin-bottom: var(--input-margin-bottom);
+            }
+            
+            .scroll-picker-wrapper {
+                position: relative;
+                height: 220px;
+                overflow: hidden;
+                background: var(--input-background);
+                user-select: none;
+                border: 1px solid var(--border-color);
+                border-radius: var(--input-border-radius);
+                perspective: 1000px;
+            }
+            
+            .scroll-picker-wrapper:focus {
+                outline: none;
+                border-color: var(--primary-color);
+            }
+            
+            .scroll-picker-wrapper.disabled {
+                opacity: 0.6;
+                pointer-events: none;
+            }
+            
+            .scroll-picker-scene {
+                width: 100%;
+                height: 100%;
+                position: relative;
+                transform-style: preserve-3d;
+            }
+            
+            .scroll-picker-scroller {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                transform-style: preserve-3d;
+                transform: translateZ(-150px) rotateX(0deg);
+            }
+            
+            .scroll-picker-item {
+                position: absolute;
+                width: 100%;
+                height: 44px;
+                line-height: 44px;
+                text-align: center;
+                font-size: 16px;
+                cursor: pointer;
+                backface-visibility: hidden;
+                top: 50%;
+                margin-top: -22px;
+                color: var(--text-color);
+                transition: color 0.2s ease, opacity 0.1s ease;
+            }
+            
+            .scroll-picker-item.selected {
+                color: #007AFF;
+                font-weight: 500;
+            }
+            
+            .scroll-picker-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                pointer-events: none;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(255, 255, 255, 0.9) 0%,
+                    rgba(255, 255, 255, 0.4) 35%,
+                    rgba(255, 255, 255, 0.4) 65%,
+                    rgba(255, 255, 255, 0.9) 100%
+                );
+            }
+            
+            .dark-theme .scroll-picker-overlay {
+                background: linear-gradient(
+                    to bottom,
+                    rgba(30, 30, 30, 0.9) 0%,
+                    rgba(30, 30, 30, 0.4) 35%,
+                    rgba(30, 30, 30, 0.4) 65%,
+                    rgba(30, 30, 30, 0.9) 100%
+                );
+            }
+            
+            .scroll-picker-indicator {
+                position: absolute;
+                top: 50%;
+                left: 10px;
+                right: 10px;
+                height: 44px;
+                transform: translateY(-50%);
+                pointer-events: none;
+                border-top: 1px solid rgba(0, 0, 0, 0.1);
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            }
+            
+            .dark-theme .scroll-picker-indicator {
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+        `;
+        document.head.appendChild(style);
     }
 }
 
-// Auto-add styles when the class is loaded
-wheel_selector_component_engine.addStyles();
-
-// Export the class directly
-export { wheel_selector_component_engine };
+// Export for use
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = wheel_selector_component_engine;
+}
