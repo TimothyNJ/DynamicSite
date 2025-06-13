@@ -1,5 +1,6 @@
 // Wheel Selector Component
 // iOS-style scroll picker with complete functionality
+// Theme-aware implementation
 
 .vue-scroll-picker {
     position: relative;
@@ -7,6 +8,10 @@
     height: 10em;
     overflow: hidden;
     user-select: none;
+    background: var(--component-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5em;
 }
 
 .vue-scroll-picker-rotator {
@@ -23,21 +28,26 @@
 .vue-scroll-picker-item {
     text-align: center;
     line-height: 1.2em;
-    color: #333;
+    color: var(--text-color);
+    font-size: 1em;
+    padding: 0.2em 0;
 }
 
 .vue-scroll-picker-item[aria-selected='true'] {
-    color: #007bff;
+    color: var(--active-button-start);
+    font-weight: 600;
 }
 
 .vue-scroll-picker-item[data-value=''],
 .vue-scroll-picker-item[aria-disabled='true'] {
-    color: #ccc;
+    color: var(--text-color-muted);
+    opacity: 0.5;
 }
 
 .vue-scroll-picker-item[data-value=''][aria-selected='true'],
 .vue-scroll-picker-item[aria-disabled='true'][aria-selected='true'] {
-    color: #aaa;
+    color: var(--text-color-muted);
+    opacity: 0.7;
 }
 
 .vue-scroll-picker-layer {
@@ -46,6 +56,7 @@
     right: 0;
     top: 0;
     bottom: 0;
+    pointer-events: none;
 }
 
 .vue-scroll-picker-layer-top,
@@ -58,22 +69,78 @@
 
 .vue-scroll-picker-layer-top {
     box-sizing: border-box;
-    border-bottom: 1px solid #c8c7cc;
-    background: linear-gradient(180deg, #fff 10%, rgba(255, 255, 255, 0.7));
     top: 0;
     height: calc(50% - 1em);
+    pointer-events: auto;
     cursor: pointer;
 }
 
 .vue-scroll-picker-layer-selection {
     top: calc(50% - 1em);
-    bottom: calc(50% - 1em);
+    height: 2em;
+    border-top: 1px solid var(--active-button-start);
+    border-bottom: 1px solid var(--active-button-start);
+    pointer-events: none;
 }
 
 .vue-scroll-picker-layer-bottom {
-    border-top: 1px solid #c8c7cc;
-    background: linear-gradient(0deg, #fff 10%, rgba(255, 255, 255, 0.7));
     bottom: 0;
     height: calc(50% - 1em);
+    pointer-events: auto;
     cursor: pointer;
+}
+
+// Theme-aware gradient overlays
+[data-theme="dark"] {
+    .vue-scroll-picker-layer-top {
+        background: linear-gradient(180deg, 
+            rgba(30, 30, 30, 0.95) 0%, 
+            rgba(30, 30, 30, 0.8) 30%,
+            rgba(30, 30, 30, 0.4) 70%,
+            rgba(30, 30, 30, 0) 100%
+        );
+    }
+    
+    .vue-scroll-picker-layer-bottom {
+        background: linear-gradient(0deg, 
+            rgba(30, 30, 30, 0.95) 0%, 
+            rgba(30, 30, 30, 0.8) 30%,
+            rgba(30, 30, 30, 0.4) 70%,
+            rgba(30, 30, 30, 0) 100%
+        );
+    }
+}
+
+[data-theme="light"] {
+    .vue-scroll-picker-layer-top {
+        background: linear-gradient(180deg, 
+            rgba(255, 255, 255, 0.95) 0%, 
+            rgba(255, 255, 255, 0.8) 30%,
+            rgba(255, 255, 255, 0.4) 70%,
+            rgba(255, 255, 255, 0) 100%
+        );
+    }
+    
+    .vue-scroll-picker-layer-bottom {
+        background: linear-gradient(0deg, 
+            rgba(255, 255, 255, 0.95) 0%, 
+            rgba(255, 255, 255, 0.8) 30%,
+            rgba(255, 255, 255, 0.4) 70%,
+            rgba(255, 255, 255, 0) 100%
+        );
+    }
+}
+
+// Add some styling to make it more visible
+.vue-scroll-picker-layer-selection {
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: var(--active-button-start);
+        opacity: 0.05;
+    }
 }
