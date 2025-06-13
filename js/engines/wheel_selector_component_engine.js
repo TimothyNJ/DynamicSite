@@ -147,7 +147,7 @@ class wheel_selector_component_engine {
             
             if (timeDelta > 0) {
                 const distance = this.currentY - this.lastY;
-                const velocity = distance / timeDelta * 1000; // pixels per second
+                const velocity = distance / timeDelta * 16; // Increased from 1000 to 16 (frame-based)
                 
                 // Add to velocity buffer for smoothing
                 this.velocityBuffer.push(velocity);
@@ -205,7 +205,7 @@ class wheel_selector_component_engine {
             
             if (timeDelta > 0) {
                 const distance = this.currentY - this.lastY;
-                const velocity = distance / timeDelta * 1000; // pixels per second
+                const velocity = distance / timeDelta * 16; // Increased from 1000 to 16 (frame-based)
                 
                 // Add to velocity buffer for smoothing
                 this.velocityBuffer.push(velocity);
@@ -325,7 +325,8 @@ class wheel_selector_component_engine {
     
     // Start momentum animation based on release velocity
     startMomentum() {
-        this.amplitude = this.velocity;
+        // Amplify the velocity for more dramatic momentum
+        this.amplitude = this.velocity * 2.5; // Increased from 1x to 2.5x
         this.timestamp = Date.now();
         this.frame = this.getCurrentTransform();
         
@@ -340,16 +341,17 @@ class wheel_selector_component_engine {
         }
         
         const elapsed = Date.now() - this.timestamp;
-        const delta = -this.amplitude * Math.exp(-elapsed / 325); // iOS-like deceleration
+        // Increased time constant from 325 to 500 for longer momentum
+        const delta = this.amplitude * Math.exp(-elapsed / 500);
         
         if (Math.abs(delta) > 0.5) {
-            // Continue scrolling
+            // Apply delta directly as it already includes direction
             const currentTransform = this.getCurrentTransform();
-            const newTransform = currentTransform + delta;
+            const newTransform = currentTransform + (delta * 0.016); // ~60fps frame time
             
             // Check boundaries
-            const maxTransform = 0;
-            const minTransform = -(this.config.options.length - 1) * this.itemHeight;
+            const maxTransform = 50; // Allow overscroll
+            const minTransform = -(this.config.options.length - 1) * this.itemHeight - 50;
             
             if (newTransform > maxTransform || newTransform < minTransform) {
                 // Hit boundary, stop momentum and bounce back
