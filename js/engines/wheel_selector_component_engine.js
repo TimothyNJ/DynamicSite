@@ -29,6 +29,19 @@ class wheel_selector_component_engine {
         this.currentY = 0;
         this.isScrolling = false;
         this.wheelTimeout = null;
+        
+        // Momentum physics properties
+        this.velocity = 0;
+        this.amplitude = 0;
+        this.frame = 0;
+        this.timestamp = 0;
+        this.ticker = null;
+        this.lastY = 0;
+        this.lastTime = 0;
+        this.velocityBuffer = []; // Track last N velocities for smoothing
+        this.maxVelocityBuffer = 5;
+        this.friction = 0.95; // Deceleration factor
+        this.snapThreshold = 0.5; // Velocity threshold for snapping
     }
     
     render(containerId) {
@@ -111,7 +124,16 @@ class wheel_selector_component_engine {
         this.scroller.addEventListener('touchstart', (e) => {
             if (this.config.disabled) return;
             this.startY = e.touches[0].clientY;
+            this.lastY = this.startY;
+            this.lastTime = Date.now();
+            this.velocityBuffer = [];
             this.isScrolling = true;
+            
+            // Stop any ongoing momentum animation
+            if (this.ticker) {
+                cancelAnimationFrame(this.ticker);
+                this.ticker = null;
+            }
         });
         
         this.scroller.addEventListener('touchmove', (e) => {
@@ -119,14 +141,41 @@ class wheel_selector_component_engine {
             e.preventDefault();
             
             this.currentY = e.touches[0].clientY;
+            const currentTime = Date.now();
+            const timeDelta = currentTime - this.lastTime;
+            
+            if (timeDelta > 0) {
+                const distance = this.currentY - this.lastY;
+                const velocity = distance / timeDelta * 1000; // pixels per second
+                
+                // Add to velocity buffer for smoothing
+                this.velocityBuffer.push(velocity);
+                if (this.velocityBuffer.length > this.maxVelocityBuffer) {
+                    this.velocityBuffer.shift();
+                }
+                
+                // Calculate average velocity
+                this.velocity = this.velocityBuffer.reduce((a, b) => a + b, 0) / this.velocityBuffer.length;
+            }
+            
             const diff = this.currentY - this.startY;
             this.scroll(diff);
             this.startY = this.currentY;
+            this.lastY = this.currentY;
+            this.lastTime = currentTime;
         });
         
         this.scroller.addEventListener('touchend', () => {
             if (this.config.disabled) return;
             this.isScrolling = false;
+            
+            // Check if we have enough velocity for momentum
+            if (Math.abs(this.velocity) > this.snapThreshold) {
+                // TODO: Start momentum animation
+                console.log('[WheelSelector] Velocity at release:', this.velocity);
+            }
+            
+            // For now, still snap (will be replaced with momentum)
             this.snapToItem();
         });
         
@@ -134,22 +183,58 @@ class wheel_selector_component_engine {
         this.scroller.addEventListener('mousedown', (e) => {
             if (this.config.disabled) return;
             this.startY = e.clientY;
+            this.lastY = this.startY;
+            this.lastTime = Date.now();
+            this.velocityBuffer = [];
             this.isScrolling = true;
             e.preventDefault();
+            
+            // Stop any ongoing momentum animation
+            if (this.ticker) {
+                cancelAnimationFrame(this.ticker);
+                this.ticker = null;
+            }
         });
         
         document.addEventListener('mousemove', (e) => {
             if (!this.isScrolling || this.config.disabled) return;
             
             this.currentY = e.clientY;
+            const currentTime = Date.now();
+            const timeDelta = currentTime - this.lastTime;
+            
+            if (timeDelta > 0) {
+                const distance = this.currentY - this.lastY;
+                const velocity = distance / timeDelta * 1000; // pixels per second
+                
+                // Add to velocity buffer for smoothing
+                this.velocityBuffer.push(velocity);
+                if (this.velocityBuffer.length > this.maxVelocityBuffer) {
+                    this.velocityBuffer.shift();
+                }
+                
+                // Calculate average velocity
+                this.velocity = this.velocityBuffer.reduce((a, b) => a + b, 0) / this.velocityBuffer.length;
+            }
+            
             const diff = this.currentY - this.startY;
             this.scroll(diff);
             this.startY = this.currentY;
+            this.lastY = this.currentY;
+            this.lastTime = currentTime;
         });
         
         document.addEventListener('mouseup', () => {
             if (this.isScrolling && !this.config.disabled) {
                 this.isScrolling = false;
+                
+                // Check if we have enough velocity for momentum
+                if (Math.abs(this.velocity) > this.snapThreshold) {
+                    // TODO: Start momentum animation
+                    console.log('[WheelSelector] Mouse velocity at release:', this.velocity);
+                }
+                
+                // For now, still snap (will be replaced with momentum)
                 this.snapToItem();
             }
         });
@@ -170,14 +255,18 @@ class wheel_selector_component_engine {
         const currentTransform = this.getCurrentTransform();
         const newTransform = currentTransform + delta;
         
-        // Apply boundaries
-        const maxTransform = 0;
-        const minTransform = -(this.config.options.length - 1) * this.itemHeight;
+        // Apply boundaries with slight overscroll
+        const maxTransform = 50; // Allow 50px overscroll at top
+        const minTransform = -(this.config.options.length - 1) * this.itemHeight - 50; // Allow 50px overscroll at bottom
         
         if (newTransform > maxTransform) {
-            this.scroller.style.transform = `translateY(${maxTransform}px)`;
+            // Apply resistance at boundary
+            const excess = newTransform - maxTransform;
+            this.scroller.style.transform = `translateY(${maxTransform + excess * 0.3}px)`;
         } else if (newTransform < minTransform) {
-            this.scroller.style.transform = `translateY(${minTransform}px)`;
+            // Apply resistance at boundary
+            const excess = newTransform - minTransform;
+            this.scroller.style.transform = `translateY(${minTransform + excess * 0.3}px)`;
         } else {
             this.scroller.style.transform = `translateY(${newTransform}px)`;
         }
@@ -226,6 +315,30 @@ class wheel_selector_component_engine {
                 item.classList.remove('selected');
             }
         });
+    }
+    
+    // Start momentum animation based on release velocity
+    startMomentum() {
+        // This will be implemented in the next phase
+        // For now, just log that we would start momentum
+        console.log('[WheelSelector] Starting momentum with velocity:', this.velocity);
+        
+        // Set up amplitude based on velocity
+        this.amplitude = this.velocity * 0.8; // Adjust multiplier for feel
+        this.timestamp = Date.now();
+        
+        // TODO: Implement requestAnimationFrame loop
+        // this.ticker = requestAnimationFrame(() => this.autoScroll());
+    }
+    
+    // Auto-scroll animation frame (stub for next phase)
+    autoScroll() {
+        // TODO: Implement deceleration physics
+        // - Calculate elapsed time
+        // - Apply friction to amplitude
+        // - Update position
+        // - Check for boundaries
+        // - Continue or stop animation
     }
     
     setValue(value) {
