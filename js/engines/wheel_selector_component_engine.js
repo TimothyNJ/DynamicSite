@@ -115,6 +115,9 @@ class wheel_selector_component_engine {
         // Set initial value
         if (this.value !== null) {
             this.setValue(this.value);
+        } else {
+            // Update visuals even if no initial value
+            this.updateItemVisuals();
         }
         
         return this.wrapper;
@@ -242,11 +245,28 @@ class wheel_selector_component_engine {
         this.scroller.addEventListener('wheel', (e) => {
             if (this.config.disabled) return;
             e.preventDefault();
-            this.scroll(-e.deltaY);
+            
+            // More sensitive wheel scrolling
+            const delta = -e.deltaY * 0.5; // Reduced multiplier for smoother control
+            this.scroll(delta);
+            
+            // Track velocity for momentum
+            const currentTime = Date.now();
+            if (this.lastTime && currentTime - this.lastTime < 100) {
+                this.velocity = delta * 2; // Simple velocity from wheel
+            }
+            this.lastTime = currentTime;
+            
             clearTimeout(this.wheelTimeout);
             this.wheelTimeout = setTimeout(() => {
-                this.snapToItem();
-            }, 100);
+                // Only snap if velocity is low
+                if (Math.abs(this.velocity) < 2) {
+                    this.snapToItem();
+                } else {
+                    this.startMomentum();
+                }
+                this.velocity = 0;
+            }, 150);
         });
     }
     
@@ -269,6 +289,9 @@ class wheel_selector_component_engine {
         } else {
             this.scroller.style.transform = `translateY(${newTransform}px)`;
         }
+        
+        // Update visual states based on current position
+        this.updateItemVisuals();
     }
     
     getCurrentTransform() {
@@ -323,6 +346,38 @@ class wheel_selector_component_engine {
         });
     }
     
+    // Update visual properties of items based on their position
+    updateItemVisuals() {
+        const currentTransform = this.getCurrentTransform();
+        const centerPosition = -currentTransform + (this.itemHeight * 2); // Center of viewport
+        
+        const items = this.scroller.querySelectorAll('.scroll-picker-item');
+        items.forEach((item, index) => {
+            const itemPosition = index * this.itemHeight;
+            const distanceFromCenter = Math.abs(itemPosition - centerPosition);
+            
+            // Calculate opacity (1 at center, fade to 0.3 at edges)
+            const maxDistance = this.itemHeight * 2.5;
+            const opacity = Math.max(0.3, 1 - (distanceFromCenter / maxDistance) * 0.7);
+            
+            // Calculate scale (1 at center, scale down to 0.85 at edges)
+            const scale = Math.max(0.85, 1 - (distanceFromCenter / maxDistance) * 0.15);
+            
+            // Apply visual properties
+            item.style.opacity = opacity;
+            item.style.transform = `scale(${scale})`;
+            
+            // Update text color intensity based on proximity
+            if (distanceFromCenter < this.itemHeight / 2) {
+                item.style.color = '#007AFF'; // iOS blue for near-selected
+                item.style.fontWeight = '500';
+            } else {
+                item.style.color = ''; // Reset to CSS default
+                item.style.fontWeight = '';
+            }
+        });
+    }
+    
     // Start momentum animation based on release velocity
     startMomentum() {
         // Amplify the velocity for more dramatic momentum
@@ -360,6 +415,9 @@ class wheel_selector_component_engine {
             } else {
                 // Apply the transform
                 this.scroller.style.transform = `translateY(${newTransform}px)`;
+                
+                // Update visual states
+                this.updateItemVisuals();
                 
                 // Continue animation
                 this.ticker = requestAnimationFrame(() => this.autoScroll());
@@ -403,6 +461,7 @@ class wheel_selector_component_engine {
             this.currentIndex = index;
             this.scroller.style.transform = `translateY(${-index * this.itemHeight}px)`;
             this.updateItemStates();
+            this.updateItemVisuals(); // Update visual states
         }
     }
     
@@ -478,6 +537,8 @@ class wheel_selector_component_engine {
                     color: #999;
                     font-size: 16px;
                     cursor: pointer;
+                    transition: opacity 0.1s ease, transform 0.1s ease, color 0.2s ease;
+                    transform-origin: center;
                 }
                 
                 .scroll-picker-item.selected {
