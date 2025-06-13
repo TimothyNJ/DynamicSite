@@ -25,6 +25,8 @@ import { slider_component_engine } from './engines/slider_component_engine.js';
 import { text_input_component_engine } from './engines/text_input_component_engine.js';
 
 import { button_component_engine } from './engines/button_component_engine.js';
+import { text_button_component_engine } from './engines/text_button_component_engine.js';
+import { circle_button_component_engine } from './engines/circle_button_component_engine.js';
 import { multi_select_component_engine } from './engines/multi_select_component_engine.js';
 import { file_upload_input_component_engine } from './engines/file_upload_input_component_engine.js';
 import { wheel_time_selector_component_engine } from './engines/wheel_time_selector_component_engine.js';
@@ -115,18 +117,7 @@ function initializeSettingsComponents() {
     // 6. Wheel Selector demo (casino-style wheel with numbers 1-10)
     componentFactory.createWheelSelector('demo-wheel-selector-container', {
       id: 'demo-wheel-selector',
-      options: [
-        { value: '1', text: '1' },
-        { value: '2', text: '2' },
-        { value: '3', text: '3' },
-        { value: '4', text: '4' },
-        { value: '5', text: '5' },
-        { value: '6', text: '6' },
-        { value: '7', text: '7' },
-        { value: '8', text: '8' },
-        { value: '9', text: '9' },
-        { value: '10', text: '10' }
-      ],
+      options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
       defaultValue: '1',
       placeholder: 'Roll the wheel',
       showOnHover: true, // Enable hover to show wheel
