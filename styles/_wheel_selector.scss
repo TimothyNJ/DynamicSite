@@ -1,6 +1,5 @@
-// _wheel_selector.scss - Wheel selector component styles
-// Created: 11-Jun-2025
-// Updated: 12-Jun-2025 - iOS7 cylinder effect
+// _wheel_selector.scss - iOS7-style wheel selector
+// Based on https://codepen.io/billdami/pen/ExZEoJ
 
 // ==============================================
 // Wheel Selector Component
@@ -40,209 +39,162 @@
       color: #999;
     }
   }
-  
-  // The text button container inside wheel selector
-  // No additional styling needed - uses standard text button styles
 }
 
-// Wheel panel with cylinder effect
-.wheel-panel {
+// iOS Picker Container
+.ios-picker-container {
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  width: 200px;
-  height: 180px;
-  background: linear-gradient(to bottom, 
-    rgba(245, 245, 245, 0.95) 0%,
-    rgba(245, 245, 245, 0.98) 20%,
-    rgba(245, 245, 245, 1) 50%,
-    rgba(245, 245, 245, 0.98) 80%,
-    rgba(245, 245, 245, 0.95) 100%
-  );
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  width: 320px;
   z-index: 1000;
-  overflow: hidden;
   opacity: 0;
   transform-origin: top center;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  cursor: grab;
+  transition: opacity 0.3s ease;
   
   &.open {
     opacity: 1;
-    transform: translateX(-50%) scale(1);
   }
+}
+
+// iOS Picker
+.ios-picker {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  perspective: 1200px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   
   body[data-theme="dark"] & {
-    background: linear-gradient(to bottom,
-      rgba(40, 40, 40, 0.95) 0%,
-      rgba(40, 40, 40, 0.98) 20%,
-      rgba(40, 40, 40, 1) 50%,
-      rgba(40, 40, 40, 0.98) 80%,
-      rgba(40, 40, 40, 0.95) 100%
-    );
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 
-      0 4px 20px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    background: #2a2a2a;
+    border-color: #444;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   }
 }
 
-// 3D perspective container
-.wheel-perspective {
-  width: 100%;
-  height: 100%;
-  perspective: 1000px;
-  position: relative;
-}
-
-// The rotating cylinder
-.wheel-cylinder {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-// Individual wheel items positioned on cylinder
-.wheel-item {
+// Scrollable area
+.ios-picker-scroll {
   position: absolute;
-  width: 100%;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 0;
   left: 0;
-  top: 50%;
-  margin-top: -18px; // Half of height
-  backface-visibility: hidden;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
+  right: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease-out;
+  cursor: grab;
   
-  .wheel-item-text {
-    font-size: 20px;
-    font-weight: 400;
-    color: #000;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 0 20px;
-    
-    body[data-theme="dark"] & {
-      color: #fff;
-    }
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+// Individual cells
+.ios-picker-cell {
+  height: 44px;
+  line-height: 44px;
+  padding: 0 10px;
+  text-align: center;
+  font-size: 18px;
+  color: #333;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  body[data-theme="dark"] & {
+    color: #ccc;
   }
   
-  // Selected state
-  &.selected .wheel-item-text {
+  &.selected {
     color: #007AFF;
     font-weight: 500;
-  }
-  
-  // Hover effect for clickable items
-  &:hover {
-    .wheel-item-text {
-      color: #0051D5;
-      
-      body[data-theme="dark"] & {
-        color: #4DA6FF;
-      }
-    }
-  }
-}
-
-// Selection indicator (center line)
-.wheel-selection-indicator {
-  position: absolute;
-  top: 50%;
-  left: 10px;
-  right: 10px;
-  height: 36px;
-  margin-top: -18px;
-  pointer-events: none;
-  z-index: 2;
-  
-  // Top and bottom lines
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.2);
     
     body[data-theme="dark"] & {
-      background: rgba(255, 255, 255, 0.2);
+      color: #4DA6FF;
     }
   }
   
-  &::before {
-    top: 0;
-  }
-  
-  &::after {
-    bottom: 0;
+  &:hover {
+    background: rgba(0, 122, 255, 0.05);
+    
+    body[data-theme="dark"] & {
+      background: rgba(77, 166, 255, 0.1);
+    }
   }
 }
 
-// Gradient overlays for depth effect
-.wheel-panel::before,
-.wheel-panel::after {
+// Highlight bar
+.ios-picker-highlight {
+  position: absolute;
+  top: 88px;
+  left: 10px;
+  right: 10px;
+  height: 44px;
+  border-top: 1px solid #d3d3d3;
+  border-bottom: 1px solid #d3d3d3;
+  pointer-events: none;
+  
+  body[data-theme="dark"] & {
+    border-color: #555;
+  }
+}
+
+// Gradient overlays for depth
+.ios-picker::before,
+.ios-picker::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  height: 60px;
+  height: 88px;
   pointer-events: none;
   z-index: 1;
 }
 
-.wheel-panel::before {
+.ios-picker::before {
   top: 0;
   background: linear-gradient(to bottom,
-    rgba(245, 245, 245, 1) 0%,
-    rgba(245, 245, 245, 0.7) 50%,
-    transparent 100%
+    rgba(250, 250, 250, 1) 0%,
+    rgba(250, 250, 250, 0.9) 50%,
+    rgba(250, 250, 250, 0) 100%
   );
   
   body[data-theme="dark"] & {
     background: linear-gradient(to bottom,
-      rgba(40, 40, 40, 1) 0%,
-      rgba(40, 40, 40, 0.7) 50%,
-      transparent 100%
+      rgba(42, 42, 42, 1) 0%,
+      rgba(42, 42, 42, 0.9) 50%,
+      rgba(42, 42, 42, 0) 100%
     );
   }
 }
 
-.wheel-panel::after {
+.ios-picker::after {
   bottom: 0;
   background: linear-gradient(to top,
-    rgba(245, 245, 245, 1) 0%,
-    rgba(245, 245, 245, 0.7) 50%,
-    transparent 100%
+    rgba(250, 250, 250, 1) 0%,
+    rgba(250, 250, 250, 0.9) 50%,
+    rgba(250, 250, 250, 0) 100%
   );
   
   body[data-theme="dark"] & {
     background: linear-gradient(to top,
-      rgba(40, 40, 40, 1) 0%,
-      rgba(40, 40, 40, 0.7) 50%,
-      transparent 100%
+      rgba(42, 42, 42, 1) 0%,
+      rgba(42, 42, 42, 0.9) 50%,
+      rgba(42, 42, 42, 0) 100%
     );
   }
 }
 
 // Mobile responsive adjustments
 @media (max-width: 480px) {
-  .wheel-panel {
+  .ios-picker-container {
     position: fixed;
     top: auto;
     bottom: 0;
@@ -250,11 +202,23 @@
     right: 0;
     transform: none;
     width: 100%;
+    padding: 0 10px 20px;
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 16px 16px 0 0;
-    height: 250px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    
+    body[data-theme="dark"] & {
+      background: rgba(30, 30, 30, 0.95);
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
     
     &.open {
       transform: none;
     }
+  }
+  
+  .ios-picker {
+    width: 100%;
+    margin-top: 10px;
   }
 }
