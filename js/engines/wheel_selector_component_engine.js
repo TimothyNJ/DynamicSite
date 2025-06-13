@@ -3,15 +3,15 @@
 // Retains all functionality: momentum, elasticity, animations, gestures
 
 class wheel_selector_component_engine {
-    constructor(options = {}) {
+    constructor(options = {}, onChange = null) {
         // Configuration
         this.options = this.normalizeOptions(options.options || []);
-        this.value = options.value || null;
+        this.value = options.value || options.defaultValue || null;
         this.dragSensitivity = options.dragSensitivity || 1.7;
         this.touchSensitivity = options.touchSensitivity || 1.7;
         this.wheelSensitivity = options.wheelSensitivity || 1;
         this.emptyText = options.emptyText || 'No Options Available';
-        this.onChange = options.onChange || (() => {});
+        this.onChange = onChange || options.onChange || (() => {});
         
         // State
         this.internalIndex = this.findInitialIndex();
@@ -546,7 +546,21 @@ class wheel_selector_component_engine {
         });
     }
     
-    render() {
+    render(containerId) {
+        // Get container element
+        const container = typeof containerId === 'string' 
+            ? document.getElementById(containerId)
+            : containerId;
+            
+        if (!container) {
+            console.error(`[wheel_selector_component_engine] Container not found:`, containerId);
+            return null;
+        }
+        
+        // Append element to container
+        container.appendChild(this.element);
+        
+        console.log(`[wheel_selector_component_engine] Rendered in container:`, containerId);
         return this.element;
     }
     
