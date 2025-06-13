@@ -21,11 +21,19 @@ class wheel_selector_component_engine {
         this.isOpen = false;
         this.selectedIndex = -1;
         this.selectedValue = null;
-        this.wheelInstance = null;
         this.componentId = `wheel-selector-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         this.triggerButton = null;
         this.hoverTimeout = null;
         this.closeTimeout = null;
+        
+        // Cylinder effect properties
+        this.currentRotation = 0;
+        this.itemAngle = 36; // Degrees between items
+        this.radius = 100; // Cylinder radius
+        this.isDragging = false;
+        this.startY = 0;
+        this.velocity = 0;
+        this.animationId = null;
     }
     
     render(containerId) {
@@ -73,22 +81,28 @@ class wheel_selector_component_engine {
         buttonContainer.id = `${this.componentId}-button`;
         component.appendChild(buttonContainer);
         
-        // Create wheel panel
+        // Create wheel panel with 3D structure
         const wheelPanel = document.createElement('div');
         wheelPanel.className = 'wheel-panel';
         wheelPanel.style.display = 'none';
-        wheelPanel.innerHTML = `
-            <div class="wheel-overlay top"></div>
-            <div class="wheel-content">
-                <div class="options-wheel" data-wheel="options">
-                    <div class="wheel-items">
-                        ${this.renderOptions()}
-                    </div>
-                </div>
-            </div>
-            <div class="wheel-overlay bottom"></div>
-            <div class="wheel-selection-indicator"></div>
-        `;
+        
+        const wheelPerspective = document.createElement('div');
+        wheelPerspective.className = 'wheel-perspective';
+        
+        const wheelCylinder = document.createElement('div');
+        wheelCylinder.className = 'wheel-cylinder';
+        
+        // Create wheel items
+        this.createWheelItems(wheelCylinder);
+        
+        wheelPerspective.appendChild(wheelCylinder);
+        wheelPanel.appendChild(wheelPerspective);
+        
+        // Add selection indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'wheel-selection-indicator';
+        wheelPanel.appendChild(indicator);
+        
         component.appendChild(wheelPanel);
         
         // Add to container
@@ -109,7 +123,7 @@ class wheel_selector_component_engine {
         // Render the button
         this.triggerButton.render(buttonContainer);
         
-        // Attach remaining event listeners
+        // Attach event listeners
         this.attachEventListeners();
         
         // Set default selection if not already set
@@ -119,10 +133,75 @@ class wheel_selector_component_engine {
             );
             if (defaultIndex !== -1) {
                 this.selectOption(defaultIndex);
+                this.currentRotation = -defaultIndex * this.itemAngle;
+                this.updateCylinderRotation();
             }
         }
         
         return component;
+    }
+    
+    createWheelItems(cylinder) {
+        // Create items for the visible range (about 9 items visible at once)
+        const visibleItems = 9;
+        const halfVisible = Math.floor(visibleItems / 2);
+        
+        for (let i = -halfVisible; i <= halfVisible; i++) {
+            const item = document.createElement('div');
+            item.className = 'wheel-item';
+            item.dataset.offset = i;
+            
+            const span = document.createElement('span');
+            span.className = 'wheel-item-text';
+            
+            item.appendChild(span);
+            cylinder.appendChild(item);
+        }
+        
+        this.updateWheelItems();
+    }
+    
+    updateWheelItems() {
+        const items = this.container.querySelectorAll('.wheel-item');
+        const currentIndex = Math.round(-this.currentRotation / this.itemAngle);
+        const optionsLength = this.config.options.length;
+        
+        items.forEach((item) => {
+            const offset = parseInt(item.dataset.offset);
+            const index = ((currentIndex + offset) % optionsLength + optionsLength) % optionsLength;
+            const option = this.config.options[index];
+            
+            const text = typeof option === 'object' ? option.text : option;
+            const span = item.querySelector('.wheel-item-text');
+            span.textContent = text;
+            
+            // Update selection state
+            item.classList.toggle('selected', index === this.selectedIndex);
+            
+            // Position on cylinder
+            const angle = offset * this.itemAngle;
+            const transform = `rotateX(${angle}deg) translateZ(${this.radius}px)`;
+            item.style.transform = transform;
+            
+            // Calculate opacity based on position
+            const absOffset = Math.abs(offset);
+            let opacity = 1;
+            if (absOffset === 0) opacity = 1;
+            else if (absOffset === 1) opacity = 0.8;
+            else if (absOffset === 2) opacity = 0.6;
+            else if (absOffset === 3) opacity = 0.4;
+            else opacity = 0.2;
+            
+            item.style.opacity = opacity;
+        });
+    }
+    
+    updateCylinderRotation() {
+        const cylinder = this.container.querySelector('.wheel-cylinder');
+        if (cylinder) {
+            cylinder.style.transform = `rotateX(${this.currentRotation}deg)`;
+        }
+        this.updateWheelItems();
     }
     
     loadStoredValue() {
@@ -144,33 +223,6 @@ class wheel_selector_component_engine {
         }
     }
     
-    renderOptions() {
-        // Triple the options for seamless looping effect
-        const tripleOptions = [
-            ...this.config.options,
-            ...this.config.options,
-            ...this.config.options
-        ];
-        
-        return tripleOptions.map((option, index) => {
-            const realIndex = index % this.config.options.length;
-            const isObject = typeof option === 'object';
-            const text = isObject ? option.text : option;
-            const value = isObject ? option.value : option;
-            const icon = isObject ? option.icon : null;
-            
-            return `
-                <div class="wheel-item ${realIndex === this.selectedIndex ? 'selected' : ''}" 
-                     data-index="${realIndex}"
-                     data-real-index="${index}"
-                     data-value="${value}">
-                    ${icon ? `<span class="option-icon">${icon}</span>` : ''}
-                    <span class="option-text">${text}</span>
-                </div>
-            `;
-        }).join('');
-    }
-    
     attachEventListeners() {
         const component = this.container.querySelector('.wheel-selector-component');
         const wheelPanel = component.querySelector('.wheel-panel');
@@ -183,7 +235,7 @@ class wheel_selector_component_engine {
                     clearTimeout(this.closeTimeout);
                     this.hoverTimeout = setTimeout(() => {
                         this.openWheel();
-                    }, 200); // Small delay to prevent accidental opens
+                    }, 200);
                 }
             });
             
@@ -191,7 +243,7 @@ class wheel_selector_component_engine {
                 clearTimeout(this.hoverTimeout);
                 this.closeTimeout = setTimeout(() => {
                     this.closeWheel();
-                }, 300); // Delay before closing to allow moving to wheel
+                }, 300);
             });
         }
         
@@ -212,9 +264,9 @@ class wheel_selector_component_engine {
             }
         });
         
-        // Initialize wheel scrolling
+        // Initialize wheel interactions
         if (wheelPanel) {
-            this.initializeWheel(component.querySelector('.options-wheel'));
+            this.initializeWheelInteractions(wheelPanel);
         }
         
         // Keyboard navigation
@@ -254,183 +306,128 @@ class wheel_selector_component_engine {
         });
     }
     
-    initializeWheel(wheel) {
-        const itemHeight = 40; // Height of each item
-        let startY = 0;
-        let currentY = 0;
-        let isDragging = false;
-        let velocity = 0;
-        let animationId = null;
-        
-        const wheelItems = wheel.querySelector('.wheel-items');
-        const optionsLength = this.config.options.length;
-        
-        // Start in the middle set for seamless looping
-        const middleOffset = -(optionsLength * itemHeight) + (itemHeight * 2);
-        
-        // Set initial position
-        if (this.selectedIndex >= 0) {
-            const offset = middleOffset - (this.selectedIndex * itemHeight);
-            wheelItems.style.transform = `translateY(${offset}px)`;
-        } else {
-            wheelItems.style.transform = `translateY(${middleOffset}px)`;
-        }
-        
+    initializeWheelInteractions(wheelPanel) {
         const handleStart = (e) => {
-            isDragging = true;
-            startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-            velocity = 0;
-            if (animationId) {
-                cancelAnimationFrame(animationId);
+            if (this.animationId) {
+                cancelAnimationFrame(this.animationId);
+                this.animationId = null;
             }
-            wheel.style.cursor = 'grabbing';
+            
+            this.isDragging = true;
+            this.startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            this.velocity = 0;
+            
+            wheelPanel.style.cursor = 'grabbing';
         };
         
         const handleMove = (e) => {
-            if (!isDragging) return;
+            if (!this.isDragging) return;
             
             const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-            const deltaY = clientY - startY;
-            currentY += deltaY;
-            startY = clientY;
+            const deltaY = clientY - this.startY;
+            this.startY = clientY;
             
-            velocity = deltaY;
+            // Convert pixel movement to rotation
+            const rotationDelta = deltaY * 0.5; // Adjust sensitivity
+            this.currentRotation += rotationDelta;
+            this.velocity = rotationDelta;
             
-            const transform = wheelItems.style.transform;
-            const currentTranslateY = transform ? parseFloat(transform.match(/translateY\(([-\d.]+)px\)/)?.[1] || 0) : 0;
-            let newTranslateY = currentTranslateY + deltaY;
-            
-            // Handle looping
-            const totalHeight = optionsLength * itemHeight;
-            if (newTranslateY > middleOffset + totalHeight) {
-                newTranslateY -= totalHeight;
-            } else if (newTranslateY < middleOffset - totalHeight) {
-                newTranslateY += totalHeight;
-            }
-            
-            wheelItems.style.transform = `translateY(${newTranslateY}px)`;
-            this.updateActiveItem(newTranslateY, itemHeight);
+            this.updateCylinderRotation();
         };
         
         const handleEnd = () => {
-            if (!isDragging) return;
-            isDragging = false;
-            wheel.style.cursor = 'grab';
+            if (!this.isDragging) return;
+            this.isDragging = false;
+            wheelPanel.style.cursor = 'grab';
             
-            // Enhanced momentum scrolling for casino wheel effect
-            const decelerate = () => {
-                if (Math.abs(velocity) > 0.5) {
-                    velocity *= 0.92; // Slower deceleration for longer spin
-                    
-                    const transform = wheelItems.style.transform;
-                    const currentTranslateY = parseFloat(transform.match(/translateY\(([-\d.]+)px\)/)?.[1] || 0);
-                    let newTranslateY = currentTranslateY + velocity;
-                    
-                    // Handle looping during momentum
-                    const totalHeight = optionsLength * itemHeight;
-                    if (newTranslateY > middleOffset + totalHeight) {
-                        newTranslateY -= totalHeight;
-                    } else if (newTranslateY < middleOffset - totalHeight) {
-                        newTranslateY += totalHeight;
-                    }
-                    
-                    wheelItems.style.transform = `translateY(${newTranslateY}px)`;
-                    this.updateActiveItem(newTranslateY, itemHeight);
-                    
-                    animationId = requestAnimationFrame(decelerate);
-                } else {
-                    // Snap to nearest item
-                    this.snapToItem(itemHeight);
-                }
-            };
-            
-            animationId = requestAnimationFrame(decelerate);
+            // Start momentum animation
+            this.startMomentum();
         };
         
         // Mouse events
-        wheel.addEventListener('mousedown', handleStart);
+        wheelPanel.addEventListener('mousedown', handleStart);
         document.addEventListener('mousemove', handleMove);
         document.addEventListener('mouseup', handleEnd);
         
         // Touch events
-        wheel.addEventListener('touchstart', handleStart, { passive: true });
-        wheel.addEventListener('touchmove', handleMove, { passive: true });
-        wheel.addEventListener('touchend', handleEnd);
+        wheelPanel.addEventListener('touchstart', handleStart, { passive: true });
+        wheelPanel.addEventListener('touchmove', handleMove, { passive: true });
+        wheelPanel.addEventListener('touchend', handleEnd);
         
         // Click on items
-        wheelItems.addEventListener('click', (e) => {
+        wheelPanel.addEventListener('click', (e) => {
             const item = e.target.closest('.wheel-item');
-            if (item) {
-                const index = parseInt(item.dataset.index);
-                this.selectOption(index);
-                setTimeout(() => this.confirmSelection(), 150);
+            if (item && !this.isDragging) {
+                const offset = parseInt(item.dataset.offset);
+                if (offset !== 0) {
+                    // Animate to clicked item
+                    this.animateToOffset(-offset);
+                } else {
+                    // Select current item
+                    this.confirmSelection();
+                }
             }
         });
     }
     
-    updateActiveItem(translateY, itemHeight) {
-        const centerOffset = -translateY + (itemHeight * 2);
-        const optionsLength = this.config.options.length;
+    startMomentum() {
+        const deceleration = 0.95;
+        const snapThreshold = 0.5;
         
-        // Calculate which item is in the center, accounting for the tripled options
-        let activeIndex = Math.round(centerOffset / itemHeight);
-        activeIndex = ((activeIndex % optionsLength) + optionsLength) % optionsLength;
+        const animate = () => {
+            if (Math.abs(this.velocity) > snapThreshold) {
+                this.velocity *= deceleration;
+                this.currentRotation += this.velocity;
+                this.updateCylinderRotation();
+                
+                this.animationId = requestAnimationFrame(animate);
+            } else {
+                // Snap to nearest item
+                this.snapToNearestItem();
+            }
+        };
         
-        // Update visual selection
-        const items = this.container.querySelectorAll('.wheel-item');
-        items.forEach((item) => {
-            const itemIndex = parseInt(item.dataset.index);
-            item.classList.toggle('active', itemIndex === activeIndex);
-        });
+        this.animationId = requestAnimationFrame(animate);
     }
     
-    snapToItem(itemHeight) {
-        const wheelItems = this.container.querySelector('.wheel-items');
-        const transform = wheelItems.style.transform;
-        const currentTranslateY = parseFloat(transform.match(/translateY\(([-\d.]+)px\)/)?.[1] || 0);
-        const optionsLength = this.config.options.length;
+    snapToNearestItem() {
+        const nearestIndex = Math.round(-this.currentRotation / this.itemAngle);
+        const targetRotation = -nearestIndex * this.itemAngle;
         
-        const centerOffset = -currentTranslateY + (itemHeight * 2);
-        let activeIndex = Math.round(centerOffset / itemHeight);
+        this.animateToRotation(targetRotation);
+    }
+    
+    animateToRotation(targetRotation) {
+        const startRotation = this.currentRotation;
+        const deltaRotation = targetRotation - startRotation;
+        const duration = 300;
+        const startTime = Date.now();
         
-        // Keep within the middle set for seamless appearance
-        const middleStart = optionsLength;
-        const middleEnd = optionsLength * 2;
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Ease out cubic
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            
+            this.currentRotation = startRotation + deltaRotation * easeProgress;
+            this.updateCylinderRotation();
+            
+            if (progress < 1) {
+                this.animationId = requestAnimationFrame(animate);
+            }
+        };
         
-        if (activeIndex < middleStart) {
-            activeIndex += optionsLength;
-        } else if (activeIndex >= middleEnd) {
-            activeIndex -= optionsLength;
-        }
-        
-        const targetTranslateY = -(activeIndex * itemHeight) + (itemHeight * 2);
-        
-        wheelItems.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        wheelItems.style.transform = `translateY(${targetTranslateY}px)`;
-        
-        setTimeout(() => {
-            wheelItems.style.transition = '';
-        }, 300);
+        this.animationId = requestAnimationFrame(animate);
+    }
+    
+    animateToOffset(offset) {
+        const targetRotation = this.currentRotation + (offset * this.itemAngle);
+        this.animateToRotation(targetRotation);
     }
     
     scrollWheel(direction) {
-        const itemHeight = 40;
-        const wheelItems = this.container.querySelector('.wheel-items');
-        const transform = wheelItems.style.transform;
-        const currentTranslateY = parseFloat(transform.match(/translateY\(([-\d.]+)px\)/)?.[1] || 0);
-        
-        const newTranslateY = currentTranslateY - (direction * itemHeight);
-        
-        wheelItems.style.transition = 'transform 0.3s ease';
-        wheelItems.style.transform = `translateY(${newTranslateY}px)`;
-        
-        this.updateActiveItem(newTranslateY, itemHeight);
-        
-        setTimeout(() => {
-            wheelItems.style.transition = '';
-            // Snap to ensure we're on an item
-            this.snapToItem(itemHeight);
-        }, 300);
+        this.animateToOffset(direction);
     }
     
     toggleWheel() {
@@ -477,12 +474,12 @@ class wheel_selector_component_engine {
     }
     
     confirmSelection() {
-        // Get the currently active item
-        const activeItem = this.container.querySelector('.wheel-item.active');
-        if (activeItem) {
-            const index = parseInt(activeItem.dataset.index);
-            this.selectOption(index);
-        }
+        // Get the current index based on rotation
+        const currentIndex = Math.round(-this.currentRotation / this.itemAngle);
+        const optionsLength = this.config.options.length;
+        const normalizedIndex = ((currentIndex % optionsLength) + optionsLength) % optionsLength;
+        
+        this.selectOption(normalizedIndex);
         this.closeWheel();
     }
     
@@ -502,11 +499,7 @@ class wheel_selector_component_engine {
         }
         
         // Update visual selection
-        const items = this.container.querySelectorAll('.wheel-item');
-        items.forEach((item) => {
-            const itemIndex = parseInt(item.dataset.index);
-            item.classList.toggle('selected', itemIndex === index);
-        });
+        this.updateWheelItems();
         
         // Save to storage
         if (this.config.storageKey) {
@@ -527,6 +520,8 @@ class wheel_selector_component_engine {
         );
         if (index !== -1) {
             this.selectOption(index);
+            this.currentRotation = -index * this.itemAngle;
+            this.updateCylinderRotation();
         }
     }
     
@@ -534,6 +529,7 @@ class wheel_selector_component_engine {
         this.config.options = newOptions;
         this.selectedIndex = -1;
         this.selectedValue = null;
+        this.currentRotation = 0;
         this.render(this.container);
     }
     
