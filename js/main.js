@@ -291,30 +291,29 @@ function initializeProgressViewComponents() {
     return;
   }
   
-  console.log('[Progress View] Initializing wheel selector test...');
+  console.log('[Progress View] Initializing wheel selector test with year picker...');
   
-  // Create wheel selector in isolation
+  // Generate years array (100 years back from 2025)
+  const years = Array.from({length: 100}, (_, i) => 2025 - i);
+  
+  // Create wheel selector with years
   componentFactory.createWheelSelector('wheel-selector-test-container', {
     id: 'wheel-selector-test',
-    options: [
-      { value: '1', text: 'Option 1' },
-      { value: '2', text: 'Option 2' },
-      { value: '3', text: 'Option 3' },
-      { value: '4', text: 'Option 4' },
-      { value: '5', text: 'Option 5' },
-      { value: '6', text: 'Option 6' },
-      { value: '7', text: 'Option 7' },
-      { value: '8', text: 'Option 8' },
-      { value: '9', text: 'Option 9' },
-      { value: '10', text: 'Option 10' }
-    ],
-    defaultValue: '5',
-    placeholder: 'Select an option',
-    showOnHover: false, // Click to open instead of hover
-    onChange: (value) => console.log('[Progress View] Wheel selected:', value)
+    options: years,
+    defaultValue: 2025,
+    label: 'Select Year',
+    storageKey: 'selectedYear',
+    onChange: (value) => {
+      console.log('[Progress View] Year selected:', value);
+      // Update display if element exists
+      const displayElement = document.getElementById('selectedYear');
+      if (displayElement) {
+        displayElement.textContent = value;
+      }
+    }
   });
   
-  console.log('[Progress View] Wheel selector initialized');
+  console.log('[Progress View] Year wheel selector initialized');
 }
 
 // Component initialization function for router
@@ -325,9 +324,9 @@ window.initializePageComponents = function(pageName) {
     // Call the settings initialization directly
     console.log('[main.js] Initializing settings components');
     initializeSettingsComponents();
-  } else if (pageName === 'progress-view') {
+  } else if (pageName === 'progress') {
     // Initialize progress view components
-    console.log('[main.js] Initializing progress view components');
+    console.log('[main.js] Initializing progress components');
     initializeProgressViewComponents();
   }
   
