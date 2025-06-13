@@ -24,6 +24,12 @@ class wheel_selector_component_engine {
         this.visibleItems = 5;
         this.currentIndex = 0;
         
+        // 3D perspective properties
+        this.perspective = 1000;
+        this.rotationUnit = 0; // Will be calculated based on item count
+        this.radius = 150; // Cylinder radius
+        this.currentRotation = 0; // Track current rotation
+        
         // Scrolling state
         this.startY = 0;
         this.currentY = 0;
@@ -65,16 +71,28 @@ class wheel_selector_component_engine {
         this.wrapper = document.createElement('div');
         this.wrapper.className = 'scroll-picker-wrapper';
         
+        // Add 3D scene container
+        this.scene = document.createElement('div');
+        this.scene.className = 'scroll-picker-scene';
+        
         this.scroller = document.createElement('div');
         this.scroller.className = 'scroll-picker-scroller';
         
-        // Create option elements
+        // Calculate rotation unit based on visible items
+        this.rotationUnit = 360 / (this.visibleItems * 4); // Spread items around partial cylinder
+        
+        // Create option elements with 3D positioning
         this.config.options.forEach((option, index) => {
             const elem = document.createElement('div');
             elem.className = 'scroll-picker-item';
             elem.textContent = typeof option === 'object' ? option.name || option.text : option;
             elem.dataset.value = typeof option === 'object' ? option.value : option;
             elem.dataset.index = index;
+            
+            // Apply initial 3D transform
+            const rotateX = index * this.rotationUnit;
+            elem.style.transform = `rotateX(${rotateX}deg) translateZ(${this.radius}px)`;
+            
             this.scroller.appendChild(elem);
         });
         
@@ -104,7 +122,8 @@ class wheel_selector_component_engine {
         }
         
         // Assemble structure
-        this.wrapper.appendChild(this.scroller);
+        this.scene.appendChild(this.scroller);
+        this.wrapper.appendChild(this.scene);
         this.wrapper.appendChild(this.overlay);
         this.wrapper.appendChild(this.indicator);
         this.container.appendChild(this.wrapper);
@@ -272,34 +291,30 @@ class wheel_selector_component_engine {
     
     scroll(delta) {
         const currentTransform = this.getCurrentTransform();
-        const newTransform = currentTransform + delta;
+        const newRotation = currentTransform + (delta / this.itemHeight) * this.rotationUnit;
         
-        // Apply boundaries with slight overscroll
-        const maxTransform = 50; // Allow 50px overscroll at top
-        const minTransform = -(this.config.options.length - 1) * this.itemHeight - 50; // Allow 50px overscroll at bottom
+        // Apply rotation to the cylinder
+        this.scroller.style.transform = `translateZ(-${this.radius}px) rotateX(${newRotation}deg)`;
         
-        if (newTransform > maxTransform) {
-            // Apply resistance at boundary
-            const excess = newTransform - maxTransform;
-            this.scroller.style.transform = `translateY(${maxTransform + excess * 0.3}px)`;
-        } else if (newTransform < minTransform) {
-            // Apply resistance at boundary
-            const excess = newTransform - minTransform;
-            this.scroller.style.transform = `translateY(${minTransform + excess * 0.3}px)`;
-        } else {
-            this.scroller.style.transform = `translateY(${newTransform}px)`;
-        }
+        // Store rotation for reference
+        this.currentRotation = newRotation;
         
         // Update visual states based on current position
         this.updateItemVisuals();
     }
     
     getCurrentTransform() {
+        // Get current rotation instead of translation
+        if (this.currentRotation !== undefined) {
+            return this.currentRotation;
+        }
+        
         const transform = window.getComputedStyle(this.scroller).transform;
         if (transform === 'none') return 0;
         
-        const matrix = transform.match(/matrix.*\((.+)\)/)[1].split(', ');
-        return parseFloat(matrix[5]);
+        // Extract rotation from transform matrix
+        // This is a simplified approach - in production would need full matrix decomposition
+        return 0;
     }
     
     snapToItem() {
@@ -310,12 +325,21 @@ class wheel_selector_component_engine {
         }
         this.amplitude = 0;
         
-        const currentTransform = this.getCurrentTransform();
-        const index = Math.round(-currentTransform / this.itemHeight);
+        const currentRotation = this.currentRotation || 0;
         
-        this.currentIndex = Math.max(0, Math.min(index, this.config.options.length - 1));
-        this.scroller.style.transform = `translateY(${-this.currentIndex * this.itemHeight}px)`;
+        // Find nearest item based on rotation
+        const itemAngle = this.rotationUnit;
+        const nearestIndex = Math.round(-currentRotation / itemAngle);
+        
+        this.currentIndex = Math.max(0, Math.min(nearestIndex, this.config.options.length - 1));
+        
+        // Calculate target rotation
+        const targetRotation = -this.currentIndex * itemAngle;
+        
+        // Animate to target
         this.scroller.style.transition = 'transform 0.3s ease';
+        this.scroller.style.transform = `translateZ(-${this.radius}px) rotateX(${targetRotation}deg)`;
+        this.currentRotation = targetRotation;
         
         // Update value and trigger callback
         const selectedOption = this.config.options[this.currentIndex];
@@ -329,6 +353,7 @@ class wheel_selector_component_engine {
         
         // Update visual state
         this.updateItemStates();
+        this.updateItemVisuals();
         
         setTimeout(() => {
             this.scroller.style.transition = '';
@@ -348,31 +373,36 @@ class wheel_selector_component_engine {
     
     // Update visual properties of items based on their position
     updateItemVisuals() {
-        const currentTransform = this.getCurrentTransform();
-        const centerPosition = -currentTransform + (this.itemHeight * 2); // Center of viewport
-        
         const items = this.scroller.querySelectorAll('.scroll-picker-item');
+        const currentRotation = this.currentRotation || 0;
+        
         items.forEach((item, index) => {
-            const itemPosition = index * this.itemHeight;
-            const distanceFromCenter = Math.abs(itemPosition - centerPosition);
+            // Calculate item's rotation relative to current position
+            const itemRotation = (index * this.rotationUnit) + currentRotation;
             
-            // Calculate opacity (1 at center, fade to 0.3 at edges)
-            const maxDistance = this.itemHeight * 2.5;
-            const opacity = Math.max(0.3, 1 - (distanceFromCenter / maxDistance) * 0.7);
+            // Normalize rotation to -180 to 180 range
+            let normalizedRotation = itemRotation % 360;
+            if (normalizedRotation > 180) normalizedRotation -= 360;
+            if (normalizedRotation < -180) normalizedRotation += 360;
             
-            // Calculate scale (1 at center, scale down to 0.85 at edges)
-            const scale = Math.max(0.85, 1 - (distanceFromCenter / maxDistance) * 0.15);
+            // Items in front (near 0 degrees) are visible
+            const absRotation = Math.abs(normalizedRotation);
             
-            // Apply visual properties
+            // Calculate opacity based on rotation (visible in front, hidden in back)
+            let opacity = 1;
+            if (absRotation > 90) {
+                opacity = Math.max(0, 1 - ((absRotation - 90) / 90));
+            }
+            
+            // Apply opacity
             item.style.opacity = opacity;
-            item.style.transform = `scale(${scale})`;
             
-            // Update text color intensity based on proximity
-            if (distanceFromCenter < this.itemHeight / 2) {
-                item.style.color = '#007AFF'; // iOS blue for near-selected
+            // Highlight item closest to front
+            if (absRotation < this.rotationUnit / 2) {
+                item.style.color = '#007AFF';
                 item.style.fontWeight = '500';
             } else {
-                item.style.color = ''; // Reset to CSS default
+                item.style.color = '';
                 item.style.fontWeight = '';
             }
         });
@@ -518,6 +548,7 @@ class wheel_selector_component_engine {
                     user-select: none;
                     border-radius: 10px;
                     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    perspective: 1000px;
                 }
                 
                 .scroll-picker-wrapper.disabled {
@@ -525,20 +556,34 @@ class wheel_selector_component_engine {
                     pointer-events: none;
                 }
                 
+                .scroll-picker-scene {
+                    width: 100%;
+                    height: 100%;
+                    position: relative;
+                    transform-style: preserve-3d;
+                }
+                
                 .scroll-picker-scroller {
                     position: relative;
-                    transition: transform 0.3s ease;
+                    width: 100%;
+                    height: 100%;
+                    transform-style: preserve-3d;
+                    transform: translateZ(-150px) rotateX(0deg);
+                    transition: none;
                 }
                 
                 .scroll-picker-item {
+                    position: absolute;
+                    width: 100%;
                     height: 44px;
                     line-height: 44px;
                     text-align: center;
                     color: #999;
                     font-size: 16px;
                     cursor: pointer;
-                    transition: opacity 0.1s ease, transform 0.1s ease, color 0.2s ease;
-                    transform-origin: center;
+                    backface-visibility: hidden;
+                    top: 50%;
+                    margin-top: -22px;
                 }
                 
                 .scroll-picker-item.selected {
