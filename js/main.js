@@ -284,6 +284,39 @@ function initializeSettingsComponents() {
   }
 }
 
+// Progress View page initialization
+function initializeProgressViewComponents() {
+  if (!window.componentFactory) {
+    console.error('[Progress View] ComponentFactory not available');
+    return;
+  }
+  
+  console.log('[Progress View] Initializing wheel selector test...');
+  
+  // Create wheel selector in isolation
+  componentFactory.createWheelSelector('wheel-selector-test-container', {
+    id: 'wheel-selector-test',
+    options: [
+      { value: '1', text: 'Option 1' },
+      { value: '2', text: 'Option 2' },
+      { value: '3', text: 'Option 3' },
+      { value: '4', text: 'Option 4' },
+      { value: '5', text: 'Option 5' },
+      { value: '6', text: 'Option 6' },
+      { value: '7', text: 'Option 7' },
+      { value: '8', text: 'Option 8' },
+      { value: '9', text: 'Option 9' },
+      { value: '10', text: 'Option 10' }
+    ],
+    defaultValue: '5',
+    placeholder: 'Select an option',
+    showOnHover: false, // Click to open instead of hover
+    onChange: (value) => console.log('[Progress View] Wheel selected:', value)
+  });
+  
+  console.log('[Progress View] Wheel selector initialized');
+}
+
 // Component initialization function for router
 window.initializePageComponents = function(pageName) {
   console.log(`[main.js] Initializing components for page: ${pageName}`);
@@ -292,6 +325,10 @@ window.initializePageComponents = function(pageName) {
     // Call the settings initialization directly
     console.log('[main.js] Initializing settings components');
     initializeSettingsComponents();
+  } else if (pageName === 'progress-view') {
+    // Initialize progress view components
+    console.log('[main.js] Initializing progress view components');
+    initializeProgressViewComponents();
   }
   
   // Add other page-specific initialization as needed
