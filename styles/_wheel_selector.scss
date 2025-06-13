@@ -1,115 +1,79 @@
-// _wheel_selector.scss - Styles for the iOS-style wheel selector component
-// Based on vue-scroll-picker vanilla implementation
+// Wheel Selector Component
+// iOS-style scroll picker with complete functionality
 
-// Component wrapper
-.wheel-selector-wrapper {
-    margin-bottom: var(--input-margin-bottom);
-}
-
-// Main scroll picker container
-.scroll-picker-wrapper {
+.vue-scroll-picker {
     position: relative;
-    height: 220px;
+    width: 100%;
+    height: 10em;
     overflow: hidden;
-    background: var(--input-background);
     user-select: none;
-    border: 1px solid var(--border-color);
-    border-radius: var(--input-border-radius);
-    
-    &:focus {
-        outline: none;
-        border-color: var(--primary-color);
-    }
-    
-    &.disabled {
-        opacity: 0.6;
-        pointer-events: none;
-    }
 }
 
-// Scroller that contains all items
-.scroll-picker-scroller {
-    position: relative;
-    transition: transform 0.3s ease;
+.vue-scroll-picker-rotator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(50% - 0.6em);
 }
 
-// Individual picker items
-.scroll-picker-item {
-    height: 44px;
-    line-height: 44px;
+.vue-scroll-picker-rotator-transition {
+    transition: top ease 150ms;
+}
+
+.vue-scroll-picker-item {
     text-align: center;
-    color: #999;
-    font-size: 16px;
-    cursor: pointer;
-    
-    &.selected {
-        color: #007AFF;
-        font-weight: 500;
-    }
+    line-height: 1.2em;
+    color: #333;
 }
 
-// Overlay gradient for depth effect
-.scroll-picker-overlay {
+.vue-scroll-picker-item[aria-selected='true'] {
+    color: #007bff;
+}
+
+.vue-scroll-picker-item[data-value=''],
+.vue-scroll-picker-item[aria-disabled='true'] {
+    color: #ccc;
+}
+
+.vue-scroll-picker-item[data-value=''][aria-selected='true'],
+.vue-scroll-picker-item[aria-disabled='true'][aria-selected='true'] {
+    color: #aaa;
+}
+
+.vue-scroll-picker-layer {
     position: absolute;
+    left: 0;
+    right: 0;
     top: 0;
-    left: 0;
-    right: 0;
     bottom: 0;
-    pointer-events: none;
-    background: linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0.9) 0%,
-        rgba(255, 255, 255, 0) 35%,
-        rgba(255, 255, 255, 0) 65%,
-        rgba(255, 255, 255, 0.9) 100%
-    );
 }
 
-// Selection indicator
-.scroll-picker-indicator {
+.vue-scroll-picker-layer-top,
+.vue-scroll-picker-layer-selection,
+.vue-scroll-picker-layer-bottom {
     position: absolute;
-    top: 50%;
     left: 0;
     right: 0;
-    height: 44px;
-    transform: translateY(-50%);
-    pointer-events: none;
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
 }
 
-// Dark theme overrides
-body[data-theme="dark"] {
-    .scroll-picker-wrapper {
-        background: var(--input-background-dark, #2a2a2a);
-    }
-    
-    .scroll-picker-item {
-        color: #666;
-        
-        &.selected {
-            color: #4da6ff;
-        }
-    }
-    
-    .scroll-picker-overlay {
-        background: linear-gradient(
-            to bottom,
-            rgba(30, 30, 30, 0.9) 0%,
-            rgba(30, 30, 30, 0) 35%,
-            rgba(30, 30, 30, 0) 65%,
-            rgba(30, 30, 30, 0.9) 100%
-        );
-    }
-    
-    .scroll-picker-indicator {
-        border-color: rgba(255, 255, 255, 0.2);
-    }
+.vue-scroll-picker-layer-top {
+    box-sizing: border-box;
+    border-bottom: 1px solid #c8c7cc;
+    background: linear-gradient(180deg, #fff 10%, rgba(255, 255, 255, 0.7));
+    top: 0;
+    height: calc(50% - 1em);
+    cursor: pointer;
 }
 
-// Mobile responsive
-@media (max-width: 480px) {
-    .scroll-picker-wrapper {
-        // Mobile optimizations can go here if needed
-    }
+.vue-scroll-picker-layer-selection {
+    top: calc(50% - 1em);
+    bottom: calc(50% - 1em);
+}
+
+.vue-scroll-picker-layer-bottom {
+    border-top: 1px solid #c8c7cc;
+    background: linear-gradient(0deg, #fff 10%, rgba(255, 255, 255, 0.7));
+    bottom: 0;
+    height: calc(50% - 1em);
+    cursor: pointer;
 }

@@ -1,343 +1,586 @@
 // wheel_selector_component_engine.js
-// Based on vue-scroll-picker vanilla JS implementation from log 20250612213336_001.md
-// Creates iOS-style wheel picker components with smooth scrolling
+// Complete implementation of vue-scroll-picker without Vue dependency
+// Retains all functionality: momentum, elasticity, animations, gestures
 
 class wheel_selector_component_engine {
-    constructor(options = {}, changeHandler = null) {
-        // Configuration with defaults
-        this.config = {
-            options: options.options || [],
-            defaultValue: options.defaultValue || null,
-            disabled: options.disabled || false,
-            label: options.label || 'Select',
-            emptyText: options.emptyText || 'No options available',
-            dragSensitivity: options.dragSensitivity || 1.7,
-            touchSensitivity: options.touchSensitivity || 1.7,
-            wheelSensitivity: options.wheelSensitivity || 1
-        };
+    constructor(options = {}) {
+        // Configuration
+        this.options = this.normalizeOptions(options.options || []);
+        this.value = options.value || null;
+        this.dragSensitivity = options.dragSensitivity || 1.7;
+        this.touchSensitivity = options.touchSensitivity || 1.7;
+        this.wheelSensitivity = options.wheelSensitivity || 1;
+        this.emptyText = options.emptyText || 'No Options Available';
+        this.onChange = options.onChange || (() => {});
         
-        // Store change handler
-        this.changeHandler = changeHandler || options.onChange || (() => {});
+        // State
+        this.internalIndex = this.findInitialIndex();
+        this.transitionTimeout = null;
+        this.itemOffsets = [];
+        this.scrollOffset = 0;
+        this.scrollY = 0;
+        this.scrollYMax = 0;
+        this.gestureState = null;
+        this.wheelTimeout = null;
+        this.scrollRaf = null;
+        this.resizeObserver = null;
         
-        // Component properties
-        this.itemHeight = 44; // Standard iOS picker height
-        this.visibleItems = 5;
-        this.currentIndex = 0;
-        this.value = this.config.defaultValue;
+        // Event options for better performance
+        this.eventOptions = { passive: false };
         
-        // Touch/mouse state
-        this.isScrolling = false;
-        this.startY = 0;
-        this.currentY = 0;
+        // Create DOM structure
+        this.element = this.createElement();
         
-        // Generate unique ID
-        this.id = 'wheel-' + Math.random().toString(36).substr(2, 9);
+        // Initialize after DOM is ready
+        requestAnimationFrame(() => {
+            this.init();
+        });
     }
     
-    render(containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) {
-            console.error(`Container with id "${containerId}" not found`);
-            return null;
-        }
-        
-        // Create component wrapper
-        this.componentWrapper = document.createElement('div');
-        this.componentWrapper.className = 'component-wrapper wheel-selector-wrapper';
-        
-        // Create label if provided
-        if (this.config.label) {
-            const label = document.createElement('label');
-            label.className = 'component-label';
-            label.textContent = this.config.label;
-            label.htmlFor = this.id;
-            this.componentWrapper.appendChild(label);
-        }
-        
-        // Create HTML structure
-        this.wrapper = document.createElement('div');
-        this.wrapper.className = 'scroll-picker-wrapper';
-        this.wrapper.id = this.id;
-        
-        this.scroller = document.createElement('div');
-        this.scroller.className = 'scroll-picker-scroller';
-        
-        // Create option elements
-        this.config.options.forEach((option, index) => {
-            const elem = document.createElement('div');
-            elem.className = 'scroll-picker-item';
-            elem.textContent = typeof option === 'object' ? option.name : option;
-            elem.dataset.value = typeof option === 'object' ? option.value : option;
-            elem.dataset.index = index;
-            this.scroller.appendChild(elem);
-        });
-        
-        // Add padding for centering
-        const paddingTop = document.createElement('div');
-        paddingTop.style.height = `${(this.visibleItems - 1) / 2 * this.itemHeight}px`;
-        this.scroller.insertBefore(paddingTop, this.scroller.firstChild);
-        
-        const paddingBottom = document.createElement('div');
-        paddingBottom.style.height = `${(this.visibleItems - 1) / 2 * this.itemHeight}px`;
-        this.scroller.appendChild(paddingBottom);
-        
-        // Create overlay gradient
-        this.overlay = document.createElement('div');
-        this.overlay.className = 'scroll-picker-overlay';
-        
-        // Create selection indicator
-        this.indicator = document.createElement('div');
-        this.indicator.className = 'scroll-picker-indicator';
-        
-        // Assemble structure
-        this.wrapper.appendChild(this.scroller);
-        this.wrapper.appendChild(this.overlay);
-        this.wrapper.appendChild(this.indicator);
-        this.componentWrapper.appendChild(this.wrapper);
-        
-        // Add to container
-        container.appendChild(this.componentWrapper);
-        
-        // Add event listeners
-        this.setupEventListeners();
-        
-        // Set initial value
-        if (this.value !== null) {
-            this.setValue(this.value);
-        } else if (this.config.options.length > 0) {
-            const firstOption = this.config.options[0];
-            this.setValue(typeof firstOption === 'object' ? firstOption.value : firstOption);
-        }
-        
-        // Return the component wrapper element
-        return this.componentWrapper;
-    }
-    
-    setupEventListeners() {
-        // Touch events
-        this.scroller.addEventListener('touchstart', (e) => {
-            if (this.config.disabled) return;
-            this.startY = e.touches[0].clientY;
-            this.isScrolling = true;
-        });
-        
-        this.scroller.addEventListener('touchmove', (e) => {
-            if (!this.isScrolling || this.config.disabled) return;
-            e.preventDefault();
-            
-            this.currentY = e.touches[0].clientY;
-            const diff = (this.currentY - this.startY) * this.config.touchSensitivity;
-            this.scroll(diff);
-            this.startY = this.currentY;
-        });
-        
-        this.scroller.addEventListener('touchend', () => {
-            if (!this.isScrolling || this.config.disabled) return;
-            this.isScrolling = false;
-            this.snapToItem();
-        });
-        
-        // Mouse events
-        this.scroller.addEventListener('mousedown', (e) => {
-            if (this.config.disabled) return;
-            this.startY = e.clientY;
-            this.isScrolling = true;
-            e.preventDefault();
-        });
-        
-        document.addEventListener('mousemove', (e) => {
-            if (!this.isScrolling || this.config.disabled) return;
-            
-            this.currentY = e.clientY;
-            const diff = (this.currentY - this.startY) * this.config.dragSensitivity;
-            this.scroll(diff);
-            this.startY = this.currentY;
-        });
-        
-        document.addEventListener('mouseup', () => {
-            if (this.isScrolling && !this.config.disabled) {
-                this.isScrolling = false;
-                this.snapToItem();
+    normalizeOptions(options) {
+        return options.map(option => {
+            if (option === null) {
+                return { value: null, name: '' };
             }
-        });
-        
-        // Wheel events
-        this.scroller.addEventListener('wheel', (e) => {
-            if (this.config.disabled) return;
-            e.preventDefault();
-            this.scroll(-e.deltaY * this.config.wheelSensitivity);
-            clearTimeout(this.wheelTimeout);
-            this.wheelTimeout = setTimeout(() => {
-                this.snapToItem();
-            }, 100);
-        });
-        
-        // Keyboard events
-        this.wrapper.setAttribute('tabindex', '0');
-        this.wrapper.addEventListener('keydown', (e) => {
-            if (this.config.disabled) return;
-            
-            switch (e.key) {
-                case 'ArrowUp':
-                    e.preventDefault();
-                    this.selectPrevious();
-                    break;
-                case 'ArrowDown':
-                    e.preventDefault();
-                    this.selectNext();
-                    break;
-                case 'Home':
-                    e.preventDefault();
-                    this.currentIndex = 0;
-                    this.snapToItem();
-                    break;
-                case 'End':
-                    e.preventDefault();
-                    this.currentIndex = this.config.options.length - 1;
-                    this.snapToItem();
-                    break;
+            switch (typeof option) {
+                case 'string':
+                    return { value: option, name: option };
+                case 'number':
+                case 'boolean':
+                    return { value: option, name: `${option}` };
+                default:
+                    return option;
             }
         });
     }
     
-    scroll(delta) {
-        const currentTransform = this.getCurrentTransform();
-        const newTransform = currentTransform + delta;
+    findInitialIndex() {
+        const index = this.options.findIndex(option => option.value == this.value);
+        return Math.max(index, 0);
+    }
+    
+    createElement() {
+        // Main container
+        const container = document.createElement('div');
+        container.className = 'vue-scroll-picker';
         
-        // Apply boundaries
-        const maxTransform = 0;
-        const minTransform = -(this.config.options.length - 1) * this.itemHeight;
+        // Rotator (contains items)
+        this.rotatorEl = document.createElement('div');
+        this.rotatorEl.className = 'vue-scroll-picker-rotator';
+        this.rotatorEl.setAttribute('role', 'listbox');
         
-        if (newTransform > maxTransform) {
-            this.scroller.style.transform = `translateY(${maxTransform}px)`;
-        } else if (newTransform < minTransform) {
-            this.scroller.style.transform = `translateY(${minTransform}px)`;
+        // Create items
+        this.updateItems();
+        
+        // Layer container
+        const layerContainer = document.createElement('div');
+        layerContainer.className = 'vue-scroll-picker-layer';
+        
+        // Layer elements
+        this.layerTopEl = document.createElement('div');
+        this.layerTopEl.className = 'vue-scroll-picker-layer-top';
+        
+        this.layerSelectionEl = document.createElement('div');
+        this.layerSelectionEl.className = 'vue-scroll-picker-layer-selection';
+        
+        this.layerBottomEl = document.createElement('div');
+        this.layerBottomEl.className = 'vue-scroll-picker-layer-bottom';
+        
+        // Assemble
+        layerContainer.appendChild(this.layerTopEl);
+        layerContainer.appendChild(this.layerSelectionEl);
+        layerContainer.appendChild(this.layerBottomEl);
+        
+        container.appendChild(this.rotatorEl);
+        container.appendChild(layerContainer);
+        
+        return container;
+    }
+    
+    updateItems() {
+        // Clear existing items
+        this.rotatorEl.innerHTML = '';
+        
+        if (this.options.length === 0) {
+            // Empty state
+            const emptyItem = document.createElement('div');
+            emptyItem.className = 'vue-scroll-picker-item';
+            emptyItem.setAttribute('role', 'option');
+            emptyItem.setAttribute('aria-disabled', 'true');
+            emptyItem.setAttribute('aria-selected', 'false');
+            emptyItem.textContent = this.emptyText;
+            this.rotatorEl.appendChild(emptyItem);
         } else {
-            this.scroller.style.transform = `translateY(${newTransform}px)`;
+            // Create option items
+            this.options.forEach((option, index) => {
+                const item = document.createElement('div');
+                item.className = 'vue-scroll-picker-item';
+                item.setAttribute('role', 'option');
+                item.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
+                item.setAttribute('aria-selected', this.internalIndex === index ? 'true' : 'false');
+                item.setAttribute('data-value', option.value ?? '');
+                item.textContent = option.name;
+                this.rotatorEl.appendChild(item);
+            });
         }
     }
     
-    getCurrentTransform() {
-        const transform = window.getComputedStyle(this.scroller).transform;
-        if (transform === 'none') return 0;
+    init() {
+        // Add event listeners
+        this.element.addEventListener('wheel', this.handleWheel.bind(this), this.eventOptions);
+        this.element.addEventListener('touchstart', this.handleTouchStart.bind(this), this.eventOptions);
+        this.element.addEventListener('mousedown', this.handleMouseDown.bind(this), this.eventOptions);
         
-        const matrix = transform.match(/matrix.*\((.+)\)/)[1].split(', ');
-        return parseFloat(matrix[5]);
+        // Setup resize observer
+        if (typeof window.ResizeObserver !== 'undefined') {
+            let raf = null;
+            this.resizeObserver = new window.ResizeObserver(() => {
+                if (raf) {
+                    cancelAnimationFrame(raf);
+                }
+                raf = requestAnimationFrame(() => {
+                    this.updateItemOffsets();
+                    raf = null;
+                });
+            });
+            this.resizeObserver.observe(this.element);
+        } else {
+            this.updateItemOffsets();
+        }
+        
+        // Initial positioning
+        this.updateItemOffsets();
     }
     
-    snapToItem() {
-        const currentTransform = this.getCurrentTransform();
-        const index = Math.round(-currentTransform / this.itemHeight);
+    updateItemOffsets() {
+        const rotatorEl = this.rotatorEl;
+        const layerSelectionEl = this.layerSelectionEl;
         
-        this.currentIndex = Math.max(0, Math.min(index, this.config.options.length - 1));
-        this.scroller.style.transform = `translateY(${-this.currentIndex * this.itemHeight}px)`;
-        this.scroller.style.transition = 'transform 0.3s ease';
+        if (!rotatorEl || !layerSelectionEl) {
+            return;
+        }
         
-        // Update value and trigger callback
-        const selectedOption = this.config.options[this.currentIndex];
-        this.value = typeof selectedOption === 'object' ? selectedOption.value : selectedOption;
-        this.changeHandler(this.value);
+        // Set scrollOffset
+        const { top: selTop, bottom: selBottom } = layerSelectionEl.getBoundingClientRect();
+        const elTop = this.element?.getBoundingClientRect().top ?? 0;
+        this.scrollOffset = (selTop + selBottom) / 2 - elTop;
         
-        // Store in localStorage
-        const storageKey = `wheel_${this.id}_value`;
-        localStorage.setItem(storageKey, JSON.stringify(this.value));
-        
-        // Update visual state
-        this.updateItemStates();
-        
-        setTimeout(() => {
-            this.scroller.style.transition = '';
-        }, 300);
-    }
-    
-    updateItemStates() {
-        const items = this.scroller.querySelectorAll('.scroll-picker-item');
-        items.forEach((item, index) => {
-            if (index === this.currentIndex) {
-                item.classList.add('selected');
-            } else {
-                item.classList.remove('selected');
+        // Calculate item offsets
+        let firstItemOffset = 0;
+        this.itemOffsets = Array.from(rotatorEl.children).map((itemEl, index) => {
+            const { top, bottom } = itemEl.getBoundingClientRect();
+            const itemOffset = (top + bottom) / 2;
+            if (index === 0) {
+                this.scrollOffset -= itemOffset - top;
+                firstItemOffset = itemOffset;
             }
+            return itemOffset - firstItemOffset;
         });
+        
+        this.scrollYMax = Math.max(...this.itemOffsets);
+        this.setScroll(this.findScrollByIndex(this.internalIndex));
     }
     
-    selectNext() {
-        if (this.currentIndex < this.config.options.length - 1) {
-            this.currentIndex++;
-            this.snapToItem();
+    findIndexFromScroll(scroll, ignoreDisabled) {
+        let minDiff = Infinity;
+        let foundIndex = 0;
+        
+        for (const [index, offset] of this.itemOffsets.entries()) {
+            if (!ignoreDisabled && this.options[index]?.disabled) {
+                continue;
+            }
+            if (Math.abs(offset - scroll) < minDiff) {
+                minDiff = Math.abs(offset - scroll);
+                foundIndex = index;
+            }
+        }
+        
+        return foundIndex;
+    }
+    
+    findScrollByIndex(index) {
+        return this.itemOffsets[Math.min(Math.max(index, 0), this.itemOffsets.length - 1)];
+    }
+    
+    scrollTo(scroll) {
+        this.setScroll(scroll);
+        
+        if (this.transitionTimeout) {
+            clearTimeout(this.transitionTimeout);
+        }
+        
+        // Add transition class
+        this.rotatorEl.classList.add('vue-scroll-picker-rotator-transition');
+        
+        this.transitionTimeout = setTimeout(() => {
+            this.rotatorEl.classList.remove('vue-scroll-picker-rotator-transition');
+            this.transitionTimeout = null;
+        }, 150);
+    }
+    
+    setScroll(scroll) {
+        this.scrollY = scroll;
+        
+        if (this.scrollRaf) {
+            cancelAnimationFrame(this.scrollRaf);
+        }
+        
+        this.scrollRaf = requestAnimationFrame(() => {
+            if (this.rotatorEl) {
+                this.rotatorEl.style.top = `${this.scrollOffset - scroll}px`;
+            }
+            this.scrollRaf = null;
+        });
+        
+        return scroll;
+    }
+    
+    bounceEffect(value, min, max, tension = 0.2) {
+        if (value < min) {
+            return min + (value - min) * tension;
+        }
+        if (value > max) {
+            return max + (value - max) * tension;
+        }
+        return value;
+    }
+    
+    handleWheel(e) {
+        if (!this.wheelTimeout && this.scrollY <= 0 && e.deltaY < 0) {
+            return;
+        }
+        if (!this.wheelTimeout && this.scrollY >= this.scrollYMax && e.deltaY > 0) {
+            return;
+        }
+        if (this.itemOffsets.length === 1) {
+            return;
+        }
+        
+        e.preventDefault();
+        
+        const scrollYValue = this.setScroll(
+            this.bounceEffect(this.scrollY + e.deltaY * this.wheelSensitivity, 0, this.scrollYMax)
+        );
+        
+        const nextIndex = this.findIndexFromScroll(scrollYValue, true);
+        const nextOption = this.options[nextIndex];
+        const nextValue = nextOption?.value;
+        
+        this.emitEvent('wheel', nextValue);
+        
+        if (nextOption && !nextOption.disabled) {
+            this.internalIndex = nextIndex;
+            this.emitUpdateValue(nextValue);
+        }
+        
+        if (this.wheelTimeout) {
+            clearTimeout(this.wheelTimeout);
+        }
+        
+        this.wheelTimeout = setTimeout(() => {
+            this.scrollTo(this.findScrollByIndex(this.findIndexFromScroll(scrollYValue, false)));
+            this.wheelTimeout = null;
+        }, 100);
+    }
+    
+    handleTouchStart(e) {
+        if (this.gestureState) {
+            return;
+        }
+        
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        
+        this.gestureState = [this.scrollY, e.touches[0].clientY, false];
+        this.emitEvent('start');
+        
+        document.addEventListener('touchmove', this.handleTouchMove, this.eventOptions);
+        document.addEventListener('touchend', this.handleTouchEnd, this.eventOptions);
+        document.addEventListener('touchcancel', this.handleTouchCancel);
+    }
+    
+    handleMouseDown(e) {
+        if (this.gestureState) {
+            return;
+        }
+        
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        
+        this.gestureState = [this.scrollY, e.clientY, false];
+        this.emitEvent('start');
+        
+        document.addEventListener('mousemove', this.handleMouseMove, this.eventOptions);
+        document.addEventListener('mouseup', this.handleMouseUp, this.eventOptions);
+        document.addEventListener('mouseout', this.handleMouseOut);
+    }
+    
+    handleTouchMove = (e) => {
+        if (!this.gestureState) {
+            return;
+        }
+        
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        
+        const diff = this.gestureState[1] - e.touches[0].clientY;
+        
+        if (Math.abs(diff) > 1.5) {
+            const nextGestureState = this.gestureState.slice();
+            nextGestureState[2] = true;
+            this.gestureState = nextGestureState;
+        }
+        
+        this.emitMove(
+            this.setScroll(
+                this.bounceEffect(
+                    this.gestureState[0] + diff * this.touchSensitivity,
+                    0,
+                    this.scrollYMax
+                )
+            )
+        );
+    }
+    
+    handleMouseMove = (e) => {
+        if (!this.gestureState) {
+            return;
+        }
+        
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        
+        const diff = this.gestureState[1] - e.clientY;
+        
+        if (Math.abs(diff) > 1.5) {
+            const nextGestureState = this.gestureState.slice();
+            nextGestureState[2] = true;
+            this.gestureState = nextGestureState;
+        }
+        
+        this.emitMove(
+            this.setScroll(
+                this.bounceEffect(
+                    this.gestureState[0] + diff * this.dragSensitivity,
+                    0,
+                    this.scrollYMax
+                )
+            )
+        );
+    }
+    
+    emitMove(scrollY) {
+        const index = this.findIndexFromScroll(scrollY, true);
+        const value = this.options[index]?.value ?? undefined;
+        this.emitEvent('move', value);
+    }
+    
+    handleMouseUp = (e) => {
+        if (!this.gestureState) {
+            return;
+        }
+        
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        
+        this.endGesture(this.gestureState[2], e.clientX, e.clientY);
+        this.gestureState = null;
+        
+        document.removeEventListener('mousemove', this.handleMouseMove);
+        document.removeEventListener('mouseup', this.handleMouseUp);
+        document.removeEventListener('mouseout', this.handleMouseOut);
+    }
+    
+    handleTouchEnd = (e) => {
+        if (!this.gestureState) {
+            return;
+        }
+        
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        
+        this.endGesture(
+            this.gestureState[2],
+            e.changedTouches[0].clientX,
+            e.changedTouches[0].clientY
+        );
+        this.gestureState = null;
+        
+        document.removeEventListener('touchmove', this.handleTouchMove);
+        document.removeEventListener('touchend', this.handleTouchEnd);
+        document.removeEventListener('touchcancel', this.handleTouchCancel);
+    }
+    
+    endGesture(isDragging, x, y) {
+        if (isDragging) {
+            const nextIndex = this.findIndexFromScroll(this.scrollY, false);
+            const nextValue = this.options[nextIndex]?.value ?? null;
+            this.scrollTo(this.findScrollByIndex(nextIndex));
+            this.internalIndex = nextIndex;
+            this.emitEvent('end', nextValue);
+            this.emitUpdateValue(nextValue);
+        } else {
+            this.triggerClick(x, y);
         }
     }
     
-    selectPrevious() {
-        if (this.currentIndex > 0) {
-            this.currentIndex--;
-            this.snapToItem();
+    triggerClick(x, y) {
+        if (!this.layerTopEl || !this.layerBottomEl) {
+            return;
+        }
+        
+        const topRect = this.layerTopEl.getBoundingClientRect();
+        const bottomRect = this.layerBottomEl.getBoundingClientRect();
+        
+        let nextIndex = this.internalIndex;
+        
+        if (
+            topRect.left <= x && x <= topRect.right &&
+            topRect.top <= y && y <= topRect.bottom
+        ) {
+            if (this.internalIndex === 0) {
+                return; // top
+            }
+            nextIndex--;
+            while (
+                this.options[nextIndex] &&
+                this.options[nextIndex].disabled
+            ) {
+                nextIndex--;
+            }
+        } else if (
+            bottomRect.left <= x && x <= bottomRect.right &&
+            bottomRect.top <= y && y <= bottomRect.bottom
+        ) {
+            if (this.internalIndex === this.options.length - 1) {
+                return; // bottom
+            }
+            nextIndex++;
+            while (
+                this.options[nextIndex] &&
+                this.options[nextIndex].disabled
+            ) {
+                nextIndex++;
+            }
+        }
+        
+        if (this.internalIndex !== nextIndex && this.options[nextIndex]) {
+            this.internalIndex = nextIndex;
+            const nextValue = this.options[nextIndex].value;
+            this.emitEvent('end', nextValue);
+            this.emitEvent('click', nextValue);
+            this.emitUpdateValue(nextValue);
+            this.scrollTo(this.findScrollByIndex(nextIndex));
+            this.updateSelection();
         }
     }
     
-    // Public API methods
-    getValue() {
-        return this.value;
+    handleMouseOut = (e) => {
+        if (e.relatedTarget === null) {
+            this.cancelGesture();
+        }
+    }
+    
+    handleTouchCancel = () => {
+        this.cancelGesture();
+    }
+    
+    cancelGesture() {
+        this.scrollTo(this.findScrollByIndex(this.internalIndex));
+        this.gestureState = null;
+        this.emitEvent('cancel');
+    }
+    
+    emitUpdateValue(value) {
+        if (this.value !== value) {
+            this.value = value;
+            this.onChange(value);
+        }
+    }
+    
+    emitEvent(eventName, value) {
+        const event = new CustomEvent(`wheel-${eventName}`, {
+            detail: { value },
+            bubbles: true
+        });
+        this.element.dispatchEvent(event);
+    }
+    
+    updateSelection() {
+        // Update aria-selected attributes
+        const items = this.rotatorEl.querySelectorAll('.vue-scroll-picker-item');
+        items.forEach((item, index) => {
+            item.setAttribute('aria-selected', this.internalIndex === index ? 'true' : 'false');
+        });
     }
     
     setValue(value) {
-        const index = this.config.options.findIndex(option => {
-            return typeof option === 'object' ? option.value === value : option === value;
-        });
-        
-        if (index !== -1) {
-            this.currentIndex = index;
-            this.scroller.style.transform = `translateY(${-index * this.itemHeight}px)`;
-            this.updateItemStates();
+        const nextIndex = this.options.findIndex(option => option.value == value);
+        if (this.internalIndex !== nextIndex && nextIndex >= 0) {
+            this.internalIndex = nextIndex;
             this.value = value;
+            this.scrollTo(this.findScrollByIndex(nextIndex));
+            this.updateSelection();
         }
     }
     
-    disable() {
-        this.config.disabled = true;
-        this.wrapper.classList.add('disabled');
-    }
-    
-    enable() {
-        this.config.disabled = false;
-        this.wrapper.classList.remove('disabled');
-    }
-    
     setOptions(newOptions) {
-        this.config.options = newOptions;
+        this.options = this.normalizeOptions(newOptions);
+        this.internalIndex = Math.max(
+            this.options.findIndex(option => option.value == this.value),
+            0
+        );
         
-        // Clear existing items
-        this.scroller.innerHTML = '';
+        this.updateItems();
+        this.updateSelection();
         
-        // Recreate items
-        newOptions.forEach((option, index) => {
-            const elem = document.createElement('div');
-            elem.className = 'scroll-picker-item';
-            elem.textContent = typeof option === 'object' ? option.name : option;
-            elem.dataset.value = typeof option === 'object' ? option.value : option;
-            elem.dataset.index = index;
-            this.scroller.appendChild(elem);
+        requestAnimationFrame(() => {
+            this.updateItemOffsets();
+            this.setScroll(this.findScrollByIndex(this.internalIndex));
         });
+    }
+    
+    render() {
+        return this.element;
+    }
+    
+    destroy() {
+        // Remove event listeners
+        this.element.removeEventListener('wheel', this.handleWheel);
+        this.element.removeEventListener('touchstart', this.handleTouchStart);
+        this.element.removeEventListener('mousedown', this.handleMouseDown);
         
-        // Re-add padding
-        const paddingTop = document.createElement('div');
-        paddingTop.style.height = `${(this.visibleItems - 1) / 2 * this.itemHeight}px`;
-        this.scroller.insertBefore(paddingTop, this.scroller.firstChild);
+        // Clean up document listeners if active
+        document.removeEventListener('touchmove', this.handleTouchMove);
+        document.removeEventListener('touchend', this.handleTouchEnd);
+        document.removeEventListener('touchcancel', this.handleTouchCancel);
+        document.removeEventListener('mousemove', this.handleMouseMove);
+        document.removeEventListener('mouseup', this.handleMouseUp);
+        document.removeEventListener('mouseout', this.handleMouseOut);
         
-        const paddingBottom = document.createElement('div');
-        paddingBottom.style.height = `${(this.visibleItems - 1) / 2 * this.itemHeight}px`;
-        this.scroller.appendChild(paddingBottom);
+        // Disconnect observer
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
         
-        // Reset to first item
-        this.currentIndex = 0;
-        this.scroller.style.transform = 'translateY(0)';
-        
-        if (newOptions.length > 0) {
-            const firstOption = newOptions[0];
-            this.setValue(typeof firstOption === 'object' ? firstOption.value : firstOption);
+        // Clear timeouts
+        if (this.transitionTimeout) {
+            clearTimeout(this.transitionTimeout);
+        }
+        if (this.wheelTimeout) {
+            clearTimeout(this.wheelTimeout);
+        }
+        if (this.scrollRaf) {
+            cancelAnimationFrame(this.scrollRaf);
         }
     }
 }
 
-// Export for ES6 modules
+// Export for use with ComponentFactory
 export { wheel_selector_component_engine };
