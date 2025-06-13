@@ -136,6 +136,9 @@ class wheel_selector_component_engine {
         
         // Update visual states
         this.updateItemVisuals();
+        
+        // Return the component wrapper element
+        return this.componentWrapper;
     }
     
     setupEventListeners() {
@@ -576,7 +579,5 @@ class wheel_selector_component_engine {
 
 }
 
-// Export for use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = wheel_selector_component_engine;
-}
+// Export for ES6 modules
+export { wheel_selector_component_engine };
