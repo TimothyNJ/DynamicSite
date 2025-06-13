@@ -1,259 +1,137 @@
-// _wheel_selector.scss - iOS7 picker from https://codepen.io/billdami/pen/ExZEoJ
+// _wheel_selector.scss - Styles for the iOS-style wheel selector component
 
-// Container wrapper for our component system
-.wheel-selector-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: var(--component-spacing) 0;
-  border: 1px solid yellow; // Debug border
+// Component wrapper
+.wheel-selector-wrapper {
+    margin-bottom: var(--input-margin-bottom);
 }
 
-// Main component wrapper
-.wheel-selector-component {
-  position: relative;
-  width: 100%;
-  font-family: var(--font-family-primary);
-  user-select: none;
-  outline: none;
-  
-  &.disabled {
-    opacity: 0.6;
-    pointer-events: none;
-  }
-  
-  // Optional label
-  .wheel-selector-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: #666;
-    margin-bottom: 8px;
+// Main scroll picker container
+.scroll-picker-wrapper {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    background: var(--input-background);
+    user-select: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--input-border-radius);
+    perspective: 1000px;
     
-    body[data-theme="dark"] & {
-      color: #999;
+    &:focus {
+        outline: none;
+        border-color: var(--primary-color);
     }
-  }
-}
-
-// iOS UI Select - Direct from CodePen
-.ios-ui-select {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 320px;
-  z-index: 1000;
-  opacity: 0;
-  transform-origin: top center;
-  transition: opacity 0.3s ease;
-  
-  &.open {
-    opacity: 1;
-  }
-}
-
-.ios-ui-select-inner {
-  position: relative;
-}
-
-.ios-ui-select-options {
-  width: 320px;
-  height: 222px;
-  position: relative;
-  background: -webkit-gradient(linear, left top, left bottom, from(#f7f7f7), to(#cfcfcf));
-  background: -webkit-linear-gradient(top, #f7f7f7 0%, #cfcfcf 100%);
-  background: -moz-linear-gradient(top, #f7f7f7 0%, #cfcfcf 100%);
-  background: -ms-linear-gradient(top, #f7f7f7 0%, #cfcfcf 100%);
-  background: -o-linear-gradient(top, #f7f7f7 0%, #cfcfcf 100%);
-  background: linear-gradient(to bottom, #f7f7f7 0%, #cfcfcf 100%);
-  -webkit-perspective: 1000px;
-  -moz-perspective: 1000px;
-  -ms-perspective: 1000px;
-  perspective: 1000px;
-  overflow: hidden;
-  
-  body[data-theme="dark"] & {
-    background: -webkit-gradient(linear, left top, left bottom, from(#3a3a3a), to(#2a2a2a));
-    background: -webkit-linear-gradient(top, #3a3a3a 0%, #2a2a2a 100%);
-    background: -moz-linear-gradient(top, #3a3a3a 0%, #2a2a2a 100%);
-    background: -ms-linear-gradient(top, #3a3a3a 0%, #2a2a2a 100%);
-    background: -o-linear-gradient(top, #3a3a3a 0%, #2a2a2a 100%);
-    background: linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 100%);
-  }
-}
-
-.ios-ui-select-options-container {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  -webkit-transform-style: preserve-3d;
-  -moz-transform-style: preserve-3d;
-  -ms-transform-style: preserve-3d;
-  transform-style: preserve-3d;
-  margin-top: -22px;
-  -webkit-transform: translateZ(-100px) rotateX(0deg);
-  -moz-transform: translateZ(-100px) rotateX(0deg);
-  -ms-transform: translateZ(-100px) rotateX(0deg);
-  transform: translateZ(-100px) rotateX(0deg);
-}
-
-.ios-ui-select-options-option {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 44px;
-  -webkit-backface-visibility: hidden;
-  -moz-backface-visibility: hidden;
-  -ms-backface-visibility: hidden;
-  backface-visibility: hidden;
-  color: #222;
-  font-size: 23px;
-  font-weight: 300;
-  line-height: 44px;
-  text-align: center;
-  
-  body[data-theme="dark"] & {
-    color: #ddd;
-  }
-}
-
-.ios-ui-select-options-option.ios-ui-select-options-selected {
-  color: #278cea;
-  
-  body[data-theme="dark"] & {
-    color: #4da6ff;
-  }
-}
-
-.ios-ui-select-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: -webkit-gradient(linear, left top, left bottom, 
-    from(rgba(255,255,255,0.9)), 
-    color-stop(0.12, transparent), 
-    color-stop(0.88, transparent), 
-    to(rgba(255,255,255,0.9)));
-  background: -webkit-linear-gradient(top, 
-    rgba(255,255,255,0.9) 0%, 
-    transparent 12%, 
-    transparent 88%, 
-    rgba(255,255,255,0.9) 100%);
-  background: -moz-linear-gradient(top, 
-    rgba(255,255,255,0.9) 0%, 
-    transparent 12%, 
-    transparent 88%, 
-    rgba(255,255,255,0.9) 100%);
-  background: -ms-linear-gradient(top, 
-    rgba(255,255,255,0.9) 0%, 
-    transparent 12%, 
-    transparent 88%, 
-    rgba(255,255,255,0.9) 100%);
-  background: -o-linear-gradient(top, 
-    rgba(255,255,255,0.9) 0%, 
-    transparent 12%, 
-    transparent 88%, 
-    rgba(255,255,255,0.9) 100%);
-  background: linear-gradient(to bottom, 
-    rgba(255,255,255,0.9) 0%, 
-    transparent 12%, 
-    transparent 88%, 
-    rgba(255,255,255,0.9) 100%);
     
-  body[data-theme="dark"] & {
-    background: -webkit-gradient(linear, left top, left bottom, 
-      from(rgba(42,42,42,0.9)), 
-      color-stop(0.12, transparent), 
-      color-stop(0.88, transparent), 
-      to(rgba(42,42,42,0.9)));
-    background: -webkit-linear-gradient(top, 
-      rgba(42,42,42,0.9) 0%, 
-      transparent 12%, 
-      transparent 88%, 
-      rgba(42,42,42,0.9) 100%);
-    background: -moz-linear-gradient(top, 
-      rgba(42,42,42,0.9) 0%, 
-      transparent 12%, 
-      transparent 88%, 
-      rgba(42,42,42,0.9) 100%);
-    background: -ms-linear-gradient(top, 
-      rgba(42,42,42,0.9) 0%, 
-      transparent 12%, 
-      transparent 88%, 
-      rgba(42,42,42,0.9) 100%);
-    background: -o-linear-gradient(top, 
-      rgba(42,42,42,0.9) 0%, 
-      transparent 12%, 
-      transparent 88%, 
-      rgba(42,42,42,0.9) 100%);
-    background: linear-gradient(to bottom, 
-      rgba(42,42,42,0.9) 0%, 
-      transparent 12%, 
-      transparent 88%, 
-      rgba(42,42,42,0.9) 100%);
-  }
+    &.disabled {
+        opacity: 0.6;
+        pointer-events: none;
+    }
 }
 
-.ios-ui-select-highlight {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 44px;
-  margin-top: -22px;
-  pointer-events: none;
+// 3D scene container
+.scroll-picker-scene {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
 }
 
-.ios-ui-select-highlight-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #007aff;
-  opacity: 0.15;
-  border-top: 1px solid #278cea;
-  border-bottom: 1px solid #278cea;
-  
-  body[data-theme="dark"] & {
-    background: #4da6ff;
-    opacity: 0.2;
-    border-color: #4da6ff;
-  }
+// Scroller that holds all items
+.scroll-picker-scroller {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transform: translateZ(-150px) rotateX(0deg);
+}
+
+// Individual picker items
+.scroll-picker-item {
+    position: absolute;
+    width: 100%;
+    height: 44px;
+    line-height: 44px;
+    text-align: center;
+    font-size: 16px;
+    cursor: pointer;
+    backface-visibility: hidden;
+    top: 50%;
+    margin-top: -22px;
+    color: var(--text-color);
+    transition: color 0.2s ease, opacity 0.1s ease;
+    
+    &.selected {
+        color: #007AFF;
+        font-weight: 500;
+    }
+}
+
+// Overlay gradient for depth effect
+.scroll-picker-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 255, 255, 0.4) 35%,
+        rgba(255, 255, 255, 0.4) 65%,
+        rgba(255, 255, 255, 0.9) 100%
+    );
+}
+
+// Selection indicator
+.scroll-picker-indicator {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    right: 10px;
+    height: 44px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+// Dark theme overrides
+body[data-theme="dark"] {
+    .scroll-picker-overlay {
+        background: linear-gradient(
+            to bottom,
+            rgba(30, 30, 30, 0.9) 0%,
+            rgba(30, 30, 30, 0.4) 35%,
+            rgba(30, 30, 30, 0.4) 65%,
+            rgba(30, 30, 30, 0.9) 100%
+        );
+    }
+    
+    .scroll-picker-indicator {
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+}
+
+// Alternative dark theme class (for compatibility)
+.dark-theme {
+    .scroll-picker-overlay {
+        background: linear-gradient(
+            to bottom,
+            rgba(30, 30, 30, 0.9) 0%,
+            rgba(30, 30, 30, 0.4) 35%,
+            rgba(30, 30, 30, 0.4) 65%,
+            rgba(30, 30, 30, 0.9) 100%
+        );
+    }
+    
+    .scroll-picker-indicator {
+        border-color: rgba(255, 255, 255, 0.2);
+    }
 }
 
 // Mobile responsive
 @media (max-width: 480px) {
-  .ios-ui-select {
-    position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    transform: none;
-    width: 100%;
-    padding: 0 10px 20px;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    
-    body[data-theme="dark"] & {
-      background: rgba(30, 30, 30, 0.95);
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    .scroll-picker-wrapper {
+        // Mobile optimizations can go here if needed
     }
-    
-    &.open {
-      transform: none;
-    }
-  }
-  
-  .ios-ui-select-options {
-    width: 100%;
-    margin: 10px 0;
-  }
 }

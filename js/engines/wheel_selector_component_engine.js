@@ -52,11 +52,7 @@ class wheel_selector_component_engine {
         // Generate unique ID
         this.id = 'wheel-' + Math.random().toString(36).substr(2, 9);
         
-        // Initialize styles once per class
-        if (!wheel_selector_component_engine.stylesAdded) {
-            wheel_selector_component_engine.addStyles();
-            wheel_selector_component_engine.stylesAdded = true;
-        }
+        // Styles are now handled by SCSS, not injected dynamically
     }
     
     render(containerId) {
@@ -577,114 +573,7 @@ class wheel_selector_component_engine {
             this.setValue(newOptions[0]);
         }
     }
-    
-    static addStyles() {
-        const style = document.createElement('style');
-        style.textContent = `
-            .wheel-selector-wrapper {
-                margin-bottom: var(--input-margin-bottom);
-            }
-            
-            .scroll-picker-wrapper {
-                position: relative;
-                height: 220px;
-                overflow: hidden;
-                background: var(--input-background);
-                user-select: none;
-                border: 1px solid var(--border-color);
-                border-radius: var(--input-border-radius);
-                perspective: 1000px;
-            }
-            
-            .scroll-picker-wrapper:focus {
-                outline: none;
-                border-color: var(--primary-color);
-            }
-            
-            .scroll-picker-wrapper.disabled {
-                opacity: 0.6;
-                pointer-events: none;
-            }
-            
-            .scroll-picker-scene {
-                width: 100%;
-                height: 100%;
-                position: relative;
-                transform-style: preserve-3d;
-            }
-            
-            .scroll-picker-scroller {
-                position: relative;
-                width: 100%;
-                height: 100%;
-                transform-style: preserve-3d;
-                transform: translateZ(-150px) rotateX(0deg);
-            }
-            
-            .scroll-picker-item {
-                position: absolute;
-                width: 100%;
-                height: 44px;
-                line-height: 44px;
-                text-align: center;
-                font-size: 16px;
-                cursor: pointer;
-                backface-visibility: hidden;
-                top: 50%;
-                margin-top: -22px;
-                color: var(--text-color);
-                transition: color 0.2s ease, opacity 0.1s ease;
-            }
-            
-            .scroll-picker-item.selected {
-                color: #007AFF;
-                font-weight: 500;
-            }
-            
-            .scroll-picker-overlay {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                pointer-events: none;
-                background: linear-gradient(
-                    to bottom,
-                    rgba(255, 255, 255, 0.9) 0%,
-                    rgba(255, 255, 255, 0.4) 35%,
-                    rgba(255, 255, 255, 0.4) 65%,
-                    rgba(255, 255, 255, 0.9) 100%
-                );
-            }
-            
-            .dark-theme .scroll-picker-overlay {
-                background: linear-gradient(
-                    to bottom,
-                    rgba(30, 30, 30, 0.9) 0%,
-                    rgba(30, 30, 30, 0.4) 35%,
-                    rgba(30, 30, 30, 0.4) 65%,
-                    rgba(30, 30, 30, 0.9) 100%
-                );
-            }
-            
-            .scroll-picker-indicator {
-                position: absolute;
-                top: 50%;
-                left: 10px;
-                right: 10px;
-                height: 44px;
-                transform: translateY(-50%);
-                pointer-events: none;
-                border-top: 1px solid rgba(0, 0, 0, 0.1);
-                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            }
-            
-            .dark-theme .scroll-picker-indicator {
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-        `;
-        document.head.appendChild(style);
-    }
+
 }
 
 // Export for use
