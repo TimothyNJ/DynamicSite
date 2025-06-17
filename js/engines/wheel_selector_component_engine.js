@@ -103,24 +103,32 @@ class wheel_selector_component_engine {
         
         if (this.options.length === 0) {
             // Empty state
-            const emptyItem = document.createElement('h3');
-            emptyItem.className = 'vue-scroll-picker-item';
-            emptyItem.setAttribute('role', 'option');
-            emptyItem.setAttribute('aria-disabled', 'true');
-            emptyItem.setAttribute('aria-selected', 'false');
-            emptyItem.textContent = this.emptyText;
-            this.rotatorEl.appendChild(emptyItem);
+            const itemContainer = document.createElement('div');
+            itemContainer.className = 'vue-scroll-picker-item';
+            itemContainer.setAttribute('role', 'option');
+            itemContainer.setAttribute('aria-disabled', 'true');
+            itemContainer.setAttribute('aria-selected', 'false');
+            
+            const emptyText = document.createElement('h3');
+            emptyText.textContent = this.emptyText;
+            itemContainer.appendChild(emptyText);
+            
+            this.rotatorEl.appendChild(itemContainer);
         } else {
             // Create option items
             this.options.forEach((option, index) => {
-                const item = document.createElement('h3');
-                item.className = 'vue-scroll-picker-item';
-                item.setAttribute('role', 'option');
-                item.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
-                item.setAttribute('aria-selected', this.internalIndex === index ? 'true' : 'false');
-                item.setAttribute('data-value', option.value ?? '');
-                item.textContent = option.name;
-                this.rotatorEl.appendChild(item);
+                const itemContainer = document.createElement('div');
+                itemContainer.className = 'vue-scroll-picker-item';
+                itemContainer.setAttribute('role', 'option');
+                itemContainer.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
+                itemContainer.setAttribute('aria-selected', this.internalIndex === index ? 'true' : 'false');
+                itemContainer.setAttribute('data-value', option.value ?? '');
+                
+                const itemText = document.createElement('h3');
+                itemText.textContent = option.name;
+                itemContainer.appendChild(itemText);
+                
+                this.rotatorEl.appendChild(itemContainer);
             });
         }
     }

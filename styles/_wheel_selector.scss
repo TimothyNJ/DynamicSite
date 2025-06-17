@@ -40,19 +40,27 @@
 }
 
 .vue-scroll-picker-item {
-    line-height: 1.2em;
-    font-size: var(--component-font-size); // Use same font size as slider
-    padding: var(--component-content-padding); // Use same padding as slider
+    // Container div styles
+    display: flex;
+    justify-content: center;
+    align-items: center;
     transition: all 0.2s ease;
     
-    // Override h3 default margins
-    margin: 0;
-    
-    // Override base h3 styles that cause text truncation (same as slider)
-    white-space: nowrap;
-    overflow: visible;
-    text-overflow: clip;
-    max-width: none;
+    // h3 text inside the container
+    h3 {
+        line-height: 1.2em;
+        font-size: var(--component-font-size); // Use same font size as slider
+        padding: var(--component-content-padding); // Use same padding as slider
+        
+        // Override h3 default margins
+        margin: 0;
+        
+        // Override base h3 styles that cause text truncation (same as slider)
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: none;
+    }
 }
 
 // Text colors now handled by _themes.scss via h3 inheritance
