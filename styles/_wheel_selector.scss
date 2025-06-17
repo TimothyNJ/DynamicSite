@@ -32,6 +32,7 @@
     left: 0;
     right: 0;
     top: calc(50% - 0.6em);
+    text-align: center; // Center the child items horizontally
 }
 
 .vue-scroll-picker-rotator-transition {
@@ -52,10 +53,6 @@
     overflow: visible;
     text-overflow: clip;
     max-width: none;
-    
-    // Fix alignment - items should take full width of container
-    display: block;
-    width: 100%;
 }
 
 // Text colors now handled by _themes.scss via h3 inheritance
