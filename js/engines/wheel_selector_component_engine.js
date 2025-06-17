@@ -56,7 +56,9 @@ class wheel_selector_component_engine {
     
     findInitialIndex() {
         const index = this.options.findIndex(option => option.value == this.value);
-        return Math.max(index, 0);
+        const baseIndex = Math.max(index, 0);
+        // We'll adjust this later to position in the center copy
+        return baseIndex;
     }
     
     createElement() {
@@ -115,21 +117,38 @@ class wheel_selector_component_engine {
             
             this.rotatorEl.appendChild(itemContainer);
         } else {
-            // Create option items
-            this.options.forEach((option, index) => {
-                const itemContainer = document.createElement('div');
-                itemContainer.className = 'vue-scroll-picker-item';
-                itemContainer.setAttribute('role', 'option');
-                itemContainer.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
-                itemContainer.setAttribute('aria-selected', this.internalIndex === index ? 'true' : 'false');
-                itemContainer.setAttribute('data-value', option.value ?? '');
-                
-                const itemText = document.createElement('h3');
-                itemText.textContent = option.name;
-                itemContainer.appendChild(itemText);
-                
-                this.rotatorEl.appendChild(itemContainer);
-            });
+            // Create multiple copies of items for infinite scroll effect
+            const copies = 5; // Number of times to repeat the list
+            const originalLength = this.options.length;
+            
+            for (let copy = 0; copy < copies; copy++) {
+                this.options.forEach((option, originalIndex) => {
+                    const itemContainer = document.createElement('div');
+                    itemContainer.className = 'vue-scroll-picker-item';
+                    itemContainer.setAttribute('role', 'option');
+                    itemContainer.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
+                    
+                    // Calculate actual index in the repeated list
+                    const actualIndex = copy * originalLength + originalIndex;
+                    const isSelected = (actualIndex % originalLength) === (this.internalIndex % originalLength);
+                    
+                    itemContainer.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                    itemContainer.setAttribute('data-value', option.value ?? '');
+                    itemContainer.setAttribute('data-copy', copy);
+                    itemContainer.setAttribute('data-original-index', originalIndex);
+                    
+                    const itemText = document.createElement('h3');
+                    itemText.textContent = option.name;
+                    itemContainer.appendChild(itemText);
+                    
+                    this.rotatorEl.appendChild(itemContainer);
+                });
+            }
+            
+            // Store info about the repeated structure
+            this.copiesCount = copies;
+            this.originalOptionsLength = originalLength;
+            this.centerCopy = Math.floor(copies / 2); // Middle copy for initial positioning
         }
     }
     
@@ -186,7 +205,14 @@ class wheel_selector_component_engine {
         });
         
         this.scrollYMax = Math.max(...this.itemOffsets);
-        this.setScroll(this.findScrollByIndex(this.internalIndex));
+        
+        // For infinite scroll, position at the center copy
+        if (this.originalOptionsLength && this.centerCopy) {
+            const adjustedIndex = this.centerCopy * this.originalOptionsLength + (this.internalIndex % this.originalOptionsLength);
+            this.setScroll(this.findScrollByIndex(adjustedIndex));
+        } else {
+            this.setScroll(this.findScrollByIndex(this.internalIndex));
+        }
     }
     
     findIndexFromScroll(scroll, ignoreDisabled) {
@@ -194,7 +220,8 @@ class wheel_selector_component_engine {
         let foundIndex = 0;
         
         for (const [index, offset] of this.itemOffsets.entries()) {
-            if (!ignoreDisabled && this.options[index]?.disabled) {
+            const originalIndex = index % this.originalOptionsLength;
+            if (!ignoreDisabled && this.options[originalIndex]?.disabled) {
                 continue;
             }
             if (Math.abs(offset - scroll) < minDiff) {
@@ -227,6 +254,24 @@ class wheel_selector_component_engine {
     }
     
     setScroll(scroll) {
+        // Handle infinite scrolling by jumping between copies
+        if (this.originalOptionsLength && this.copiesCount > 1) {
+            const itemHeight = this.itemOffsets[1] - this.itemOffsets[0]; // Approximate item height
+            const listHeight = itemHeight * this.originalOptionsLength;
+            const centerOffset = listHeight * this.centerCopy;
+            
+            // If we've scrolled too far up or down, jump to equivalent position
+            if (scroll < listHeight) {
+                // Jump forward
+                scroll += listHeight;
+                this.scrollOffset += listHeight;
+            } else if (scroll > listHeight * (this.copiesCount - 1)) {
+                // Jump backward
+                scroll -= listHeight;
+                this.scrollOffset -= listHeight;
+            }
+        }
+        
         this.scrollY = scroll;
         
         if (this.scrollRaf) {
@@ -256,24 +301,21 @@ class wheel_selector_component_engine {
     }
     
     handleWheel(e) {
-        if (!this.wheelTimeout && this.scrollY <= 0 && e.deltaY < 0) {
-            return;
-        }
-        if (!this.wheelTimeout && this.scrollY >= this.scrollYMax && e.deltaY > 0) {
-            return;
-        }
+        // Remove boundary checks for infinite scrolling
         if (this.itemOffsets.length === 1) {
             return;
         }
         
         e.preventDefault();
         
+        // No boundary limits for infinite scroll
         const scrollYValue = this.setScroll(
-            this.bounceEffect(this.scrollY + e.deltaY * this.wheelSensitivity, 0, this.scrollYMax)
+            this.scrollY + e.deltaY * this.wheelSensitivity
         );
         
         const nextIndex = this.findIndexFromScroll(scrollYValue, true);
-        const nextOption = this.options[nextIndex];
+        const originalIndex = this.originalOptionsLength ? nextIndex % this.originalOptionsLength : nextIndex;
+        const nextOption = this.options[originalIndex];
         const nextValue = nextOption?.value;
         
         this.emitEvent('wheel', nextValue);
@@ -350,11 +392,7 @@ class wheel_selector_component_engine {
         
         this.emitMove(
             this.setScroll(
-                this.bounceEffect(
-                    this.gestureState[0] + diff * this.touchSensitivity,
-                    0,
-                    this.scrollYMax
-                )
+                this.gestureState[0] + diff * this.touchSensitivity
             )
         );
     }
@@ -378,21 +416,18 @@ class wheel_selector_component_engine {
         
         this.emitMove(
             this.setScroll(
-                this.bounceEffect(
-                    this.gestureState[0] + diff * this.dragSensitivity,
-                    0,
-                    this.scrollYMax
-                )
+                this.gestureState[0] + diff * this.dragSensitivity
             )
         );
     }
     
     emitMove(scrollY) {
         const index = this.findIndexFromScroll(scrollY, true);
-        const value = this.options[index]?.value ?? undefined;
+        const originalIndex = this.originalOptionsLength ? index % this.originalOptionsLength : index;
+        const value = this.options[originalIndex]?.value ?? undefined;
         // Update selection immediately during move for real-time visual feedback
-        if (this.internalIndex !== index) {
-            this.internalIndex = index;
+        if (this.internalIndex !== originalIndex) {
+            this.internalIndex = originalIndex;
             this.updateSelection();
         }
         this.emitEvent('move', value);
@@ -439,9 +474,10 @@ class wheel_selector_component_engine {
     endGesture(isDragging, x, y) {
         if (isDragging) {
             const nextIndex = this.findIndexFromScroll(this.scrollY, false);
-            const nextValue = this.options[nextIndex]?.value ?? null;
+            const originalIndex = this.originalOptionsLength ? nextIndex % this.originalOptionsLength : nextIndex;
+            const nextValue = this.options[originalIndex]?.value ?? null;
             this.scrollTo(this.findScrollByIndex(nextIndex));
-            this.internalIndex = nextIndex;
+            this.internalIndex = originalIndex;
             this.updateSelection(); // Update visual selection when drag ends
             this.emitEvent('end', nextValue);
             this.emitUpdateValue(nextValue);
@@ -536,7 +572,9 @@ class wheel_selector_component_engine {
         // Update aria-selected attributes
         const items = this.rotatorEl.querySelectorAll('.vue-scroll-picker-item');
         items.forEach((item, index) => {
-            item.setAttribute('aria-selected', this.internalIndex === index ? 'true' : 'false');
+            const originalIndex = this.originalOptionsLength ? index % this.originalOptionsLength : index;
+            const isSelected = originalIndex === this.internalIndex;
+            item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
         });
     }
     
