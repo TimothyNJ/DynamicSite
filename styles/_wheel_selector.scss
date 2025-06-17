@@ -8,12 +8,23 @@
     height: 10em;
     overflow: hidden;
     user-select: none;
-    background: rgba(255, 255, 255, 0.05); // Semi-transparent white for dark theme
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(
+        -25deg,
+        var(--light-component-start) 0%,
+        var(--light-component-end) 100%
+    );
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 0.5em;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    
+    // Dark theme styling
+    body[data-theme="dark"] & {
+        background: linear-gradient(
+            -25deg,
+            var(--dark-component-start) 0%,
+            var(--dark-component-end) 100%
+        );
+    }
 }
 
 .vue-scroll-picker-rotator {
@@ -42,46 +53,23 @@
     overflow: visible;
     text-overflow: clip;
     max-width: none;
-    
-    // Theme-specific text colors
-    [data-theme="dark"] & {
-        color: rgba(255, 255, 255, 0.6); // Semi-transparent white for unselected in dark theme
-    }
-    
-    [data-theme="light"] & {
-        color: rgba(0, 0, 0, 0.6); // Semi-transparent black for unselected in light theme
-    }
 }
 
+// Text colors now handled by _themes.scss via h3 inheritance
+// Dark theme: var(--text-color-dark)
+// Light theme: var(--text-color-light)
+
 .vue-scroll-picker-item[aria-selected='true'] {
-    // Selected items need explicit colors for each theme
     transform: scale(1.05);
-    
-    [data-theme="dark"] & {
-        color: #ffffff; // Full white for selected in dark theme
-    }
-    
-    [data-theme="light"] & {
-        color: #000000; // Full black for selected in light theme
-    }
 }
 
 .vue-scroll-picker-item[data-value=''],
 .vue-scroll-picker-item[aria-disabled='true'] {
     opacity: 0.5;
-    
-    [data-theme="dark"] & {
-        color: rgba(255, 255, 255, 0.3);
-    }
-    
-    [data-theme="light"] & {
-        color: rgba(0, 0, 0, 0.3);
-    }
 }
 
 .vue-scroll-picker-item[data-value=''][aria-selected='true'],
 .vue-scroll-picker-item[aria-disabled='true'][aria-selected='true'] {
-    color: var(--text-color-muted);
     opacity: 0.7;
 }
 
@@ -113,8 +101,8 @@
 .vue-scroll-picker-layer-selection {
     top: calc(50% - 1em);
     height: 2em;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
     pointer-events: none;
 }
 
@@ -125,59 +113,36 @@
     cursor: pointer;
 }
 
-// Improved gradient overlays for dark theme
+// Gradient overlays use component start color for depth effect
 [data-theme="dark"] {
-    .vue-scroll-picker {
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
     .vue-scroll-picker-layer-top {
         background: linear-gradient(180deg, 
-            rgba(0, 0, 0, 0.8) 0%, 
-            rgba(0, 0, 0, 0.6) 20%,
-            rgba(0, 0, 0, 0.3) 50%,
-            rgba(0, 0, 0, 0) 100%
+            var(--dark-component-start) 0%, 
+            transparent 100%
         );
     }
     
     .vue-scroll-picker-layer-bottom {
         background: linear-gradient(0deg, 
-            rgba(0, 0, 0, 0.8) 0%, 
-            rgba(0, 0, 0, 0.6) 20%,
-            rgba(0, 0, 0, 0.3) 50%,
-            rgba(0, 0, 0, 0) 100%
+            var(--dark-component-start) 0%, 
+            transparent 100%
         );
     }
 }
 
 [data-theme="light"] {
-    .vue-scroll-picker {
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    
     .vue-scroll-picker-layer-top {
         background: linear-gradient(180deg, 
-            rgba(255, 255, 255, 0.95) 0%, 
-            rgba(255, 255, 255, 0.8) 20%,
-            rgba(255, 255, 255, 0.4) 50%,
-            rgba(255, 255, 255, 0) 100%
+            var(--light-component-start) 0%, 
+            transparent 100%
         );
     }
     
     .vue-scroll-picker-layer-bottom {
         background: linear-gradient(0deg, 
-            rgba(255, 255, 255, 0.95) 0%, 
-            rgba(255, 255, 255, 0.8) 20%,
-            rgba(255, 255, 255, 0.4) 50%,
-            rgba(255, 255, 255, 0) 100%
+            var(--light-component-start) 0%, 
+            transparent 100%
         );
-    }
-    
-    .vue-scroll-picker-layer-selection {
-        border-top: 1px solid rgba(0, 0, 0, 0.2);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.2);
     }
 }
 
@@ -196,13 +161,6 @@
             transparent 100%
         );
     }
-}
-
-// Add iOS-style depth effect
-.vue-scroll-picker {
-    box-shadow: 
-        inset 0 2px 4px rgba(0, 0, 0, 0.1),
-        0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 // Enhance the wheel cylinder effect
