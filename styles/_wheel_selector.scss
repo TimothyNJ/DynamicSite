@@ -57,7 +57,7 @@
     h3 {
         line-height: 1.2em;
         font-size: var(--component-font-size); // Use same font size as slider
-        padding: var(--component-content-padding); // Use same padding as slider
+        padding: 2px; // Tighter padding: 2px all around
         
         // Override h3 default margins
         margin: 0;
