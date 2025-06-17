@@ -11,16 +11,34 @@
 </div>
 
 <script type="module">
-    // Import will be handled by component loader, but we need to set up the year picker
-    window.wheelSelectorConfig = {
-        // Generate years array (100 years back from 2025)
-        options: Array.from({length: 100}, (_, i) => 2025 - i),
-        defaultValue: 2025,
-        label: 'Select Year',
-        storageKey: 'selectedYear',
-        onChange: (year) => {
-            document.getElementById('selectedYear').textContent = year;
-            console.log('Selected year:', year);
+    // Initialize wheel selector when ComponentFactory is available
+    function initializeWheelSelector() {
+        if (window.componentFactory) {
+            console.log('[Progress Page] Initializing wheel selector');
+            
+            const wheelSelector = window.componentFactory.createWheelSelector('wheel-selector-test-container', {
+                // Generate years array (100 years back from 2025)
+                options: Array.from({length: 100}, (_, i) => 2025 - i),
+                defaultValue: 2025,
+                label: 'Select Year',
+                storageKey: 'selectedYear',
+                onChange: (year) => {
+                    document.getElementById('selectedYear').textContent = year;
+                    console.log('Selected year:', year);
+                }
+            });
+            
+            if (wheelSelector) {
+                console.log('[Progress Page] Wheel selector created successfully');
+            } else {
+                console.error('[Progress Page] Failed to create wheel selector');
+            }
+        } else {
+            // Try again in a moment
+            setTimeout(initializeWheelSelector, 100);
         }
-    };
+    }
+    
+    // Start initialization
+    initializeWheelSelector();
 </script>

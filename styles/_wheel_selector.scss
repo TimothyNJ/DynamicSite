@@ -8,10 +8,12 @@
     height: 10em;
     overflow: hidden;
     user-select: none;
-    background: var(--component-background);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    background: rgba(255, 255, 255, 0.05); // Semi-transparent white for dark theme
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
     padding: 0.5em;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .vue-scroll-picker-rotator {
@@ -28,19 +30,21 @@
 .vue-scroll-picker-item {
     text-align: center;
     line-height: 1.2em;
-    color: var(--text-color);
+    color: rgba(255, 255, 255, 0.6); // Semi-transparent white for unselected
     font-size: 1em;
     padding: 0.2em 0;
+    transition: all 0.2s ease;
 }
 
 .vue-scroll-picker-item[aria-selected='true'] {
-    color: var(--active-button-start);
+    color: #ffffff; // White for selected item
     font-weight: 600;
+    font-size: 1.1em;
 }
 
 .vue-scroll-picker-item[data-value=''],
 .vue-scroll-picker-item[aria-disabled='true'] {
-    color: var(--text-color-muted);
+    color: rgba(255, 255, 255, 0.3);
     opacity: 0.5;
 }
 
@@ -78,8 +82,8 @@
 .vue-scroll-picker-layer-selection {
     top: calc(50% - 1em);
     height: 2em;
-    border-top: 1px solid var(--active-button-start);
-    border-bottom: 1px solid var(--active-button-start);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     pointer-events: none;
 }
 
@@ -90,33 +94,43 @@
     cursor: pointer;
 }
 
-// Theme-aware gradient overlays
+// Improved gradient overlays for dark theme
 [data-theme="dark"] {
+    .vue-scroll-picker {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
     .vue-scroll-picker-layer-top {
         background: linear-gradient(180deg, 
-            rgba(30, 30, 30, 0.95) 0%, 
-            rgba(30, 30, 30, 0.8) 30%,
-            rgba(30, 30, 30, 0.4) 70%,
-            rgba(30, 30, 30, 0) 100%
+            rgba(0, 0, 0, 0.8) 0%, 
+            rgba(0, 0, 0, 0.6) 20%,
+            rgba(0, 0, 0, 0.3) 50%,
+            rgba(0, 0, 0, 0) 100%
         );
     }
     
     .vue-scroll-picker-layer-bottom {
         background: linear-gradient(0deg, 
-            rgba(30, 30, 30, 0.95) 0%, 
-            rgba(30, 30, 30, 0.8) 30%,
-            rgba(30, 30, 30, 0.4) 70%,
-            rgba(30, 30, 30, 0) 100%
+            rgba(0, 0, 0, 0.8) 0%, 
+            rgba(0, 0, 0, 0.6) 20%,
+            rgba(0, 0, 0, 0.3) 50%,
+            rgba(0, 0, 0, 0) 100%
         );
     }
 }
 
 [data-theme="light"] {
+    .vue-scroll-picker {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
     .vue-scroll-picker-layer-top {
         background: linear-gradient(180deg, 
             rgba(255, 255, 255, 0.95) 0%, 
-            rgba(255, 255, 255, 0.8) 30%,
-            rgba(255, 255, 255, 0.4) 70%,
+            rgba(255, 255, 255, 0.8) 20%,
+            rgba(255, 255, 255, 0.4) 50%,
             rgba(255, 255, 255, 0) 100%
         );
     }
@@ -124,14 +138,27 @@
     .vue-scroll-picker-layer-bottom {
         background: linear-gradient(0deg, 
             rgba(255, 255, 255, 0.95) 0%, 
-            rgba(255, 255, 255, 0.8) 30%,
-            rgba(255, 255, 255, 0.4) 70%,
+            rgba(255, 255, 255, 0.8) 20%,
+            rgba(255, 255, 255, 0.4) 50%,
             rgba(255, 255, 255, 0) 100%
         );
     }
+    
+    .vue-scroll-picker-item {
+        color: #333;
+    }
+    
+    .vue-scroll-picker-item[aria-selected='true'] {
+        color: #000;
+    }
+    
+    .vue-scroll-picker-layer-selection {
+        border-top: 1px solid rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    }
 }
 
-// Add some styling to make it more visible
+// Add subtle highlight for selection area
 .vue-scroll-picker-layer-selection {
     &::before {
         content: '';
@@ -140,7 +167,27 @@
         right: 0;
         top: 0;
         bottom: 0;
-        background: var(--active-button-start);
-        opacity: 0.05;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(255, 255, 255, 0.05) 50%, 
+            transparent 100%
+        );
     }
+}
+
+// Add iOS-style depth effect
+.vue-scroll-picker {
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+// Enhance the wheel cylinder effect
+.vue-scroll-picker-rotator {
+    will-change: transform;
+}
+
+// Add subtle animation to selection
+.vue-scroll-picker-item[aria-selected='true'] {
+    transform: scale(1.05);
 }
