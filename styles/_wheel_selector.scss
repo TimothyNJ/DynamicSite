@@ -42,17 +42,41 @@
     overflow: visible;
     text-overflow: clip;
     max-width: none;
+    
+    // Theme-specific text colors
+    [data-theme="dark"] & {
+        color: rgba(255, 255, 255, 0.6); // Semi-transparent white for unselected in dark theme
+    }
+    
+    [data-theme="light"] & {
+        color: rgba(0, 0, 0, 0.6); // Semi-transparent black for unselected in light theme
+    }
 }
 
 .vue-scroll-picker-item[aria-selected='true'] {
-    // Selected items inherit color from h3 base styles
-    // Only need to specify the slight size increase
+    // Selected items need explicit colors for each theme
     transform: scale(1.05);
+    
+    [data-theme="dark"] & {
+        color: #ffffff; // Full white for selected in dark theme
+    }
+    
+    [data-theme="light"] & {
+        color: #000000; // Full black for selected in light theme
+    }
 }
 
 .vue-scroll-picker-item[data-value=''],
 .vue-scroll-picker-item[aria-disabled='true'] {
     opacity: 0.5;
+    
+    [data-theme="dark"] & {
+        color: rgba(255, 255, 255, 0.3);
+    }
+    
+    [data-theme="light"] & {
+        color: rgba(0, 0, 0, 0.3);
+    }
 }
 
 .vue-scroll-picker-item[data-value=''][aria-selected='true'],
