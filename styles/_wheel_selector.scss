@@ -30,20 +30,28 @@
 .vue-scroll-picker-item {
     text-align: center;
     line-height: 1.2em;
-    color: rgba(255, 255, 255, 0.6); // Semi-transparent white for unselected
-    font-size: 1em;
-    padding: 0.2em 0;
+    font-size: var(--component-font-size); // Use same font size as slider
+    padding: var(--component-content-padding); // Use same padding as slider
     transition: all 0.2s ease;
+    
+    // Override h3 default margins
+    margin: 0;
+    
+    // Override base h3 styles that cause text truncation (same as slider)
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
 }
 
 .vue-scroll-picker-item[aria-selected='true'] {
-    color: #ffffff; // White for selected item
-    font-size: 1.1em;
+    // Selected items inherit color from h3 base styles
+    // Only need to specify the slight size increase
+    transform: scale(1.05);
 }
 
 .vue-scroll-picker-item[data-value=''],
 .vue-scroll-picker-item[aria-disabled='true'] {
-    color: rgba(255, 255, 255, 0.3);
     opacity: 0.5;
 }
 
@@ -143,14 +151,6 @@
         );
     }
     
-    .vue-scroll-picker-item {
-        color: #333;
-    }
-    
-    .vue-scroll-picker-item[aria-selected='true'] {
-        color: #000;
-    }
-    
     .vue-scroll-picker-layer-selection {
         border-top: 1px solid rgba(0, 0, 0, 0.2);
         border-bottom: 1px solid rgba(0, 0, 0, 0.2);
@@ -184,9 +184,4 @@
 // Enhance the wheel cylinder effect
 .vue-scroll-picker-rotator {
     will-change: transform;
-}
-
-// Add subtle animation to selection
-.vue-scroll-picker-item[aria-selected='true'] {
-    transform: scale(1.05);
 }

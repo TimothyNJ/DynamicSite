@@ -103,7 +103,7 @@ class wheel_selector_component_engine {
         
         if (this.options.length === 0) {
             // Empty state
-            const emptyItem = document.createElement('div');
+            const emptyItem = document.createElement('h3');
             emptyItem.className = 'vue-scroll-picker-item';
             emptyItem.setAttribute('role', 'option');
             emptyItem.setAttribute('aria-disabled', 'true');
@@ -113,7 +113,7 @@ class wheel_selector_component_engine {
         } else {
             // Create option items
             this.options.forEach((option, index) => {
-                const item = document.createElement('div');
+                const item = document.createElement('h3');
                 item.className = 'vue-scroll-picker-item';
                 item.setAttribute('role', 'option');
                 item.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
