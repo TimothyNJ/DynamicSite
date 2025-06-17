@@ -271,6 +271,7 @@ class wheel_selector_component_engine {
         if (nextOption && !nextOption.disabled) {
             this.internalIndex = nextIndex;
             this.emitUpdateValue(nextValue);
+            this.updateSelection(); // Update visual selection immediately
         }
         
         if (this.wheelTimeout) {
@@ -278,7 +279,10 @@ class wheel_selector_component_engine {
         }
         
         this.wheelTimeout = setTimeout(() => {
-            this.scrollTo(this.findScrollByIndex(this.findIndexFromScroll(scrollYValue, false)));
+            const finalIndex = this.findIndexFromScroll(scrollYValue, false);
+            this.internalIndex = finalIndex;
+            this.scrollTo(this.findScrollByIndex(finalIndex));
+            this.updateSelection(); // Update visual selection after scroll settles
             this.wheelTimeout = null;
         }, 100);
     }
@@ -376,6 +380,11 @@ class wheel_selector_component_engine {
     emitMove(scrollY) {
         const index = this.findIndexFromScroll(scrollY, true);
         const value = this.options[index]?.value ?? undefined;
+        // Update selection immediately during move for real-time visual feedback
+        if (this.internalIndex !== index) {
+            this.internalIndex = index;
+            this.updateSelection();
+        }
         this.emitEvent('move', value);
     }
     
@@ -423,6 +432,7 @@ class wheel_selector_component_engine {
             const nextValue = this.options[nextIndex]?.value ?? null;
             this.scrollTo(this.findScrollByIndex(nextIndex));
             this.internalIndex = nextIndex;
+            this.updateSelection(); // Update visual selection when drag ends
             this.emitEvent('end', nextValue);
             this.emitUpdateValue(nextValue);
         } else {
