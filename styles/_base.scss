@@ -64,6 +64,7 @@ h1, h2, h3, p, button, span, a {
 h1, h2, h3, p {
   font-family: var(--font-family-primary);
   color: var(--text-color-dark);
+  text-align: center; // Center all text elements by default
 }
 
 h1 {
@@ -76,7 +77,6 @@ h2 {
   font-size: var(--h2-font-size);
   margin: calc(0.03vw + 0.03vh);
   font-weight: bold;
-  text-align: center; // All h2 elements centered by default
 }
 
 h3 {
@@ -229,9 +229,4 @@ p {
 // ==============================================
 // Home Page Specific Styles
 // ==============================================
-#page-content > h1,
-#page-content > h2,
-#page-content > h3,
-#page-content > p {
-  text-align: center;
-}
+// Text elements are already centered at root level
