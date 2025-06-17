@@ -3,8 +3,12 @@
 // Theme-aware implementation
 
 .vue-scroll-picker {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     position: relative;
-    width: fit-content; // Container sizes to content, not 100%
+    width: fit-content;
     height: 10em;
     overflow: hidden;
     user-select: none;
@@ -29,16 +33,17 @@
 }
 
 .vue-scroll-picker-rotator {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%); // Center horizontally
-    top: calc(50% - 0.6em);
-    text-align: center; // Center the child items horizontally
-    width: fit-content; // Size to content
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative; // Changed from absolute
+    transform: translateY(calc(50% - 0.6em)); // Vertical positioning
+    width: fit-content;
+    transition: transform ease 150ms; // For smooth scrolling
 }
 
 .vue-scroll-picker-rotator-transition {
-    transition: top ease 150ms;
+    // Transition now handled by main rotator class
 }
 
 .vue-scroll-picker-item {

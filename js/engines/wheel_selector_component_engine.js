@@ -235,9 +235,9 @@ class wheel_selector_component_engine {
         
         this.scrollRaf = requestAnimationFrame(() => {
             if (this.rotatorEl) {
-                this.rotatorEl.style.top = `${this.scrollOffset - scroll}px`;
-                // Keep horizontal centering when updating vertical position
-                this.rotatorEl.style.transform = 'translateX(-50%)';
+                // Use transform for vertical positioning with flexbox
+                const translateY = this.scrollOffset - scroll;
+                this.rotatorEl.style.transform = `translateY(${translateY}px)`;
             }
             this.scrollRaf = null;
         });
