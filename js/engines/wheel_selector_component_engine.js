@@ -75,11 +75,14 @@ class wheel_selector_component_engine {
         container.className = 'vue-scroll-picker vue-scroll-picker-3d';
         container.style.perspective = `${this.perspective}px`;
         
-        // 3D drum container
+        // 3D drum container - position it in the center
         this.drum = document.createElement('div');
         this.drum.className = 'vue-scroll-picker-drum';
         this.drum.setAttribute('role', 'listbox');
         this.drum.style.transformStyle = 'preserve-3d';
+        this.drum.style.position = 'relative';
+        this.drum.style.width = '100%';
+        this.drum.style.height = '100%';
         
         // Create initial visible items
         this.updateVisibleItems();
@@ -121,6 +124,10 @@ class wheel_selector_component_engine {
         itemContainer.setAttribute('role', 'option');
         itemContainer.style.position = 'absolute';
         itemContainer.style.width = '100%';
+        itemContainer.style.height = `${this.itemHeight}px`;
+        itemContainer.style.left = '0';
+        itemContainer.style.top = '50%';
+        itemContainer.style.marginTop = `-${this.itemHeight / 2}px`;
         itemContainer.style.transformOrigin = 'center center';
         itemContainer.style.backfaceVisibility = 'hidden';
         
@@ -253,6 +260,11 @@ class wheel_selector_component_engine {
         
         // Initial positioning
         this.setAngle(-this.currentIndex * this.anglePerItem);
+        
+        // Notify initial value
+        if (this.value !== null && this.onChange) {
+            this.onChange(this.value);
+        }
     }
     
     setAngle(angle, animate = false) {
