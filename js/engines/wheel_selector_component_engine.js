@@ -1,6 +1,6 @@
 // wheel_selector_component_engine.js
-// Complete implementation of vue-scroll-picker without Vue dependency
-// Retains all functionality: momentum, elasticity, animations, gestures
+// True 3D infinite scrolling wheel with dynamic repositioning
+// Creates illusion of numbers painted on a rotating drum
 
 class wheel_selector_component_engine {
     constructor(options = {}, onChange = null) {
@@ -13,16 +13,26 @@ class wheel_selector_component_engine {
         this.emptyText = options.emptyText || 'No Options Available';
         this.onChange = onChange || options.onChange || (() => {});
         
+        // 3D Configuration
+        this.visibleItems = 7; // Items visible in viewport
+        this.bufferItems = 2; // Extra items above/below for smooth scrolling
+        this.itemHeight = 30; // Height of each item
+        this.perspective = 300; // Perspective distance in pixels
+        
+        // Calculate radius and angle
+        const circumference = this.visibleItems * this.itemHeight;
+        this.radius = circumference / (2 * Math.PI);
+        this.anglePerItem = 360 / this.visibleItems;
+        
         // State
-        this.internalIndex = this.findInitialIndex();
+        this.currentAngle = 0; // Current rotation angle of drum
+        this.currentIndex = this.findInitialIndex();
+        this.itemPool = new Map(); // Pool of DOM elements to reuse
+        this.activeItems = new Map(); // Currently visible items
         this.transitionTimeout = null;
-        this.itemOffsets = [];
-        this.scrollOffset = 0;
-        this.scrollY = 0;
-        this.scrollYMax = 0;
         this.gestureState = null;
         this.wheelTimeout = null;
-        this.scrollRaf = null;
+        this.animationFrame = null;
         this.resizeObserver = null;
         
         // Event options for better performance
@@ -56,23 +66,23 @@ class wheel_selector_component_engine {
     
     findInitialIndex() {
         const index = this.options.findIndex(option => option.value == this.value);
-        const baseIndex = Math.max(index, 0);
-        // We'll adjust this later to position in the center copy
-        return baseIndex;
+        return Math.max(index, 0);
     }
     
     createElement() {
-        // Main container
+        // Main container with perspective
         const container = document.createElement('div');
-        container.className = 'vue-scroll-picker';
+        container.className = 'vue-scroll-picker vue-scroll-picker-3d';
+        container.style.perspective = `${this.perspective}px`;
         
-        // Rotator (contains items)
-        this.rotatorEl = document.createElement('div');
-        this.rotatorEl.className = 'vue-scroll-picker-rotator';
-        this.rotatorEl.setAttribute('role', 'listbox');
+        // 3D drum container
+        this.drum = document.createElement('div');
+        this.drum.className = 'vue-scroll-picker-drum';
+        this.drum.setAttribute('role', 'listbox');
+        this.drum.style.transformStyle = 'preserve-3d';
         
-        // Create items
-        this.updateItems();
+        // Create initial visible items
+        this.updateVisibleItems();
         
         // Layer container
         const layerContainer = document.createElement('div');
@@ -93,18 +103,38 @@ class wheel_selector_component_engine {
         layerContainer.appendChild(this.layerSelectionEl);
         layerContainer.appendChild(this.layerBottomEl);
         
-        container.appendChild(this.rotatorEl);
+        container.appendChild(this.drum);
         container.appendChild(layerContainer);
         
         return container;
     }
     
-    updateItems() {
-        // Clear existing items
-        this.rotatorEl.innerHTML = '';
+    getOrCreateItem(index) {
+        // Reuse existing item from pool if available
+        if (this.itemPool.has(index)) {
+            return this.itemPool.get(index);
+        }
         
+        // Create new item
+        const itemContainer = document.createElement('div');
+        itemContainer.className = 'vue-scroll-picker-item vue-scroll-picker-item-3d';
+        itemContainer.setAttribute('role', 'option');
+        itemContainer.style.position = 'absolute';
+        itemContainer.style.width = '100%';
+        itemContainer.style.transformOrigin = 'center center';
+        itemContainer.style.backfaceVisibility = 'hidden';
+        
+        const itemText = document.createElement('h3');
+        itemContainer.appendChild(itemText);
+        
+        this.itemPool.set(index, itemContainer);
+        return itemContainer;
+    }
+    
+    updateVisibleItems() {
         if (this.options.length === 0) {
             // Empty state
+            this.drum.innerHTML = '';
             const itemContainer = document.createElement('div');
             itemContainer.className = 'vue-scroll-picker-item';
             itemContainer.setAttribute('role', 'option');
@@ -115,40 +145,89 @@ class wheel_selector_component_engine {
             emptyText.textContent = this.emptyText;
             itemContainer.appendChild(emptyText);
             
-            this.rotatorEl.appendChild(itemContainer);
-        } else {
-            // Create multiple copies of items for infinite scroll effect
-            const copies = 5; // Number of times to repeat the list
-            const originalLength = this.options.length;
-            
-            for (let copy = 0; copy < copies; copy++) {
-                this.options.forEach((option, originalIndex) => {
-                    const itemContainer = document.createElement('div');
-                    itemContainer.className = 'vue-scroll-picker-item';
-                    itemContainer.setAttribute('role', 'option');
-                    itemContainer.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
-                    
-                    // Calculate actual index in the repeated list
-                    const actualIndex = copy * originalLength + originalIndex;
-                    const isSelected = (actualIndex % originalLength) === (this.internalIndex % originalLength);
-                    
-                    itemContainer.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-                    itemContainer.setAttribute('data-value', option.value ?? '');
-                    itemContainer.setAttribute('data-copy', copy);
-                    itemContainer.setAttribute('data-original-index', originalIndex);
-                    
-                    const itemText = document.createElement('h3');
-                    itemText.textContent = option.name;
-                    itemContainer.appendChild(itemText);
-                    
-                    this.rotatorEl.appendChild(itemContainer);
-                });
+            this.drum.appendChild(itemContainer);
+            return;
+        }
+        
+        // Calculate which items should be visible
+        const centerAngle = this.currentAngle;
+        const visibleRange = Math.floor(this.visibleItems / 2) + this.bufferItems;
+        
+        // Determine which logical indices need to be displayed
+        const centerLogicalIndex = Math.round(centerAngle / this.anglePerItem);
+        const startLogicalIndex = centerLogicalIndex - visibleRange;
+        const endLogicalIndex = centerLogicalIndex + visibleRange;
+        
+        // Remove items that are no longer visible
+        for (const [logicalIndex, element] of this.activeItems) {
+            if (logicalIndex < startLogicalIndex || logicalIndex > endLogicalIndex) {
+                element.remove();
+                this.activeItems.delete(logicalIndex);
             }
+        }
+        
+        // Add/update visible items
+        for (let logicalIndex = startLogicalIndex; logicalIndex <= endLogicalIndex; logicalIndex++) {
+            // Calculate which option this logical index represents
+            const optionIndex = this.getOptionIndex(logicalIndex);
+            const option = this.options[optionIndex];
             
-            // Store info about the repeated structure
-            this.copiesCount = copies;
-            this.originalOptionsLength = originalLength;
-            this.centerCopy = Math.floor(copies / 2); // Middle copy for initial positioning
+            if (!option) continue;
+            
+            // Get or create item element
+            const item = this.getOrCreateItem(logicalIndex);
+            const itemText = item.querySelector('h3');
+            
+            // Update content
+            itemText.textContent = option.name;
+            item.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
+            item.setAttribute('aria-selected', optionIndex === this.currentIndex ? 'true' : 'false');
+            item.setAttribute('data-value', option.value ?? '');
+            item.setAttribute('data-logical-index', logicalIndex);
+            item.setAttribute('data-option-index', optionIndex);
+            
+            // Position on cylinder
+            const itemAngle = logicalIndex * this.anglePerItem;
+            const relativeAngle = itemAngle - centerAngle;
+            
+            // Calculate opacity based on position (fade items rotating away)
+            const normalizedAngle = ((relativeAngle % 360) + 360) % 360;
+            const opacity = this.calculateOpacity(normalizedAngle);
+            
+            // Apply 3D transform
+            item.style.transform = `
+                rotateX(${itemAngle}deg)
+                translateZ(${this.radius}px)
+            `;
+            item.style.opacity = opacity;
+            
+            // Add to drum if not already there
+            if (!this.activeItems.has(logicalIndex)) {
+                this.drum.appendChild(item);
+                this.activeItems.set(logicalIndex, item);
+            }
+        }
+    }
+    
+    getOptionIndex(logicalIndex) {
+        // Handle negative indices and wrap around
+        const optionsLength = this.options.length;
+        return ((logicalIndex % optionsLength) + optionsLength) % optionsLength;
+    }
+    
+    calculateOpacity(angle) {
+        // Normalize angle to [0, 360)
+        angle = ((angle % 360) + 360) % 360;
+        
+        // Items facing viewer (around 0 or 360 degrees) are fully visible
+        // Items rotating away fade out
+        if (angle <= 90 || angle >= 270) {
+            // Front-facing hemisphere
+            const distance = angle <= 90 ? angle : 360 - angle;
+            return 1 - (distance / 90) * 0.5; // Fade to 0.5 opacity at edges
+        } else {
+            // Back-facing hemisphere - hide completely
+            return 0;
         }
     }
     
@@ -160,181 +239,106 @@ class wheel_selector_component_engine {
         
         // Setup resize observer
         if (typeof window.ResizeObserver !== 'undefined') {
-            let raf = null;
             this.resizeObserver = new window.ResizeObserver(() => {
-                if (raf) {
-                    cancelAnimationFrame(raf);
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
                 }
-                raf = requestAnimationFrame(() => {
-                    this.updateItemOffsets();
-                    raf = null;
+                this.animationFrame = requestAnimationFrame(() => {
+                    this.updateVisibleItems();
+                    this.animationFrame = null;
                 });
             });
             this.resizeObserver.observe(this.element);
-        } else {
-            this.updateItemOffsets();
         }
         
         // Initial positioning
-        this.updateItemOffsets();
+        this.setAngle(-this.currentIndex * this.anglePerItem);
     }
     
-    updateItemOffsets() {
-        const rotatorEl = this.rotatorEl;
-        const layerSelectionEl = this.layerSelectionEl;
+    setAngle(angle, animate = false) {
+        this.currentAngle = angle;
         
-        if (!rotatorEl || !layerSelectionEl) {
-            return;
+        if (animate && !this.transitionTimeout) {
+            this.drum.classList.add('vue-scroll-picker-drum-transition');
+            this.transitionTimeout = setTimeout(() => {
+                this.drum.classList.remove('vue-scroll-picker-drum-transition');
+                this.transitionTimeout = null;
+            }, 300);
         }
         
-        // Set scrollOffset
-        const { top: selTop, bottom: selBottom } = layerSelectionEl.getBoundingClientRect();
-        const elTop = this.element?.getBoundingClientRect().top ?? 0;
-        this.scrollOffset = (selTop + selBottom) / 2 - elTop;
+        // Apply rotation to drum
+        this.drum.style.transform = `rotateX(${-angle}deg)`;
         
-        // Calculate item offsets
-        let firstItemOffset = 0;
-        this.itemOffsets = Array.from(rotatorEl.children).map((itemEl, index) => {
-            const { top, bottom } = itemEl.getBoundingClientRect();
-            const itemOffset = (top + bottom) / 2;
-            if (index === 0) {
-                this.scrollOffset -= itemOffset - top;
-                firstItemOffset = itemOffset;
-            }
-            return itemOffset - firstItemOffset;
-        });
+        // Update visible items
+        this.updateVisibleItems();
         
-        this.scrollYMax = Math.max(...this.itemOffsets);
-        
-        // For infinite scroll, position at the center copy
-        if (this.originalOptionsLength && this.centerCopy) {
-            const adjustedIndex = this.centerCopy * this.originalOptionsLength + (this.internalIndex % this.originalOptionsLength);
-            this.setScroll(this.findScrollByIndex(adjustedIndex));
-        } else {
-            this.setScroll(this.findScrollByIndex(this.internalIndex));
+        // Determine current selected index
+        const newIndex = this.getOptionIndex(Math.round(angle / this.anglePerItem));
+        if (newIndex !== this.currentIndex && !this.options[newIndex]?.disabled) {
+            this.currentIndex = newIndex;
+            this.value = this.options[newIndex].value;
+            this.updateSelection();
         }
     }
     
-    findIndexFromScroll(scroll, ignoreDisabled) {
-        let minDiff = Infinity;
-        let foundIndex = 0;
+    snapToNearestItem(animate = true) {
+        // Find nearest item angle
+        const nearestLogicalIndex = Math.round(this.currentAngle / this.anglePerItem);
+        const targetAngle = nearestLogicalIndex * this.anglePerItem;
         
-        for (const [index, offset] of this.itemOffsets.entries()) {
-            const originalIndex = index % this.originalOptionsLength;
-            if (!ignoreDisabled && this.options[originalIndex]?.disabled) {
-                continue;
-            }
-            if (Math.abs(offset - scroll) < minDiff) {
-                minDiff = Math.abs(offset - scroll);
-                foundIndex = index;
-            }
-        }
-        
-        return foundIndex;
-    }
-    
-    findScrollByIndex(index) {
-        return this.itemOffsets[Math.min(Math.max(index, 0), this.itemOffsets.length - 1)];
-    }
-    
-    scrollTo(scroll) {
-        this.setScroll(scroll);
-        
-        if (this.transitionTimeout) {
-            clearTimeout(this.transitionTimeout);
-        }
-        
-        // Add transition class
-        this.rotatorEl.classList.add('vue-scroll-picker-rotator-transition');
-        
-        this.transitionTimeout = setTimeout(() => {
-            this.rotatorEl.classList.remove('vue-scroll-picker-rotator-transition');
-            this.transitionTimeout = null;
-        }, 150);
-    }
-    
-    setScroll(scroll) {
-        // Handle infinite scrolling by jumping between copies
-        if (this.originalOptionsLength && this.copiesCount > 1) {
-            const itemHeight = this.itemOffsets[1] - this.itemOffsets[0]; // Approximate item height
-            const listHeight = itemHeight * this.originalOptionsLength;
-            const centerOffset = listHeight * this.centerCopy;
+        // Check if the option at this position is disabled
+        const optionIndex = this.getOptionIndex(nearestLogicalIndex);
+        if (this.options[optionIndex]?.disabled) {
+            // Find next non-disabled option
+            let searchIndex = nearestLogicalIndex;
+            let found = false;
             
-            // If we've scrolled too far up or down, jump to equivalent position
-            if (scroll < listHeight) {
-                // Jump forward
-                scroll += listHeight;
-                this.scrollOffset += listHeight;
-            } else if (scroll > listHeight * (this.copiesCount - 1)) {
-                // Jump backward
-                scroll -= listHeight;
-                this.scrollOffset -= listHeight;
+            // Search forward then backward
+            for (let offset = 1; offset < this.options.length; offset++) {
+                const forwardIndex = this.getOptionIndex(nearestLogicalIndex + offset);
+                const backwardIndex = this.getOptionIndex(nearestLogicalIndex - offset);
+                
+                if (!this.options[forwardIndex]?.disabled) {
+                    searchIndex = nearestLogicalIndex + offset;
+                    found = true;
+                    break;
+                }
+                if (!this.options[backwardIndex]?.disabled) {
+                    searchIndex = nearestLogicalIndex - offset;
+                    found = true;
+                    break;
+                }
+            }
+            
+            if (found) {
+                this.setAngle(searchIndex * this.anglePerItem, animate);
+                return;
             }
         }
         
-        this.scrollY = scroll;
-        
-        if (this.scrollRaf) {
-            cancelAnimationFrame(this.scrollRaf);
-        }
-        
-        this.scrollRaf = requestAnimationFrame(() => {
-            if (this.rotatorEl) {
-                // Use transform for vertical positioning with flexbox
-                const translateY = this.scrollOffset - scroll;
-                this.rotatorEl.style.transform = `translateY(${translateY}px)`;
-            }
-            this.scrollRaf = null;
-        });
-        
-        return scroll;
-    }
-    
-    bounceEffect(value, min, max, tension = 0.2) {
-        if (value < min) {
-            return min + (value - min) * tension;
-        }
-        if (value > max) {
-            return max + (value - max) * tension;
-        }
-        return value;
+        this.setAngle(targetAngle, animate);
     }
     
     handleWheel(e) {
-        // Remove boundary checks for infinite scrolling
-        if (this.itemOffsets.length === 1) {
+        if (this.options.length <= 1) {
             return;
         }
         
         e.preventDefault();
         
-        // No boundary limits for infinite scroll
-        const scrollYValue = this.setScroll(
-            this.scrollY + e.deltaY * this.wheelSensitivity
-        );
+        // Update angle based on wheel delta
+        const deltaAngle = (e.deltaY * this.wheelSensitivity) / 2;
+        this.setAngle(this.currentAngle + deltaAngle);
         
-        const nextIndex = this.findIndexFromScroll(scrollYValue, true);
-        const originalIndex = this.originalOptionsLength ? nextIndex % this.originalOptionsLength : nextIndex;
-        const nextOption = this.options[originalIndex];
-        const nextValue = nextOption?.value;
-        
-        this.emitEvent('wheel', nextValue);
-        
-        if (nextOption && !nextOption.disabled) {
-            this.internalIndex = nextIndex;
-            this.emitUpdateValue(nextValue);
-            this.updateSelection(); // Update visual selection immediately
-        }
-        
+        // Clear existing timeout
         if (this.wheelTimeout) {
             clearTimeout(this.wheelTimeout);
         }
         
+        // Snap to nearest item after scrolling stops
         this.wheelTimeout = setTimeout(() => {
-            const finalIndex = this.findIndexFromScroll(scrollYValue, false);
-            this.internalIndex = finalIndex;
-            this.scrollTo(this.findScrollByIndex(finalIndex));
-            this.updateSelection(); // Update visual selection after scroll settles
+            this.snapToNearestItem();
+            this.emitUpdateValue(this.value);
             this.wheelTimeout = null;
         }, 100);
     }
@@ -348,7 +352,12 @@ class wheel_selector_component_engine {
             e.preventDefault();
         }
         
-        this.gestureState = [this.scrollY, e.touches[0].clientY, false];
+        this.gestureState = {
+            startAngle: this.currentAngle,
+            startY: e.touches[0].clientY,
+            isDragging: false
+        };
+        
         this.emitEvent('start');
         
         document.addEventListener('touchmove', this.handleTouchMove, this.eventOptions);
@@ -365,7 +374,12 @@ class wheel_selector_component_engine {
             e.preventDefault();
         }
         
-        this.gestureState = [this.scrollY, e.clientY, false];
+        this.gestureState = {
+            startAngle: this.currentAngle,
+            startY: e.clientY,
+            isDragging: false
+        };
+        
         this.emitEvent('start');
         
         document.addEventListener('mousemove', this.handleMouseMove, this.eventOptions);
@@ -382,19 +396,17 @@ class wheel_selector_component_engine {
             e.preventDefault();
         }
         
-        const diff = this.gestureState[1] - e.touches[0].clientY;
+        const deltaY = this.gestureState.startY - e.touches[0].clientY;
         
-        if (Math.abs(diff) > 1.5) {
-            const nextGestureState = this.gestureState.slice();
-            nextGestureState[2] = true;
-            this.gestureState = nextGestureState;
+        if (Math.abs(deltaY) > 1.5) {
+            this.gestureState.isDragging = true;
         }
         
-        this.emitMove(
-            this.setScroll(
-                this.gestureState[0] + diff * this.touchSensitivity
-            )
-        );
+        // Convert pixel movement to rotation angle
+        const deltaAngle = (deltaY * this.touchSensitivity) / 2;
+        this.setAngle(this.gestureState.startAngle + deltaAngle);
+        
+        this.emitEvent('move', this.value);
     }
     
     handleMouseMove = (e) => {
@@ -406,31 +418,17 @@ class wheel_selector_component_engine {
             e.preventDefault();
         }
         
-        const diff = this.gestureState[1] - e.clientY;
+        const deltaY = this.gestureState.startY - e.clientY;
         
-        if (Math.abs(diff) > 1.5) {
-            const nextGestureState = this.gestureState.slice();
-            nextGestureState[2] = true;
-            this.gestureState = nextGestureState;
+        if (Math.abs(deltaY) > 1.5) {
+            this.gestureState.isDragging = true;
         }
         
-        this.emitMove(
-            this.setScroll(
-                this.gestureState[0] + diff * this.dragSensitivity
-            )
-        );
-    }
-    
-    emitMove(scrollY) {
-        const index = this.findIndexFromScroll(scrollY, true);
-        const originalIndex = this.originalOptionsLength ? index % this.originalOptionsLength : index;
-        const value = this.options[originalIndex]?.value ?? undefined;
-        // Update selection immediately during move for real-time visual feedback
-        if (this.internalIndex !== originalIndex) {
-            this.internalIndex = originalIndex;
-            this.updateSelection();
-        }
-        this.emitEvent('move', value);
+        // Convert pixel movement to rotation angle
+        const deltaAngle = (deltaY * this.dragSensitivity) / 2;
+        this.setAngle(this.gestureState.startAngle + deltaAngle);
+        
+        this.emitEvent('move', this.value);
     }
     
     handleMouseUp = (e) => {
@@ -442,8 +440,7 @@ class wheel_selector_component_engine {
             e.preventDefault();
         }
         
-        this.endGesture(this.gestureState[2], e.clientX, e.clientY);
-        this.gestureState = null;
+        this.endGesture(e.clientX, e.clientY);
         
         document.removeEventListener('mousemove', this.handleMouseMove);
         document.removeEventListener('mouseup', this.handleMouseUp);
@@ -460,27 +457,23 @@ class wheel_selector_component_engine {
         }
         
         this.endGesture(
-            this.gestureState[2],
             e.changedTouches[0].clientX,
             e.changedTouches[0].clientY
         );
-        this.gestureState = null;
         
         document.removeEventListener('touchmove', this.handleTouchMove);
         document.removeEventListener('touchend', this.handleTouchEnd);
         document.removeEventListener('touchcancel', this.handleTouchCancel);
     }
     
-    endGesture(isDragging, x, y) {
+    endGesture(x, y) {
+        const isDragging = this.gestureState.isDragging;
+        this.gestureState = null;
+        
         if (isDragging) {
-            const nextIndex = this.findIndexFromScroll(this.scrollY, false);
-            const originalIndex = this.originalOptionsLength ? nextIndex % this.originalOptionsLength : nextIndex;
-            const nextValue = this.options[originalIndex]?.value ?? null;
-            this.scrollTo(this.findScrollByIndex(nextIndex));
-            this.internalIndex = originalIndex;
-            this.updateSelection(); // Update visual selection when drag ends
-            this.emitEvent('end', nextValue);
-            this.emitUpdateValue(nextValue);
+            this.snapToNearestItem();
+            this.emitEvent('end', this.value);
+            this.emitUpdateValue(this.value);
         } else {
             this.triggerClick(x, y);
         }
@@ -494,47 +487,27 @@ class wheel_selector_component_engine {
         const topRect = this.layerTopEl.getBoundingClientRect();
         const bottomRect = this.layerBottomEl.getBoundingClientRect();
         
-        let nextIndex = this.internalIndex;
+        let targetAngle = this.currentAngle;
         
         if (
             topRect.left <= x && x <= topRect.right &&
             topRect.top <= y && y <= topRect.bottom
         ) {
-            if (this.internalIndex === 0) {
-                return; // top
-            }
-            nextIndex--;
-            while (
-                this.options[nextIndex] &&
-                this.options[nextIndex].disabled
-            ) {
-                nextIndex--;
-            }
+            // Click on top - move up one item
+            targetAngle -= this.anglePerItem;
         } else if (
             bottomRect.left <= x && x <= bottomRect.right &&
             bottomRect.top <= y && y <= bottomRect.bottom
         ) {
-            if (this.internalIndex === this.options.length - 1) {
-                return; // bottom
-            }
-            nextIndex++;
-            while (
-                this.options[nextIndex] &&
-                this.options[nextIndex].disabled
-            ) {
-                nextIndex++;
-            }
+            // Click on bottom - move down one item
+            targetAngle += this.anglePerItem;
+        } else {
+            return;
         }
         
-        if (this.internalIndex !== nextIndex && this.options[nextIndex]) {
-            this.internalIndex = nextIndex;
-            const nextValue = this.options[nextIndex].value;
-            this.emitEvent('end', nextValue);
-            this.emitEvent('click', nextValue);
-            this.emitUpdateValue(nextValue);
-            this.scrollTo(this.findScrollByIndex(nextIndex));
-            this.updateSelection();
-        }
+        this.setAngle(targetAngle, true);
+        this.emitEvent('click', this.value);
+        this.emitUpdateValue(this.value);
     }
     
     handleMouseOut = (e) => {
@@ -548,8 +521,8 @@ class wheel_selector_component_engine {
     }
     
     cancelGesture() {
-        this.scrollTo(this.findScrollByIndex(this.internalIndex));
         this.gestureState = null;
+        this.snapToNearestItem();
         this.emitEvent('cancel');
     }
     
@@ -570,38 +543,36 @@ class wheel_selector_component_engine {
     
     updateSelection() {
         // Update aria-selected attributes
-        const items = this.rotatorEl.querySelectorAll('.vue-scroll-picker-item');
-        items.forEach((item, index) => {
-            const originalIndex = this.originalOptionsLength ? index % this.originalOptionsLength : index;
-            const isSelected = originalIndex === this.internalIndex;
+        this.activeItems.forEach((item, logicalIndex) => {
+            const optionIndex = parseInt(item.getAttribute('data-option-index'));
+            const isSelected = optionIndex === this.currentIndex;
             item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
         });
     }
     
     setValue(value) {
         const nextIndex = this.options.findIndex(option => option.value == value);
-        if (this.internalIndex !== nextIndex && nextIndex >= 0) {
-            this.internalIndex = nextIndex;
+        if (nextIndex >= 0 && nextIndex !== this.currentIndex) {
+            this.currentIndex = nextIndex;
             this.value = value;
-            this.scrollTo(this.findScrollByIndex(nextIndex));
-            this.updateSelection();
+            this.setAngle(-nextIndex * this.anglePerItem, true);
         }
     }
     
     setOptions(newOptions) {
         this.options = this.normalizeOptions(newOptions);
-        this.internalIndex = Math.max(
+        this.currentIndex = Math.max(
             this.options.findIndex(option => option.value == this.value),
             0
         );
         
-        this.updateItems();
-        this.updateSelection();
+        // Clear existing items
+        this.activeItems.clear();
+        this.drum.innerHTML = '';
         
-        requestAnimationFrame(() => {
-            this.updateItemOffsets();
-            this.setScroll(this.findScrollByIndex(this.internalIndex));
-        });
+        // Update with new options
+        this.updateVisibleItems();
+        this.setAngle(-this.currentIndex * this.anglePerItem);
     }
     
     render(containerId) {
@@ -648,8 +619,8 @@ class wheel_selector_component_engine {
         if (this.wheelTimeout) {
             clearTimeout(this.wheelTimeout);
         }
-        if (this.scrollRaf) {
-            cancelAnimationFrame(this.scrollRaf);
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
         }
     }
 }
