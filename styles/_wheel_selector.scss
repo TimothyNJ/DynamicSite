@@ -1,17 +1,13 @@
 // Wheel Selector Component
-// True 3D infinite scrolling wheel with cylinder effect
-// Theme-aware implementation
+// iOS-style 3D wheel selector with simpler implementation
 
-.vue-scroll-picker {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+// Main container
+.wheel-selector-3d {
     position: relative;
-    width: fit-content;
-    height: 10em;
+    width: 200px;
+    height: 210px; // 7 items * 30px
+    margin: 0 auto;
     overflow: hidden;
-    user-select: none;
     background: linear-gradient(
         -25deg,
         var(--light-component-start) 0%,
@@ -19,10 +15,9 @@
     );
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 0;
-    margin: 0 auto;
+    user-select: none;
     
-    // Dark theme styling
+    // Dark theme
     body[data-theme="dark"] & {
         background: linear-gradient(
             -25deg,
@@ -32,185 +27,59 @@
     }
 }
 
-// 3D specific styles
-.vue-scroll-picker-3d {
-    perspective-origin: center center;
-}
-
-// The rotating drum container
-.vue-scroll-picker-drum {
+// Wrapper provides perspective
+.wheel-selector-wrapper {
     position: relative;
     width: 100%;
     height: 100%;
-    transform-style: preserve-3d;
-    transform-origin: center center;
-    
-    // Optional transition for smooth snapping
-    &.vue-scroll-picker-drum-transition {
-        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
+    perspective: 1000px;
+    perspective-origin: center;
 }
 
-// Legacy 2D rotator (kept for backwards compatibility)
-.vue-scroll-picker-rotator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    transform: translateY(calc(50% - 0.6em));
-    width: fit-content;
-    transition: transform ease 150ms;
-}
-
-// Item styles (shared between 2D and 3D)
-.vue-scroll-picker-item {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.2s ease;
-    
-    h3 {
-        line-height: 1.2em;
-        font-size: var(--component-font-size);
-        padding: 2px;
-        margin: 0;
-        white-space: nowrap;
-        overflow: visible;
-        text-overflow: clip;
-        max-width: none;
-    }
-}
-
-// 3D specific item styles
-.vue-scroll-picker-item-3d {
+// Items container (the scrolling drum)
+.wheel-selector-items {
     position: absolute;
     width: 100%;
-    height: 30px; // Match itemHeight in JS
+    transform-style: preserve-3d;
+    transition: none; // Will be set dynamically
+}
+
+// Individual items
+.wheel-selector-item {
+    height: 30px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    transform-origin: center center;
-    backface-visibility: hidden;
-    will-change: transform, opacity;
-    
-    // Remove default transition for smoother continuous movement
-    transition: none;
-    
-    // Subtle text shadow for depth
-    h3 {
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
-}
-
-// Selected item styling
-.vue-scroll-picker-item[aria-selected='true'] {
-    // 2D version scales
-    &:not(.vue-scroll-picker-item-3d) {
-        transform: scale(1.05);
-    }
-    
-    // 3D version uses brightness
-    &.vue-scroll-picker-item-3d h3 {
-        filter: brightness(1.1);
-        font-weight: 500;
-    }
-}
-
-// Disabled items
-.vue-scroll-picker-item[data-value=''],
-.vue-scroll-picker-item[aria-disabled='true'] {
-    opacity: 0.5;
-}
-
-.vue-scroll-picker-item[data-value=''][aria-selected='true'],
-.vue-scroll-picker-item[aria-disabled='true'][aria-selected='true'] {
-    opacity: 0.7;
-}
-
-// Layer container for gradients and selection indicator
-.vue-scroll-picker-layer {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    pointer-events: none;
-}
-
-.vue-scroll-picker-layer-top,
-.vue-scroll-picker-layer-selection,
-.vue-scroll-picker-layer-bottom {
-    position: absolute;
-    left: 0;
-    right: 0;
-}
-
-.vue-scroll-picker-layer-top {
-    box-sizing: border-box;
-    top: 0;
-    height: calc(50% - 1em);
-    pointer-events: auto;
+    justify-content: center;
+    font-size: var(--component-font-size);
+    color: var(--text-color-light);
+    transform-origin: center;
+    transition: opacity 0.2s, transform 0.2s;
     cursor: pointer;
+    
+    // Dark theme text color
+    body[data-theme="dark"] & {
+        color: var(--text-color-dark);
+    }
+    
+    // Selected state
+    &.selected {
+        font-weight: 600;
+    }
 }
 
-.vue-scroll-picker-layer-selection {
-    top: calc(50% - 1em);
-    height: 2em;
+// Selection indicator (center line)
+.wheel-selector-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 30px;
+    margin-top: -15px;
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
     pointer-events: none;
-}
-
-.vue-scroll-picker-layer-bottom {
-    bottom: 0;
-    height: calc(50% - 1em);
-    pointer-events: auto;
-    cursor: pointer;
-}
-
-// Enhanced gradient overlays for 3D depth effect
-[data-theme="dark"] {
-    .vue-scroll-picker-layer-top {
-        background: linear-gradient(180deg, 
-            var(--dark-component-start) 0%,
-            rgba(var(--dark-component-start-rgb), 0.8) 25%,
-            rgba(var(--dark-component-start-rgb), 0.4) 50%,
-            transparent 100%
-        );
-    }
+    z-index: 2;
     
-    .vue-scroll-picker-layer-bottom {
-        background: linear-gradient(0deg, 
-            var(--dark-component-start) 0%,
-            rgba(var(--dark-component-start-rgb), 0.8) 25%,
-            rgba(var(--dark-component-start-rgb), 0.4) 50%,
-            transparent 100%
-        );
-    }
-}
-
-[data-theme="light"] {
-    .vue-scroll-picker-layer-top {
-        background: linear-gradient(180deg, 
-            var(--light-component-start) 0%,
-            rgba(var(--light-component-start-rgb), 0.8) 25%,
-            rgba(var(--light-component-start-rgb), 0.4) 50%,
-            transparent 100%
-        );
-    }
-    
-    .vue-scroll-picker-layer-bottom {
-        background: linear-gradient(0deg, 
-            var(--light-component-start) 0%,
-            rgba(var(--light-component-start-rgb), 0.8) 25%,
-            rgba(var(--light-component-start-rgb), 0.4) 50%,
-            transparent 100%
-        );
-    }
-}
-
-// Subtle highlight for selection area
-.vue-scroll-picker-layer-selection {
     &::before {
         content: '';
         position: absolute;
@@ -218,28 +87,90 @@
         right: 0;
         top: 0;
         bottom: 0;
-        background: linear-gradient(90deg, 
-            transparent 0%, 
-            rgba(255, 255, 255, 0.05) 50%, 
+        background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.05) 50%,
             transparent 100%
         );
     }
 }
 
-// 3D performance optimizations
-.vue-scroll-picker-3d * {
-    // Force GPU acceleration
-    transform: translateZ(0);
+// Gradient overlays for depth
+.wheel-selector-gradient-top,
+.wheel-selector-gradient-bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 35%;
+    pointer-events: none;
+    z-index: 1;
 }
 
-// Add subtle inner shadow for depth
-.vue-scroll-picker-3d::before {
+.wheel-selector-gradient-top {
+    top: 0;
+    background: linear-gradient(
+        180deg,
+        var(--light-component-start) 0%,
+        rgba(var(--light-component-start-rgb), 0.8) 30%,
+        rgba(var(--light-component-start-rgb), 0.4) 60%,
+        transparent 100%
+    );
+    
+    body[data-theme="dark"] & {
+        background: linear-gradient(
+            180deg,
+            var(--dark-component-start) 0%,
+            rgba(var(--dark-component-start-rgb), 0.8) 30%,
+            rgba(var(--dark-component-start-rgb), 0.4) 60%,
+            transparent 100%
+        );
+    }
+}
+
+.wheel-selector-gradient-bottom {
+    bottom: 0;
+    background: linear-gradient(
+        0deg,
+        var(--light-component-start) 0%,
+        rgba(var(--light-component-start-rgb), 0.8) 30%,
+        rgba(var(--light-component-start-rgb), 0.4) 60%,
+        transparent 100%
+    );
+    
+    body[data-theme="dark"] & {
+        background: linear-gradient(
+            0deg,
+            var(--dark-component-start) 0%,
+            rgba(var(--dark-component-start-rgb), 0.8) 30%,
+            rgba(var(--dark-component-start-rgb), 0.4) 60%,
+            transparent 100%
+        );
+    }
+}
+
+// Keep old classes for backwards compatibility
+.vue-scroll-picker {
+    @extend .wheel-selector-3d;
+}
+
+.vue-scroll-picker-rotator {
+    @extend .wheel-selector-items;
+}
+
+.vue-scroll-picker-item {
+    @extend .wheel-selector-item;
+}
+
+// Add inner shadow for depth
+.wheel-selector-3d::after {
     content: '';
     position: absolute;
     inset: 0;
     border-radius: 8px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1),
-                inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.1);
     pointer-events: none;
-    z-index: 1;
+    z-index: 3;
 }
