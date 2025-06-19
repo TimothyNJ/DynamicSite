@@ -80,9 +80,12 @@ class wheel_selector_component_engine {
         this.drum.className = 'vue-scroll-picker-drum';
         this.drum.setAttribute('role', 'listbox');
         this.drum.style.transformStyle = 'preserve-3d';
-        this.drum.style.position = 'relative';
+        this.drum.style.position = 'absolute';
         this.drum.style.width = '100%';
         this.drum.style.height = '100%';
+        this.drum.style.top = '50%';
+        this.drum.style.left = '0';
+        this.drum.style.transform = 'translateY(-50%)';
         
         // Create initial visible items
         this.updateVisibleItems();
@@ -126,8 +129,7 @@ class wheel_selector_component_engine {
         itemContainer.style.width = '100%';
         itemContainer.style.height = `${this.itemHeight}px`;
         itemContainer.style.left = '0';
-        itemContainer.style.top = '50%';
-        itemContainer.style.marginTop = `-${this.itemHeight / 2}px`;
+        itemContainer.style.top = '0';
         itemContainer.style.transformOrigin = 'center center';
         itemContainer.style.backfaceVisibility = 'hidden';
         
@@ -197,13 +199,18 @@ class wheel_selector_component_engine {
             const itemAngle = logicalIndex * this.anglePerItem;
             const relativeAngle = itemAngle - centerAngle;
             
+            // Calculate position relative to center of visible area
+            const visiblePosition = logicalIndex - centerLogicalIndex;
+            const relativeRotation = visiblePosition * this.anglePerItem;
+            
             // Calculate opacity based on position (fade items rotating away)
             const normalizedAngle = ((relativeAngle % 360) + 360) % 360;
             const opacity = this.calculateOpacity(normalizedAngle);
             
-            // Apply 3D transform
+            // Apply 3D transform with vertical positioning
             item.style.transform = `
-                rotateX(${itemAngle}deg)
+                translateY(${visiblePosition * this.itemHeight}px)
+                rotateX(${relativeRotation}deg)
                 translateZ(${this.radius}px)
             `;
             item.style.opacity = opacity;
@@ -279,7 +286,7 @@ class wheel_selector_component_engine {
         }
         
         // Apply rotation to drum
-        this.drum.style.transform = `rotateX(${-angle}deg)`;
+        this.drum.style.transform = `translateY(-50%) rotateX(${-angle}deg)`;
         
         // Update visible items
         this.updateVisibleItems();
