@@ -1,42 +1,31 @@
 // wheel_selector_component_engine.js
-// True 3D infinite scrolling wheel with dynamic repositioning
-// Creates illusion of numbers painted on a rotating drum
+// BetterScroll implementation for iOS-style 3D wheel picker
+// Uses @better-scroll/core, @better-scroll/wheel, and @better-scroll/pull-down plugins
+
+// Import BetterScroll and plugins
+import BScroll from '@better-scroll/core';
+import Wheel from '@better-scroll/wheel';
+import PullDown from '@better-scroll/pull-down';
+
+// Register plugins
+BScroll.use(Wheel);
+BScroll.use(PullDown);
 
 class wheel_selector_component_engine {
     constructor(options = {}, onChange = null) {
         // Configuration
         this.options = this.normalizeOptions(options.options || []);
         this.value = options.value || options.defaultValue || null;
-        this.dragSensitivity = options.dragSensitivity || 1.7;
-        this.touchSensitivity = options.touchSensitivity || 1.7;
-        this.wheelSensitivity = options.wheelSensitivity || 1;
-        this.emptyText = options.emptyText || 'No Options Available';
         this.onChange = onChange || options.onChange || (() => {});
+        this.emptyText = options.emptyText || 'No Options Available';
         
-        // 3D Configuration
-        this.visibleItems = 7; // Items visible in viewport
-        this.bufferItems = 2; // Extra items above/below for smooth scrolling
-        this.itemHeight = 30; // Height of each item
-        this.perspective = 300; // Perspective distance in pixels
-        
-        // Calculate radius and angle
-        const circumference = this.visibleItems * this.itemHeight;
-        this.radius = circumference / (2 * Math.PI);
-        this.anglePerItem = 360 / this.visibleItems;
+        // BetterScroll instance
+        this.bs = null;
         
         // State
-        this.currentAngle = 0; // Current rotation angle of drum
         this.currentIndex = this.findInitialIndex();
-        this.itemPool = new Map(); // Pool of DOM elements to reuse
-        this.activeItems = new Map(); // Currently visible items
-        this.transitionTimeout = null;
-        this.gestureState = null;
-        this.wheelTimeout = null;
-        this.animationFrame = null;
-        this.resizeObserver = null;
-        
-        // Event options for better performance
-        this.eventOptions = { passive: false };
+        this.wheelListEl = null;
+        this.wrapperEl = null;
         
         // Create DOM structure
         this.element = this.createElement();
@@ -70,512 +59,384 @@ class wheel_selector_component_engine {
     }
     
     createElement() {
-        // Main container with perspective
+        // Main container
         const container = document.createElement('div');
-        container.className = 'vue-scroll-picker vue-scroll-picker-3d';
-        container.style.perspective = `${this.perspective}px`;
+        container.className = 'wheel-selector-container vue-scroll-picker vue-scroll-picker-3d';
         
-        // 3D drum container - position it in the center
-        this.drum = document.createElement('div');
-        this.drum.className = 'vue-scroll-picker-drum';
-        this.drum.setAttribute('role', 'listbox');
-        this.drum.style.transformStyle = 'preserve-3d';
-        this.drum.style.position = 'absolute';
-        this.drum.style.width = '100%';
-        this.drum.style.height = '100%';
-        this.drum.style.top = '50%';
-        this.drum.style.left = '0';
-        this.drum.style.transform = 'translateY(-50%)';
+        // Wrapper for BetterScroll
+        this.wrapperEl = document.createElement('div');
+        this.wrapperEl.className = 'wheel-selector-wrapper';
+        this.wrapperEl.style.height = '210px'; // 7 items × 30px per item
+        this.wrapperEl.style.overflow = 'hidden';
+        this.wrapperEl.style.position = 'relative';
         
-        // Create initial visible items
-        this.updateVisibleItems();
+        // Wheel content container
+        const wheelContent = document.createElement('div');
+        wheelContent.className = 'wheel-selector-content';
         
-        // Layer container
-        const layerContainer = document.createElement('div');
-        layerContainer.className = 'vue-scroll-picker-layer';
+        // Create list of options
+        this.wheelListEl = document.createElement('ul');
+        this.wheelListEl.className = 'wheel-selector-list';
+        this.wheelListEl.setAttribute('role', 'listbox');
         
-        // Layer elements
-        this.layerTopEl = document.createElement('div');
-        this.layerTopEl.className = 'vue-scroll-picker-layer-top';
+        // Render all options
+        this.renderOptions();
         
-        this.layerSelectionEl = document.createElement('div');
-        this.layerSelectionEl.className = 'vue-scroll-picker-layer-selection';
+        // Mask layers for visual effect
+        const maskTop = document.createElement('div');
+        maskTop.className = 'wheel-selector-mask wheel-selector-mask-top';
         
-        this.layerBottomEl = document.createElement('div');
-        this.layerBottomEl.className = 'vue-scroll-picker-layer-bottom';
+        const maskBottom = document.createElement('div');
+        maskBottom.className = 'wheel-selector-mask wheel-selector-mask-bottom';
+        
+        // Selection indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'wheel-selector-indicator';
         
         // Assemble
-        layerContainer.appendChild(this.layerTopEl);
-        layerContainer.appendChild(this.layerSelectionEl);
-        layerContainer.appendChild(this.layerBottomEl);
+        wheelContent.appendChild(this.wheelListEl);
+        this.wrapperEl.appendChild(wheelContent);
         
-        container.appendChild(this.drum);
-        container.appendChild(layerContainer);
+        container.appendChild(this.wrapperEl);
+        container.appendChild(maskTop);
+        container.appendChild(maskBottom);
+        container.appendChild(indicator);
+        
+        // Add styles
+        this.addStyles();
         
         return container;
     }
     
-    getOrCreateItem(index) {
-        // Reuse existing item from pool if available
-        if (this.itemPool.has(index)) {
-            return this.itemPool.get(index);
-        }
+    renderOptions() {
+        // Clear existing
+        this.wheelListEl.innerHTML = '';
         
-        // Create new item
-        const itemContainer = document.createElement('div');
-        itemContainer.className = 'vue-scroll-picker-item vue-scroll-picker-item-3d';
-        itemContainer.setAttribute('role', 'option');
-        itemContainer.style.position = 'absolute';
-        itemContainer.style.width = '100%';
-        itemContainer.style.height = `${this.itemHeight}px`;
-        itemContainer.style.left = '0';
-        itemContainer.style.top = '0';
-        itemContainer.style.transformOrigin = 'center center';
-        itemContainer.style.backfaceVisibility = 'hidden';
-        
-        const itemText = document.createElement('h3');
-        itemContainer.appendChild(itemText);
-        
-        this.itemPool.set(index, itemContainer);
-        return itemContainer;
-    }
-    
-    updateVisibleItems() {
         if (this.options.length === 0) {
             // Empty state
-            this.drum.innerHTML = '';
-            const itemContainer = document.createElement('div');
-            itemContainer.className = 'vue-scroll-picker-item';
-            itemContainer.setAttribute('role', 'option');
-            itemContainer.setAttribute('aria-disabled', 'true');
-            itemContainer.setAttribute('aria-selected', 'false');
-            
-            const emptyText = document.createElement('h3');
-            emptyText.textContent = this.emptyText;
-            itemContainer.appendChild(emptyText);
-            
-            this.drum.appendChild(itemContainer);
+            const li = document.createElement('li');
+            li.className = 'wheel-selector-item wheel-disabled-item';
+            li.setAttribute('role', 'option');
+            li.setAttribute('aria-disabled', 'true');
+            li.textContent = this.emptyText;
+            this.wheelListEl.appendChild(li);
             return;
         }
         
-        // Calculate which items should be visible
-        const centerAngle = this.currentAngle;
-        const visibleRange = Math.floor(this.visibleItems / 2) + this.bufferItems;
-        
-        // Determine which logical indices need to be displayed
-        const centerLogicalIndex = Math.round(centerAngle / this.anglePerItem);
-        const startLogicalIndex = centerLogicalIndex - visibleRange;
-        const endLogicalIndex = centerLogicalIndex + visibleRange;
-        
-        // Remove items that are no longer visible
-        for (const [logicalIndex, element] of this.activeItems) {
-            if (logicalIndex < startLogicalIndex || logicalIndex > endLogicalIndex) {
-                element.remove();
-                this.activeItems.delete(logicalIndex);
+        // Render all options
+        this.options.forEach((option, index) => {
+            const li = document.createElement('li');
+            li.className = 'wheel-selector-item';
+            if (option.disabled) {
+                li.className += ' wheel-disabled-item';
             }
-        }
-        
-        // Add/update visible items
-        for (let logicalIndex = startLogicalIndex; logicalIndex <= endLogicalIndex; logicalIndex++) {
-            // Calculate which option this logical index represents
-            const optionIndex = this.getOptionIndex(logicalIndex);
-            const option = this.options[optionIndex];
+            li.setAttribute('role', 'option');
+            li.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
+            li.setAttribute('aria-selected', index === this.currentIndex ? 'true' : 'false');
+            li.setAttribute('data-value', option.value ?? '');
+            li.setAttribute('data-index', index);
+            li.textContent = option.name;
             
-            if (!option) continue;
-            
-            // Get or create item element
-            const item = this.getOrCreateItem(logicalIndex);
-            const itemText = item.querySelector('h3');
-            
-            // Update content
-            itemText.textContent = option.name;
-            item.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
-            item.setAttribute('aria-selected', optionIndex === this.currentIndex ? 'true' : 'false');
-            item.setAttribute('data-value', option.value ?? '');
-            item.setAttribute('data-logical-index', logicalIndex);
-            item.setAttribute('data-option-index', optionIndex);
-            
-            // Position on cylinder
-            const itemAngle = logicalIndex * this.anglePerItem;
-            const relativeAngle = itemAngle - centerAngle;
-            
-            // Calculate position relative to center of visible area
-            const visiblePosition = logicalIndex - centerLogicalIndex;
-            const relativeRotation = visiblePosition * this.anglePerItem;
-            
-            // Calculate opacity based on position (fade items rotating away)
-            const normalizedAngle = ((relativeAngle % 360) + 360) % 360;
-            const opacity = this.calculateOpacity(normalizedAngle);
-            
-            // Apply 3D transform with vertical positioning
-            item.style.transform = `
-                translateY(${visiblePosition * this.itemHeight}px)
-                rotateX(${relativeRotation}deg)
-                translateZ(${this.radius}px)
-            `;
-            item.style.opacity = opacity;
-            
-            // Add to drum if not already there
-            if (!this.activeItems.has(logicalIndex)) {
-                this.drum.appendChild(item);
-                this.activeItems.set(logicalIndex, item);
-            }
-        }
+            this.wheelListEl.appendChild(li);
+        });
     }
     
-    getOptionIndex(logicalIndex) {
-        // Handle negative indices and wrap around
-        const optionsLength = this.options.length;
-        return ((logicalIndex % optionsLength) + optionsLength) % optionsLength;
-    }
-    
-    calculateOpacity(angle) {
-        // Normalize angle to [0, 360)
-        angle = ((angle % 360) + 360) % 360;
-        
-        // Items facing viewer (around 0 or 360 degrees) are fully visible
-        // Items rotating away fade out
-        if (angle <= 90 || angle >= 270) {
-            // Front-facing hemisphere
-            const distance = angle <= 90 ? angle : 360 - angle;
-            return 1 - (distance / 90) * 0.5; // Fade to 0.5 opacity at edges
-        } else {
-            // Back-facing hemisphere - hide completely
-            return 0;
+    addStyles() {
+        // Check if styles already exist
+        if (document.getElementById('wheel-selector-styles')) {
+            return;
         }
+        
+        const style = document.createElement('style');
+        style.id = 'wheel-selector-styles';
+        style.textContent = `
+            .wheel-selector-container {
+                position: relative;
+                overflow: hidden;
+                background: var(--component-background, #ffffff);
+                border-radius: 8px;
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+            
+            .wheel-selector-wrapper {
+                position: relative;
+                transform: translateZ(0); /* Force GPU acceleration */
+            }
+            
+            .wheel-selector-content {
+                position: relative;
+            }
+            
+            .wheel-selector-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .wheel-selector-item {
+                height: 30px;
+                line-height: 30px;
+                text-align: center;
+                font-size: 20px;
+                color: var(--text-color-secondary, #666);
+                cursor: pointer;
+                user-select: none;
+                transition: all 0.3s;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                padding: 0 10px;
+            }
+            
+            .wheel-selector-item[aria-selected="true"] {
+                color: var(--text-color, #000);
+                font-weight: 500;
+                font-size: 22px;
+            }
+            
+            .wheel-disabled-item {
+                opacity: 0.3;
+                cursor: not-allowed;
+            }
+            
+            /* Mask layers for fade effect */
+            .wheel-selector-mask {
+                position: absolute;
+                left: 0;
+                width: 100%;
+                height: 90px;
+                pointer-events: none;
+                z-index: 2;
+            }
+            
+            .wheel-selector-mask-top {
+                top: 0;
+                background: linear-gradient(
+                    to bottom,
+                    var(--component-background, rgba(255, 255, 255, 0.95)),
+                    var(--component-background-transparent, rgba(255, 255, 255, 0))
+                );
+            }
+            
+            .wheel-selector-mask-bottom {
+                bottom: 0;
+                background: linear-gradient(
+                    to top,
+                    var(--component-background, rgba(255, 255, 255, 0.95)),
+                    var(--component-background-transparent, rgba(255, 255, 255, 0))
+                );
+            }
+            
+            /* Selection indicator */
+            .wheel-selector-indicator {
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 100%;
+                height: 30px;
+                transform: translateY(-50%);
+                pointer-events: none;
+                z-index: 1;
+            }
+            
+            .wheel-selector-indicator::before,
+            .wheel-selector-indicator::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                width: 100%;
+                height: 1px;
+                background: var(--border-color, rgba(0, 0, 0, 0.1));
+            }
+            
+            .wheel-selector-indicator::before {
+                top: 0;
+            }
+            
+            .wheel-selector-indicator::after {
+                bottom: 0;
+            }
+            
+            /* Pull-down refresh indicator */
+            .wheel-selector-pulldown {
+                position: absolute;
+                top: -40px;
+                left: 0;
+                width: 100%;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-color-secondary, #666);
+                font-size: 14px;
+                transition: opacity 0.3s;
+                opacity: 0;
+            }
+            
+            .wheel-selector-pulldown.active {
+                opacity: 1;
+            }
+            
+            /* BetterScroll wheel 3D effect */
+            .wheel-selector-wrapper .wheel-scroll {
+                transform-style: preserve-3d;
+                transform: translateZ(-90px);
+            }
+            
+            .wheel-selector-wrapper .wheel-item {
+                backface-visibility: hidden;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            
+            /* Dark mode support */
+            @media (prefers-color-scheme: dark) {
+                .wheel-selector-container {
+                    --component-background: #1c1c1e;
+                    --component-background-transparent: rgba(28, 28, 30, 0);
+                    --text-color: #ffffff;
+                    --text-color-secondary: #999999;
+                    --border-color: rgba(255, 255, 255, 0.1);
+                }
+            }
+        `;
+        
+        document.head.appendChild(style);
     }
     
     init() {
-        // Add event listeners
-        this.element.addEventListener('wheel', this.handleWheel.bind(this), this.eventOptions);
-        this.element.addEventListener('touchstart', this.handleTouchStart.bind(this), this.eventOptions);
-        this.element.addEventListener('mousedown', this.handleMouseDown.bind(this), this.eventOptions);
-        
-        // Setup resize observer
-        if (typeof window.ResizeObserver !== 'undefined') {
-            this.resizeObserver = new window.ResizeObserver(() => {
-                if (this.animationFrame) {
-                    cancelAnimationFrame(this.animationFrame);
-                }
-                this.animationFrame = requestAnimationFrame(() => {
-                    this.updateVisibleItems();
-                    this.animationFrame = null;
-                });
-            });
-            this.resizeObserver.observe(this.element);
+        if (this.options.length === 0) {
+            return;
         }
         
-        // Initial positioning
-        this.setAngle(-this.currentIndex * this.anglePerItem);
+        // Initialize BetterScroll with wheel and pull-down plugins
+        this.bs = new BScroll(this.wrapperEl, {
+            wheel: {
+                selectedIndex: this.currentIndex,
+                rotate: 25, // Rotation angle for 3D effect
+                adjustTime: 400, // Snap animation time
+                wheelWrapperClass: 'wheel-selector-content',
+                wheelItemClass: 'wheel-selector-item',
+                wheelDisabledItemClass: 'wheel-disabled-item'
+            },
+            pullDownRefresh: {
+                threshold: 50,
+                stop: 40
+            },
+            useTransition: true,
+            probeType: 3, // Real-time scroll position
+            click: true
+        });
         
-        // Notify initial value
+        // Add pull-down refresh indicator
+        const pullDownEl = document.createElement('div');
+        pullDownEl.className = 'wheel-selector-pulldown';
+        pullDownEl.textContent = 'Release to refresh';
+        this.wrapperEl.appendChild(pullDownEl);
+        
+        // Handle wheel selection change
+        this.bs.on('wheelIndexChanged', (index) => {
+            this.handleIndexChange(index);
+        });
+        
+        // Handle pull-down refresh
+        this.bs.on('pullingDown', () => {
+            console.log('[wheel_selector_component_engine] Wheel refreshed!');
+            
+            // Show refresh indicator
+            pullDownEl.classList.add('active');
+            pullDownEl.textContent = 'Refreshing...';
+            
+            // Simulate refresh (just visual feedback)
+            setTimeout(() => {
+                // Reset to initial selection if configured
+                if (this.options.defaultIndex !== undefined) {
+                    this.bs.wheelTo(this.options.defaultIndex);
+                }
+                
+                // Hide refresh indicator
+                pullDownEl.classList.remove('active');
+                pullDownEl.textContent = 'Release to refresh';
+                
+                // Tell BetterScroll refresh is complete
+                this.bs.finishPullDown();
+                this.bs.refresh();
+            }, 300);
+        });
+        
+        // Handle scroll for visual updates
+        this.bs.on('scroll', () => {
+            this.updateItemStyles();
+        });
+        
+        // Initial style update
+        this.updateItemStyles();
+        
+        // Emit initial value
         if (this.value !== null && this.onChange) {
+            this.onChange(this.value);
+        }
+        
+        console.log('[wheel_selector_component_engine] BetterScroll wheel initialized');
+    }
+    
+    handleIndexChange(newIndex) {
+        if (newIndex === this.currentIndex) {
+            return;
+        }
+        
+        // Update selection state
+        const items = this.wheelListEl.querySelectorAll('.wheel-selector-item');
+        items.forEach((item, index) => {
+            item.setAttribute('aria-selected', index === newIndex ? 'true' : 'false');
+        });
+        
+        // Update current value
+        this.currentIndex = newIndex;
+        const selectedOption = this.options[newIndex];
+        if (selectedOption) {
+            this.value = selectedOption.value;
             this.onChange(this.value);
         }
     }
     
-    setAngle(angle, animate = false) {
-        this.currentAngle = angle;
+    updateItemStyles() {
+        // Update visual styles based on scroll position
+        const items = this.wheelListEl.querySelectorAll('.wheel-selector-item');
+        const containerRect = this.wrapperEl.getBoundingClientRect();
+        const containerCenter = containerRect.top + containerRect.height / 2;
         
-        if (animate && !this.transitionTimeout) {
-            this.drum.classList.add('vue-scroll-picker-drum-transition');
-            this.transitionTimeout = setTimeout(() => {
-                this.drum.classList.remove('vue-scroll-picker-drum-transition');
-                this.transitionTimeout = null;
-            }, 300);
-        }
-        
-        // Apply rotation to drum
-        this.drum.style.transform = `translateY(-50%) rotateX(${-angle}deg)`;
-        
-        // Update visible items
-        this.updateVisibleItems();
-        
-        // Determine current selected index
-        const newIndex = this.getOptionIndex(Math.round(angle / this.anglePerItem));
-        if (newIndex !== this.currentIndex && !this.options[newIndex]?.disabled) {
-            this.currentIndex = newIndex;
-            this.value = this.options[newIndex].value;
-            this.updateSelection();
-        }
-    }
-    
-    snapToNearestItem(animate = true) {
-        // Find nearest item angle
-        const nearestLogicalIndex = Math.round(this.currentAngle / this.anglePerItem);
-        const targetAngle = nearestLogicalIndex * this.anglePerItem;
-        
-        // Check if the option at this position is disabled
-        const optionIndex = this.getOptionIndex(nearestLogicalIndex);
-        if (this.options[optionIndex]?.disabled) {
-            // Find next non-disabled option
-            let searchIndex = nearestLogicalIndex;
-            let found = false;
+        items.forEach((item) => {
+            const itemRect = item.getBoundingClientRect();
+            const itemCenter = itemRect.top + itemRect.height / 2;
+            const distance = Math.abs(itemCenter - containerCenter);
             
-            // Search forward then backward
-            for (let offset = 1; offset < this.options.length; offset++) {
-                const forwardIndex = this.getOptionIndex(nearestLogicalIndex + offset);
-                const backwardIndex = this.getOptionIndex(nearestLogicalIndex - offset);
-                
-                if (!this.options[forwardIndex]?.disabled) {
-                    searchIndex = nearestLogicalIndex + offset;
-                    found = true;
-                    break;
-                }
-                if (!this.options[backwardIndex]?.disabled) {
-                    searchIndex = nearestLogicalIndex - offset;
-                    found = true;
-                    break;
-                }
-            }
+            // Calculate opacity based on distance from center
+            const maxDistance = containerRect.height / 2;
+            const opacity = Math.max(0.3, 1 - (distance / maxDistance) * 0.7);
             
-            if (found) {
-                this.setAngle(searchIndex * this.anglePerItem, animate);
-                return;
-            }
-        }
-        
-        this.setAngle(targetAngle, animate);
-    }
-    
-    handleWheel(e) {
-        if (this.options.length <= 1) {
-            return;
-        }
-        
-        e.preventDefault();
-        
-        // Update angle based on wheel delta
-        const deltaAngle = (e.deltaY * this.wheelSensitivity) / 2;
-        this.setAngle(this.currentAngle + deltaAngle);
-        
-        // Clear existing timeout
-        if (this.wheelTimeout) {
-            clearTimeout(this.wheelTimeout);
-        }
-        
-        // Snap to nearest item after scrolling stops
-        this.wheelTimeout = setTimeout(() => {
-            this.snapToNearestItem();
-            this.emitUpdateValue(this.value);
-            this.wheelTimeout = null;
-        }, 100);
-    }
-    
-    handleTouchStart(e) {
-        if (this.gestureState) {
-            return;
-        }
-        
-        if (e.cancelable) {
-            e.preventDefault();
-        }
-        
-        this.gestureState = {
-            startAngle: this.currentAngle,
-            startY: e.touches[0].clientY,
-            isDragging: false
-        };
-        
-        this.emitEvent('start');
-        
-        document.addEventListener('touchmove', this.handleTouchMove, this.eventOptions);
-        document.addEventListener('touchend', this.handleTouchEnd, this.eventOptions);
-        document.addEventListener('touchcancel', this.handleTouchCancel);
-    }
-    
-    handleMouseDown(e) {
-        if (this.gestureState) {
-            return;
-        }
-        
-        if (e.cancelable) {
-            e.preventDefault();
-        }
-        
-        this.gestureState = {
-            startAngle: this.currentAngle,
-            startY: e.clientY,
-            isDragging: false
-        };
-        
-        this.emitEvent('start');
-        
-        document.addEventListener('mousemove', this.handleMouseMove, this.eventOptions);
-        document.addEventListener('mouseup', this.handleMouseUp, this.eventOptions);
-        document.addEventListener('mouseout', this.handleMouseOut);
-    }
-    
-    handleTouchMove = (e) => {
-        if (!this.gestureState) {
-            return;
-        }
-        
-        if (e.cancelable) {
-            e.preventDefault();
-        }
-        
-        const deltaY = this.gestureState.startY - e.touches[0].clientY;
-        
-        if (Math.abs(deltaY) > 1.5) {
-            this.gestureState.isDragging = true;
-        }
-        
-        // Convert pixel movement to rotation angle
-        const deltaAngle = (deltaY * this.touchSensitivity) / 2;
-        this.setAngle(this.gestureState.startAngle + deltaAngle);
-        
-        this.emitEvent('move', this.value);
-    }
-    
-    handleMouseMove = (e) => {
-        if (!this.gestureState) {
-            return;
-        }
-        
-        if (e.cancelable) {
-            e.preventDefault();
-        }
-        
-        const deltaY = this.gestureState.startY - e.clientY;
-        
-        if (Math.abs(deltaY) > 1.5) {
-            this.gestureState.isDragging = true;
-        }
-        
-        // Convert pixel movement to rotation angle
-        const deltaAngle = (deltaY * this.dragSensitivity) / 2;
-        this.setAngle(this.gestureState.startAngle + deltaAngle);
-        
-        this.emitEvent('move', this.value);
-    }
-    
-    handleMouseUp = (e) => {
-        if (!this.gestureState) {
-            return;
-        }
-        
-        if (e.cancelable) {
-            e.preventDefault();
-        }
-        
-        this.endGesture(e.clientX, e.clientY);
-        
-        document.removeEventListener('mousemove', this.handleMouseMove);
-        document.removeEventListener('mouseup', this.handleMouseUp);
-        document.removeEventListener('mouseout', this.handleMouseOut);
-    }
-    
-    handleTouchEnd = (e) => {
-        if (!this.gestureState) {
-            return;
-        }
-        
-        if (e.cancelable) {
-            e.preventDefault();
-        }
-        
-        this.endGesture(
-            e.changedTouches[0].clientX,
-            e.changedTouches[0].clientY
-        );
-        
-        document.removeEventListener('touchmove', this.handleTouchMove);
-        document.removeEventListener('touchend', this.handleTouchEnd);
-        document.removeEventListener('touchcancel', this.handleTouchCancel);
-    }
-    
-    endGesture(x, y) {
-        const isDragging = this.gestureState.isDragging;
-        this.gestureState = null;
-        
-        if (isDragging) {
-            this.snapToNearestItem();
-            this.emitEvent('end', this.value);
-            this.emitUpdateValue(this.value);
-        } else {
-            this.triggerClick(x, y);
-        }
-    }
-    
-    triggerClick(x, y) {
-        if (!this.layerTopEl || !this.layerBottomEl) {
-            return;
-        }
-        
-        const topRect = this.layerTopEl.getBoundingClientRect();
-        const bottomRect = this.layerBottomEl.getBoundingClientRect();
-        
-        let targetAngle = this.currentAngle;
-        
-        if (
-            topRect.left <= x && x <= topRect.right &&
-            topRect.top <= y && y <= topRect.bottom
-        ) {
-            // Click on top - move up one item
-            targetAngle -= this.anglePerItem;
-        } else if (
-            bottomRect.left <= x && x <= bottomRect.right &&
-            bottomRect.top <= y && y <= bottomRect.bottom
-        ) {
-            // Click on bottom - move down one item
-            targetAngle += this.anglePerItem;
-        } else {
-            return;
-        }
-        
-        this.setAngle(targetAngle, true);
-        this.emitEvent('click', this.value);
-        this.emitUpdateValue(this.value);
-    }
-    
-    handleMouseOut = (e) => {
-        if (e.relatedTarget === null) {
-            this.cancelGesture();
-        }
-    }
-    
-    handleTouchCancel = () => {
-        this.cancelGesture();
-    }
-    
-    cancelGesture() {
-        this.gestureState = null;
-        this.snapToNearestItem();
-        this.emitEvent('cancel');
-    }
-    
-    emitUpdateValue(value) {
-        if (this.value !== value) {
-            this.value = value;
-            this.onChange(value);
-        }
-    }
-    
-    emitEvent(eventName, value) {
-        const event = new CustomEvent(`wheel-${eventName}`, {
-            detail: { value },
-            bubbles: true
-        });
-        this.element.dispatchEvent(event);
-    }
-    
-    updateSelection() {
-        // Update aria-selected attributes
-        this.activeItems.forEach((item, logicalIndex) => {
-            const optionIndex = parseInt(item.getAttribute('data-option-index'));
-            const isSelected = optionIndex === this.currentIndex;
-            item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+            // Apply dynamic styling
+            item.style.opacity = opacity;
+            
+            // Scale items near center
+            const scale = Math.max(0.8, 1 - (distance / maxDistance) * 0.2);
+            item.style.transform = `scale(${scale})`;
         });
     }
     
     setValue(value) {
         const nextIndex = this.options.findIndex(option => option.value == value);
-        if (nextIndex >= 0 && nextIndex !== this.currentIndex) {
-            this.currentIndex = nextIndex;
-            this.value = value;
-            this.setAngle(-nextIndex * this.anglePerItem, true);
+        if (nextIndex >= 0 && nextIndex !== this.currentIndex && this.bs) {
+            this.bs.wheelTo(nextIndex);
         }
+    }
+    
+    getValue() {
+        return this.value;
     }
     
     setOptions(newOptions) {
@@ -585,13 +446,14 @@ class wheel_selector_component_engine {
             0
         );
         
-        // Clear existing items
-        this.activeItems.clear();
-        this.drum.innerHTML = '';
+        // Re-render options
+        this.renderOptions();
         
-        // Update with new options
-        this.updateVisibleItems();
-        this.setAngle(-this.currentIndex * this.anglePerItem);
+        // Refresh BetterScroll
+        if (this.bs) {
+            this.bs.refresh();
+            this.bs.wheelTo(this.currentIndex);
+        }
     }
     
     render(containerId) {
@@ -608,39 +470,30 @@ class wheel_selector_component_engine {
         // Append element to container
         container.appendChild(this.element);
         
+        // Refresh BetterScroll after DOM insertion
+        if (this.bs) {
+            setTimeout(() => {
+                this.bs.refresh();
+            }, 0);
+        }
+        
         console.log(`[wheel_selector_component_engine] Rendered in container:`, containerId);
         return this.element;
     }
     
     destroy() {
-        // Remove event listeners
-        this.element.removeEventListener('wheel', this.handleWheel);
-        this.element.removeEventListener('touchstart', this.handleTouchStart);
-        this.element.removeEventListener('mousedown', this.handleMouseDown);
-        
-        // Clean up document listeners if active
-        document.removeEventListener('touchmove', this.handleTouchMove);
-        document.removeEventListener('touchend', this.handleTouchEnd);
-        document.removeEventListener('touchcancel', this.handleTouchCancel);
-        document.removeEventListener('mousemove', this.handleMouseMove);
-        document.removeEventListener('mouseup', this.handleMouseUp);
-        document.removeEventListener('mouseout', this.handleMouseOut);
-        
-        // Disconnect observer
-        if (this.resizeObserver) {
-            this.resizeObserver.disconnect();
+        // Destroy BetterScroll instance
+        if (this.bs) {
+            this.bs.destroy();
+            this.bs = null;
         }
         
-        // Clear timeouts
-        if (this.transitionTimeout) {
-            clearTimeout(this.transitionTimeout);
+        // Remove element from DOM
+        if (this.element && this.element.parentNode) {
+            this.element.parentNode.removeChild(this.element);
         }
-        if (this.wheelTimeout) {
-            clearTimeout(this.wheelTimeout);
-        }
-        if (this.animationFrame) {
-            cancelAnimationFrame(this.animationFrame);
-        }
+        
+        console.log('[wheel_selector_component_engine] Destroyed');
     }
 }
 
