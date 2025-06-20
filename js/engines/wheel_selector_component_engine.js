@@ -304,7 +304,10 @@ class wheel_selector_component_engine {
             },
             useTransition: true,
             probeType: 3, // Real-time scroll position
-            click: true
+            click: true,
+            // Mouse/trackpad support
+            disableMouse: false,
+            disableTouch: false
         });
         
         // Add pull-down refresh indicator
