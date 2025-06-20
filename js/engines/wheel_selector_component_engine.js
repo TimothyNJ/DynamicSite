@@ -297,6 +297,9 @@ class wheel_selector_component_engine {
             probeType: 3, // Real-time scroll position
             click: true,
             momentum: false, // Disable momentum for more direct control
+            swipeTime: 100,  // Reduce swipe time threshold
+            bounceTime: 100, // Reduce bounce animation time
+            deceleration: 0.001, // Reduce deceleration for quicker stop
             // Mouse/trackpad support
             disableMouse: false,
             disableTouch: false,
@@ -306,9 +309,16 @@ class wheel_selector_component_engine {
                 invert: false,
                 easeTime: 0,         // No easing delay
                 dampingFactor: 0.05, // Reduced damping for quicker response
-                throttleTime: 0      // No throttling
+                throttleTime: 0,     // No throttling
+                preventDefault: true, // Prevent default scroll behavior
+                sensitivity: 1       // Try to make it more sensitive
             }
         });
+        
+        // Add wheel event listener for debugging
+        this.wrapperEl.addEventListener('wheel', (e) => {
+            console.log(`[wheel_selector] Native wheel event - deltaY: ${e.deltaY}, deltaMode: ${e.deltaMode}`);
+        }, { passive: true });
         
         // Add pull-down refresh indicator
         const pullDownEl = document.createElement('div');
