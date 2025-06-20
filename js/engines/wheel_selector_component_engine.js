@@ -70,14 +70,13 @@ class wheel_selector_component_engine {
         this.wrapperEl.style.overflow = 'hidden';
         this.wrapperEl.style.position = 'relative';
         
-        // Wheel content container
-        const wheelContent = document.createElement('div');
-        wheelContent.className = 'wheel-selector-content';
+        // Wheel container (needed for proper structure)
+        const wheelDiv = document.createElement('div');
+        wheelDiv.className = 'wheel';
         
-        // Create list of options
-        this.wheelListEl = document.createElement('ul');
-        this.wheelListEl.className = 'wheel-selector-list';
-        this.wheelListEl.setAttribute('role', 'listbox');
+        // Create scroll container with items as direct children
+        this.wheelListEl = document.createElement('div');
+        this.wheelListEl.className = 'wheel-scroll';
         
         // Render all options
         this.renderOptions();
@@ -93,9 +92,9 @@ class wheel_selector_component_engine {
         const indicator = document.createElement('div');
         indicator.className = 'wheel-selector-indicator';
         
-        // Assemble
-        wheelContent.appendChild(this.wheelListEl);
-        this.wrapperEl.appendChild(wheelContent);
+        // Assemble with correct structure
+        wheelDiv.appendChild(this.wheelListEl);
+        this.wrapperEl.appendChild(wheelDiv);
         
         container.appendChild(this.wrapperEl);
         container.appendChild(maskTop);
@@ -114,30 +113,30 @@ class wheel_selector_component_engine {
         
         if (this.options.length === 0) {
             // Empty state
-            const li = document.createElement('li');
-            li.className = 'wheel-selector-item wheel-disabled-item';
-            li.setAttribute('role', 'option');
-            li.setAttribute('aria-disabled', 'true');
-            li.textContent = this.emptyText;
-            this.wheelListEl.appendChild(li);
+            const item = document.createElement('div');
+            item.className = 'wheel-item wheel-disabled-item';
+            item.setAttribute('role', 'option');
+            item.setAttribute('aria-disabled', 'true');
+            item.textContent = this.emptyText;
+            this.wheelListEl.appendChild(item);
             return;
         }
         
-        // Render all options
+        // Render all options as div elements (not li)
         this.options.forEach((option, index) => {
-            const li = document.createElement('li');
-            li.className = 'wheel-selector-item';
+            const item = document.createElement('div');
+            item.className = 'wheel-item';
             if (option.disabled) {
-                li.className += ' wheel-disabled-item';
+                item.className += ' wheel-disabled-item';
             }
-            li.setAttribute('role', 'option');
-            li.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
-            li.setAttribute('aria-selected', index === this.currentIndex ? 'true' : 'false');
-            li.setAttribute('data-value', option.value ?? '');
-            li.setAttribute('data-index', index);
-            li.textContent = option.name;
+            item.setAttribute('role', 'option');
+            item.setAttribute('aria-disabled', option.disabled ? 'true' : 'false');
+            item.setAttribute('aria-selected', index === this.currentIndex ? 'true' : 'false');
+            item.setAttribute('data-value', option.value ?? '');
+            item.setAttribute('data-index', index);
+            item.textContent = option.name;
             
-            this.wheelListEl.appendChild(li);
+            this.wheelListEl.appendChild(item);
         });
     }
     
@@ -165,17 +164,16 @@ class wheel_selector_component_engine {
                 transform: translateZ(0); /* Force GPU acceleration */
             }
             
-            .wheel-selector-content {
+            .wheel {
                 position: relative;
             }
             
-            .wheel-selector-list {
-                list-style: none;
-                padding: 0;
-                margin: 0;
+            .wheel-scroll {
+                position: relative;
+                top: 90px; /* Center the first item */
             }
             
-            .wheel-selector-item {
+            .wheel-item {
                 height: 30px;
                 line-height: 30px;
                 text-align: center;
@@ -190,7 +188,7 @@ class wheel_selector_component_engine {
                 padding: 0 10px;
             }
             
-            .wheel-selector-item[aria-selected="true"] {
+            .wheel-item[aria-selected="true"] {
                 color: var(--text-color, #000);
                 font-weight: 500;
                 font-size: 22px;
@@ -319,8 +317,8 @@ class wheel_selector_component_engine {
                 selectedIndex: this.currentIndex,
                 rotate: 25, // Rotation angle for 3D effect
                 adjustTime: 400, // Snap animation time
-                wheelWrapperClass: 'wheel-selector-content',
-                wheelItemClass: 'wheel-selector-item',
+                wheelWrapperClass: 'wheel-scroll',
+                wheelItemClass: 'wheel-item',
                 wheelDisabledItemClass: 'wheel-disabled-item'
             },
             pullDownRefresh: {
@@ -390,7 +388,7 @@ class wheel_selector_component_engine {
         }
         
         // Update selection state
-        const items = this.wheelListEl.querySelectorAll('.wheel-selector-item');
+        const items = this.wheelListEl.querySelectorAll('.wheel-item');
         items.forEach((item, index) => {
             item.setAttribute('aria-selected', index === newIndex ? 'true' : 'false');
         });
@@ -406,7 +404,7 @@ class wheel_selector_component_engine {
     
     updateItemStyles() {
         // Update visual styles based on scroll position
-        const items = this.wheelListEl.querySelectorAll('.wheel-selector-item');
+        const items = this.wheelListEl.querySelectorAll('.wheel-item');
         const containerRect = this.wrapperEl.getBoundingClientRect();
         const containerCenter = containerRect.top + containerRect.height / 2;
         
