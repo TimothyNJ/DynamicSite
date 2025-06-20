@@ -1,11 +1,15 @@
 const path = require('path');
 const webpack = require('webpack');
 
-// Generate timestamp in YYYYMMDDHHMMSS format
-const buildTimestamp = new Date().toISOString()
-  .replace(/[-:T]/g, '')
-  .replace(/\..+/, '')
-  .slice(0, 14);
+// Generate timestamp in YYYYMMDDHHMMSS format using local time
+const now = new Date();
+const buildTimestamp = 
+  now.getFullYear().toString() +
+  (now.getMonth() + 1).toString().padStart(2, '0') +
+  now.getDate().toString().padStart(2, '0') +
+  now.getHours().toString().padStart(2, '0') +
+  now.getMinutes().toString().padStart(2, '0') +
+  now.getSeconds().toString().padStart(2, '0');
 
 module.exports = {
   entry: './js/main.js',
