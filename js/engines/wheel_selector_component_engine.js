@@ -61,9 +61,8 @@ class wheel_selector_component_engine {
         // Wrapper for BetterScroll
         this.wrapperEl = document.createElement('div');
         this.wrapperEl.className = 'wheel-selector-wrapper';
-        // Remove inline styles - let CSS handle it
         
-        // Wheel container (needed for proper structure)
+        // Intermediate wheel wrapper (required by BetterScroll)
         const wheelDiv = document.createElement('div');
         wheelDiv.className = 'wheel';
         
@@ -85,7 +84,7 @@ class wheel_selector_component_engine {
         const indicator = document.createElement('div');
         indicator.className = 'wheel-selector-indicator';
         
-        // Assemble with correct structure
+        // Assemble with correct structure - wheel > wheel-scroll hierarchy
         wheelDiv.appendChild(this.wheelListEl);
         this.wrapperEl.appendChild(wheelDiv);
         
@@ -154,13 +153,6 @@ class wheel_selector_component_engine {
             
             .wheel-selector-wrapper {
                 position: relative;
-                height: 173px;
-                overflow: hidden;
-                font-size: 18px;
-            }
-            
-            .wheel {
-                flex: 1;
                 height: 173px;
                 overflow: hidden;
                 font-size: 18px;
