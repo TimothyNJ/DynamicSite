@@ -1,4 +1,11 @@
 const path = require('path');
+const webpack = require('webpack');
+
+// Generate timestamp in YYYYMMDDHHMMSS format
+const buildTimestamp = new Date().toISOString()
+  .replace(/[-:T]/g, '')
+  .replace(/\..+/, '')
+  .slice(0, 14);
 
 module.exports = {
   entry: './js/main.js',
@@ -7,6 +14,11 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     clean: true
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      BUILD_TIMESTAMP: JSON.stringify(buildTimestamp)
+    })
+  ],
   module: {
     rules: [
       {
