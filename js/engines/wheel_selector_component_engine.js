@@ -301,34 +301,11 @@ class wheel_selector_component_engine {
             bounce: true
         });
         
-        // Debug: Check if BetterScroll initialized properly
-        console.log('[wheel_selector_component_engine] BetterScroll instance:', this.bs);
-        console.log('[wheel_selector_component_engine] Wrapper element:', this.wrapperEl);
-        console.log('[wheel_selector_component_engine] Wrapper height:', this.wrapperEl.offsetHeight);
-        console.log('[wheel_selector_component_engine] Content element:', this.bs.scroller.content);
-        console.log('[wheel_selector_component_engine] Content height:', this.bs.scrollerHeight);
-        console.log('[wheel_selector_component_engine] Max scroll Y:', this.bs.maxScrollY);
-        console.log('[wheel_selector_component_engine] Wheel items found:', this.bs.scroller.content.querySelectorAll('.wheel-item').length);
-        
-        // Try to trigger a wheel action programmatically
-        console.log('[wheel_selector_component_engine] Wheel selectedIndex:', this.bs.getSelectedIndex());
-        
-        // Test wheel functionality
-        setTimeout(() => {
-            console.log('[wheel_selector_component_engine] Testing wheelTo - scrolling to index 10');
-            this.bs.wheelTo(10, 1000);
-        }, 2000);
+
         
         // Advanced input detection and physics-based scrolling
         this.initAdvancedWheelHandling();
-        
-        this.wrapperEl.addEventListener('mousedown', (e) => {
-            console.log('[wheel_selector_component_engine] Mouse down at:', e.clientY);
-        });
-        
-        this.wrapperEl.addEventListener('touchstart', (e) => {
-            console.log('[wheel_selector_component_engine] Touch start at:', e.touches[0].clientY);
-        });
+
         
         // Add pull-down refresh indicator
         const pullDownEl = document.createElement('div');
@@ -370,19 +347,6 @@ class wheel_selector_component_engine {
         this.bs.on('scroll', () => {
             // BetterScroll handles all visual updates internally
         });
-        
-        // Initial refresh to ensure proper layout
-        setTimeout(() => {
-            if (this.bs) {
-                this.bs.refresh();
-                console.log('[wheel_selector_component_engine] After refresh - Max scroll Y:', this.bs.maxScrollY);
-            }
-        }, 100);
-        
-        // Emit initial value
-        if (this.value !== null && this.onChange) {
-            this.onChange(this.value);
-        }
         
         console.log('[wheel_selector_component_engine] BetterScroll wheel initialized');
     }
