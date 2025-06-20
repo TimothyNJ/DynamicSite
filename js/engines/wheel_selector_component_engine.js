@@ -284,7 +284,7 @@ class wheel_selector_component_engine {
             wheel: {
                 selectedIndex: this.currentIndex,
                 rotate: 25, // Rotation angle for 3D effect
-                adjustTime: 400, // Snap animation time
+                adjustTime: 100, // Reduced from 400ms for faster snap
                 wheelWrapperClass: 'wheel-scroll',
                 wheelItemClass: 'wheel-item',
                 wheelDisabledItemClass: 'wheel-disabled-item'
@@ -296,16 +296,17 @@ class wheel_selector_component_engine {
             useTransition: true,
             probeType: 3, // Real-time scroll position
             click: true,
+            momentum: false, // Disable momentum for more direct control
             // Mouse/trackpad support
             disableMouse: false,
             disableTouch: false,
             bounce: true,
             mouseWheel: {
-                speed: 5,            // Reduced from 20 for finer control
+                speed: 8,            // Increased from 5 for more responsive scrolling
                 invert: false,
-                easeTime: 0,         // Remove easing delay
-                dampingFactor: 0.1,  // Add damping for smoother control
-                throttleTime: 0      // Remove any throttling
+                easeTime: 0,         // No easing delay
+                dampingFactor: 0.05, // Reduced damping for quicker response
+                throttleTime: 0      // No throttling
             }
         });
         
