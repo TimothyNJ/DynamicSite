@@ -6,10 +6,12 @@
 import BScroll from '@better-scroll/core';
 import Wheel from '@better-scroll/wheel';
 import PullDown from '@better-scroll/pull-down';
+import MouseWheel from '@better-scroll/mouse-wheel';
 
 // Register plugins
 BScroll.use(Wheel);
 BScroll.use(PullDown);
+BScroll.use(MouseWheel);
 
 class wheel_selector_component_engine {
     constructor(options = {}, onChange = null) {
@@ -294,13 +296,17 @@ class wheel_selector_component_engine {
                 threshold: 50,
                 stop: 40
             },
+            mouseWheel: {
+                speed: 20,
+                invert: false,
+                easeTime: 300
+            },
             useTransition: true,
             probeType: 3, // Real-time scroll position
             click: true,
             // Mouse/trackpad support
             disableMouse: false,
             disableTouch: false,
-            mouseWheel: true, // Enable mouse wheel support
             bounce: true
         });
         
