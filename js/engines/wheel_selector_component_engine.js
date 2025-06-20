@@ -166,11 +166,12 @@ class wheel_selector_component_engine {
             
             .wheel {
                 position: relative;
+                height: 100%;
             }
             
             .wheel-scroll {
                 position: relative;
-                top: 90px; /* Center the first item */
+                padding: 90px 0; /* This centers the list in the viewport */
             }
             
             .wheel-item {
@@ -181,7 +182,6 @@ class wheel_selector_component_engine {
                 color: var(--text-color-secondary, #666);
                 cursor: pointer;
                 user-select: none;
-                transition: all 0.3s;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
@@ -277,20 +277,6 @@ class wheel_selector_component_engine {
                 opacity: 1;
             }
             
-            /* BetterScroll wheel 3D effect */
-            .wheel-selector-wrapper .wheel-scroll {
-                transform-style: preserve-3d;
-                transform: translateZ(-90px);
-            }
-            
-            .wheel-selector-wrapper .wheel-item {
-                backface-visibility: hidden;
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-            
             /* Dark mode support */
             @media (prefers-color-scheme: dark) {
                 .wheel-selector-container {
@@ -368,11 +354,13 @@ class wheel_selector_component_engine {
         
         // Handle scroll for visual updates
         this.bs.on('scroll', () => {
-            this.updateItemStyles();
+            // BetterScroll handles all visual updates internally
         });
         
-        // Initial style update
-        this.updateItemStyles();
+        // Initial refresh to ensure proper layout
+        setTimeout(() => {
+            this.bs.refresh();
+        }, 0);
         
         // Emit initial value
         if (this.value !== null && this.onChange) {
@@ -400,30 +388,6 @@ class wheel_selector_component_engine {
             this.value = selectedOption.value;
             this.onChange(this.value);
         }
-    }
-    
-    updateItemStyles() {
-        // Update visual styles based on scroll position
-        const items = this.wheelListEl.querySelectorAll('.wheel-item');
-        const containerRect = this.wrapperEl.getBoundingClientRect();
-        const containerCenter = containerRect.top + containerRect.height / 2;
-        
-        items.forEach((item) => {
-            const itemRect = item.getBoundingClientRect();
-            const itemCenter = itemRect.top + itemRect.height / 2;
-            const distance = Math.abs(itemCenter - containerCenter);
-            
-            // Calculate opacity based on distance from center
-            const maxDistance = containerRect.height / 2;
-            const opacity = Math.max(0.3, 1 - (distance / maxDistance) * 0.7);
-            
-            // Apply dynamic styling
-            item.style.opacity = opacity;
-            
-            // Scale items near center
-            const scale = Math.max(0.8, 1 - (distance / maxDistance) * 0.2);
-            item.style.transform = `scale(${scale})`;
-        });
     }
     
     setValue(value) {
