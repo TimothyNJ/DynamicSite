@@ -328,6 +328,21 @@ class wheel_selector_component_engine {
         // Add event listeners for debugging
         this.wrapperEl.addEventListener('wheel', (e) => {
             console.log('[wheel_selector_component_engine] Native wheel event:', e.deltaY);
+            
+            // Try to handle wheel events manually
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (this.bs && this.bs.wheelTo) {
+                const currentIndex = this.bs.getSelectedIndex();
+                const direction = e.deltaY > 0 ? 1 : -1;
+                const newIndex = Math.max(0, Math.min(this.options.length - 1, currentIndex + direction));
+                
+                if (newIndex !== currentIndex) {
+                    console.log('[wheel_selector_component_engine] Manual wheel - from index', currentIndex, 'to', newIndex);
+                    this.bs.wheelTo(newIndex, 300);
+                }
+            }
         });
         
         this.wrapperEl.addEventListener('mousedown', (e) => {
