@@ -299,7 +299,29 @@ class wheel_selector_component_engine {
             click: true,
             // Mouse/trackpad support
             disableMouse: false,
-            disableTouch: false
+            disableTouch: false,
+            mouseWheel: true, // Enable mouse wheel support
+            bounce: true
+        });
+        
+        // Debug: Check if BetterScroll initialized properly
+        console.log('[wheel_selector_component_engine] BetterScroll instance:', this.bs);
+        console.log('[wheel_selector_component_engine] Wrapper element:', this.wrapperEl);
+        console.log('[wheel_selector_component_engine] Wrapper height:', this.wrapperEl.offsetHeight);
+        console.log('[wheel_selector_component_engine] Content height:', this.bs.scrollerHeight);
+        console.log('[wheel_selector_component_engine] Max scroll Y:', this.bs.maxScrollY);
+        
+        // Add event listeners for debugging
+        this.wrapperEl.addEventListener('wheel', (e) => {
+            console.log('[wheel_selector_component_engine] Native wheel event:', e.deltaY);
+        });
+        
+        this.wrapperEl.addEventListener('mousedown', (e) => {
+            console.log('[wheel_selector_component_engine] Mouse down at:', e.clientY);
+        });
+        
+        this.wrapperEl.addEventListener('touchstart', (e) => {
+            console.log('[wheel_selector_component_engine] Touch start at:', e.touches[0].clientY);
         });
         
         // Add pull-down refresh indicator
