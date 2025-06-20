@@ -301,9 +301,11 @@ class wheel_selector_component_engine {
             disableTouch: false,
             bounce: true,
             mouseWheel: {
-                speed: 20,
+                speed: 5,            // Reduced from 20 for finer control
                 invert: false,
-                easeTime: 300
+                easeTime: 0,         // Remove easing delay
+                dampingFactor: 0.1,  // Add damping for smoother control
+                throttleTime: 0      // Remove any throttling
             }
         });
         
