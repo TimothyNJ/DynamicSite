@@ -319,38 +319,30 @@ class wheel_selector_component_engine {
             this.bs.wheelTo(10, 1000);
         }, 2000);
         
-        // Add improved wheel event handler with debouncing
-        let wheelTimeout = null;
+        // Add wheel event handler for trackpad support
         let accumulatedDelta = 0;
         
         this.wrapperEl.addEventListener('wheel', (e) => {
             e.preventDefault();
             e.stopPropagation();
             
-            // Accumulate the delta
-            accumulatedDelta += e.deltaY;
-            
-            // Clear existing timeout
-            if (wheelTimeout) {
-                clearTimeout(wheelTimeout);
-            }
-            
-            // Set a new timeout to process the accumulated delta
-            wheelTimeout = setTimeout(() => {
-                if (this.bs && this.bs.wheelTo && Math.abs(accumulatedDelta) > 20) {
+            if (this.bs && this.bs.wheelTo) {
+                accumulatedDelta += e.deltaY;
+                
+                // When accumulated delta is enough for one item, scroll
+                if (Math.abs(accumulatedDelta) >= 50) {
                     const currentIndex = this.bs.getSelectedIndex();
-                    // Calculate how many items to scroll based on accumulated delta
-                    const itemsToScroll = Math.round(accumulatedDelta / 100);
-                    const newIndex = Math.max(0, Math.min(this.options.length - 1, currentIndex + itemsToScroll));
+                    const direction = accumulatedDelta > 0 ? 1 : -1;
+                    const newIndex = Math.max(0, Math.min(this.options.length - 1, currentIndex + direction));
                     
                     if (newIndex !== currentIndex) {
-                        console.log('[wheel_selector_component_engine] Scrolling from index', currentIndex, 'to', newIndex);
                         this.bs.wheelTo(newIndex, 300);
                     }
+                    
+                    // Reset accumulated delta
+                    accumulatedDelta = 0;
                 }
-                // Reset accumulated delta
-                accumulatedDelta = 0;
-            }, 50); // Debounce for 50ms
+            }
         });
         
         this.wrapperEl.addEventListener('mousedown', (e) => {
