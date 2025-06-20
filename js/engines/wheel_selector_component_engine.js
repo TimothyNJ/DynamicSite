@@ -29,11 +29,6 @@ class wheel_selector_component_engine {
         
         // Create DOM structure
         this.element = this.createElement();
-        
-        // Initialize after DOM is ready
-        requestAnimationFrame(() => {
-            this.init();
-        });
     }
     
     normalizeOptions(options) {
@@ -66,16 +61,14 @@ class wheel_selector_component_engine {
         // Wrapper for BetterScroll
         this.wrapperEl = document.createElement('div');
         this.wrapperEl.className = 'wheel-selector-wrapper';
-        this.wrapperEl.style.height = '210px'; // 7 items × 30px per item
-        this.wrapperEl.style.overflow = 'hidden';
-        this.wrapperEl.style.position = 'relative';
+        // Remove inline styles - let CSS handle it
         
         // Wheel container (needed for proper structure)
         const wheelDiv = document.createElement('div');
         wheelDiv.className = 'wheel';
         
         // Create scroll container with items as direct children
-        this.wheelListEl = document.createElement('div');
+        this.wheelListEl = document.createElement('ul');
         this.wheelListEl.className = 'wheel-scroll';
         
         // Render all options
@@ -113,7 +106,7 @@ class wheel_selector_component_engine {
         
         if (this.options.length === 0) {
             // Empty state
-            const item = document.createElement('div');
+            const item = document.createElement('li');
             item.className = 'wheel-item wheel-disabled-item';
             item.setAttribute('role', 'option');
             item.setAttribute('aria-disabled', 'true');
@@ -122,9 +115,9 @@ class wheel_selector_component_engine {
             return;
         }
         
-        // Render all options as div elements (not li)
+        // Render all options
         this.options.forEach((option, index) => {
-            const item = document.createElement('div');
+            const item = document.createElement('li');
             item.className = 'wheel-item';
             if (option.disabled) {
                 item.className += ' wheel-disabled-item';
@@ -161,42 +154,40 @@ class wheel_selector_component_engine {
             
             .wheel-selector-wrapper {
                 position: relative;
-                transform: translateZ(0); /* Force GPU acceleration */
+                height: 173px;
+                overflow: hidden;
+                font-size: 18px;
             }
             
             .wheel {
-                position: relative;
-                height: 100%;
+                flex: 1;
+                height: 173px;
+                overflow: hidden;
+                font-size: 18px;
             }
             
             .wheel-scroll {
-                position: relative;
-                padding: 90px 0; /* This centers the list in the viewport */
+                padding: 0;
+                margin-top: 68px;
+                line-height: 36px;
+                list-style: none;
             }
             
             .wheel-item {
-                height: 30px;
-                line-height: 30px;
-                text-align: center;
-                font-size: 20px;
-                color: var(--text-color-secondary, #666);
-                cursor: pointer;
-                user-select: none;
+                list-style: none;
+                height: 36px;
                 overflow: hidden;
-                text-overflow: ellipsis;
                 white-space: nowrap;
-                padding: 0 10px;
+                color: #333;
             }
             
             .wheel-item[aria-selected="true"] {
                 color: var(--text-color, #000);
                 font-weight: 500;
-                font-size: 22px;
             }
             
             .wheel-disabled-item {
-                opacity: 0.3;
-                cursor: not-allowed;
+                opacity: 0.2;
             }
             
             /* Mask layers for fade effect */
@@ -432,12 +423,10 @@ class wheel_selector_component_engine {
         // Append element to container
         container.appendChild(this.element);
         
-        // Refresh BetterScroll after DOM insertion
-        if (this.bs) {
-            setTimeout(() => {
-                this.bs.refresh();
-            }, 0);
-        }
+        // Initialize BetterScroll after DOM insertion
+        setTimeout(() => {
+            this.init();
+        }, 0);
         
         console.log(`[wheel_selector_component_engine] Rendered in container:`, containerId);
         return this.element;
