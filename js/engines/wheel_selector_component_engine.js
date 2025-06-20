@@ -6,11 +6,12 @@
 import BScroll from '@better-scroll/core';
 import Wheel from '@better-scroll/wheel';
 import PullDown from '@better-scroll/pull-down';
-// Remove MouseWheel plugin - it conflicts with wheel plugin
+import MouseWheel from '@better-scroll/mouse-wheel';
 
 // Register plugins
 BScroll.use(Wheel);
 BScroll.use(PullDown);
+BScroll.use(MouseWheel);
 
 class wheel_selector_component_engine {
     constructor(options = {}, onChange = null) {
@@ -298,7 +299,12 @@ class wheel_selector_component_engine {
             // Mouse/trackpad support
             disableMouse: false,
             disableTouch: false,
-            bounce: true
+            bounce: true,
+            mouseWheel: {
+                speed: 20,
+                invert: false,
+                easeTime: 300
+            }
         });
         
         // Add pull-down refresh indicator
