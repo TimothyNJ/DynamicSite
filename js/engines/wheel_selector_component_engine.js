@@ -6,12 +6,11 @@
 import BScroll from '@better-scroll/core';
 import Wheel from '@better-scroll/wheel';
 import PullDown from '@better-scroll/pull-down';
-import MouseWheel from '@better-scroll/mouse-wheel';
+// Remove MouseWheel plugin - it conflicts with wheel plugin
 
 // Register plugins
 BScroll.use(Wheel);
 BScroll.use(PullDown);
-BScroll.use(MouseWheel);
 
 class wheel_selector_component_engine {
     constructor(options = {}, onChange = null) {
@@ -150,13 +149,13 @@ class wheel_selector_component_engine {
             
             .wheel-selector-wrapper {
                 position: relative;
-                height: 173px;
+                height: 210px;
                 overflow: hidden;
                 font-size: 18px;
             }
             
             .wheel-scroll {
-                padding: 68px 0;
+                padding: 87px 0;
                 margin: 0;
                 line-height: 36px;
                 list-style: none;
@@ -293,11 +292,6 @@ class wheel_selector_component_engine {
                 threshold: 50,
                 stop: 40
             },
-            mouseWheel: {
-                speed: 20,
-                invert: false,
-                easeTime: 300
-            },
             useTransition: true,
             probeType: 3, // Real-time scroll position
             click: true,
@@ -325,24 +319,38 @@ class wheel_selector_component_engine {
             this.bs.wheelTo(10, 1000);
         }, 2000);
         
-        // Add event listeners for debugging
+        // Add improved wheel event handler with debouncing
+        let wheelTimeout = null;
+        let accumulatedDelta = 0;
+        
         this.wrapperEl.addEventListener('wheel', (e) => {
-            console.log('[wheel_selector_component_engine] Native wheel event:', e.deltaY);
-            
-            // Try to handle wheel events manually
             e.preventDefault();
             e.stopPropagation();
             
-            if (this.bs && this.bs.wheelTo) {
-                const currentIndex = this.bs.getSelectedIndex();
-                const direction = e.deltaY > 0 ? 1 : -1;
-                const newIndex = Math.max(0, Math.min(this.options.length - 1, currentIndex + direction));
-                
-                if (newIndex !== currentIndex) {
-                    console.log('[wheel_selector_component_engine] Manual wheel - from index', currentIndex, 'to', newIndex);
-                    this.bs.wheelTo(newIndex, 300);
-                }
+            // Accumulate the delta
+            accumulatedDelta += e.deltaY;
+            
+            // Clear existing timeout
+            if (wheelTimeout) {
+                clearTimeout(wheelTimeout);
             }
+            
+            // Set a new timeout to process the accumulated delta
+            wheelTimeout = setTimeout(() => {
+                if (this.bs && this.bs.wheelTo && Math.abs(accumulatedDelta) > 20) {
+                    const currentIndex = this.bs.getSelectedIndex();
+                    // Calculate how many items to scroll based on accumulated delta
+                    const itemsToScroll = Math.round(accumulatedDelta / 100);
+                    const newIndex = Math.max(0, Math.min(this.options.length - 1, currentIndex + itemsToScroll));
+                    
+                    if (newIndex !== currentIndex) {
+                        console.log('[wheel_selector_component_engine] Scrolling from index', currentIndex, 'to', newIndex);
+                        this.bs.wheelTo(newIndex, 300);
+                    }
+                }
+                // Reset accumulated delta
+                accumulatedDelta = 0;
+            }, 50); // Debounce for 50ms
         });
         
         this.wrapperEl.addEventListener('mousedown', (e) => {
