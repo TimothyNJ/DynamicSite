@@ -5,10 +5,13 @@
  * Includes navigation system and all component engines.
  * 
  * Date: Dynamic - set at build time
- * Deployment Timestamp: BUILD_TIMESTAMP
+ * Deployment Timestamp: See console logs
  */
 
-console.log('[main.js] Starting application initialization [Deployment: BUILD_TIMESTAMP]');
+// BUILD_TIMESTAMP will be replaced by webpack at build time
+const DEPLOYMENT_TIMESTAMP = typeof BUILD_TIMESTAMP !== 'undefined' ? BUILD_TIMESTAMP : 'UNKNOWN';
+
+console.log(`[main.js] Starting application initialization [Deployment: ${DEPLOYMENT_TIMESTAMP}]`);
 
 // Import styles - Single source of truth (SCSS)
 import '../styles/styles.scss';
@@ -387,4 +390,4 @@ window.addEventListener("load", () => {
 // Update dimensions when a page loads
 document.addEventListener("pageLoaded", updateDimensions);
 
-console.log('[main.js] Application setup complete [Deployment: BUILD_TIMESTAMP]');
+console.log(`[main.js] Application setup complete [Deployment: ${DEPLOYMENT_TIMESTAMP}]`);
