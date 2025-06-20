@@ -64,10 +64,6 @@ class wheel_selector_component_engine {
         this.wrapperEl = document.createElement('div');
         this.wrapperEl.className = 'wheel-selector-wrapper';
         
-        // Intermediate wheel wrapper (required by BetterScroll)
-        const wheelDiv = document.createElement('div');
-        wheelDiv.className = 'wheel';
-        
         // Create scroll container with items as direct children
         this.wheelListEl = document.createElement('ul');
         this.wheelListEl.className = 'wheel-scroll';
@@ -86,9 +82,8 @@ class wheel_selector_component_engine {
         const indicator = document.createElement('div');
         indicator.className = 'wheel-selector-indicator';
         
-        // Assemble with correct structure - wheel > wheel-scroll hierarchy
-        wheelDiv.appendChild(this.wheelListEl);
-        this.wrapperEl.appendChild(wheelDiv);
+        // Assemble with wheel-scroll as direct child of wrapper
+        this.wrapperEl.appendChild(this.wheelListEl);
         
         container.appendChild(this.wrapperEl);
         container.appendChild(maskTop);
@@ -316,8 +311,10 @@ class wheel_selector_component_engine {
         console.log('[wheel_selector_component_engine] BetterScroll instance:', this.bs);
         console.log('[wheel_selector_component_engine] Wrapper element:', this.wrapperEl);
         console.log('[wheel_selector_component_engine] Wrapper height:', this.wrapperEl.offsetHeight);
+        console.log('[wheel_selector_component_engine] Content element:', this.bs.scroller.content);
         console.log('[wheel_selector_component_engine] Content height:', this.bs.scrollerHeight);
         console.log('[wheel_selector_component_engine] Max scroll Y:', this.bs.maxScrollY);
+        console.log('[wheel_selector_component_engine] Wheel items found:', this.bs.scroller.content.querySelectorAll('.wheel-item').length);
         
         // Try to trigger a wheel action programmatically
         console.log('[wheel_selector_component_engine] Wheel selectedIndex:', this.bs.getSelectedIndex());
