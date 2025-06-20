@@ -284,6 +284,8 @@ class wheel_selector_component_engine {
         
         // Initialize BetterScroll with wheel and pull-down plugins
         this.bs = new BScroll(this.wrapperEl, {
+            scrollY: true,  // Enable vertical scrolling
+            scrollX: false, // Disable horizontal scrolling
             wheel: {
                 selectedIndex: this.currentIndex,
                 rotate: 25, // Rotation angle for 3D effect
@@ -316,6 +318,15 @@ class wheel_selector_component_engine {
         console.log('[wheel_selector_component_engine] Wrapper height:', this.wrapperEl.offsetHeight);
         console.log('[wheel_selector_component_engine] Content height:', this.bs.scrollerHeight);
         console.log('[wheel_selector_component_engine] Max scroll Y:', this.bs.maxScrollY);
+        
+        // Try to trigger a wheel action programmatically
+        console.log('[wheel_selector_component_engine] Wheel selectedIndex:', this.bs.getSelectedIndex());
+        
+        // Test wheel functionality
+        setTimeout(() => {
+            console.log('[wheel_selector_component_engine] Testing wheelTo - scrolling to index 10');
+            this.bs.wheelTo(10, 1000);
+        }, 2000);
         
         // Add event listeners for debugging
         this.wrapperEl.addEventListener('wheel', (e) => {
