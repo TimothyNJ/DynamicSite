@@ -159,8 +159,8 @@ class wheel_selector_component_engine {
             }
             
             .wheel-scroll {
-                padding: 0;
-                margin-top: 68px;
+                padding: 68px 0;
+                margin: 0;
                 line-height: 36px;
                 list-style: none;
             }
@@ -367,8 +367,11 @@ class wheel_selector_component_engine {
         
         // Initial refresh to ensure proper layout
         setTimeout(() => {
-            this.bs.refresh();
-        }, 0);
+            if (this.bs) {
+                this.bs.refresh();
+                console.log('[wheel_selector_component_engine] After refresh - Max scroll Y:', this.bs.maxScrollY);
+            }
+        }, 100);
         
         // Emit initial value
         if (this.value !== null && this.onChange) {
