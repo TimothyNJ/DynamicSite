@@ -4,11 +4,11 @@
  * This file imports all ES6 modules and initializes the complete SPA.
  * Includes navigation system and all component engines.
  * 
- * Date: 25-May-2025 18:36
- * Deployment Timestamp: 20250527231522
+ * Date: 19-Jun-2025 22:44
+ * Deployment Timestamp: 20250619224432
  */
 
-console.log('[main.js] Starting application initialization [Deployment: 20250527231522]');
+console.log('[main.js] Starting application initialization [Deployment: 20250619224432]');
 
 // Import styles - Single source of truth (SCSS)
 import '../styles/styles.scss';
@@ -387,4 +387,4 @@ window.addEventListener("load", () => {
 // Update dimensions when a page loads
 document.addEventListener("pageLoaded", updateDimensions);
 
-console.log('[main.js] Application setup complete [Deployment: 20250527231522]');
+console.log('[main.js] Application setup complete [Deployment: 20250619224432]');
