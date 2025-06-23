@@ -284,7 +284,7 @@ class wheel_selector_component_engine {
             wheel: {
                 selectedIndex: this.currentIndex,
                 rotate: 25, // Rotation angle for 3D effect
-                adjustTime: 100, // Reduced from 400ms for faster snap
+                adjustTime: 0, // Zero delay for instant snap
                 wheelWrapperClass: 'wheel-scroll',
                 wheelItemClass: 'wheel-item',
                 wheelDisabledItemClass: 'wheel-disabled-item'
@@ -297,8 +297,8 @@ class wheel_selector_component_engine {
             probeType: 3, // Real-time scroll position
             click: true,
             momentum: false, // Disable momentum for more direct control
-            swipeTime: 100,  // Reduce swipe time threshold
-            bounceTime: 100, // Reduce bounce animation time
+            swipeTime: 0,    // Zero delay for instant swipe recognition
+            bounceTime: 0,   // Zero delay for instant bounce
             deceleration: 0.001, // Reduce deceleration for quicker stop
             // Mouse/trackpad support
             disableMouse: false,
