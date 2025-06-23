@@ -29,6 +29,18 @@ class wheel_selector_component_engine {
         this.wheelListEl = null;
         this.wrapperEl = null;
         
+        // Physics state for custom wheel handling
+        this.physics = {
+            position: 0,
+            velocity: 0,
+            lastEventTime: Date.now(),
+            scrollAccumulator: 0,
+            isScrolling: false,
+            animationId: null,
+            itemHeight: 36, // Height of each wheel item
+            friction: 0.92  // How quickly it slows down
+        };
+        
         // Create DOM structure
         this.element = this.createElement();
     }
@@ -300,25 +312,12 @@ class wheel_selector_component_engine {
             swipeTime: 0,    // Zero delay for instant swipe recognition
             bounceTime: 0,   // Zero delay for instant bounce
             deceleration: 0.001, // Reduce deceleration for quicker stop
-            // Mouse/trackpad support
-            disableMouse: false,
+            // Mouse/trackpad support - DISABLED for custom physics
+            disableMouse: true,  // Disable BetterScroll's mouse handling
             disableTouch: false,
-            bounce: true,
-            mouseWheel: {
-                speed: 8,            // Increased from 5 for more responsive scrolling
-                invert: false,
-                easeTime: 0,         // No easing delay
-                dampingFactor: 0.05, // Reduced damping for quicker response
-                throttleTime: 0,     // No throttling
-                preventDefault: true, // Prevent default scroll behavior
-                sensitivity: 1       // Try to make it more sensitive
-            }
+            bounce: true
+            // Remove mouseWheel config - we'll handle it ourselves
         });
-        
-        // Add wheel event listener for debugging
-        this.wrapperEl.addEventListener('wheel', (e) => {
-            console.log(`[wheel_selector] Native wheel event - deltaY: ${e.deltaY}, deltaMode: ${e.deltaMode}`);
-        }, { passive: true });
         
         // Add pull-down refresh indicator
         const pullDownEl = document.createElement('div');
@@ -361,13 +360,113 @@ class wheel_selector_component_engine {
             // BetterScroll handles all visual updates internally
         });
         
+        // Initialize custom physics-based wheel handling
+        this.initPhysicsWheel();
+        
         console.log('[wheel_selector_component_engine] BetterScroll wheel initialized');
+    }
+    
+    initPhysicsWheel() {
+        // Initialize physics position based on current index
+        this.physics.position = this.currentIndex * this.physics.itemHeight;
+        
+        // Add custom wheel event handler
+        this.wrapperEl.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const currentTime = Date.now();
+            const deltaTime = currentTime - this.physics.lastEventTime;
+            
+            // Scale factor for trackpad sensitivity
+            const POSITION_SCALE = 0.5;
+            const VELOCITY_SCALE = 2.0;
+            
+            // Accumulate scroll distance
+            this.physics.scrollAccumulator += e.deltaY * POSITION_SCALE;
+            
+            // Calculate instantaneous velocity
+            const instantVelocity = (e.deltaY / Math.max(deltaTime, 1)) * VELOCITY_SCALE;
+            
+            // Update position immediately for responsiveness
+            this.physics.position += e.deltaY * POSITION_SCALE;
+            
+            // Add to velocity for momentum
+            this.physics.velocity += instantVelocity;
+            
+            // Clamp velocity to reasonable limits
+            const MAX_VELOCITY = 50;
+            this.physics.velocity = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, this.physics.velocity));
+            
+            this.physics.isScrolling = true;
+            this.physics.lastEventTime = currentTime;
+            
+            // Start physics animation if not running
+            if (!this.physics.animationId) {
+                this.animatePhysics();
+            }
+            
+            // Detect when scrolling stops
+            clearTimeout(this.physics.scrollEndTimer);
+            this.physics.scrollEndTimer = setTimeout(() => {
+                this.physics.isScrolling = false;
+                this.physics.scrollAccumulator = 0;
+            }, 50);
+            
+            console.log(`[wheel_physics] Velocity: ${this.physics.velocity.toFixed(2)}, Position: ${this.physics.position.toFixed(2)}`);
+        }, { passive: false });
+    }
+    
+    animatePhysics() {
+        // Apply velocity to position
+        if (Math.abs(this.physics.velocity) > 0.1) {
+            this.physics.position += this.physics.velocity;
+            
+            // Apply friction
+            this.physics.velocity *= this.physics.friction;
+            
+            // Calculate the target index based on position
+            const targetIndex = Math.round(this.physics.position / this.physics.itemHeight);
+            
+            // Clamp to valid range
+            const clampedIndex = Math.max(0, Math.min(this.options.length - 1, targetIndex));
+            
+            // Update scroll position using BetterScroll
+            if (this.bs && clampedIndex !== this.currentIndex) {
+                this.bs.wheelTo(clampedIndex, 0); // Instant positioning
+            }
+            
+            // Continue animation
+            this.physics.animationId = requestAnimationFrame(() => this.animatePhysics());
+        } else if (!this.physics.isScrolling) {
+            // Scrolling has stopped, snap to nearest item
+            const finalIndex = Math.round(this.physics.position / this.physics.itemHeight);
+            const clampedIndex = Math.max(0, Math.min(this.options.length - 1, finalIndex));
+            
+            // Snap position to exact item
+            this.physics.position = clampedIndex * this.physics.itemHeight;
+            this.physics.velocity = 0;
+            
+            // Final positioning
+            if (this.bs && clampedIndex !== this.currentIndex) {
+                this.bs.wheelTo(clampedIndex, 0);
+            }
+            
+            // Stop animation
+            this.physics.animationId = null;
+        } else {
+            // Continue checking
+            this.physics.animationId = requestAnimationFrame(() => this.animatePhysics());
+        }
     }
     
     handleIndexChange(newIndex) {
         if (newIndex === this.currentIndex) {
             return;
         }
+        
+        // Update physics position to match
+        this.physics.position = newIndex * this.physics.itemHeight;
         
         // Update selection state
         const items = this.wheelListEl.querySelectorAll('.wheel-item');
@@ -436,6 +535,17 @@ class wheel_selector_component_engine {
     }
     
     destroy() {
+        // Stop physics animation
+        if (this.physics.animationId) {
+            cancelAnimationFrame(this.physics.animationId);
+            this.physics.animationId = null;
+        }
+        
+        // Clear any pending timers
+        if (this.physics.scrollEndTimer) {
+            clearTimeout(this.physics.scrollEndTimer);
+        }
+        
         // Destroy BetterScroll instance
         if (this.bs) {
             this.bs.destroy();
