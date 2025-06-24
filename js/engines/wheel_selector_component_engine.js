@@ -28,6 +28,7 @@ class wheel_selector_component_engine {
         this.currentIndex = this.findInitialIndex();
         this.wheelListEl = null;
         this.wrapperEl = null;
+        this.physicsScrolling = false; // Track if physics is controlling scroll
         
         // Physics state for custom wheel handling
         this.physics = {
@@ -327,7 +328,10 @@ class wheel_selector_component_engine {
         
         // Handle wheel selection change
         this.bs.on('wheelIndexChanged', (index) => {
-            this.handleIndexChange(index);
+            // Only handle index changes if we're not physics scrolling
+            if (!this.physicsScrolling) {
+                this.handleIndexChange(index);
+            }
         });
         
         // Handle pull-down refresh
@@ -425,15 +429,14 @@ class wheel_selector_component_engine {
             // Apply friction
             this.physics.velocity *= this.physics.friction;
             
-            // Calculate the target index based on position
-            const targetIndex = Math.round(this.physics.position / this.physics.itemHeight);
+            // Mark that we're physics scrolling
+            this.physicsScrolling = true;
             
-            // Clamp to valid range
-            const clampedIndex = Math.max(0, Math.min(this.options.length - 1, targetIndex));
-            
-            // Update scroll position using BetterScroll
-            if (this.bs && clampedIndex !== this.currentIndex) {
-                this.bs.wheelTo(clampedIndex, 0); // Instant positioning
+            // Update scroll position using BetterScroll's scroll API for smooth movement
+            if (this.bs) {
+                // Use negative position because BetterScroll scrolls in opposite direction
+                const scrollY = -this.physics.position;
+                this.bs.scrollTo(0, scrollY, 0); // x, y, time (0 = instant)
             }
             
             // Continue animation
@@ -447,9 +450,12 @@ class wheel_selector_component_engine {
             this.physics.position = clampedIndex * this.physics.itemHeight;
             this.physics.velocity = 0;
             
-            // Final positioning
-            if (this.bs && clampedIndex !== this.currentIndex) {
-                this.bs.wheelTo(clampedIndex, 0);
+            // Clear physics scrolling flag before final positioning
+            this.physicsScrolling = false;
+            
+            // Final positioning - use wheelTo to properly set the selection
+            if (this.bs) {
+                this.bs.wheelTo(clampedIndex, 100); // Small animation for snap
             }
             
             // Stop animation
