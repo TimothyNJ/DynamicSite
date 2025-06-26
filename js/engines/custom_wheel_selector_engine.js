@@ -35,10 +35,12 @@ class custom_wheel_selector_engine {
             minOpacity: 0.3      // Minimum opacity for distant items
         };
         
+        // Initialize DOM element references
+        this.itemsEls = [];
+        
         // Create DOM structure
         this.element = this.createElement();
         this.wheelEl = this.element.querySelector('.custom-wheel-items');
-        this.itemsEls = [];
         
         // Bind methods
         this.handleWheel = this.handleWheel.bind(this);
