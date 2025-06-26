@@ -318,7 +318,7 @@ class custom_wheel_selector_engine {
         });
     }
     
-    animate() {
+    animate = () => {
         const now = Date.now();
         const deltaTime = (now - this.physics.lastTime) / 1000; // Convert to seconds
         this.physics.lastTime = now;
