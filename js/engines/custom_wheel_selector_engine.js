@@ -17,7 +17,7 @@ class custom_wheel_selector_engine {
             position: 0,          // Current scroll position
             velocity: 0,          // Current velocity
             targetPosition: 0,    // Where we want to be
-            itemHeight: 36,       // Height of each item
+            itemHeight: 24,       // Height of each item (reduced for tighter spacing)
             friction: 0.95,       // Friction coefficient
             snapThreshold: 0.5,   // Velocity threshold for snapping
             lastTouchY: 0,
@@ -130,7 +130,7 @@ class custom_wheel_selector_engine {
                 position: relative;
                 width: 100%;
                 max-width: 300px;
-                height: 252px; /* 7 items * 36px */
+                height: 168px; /* 7 items * 24px */
                 margin: 0 auto;
                 background: var(--component-background, #ffffff);
                 border-radius: 8px;
@@ -173,10 +173,10 @@ class custom_wheel_selector_engine {
             .custom-wheel-item {
                 position: absolute;
                 width: 100%;
-                height: 36px;
-                line-height: 36px;
+                height: 24px;
+                line-height: 24px;
                 text-align: center;
-                font-size: 18px;
+                font-size: 16px;
                 color: var(--text-color, #333);
                 transform-origin: center center;
                 backface-visibility: hidden;
@@ -194,7 +194,7 @@ class custom_wheel_selector_engine {
                 top: 50%;
                 left: 10%;
                 right: 10%;
-                height: 36px;
+                height: 24px;
                 transform: translateY(-50%);
                 pointer-events: none;
                 border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
@@ -221,7 +221,7 @@ class custom_wheel_selector_engine {
         
         // Add velocity based on wheel delta
         const delta = e.deltaY;
-        const scaleFactor = 0.5; // Adjust for sensitivity
+        const scaleFactor = 1.2; // Increased for faster rotation
         
         // Update velocity
         this.physics.velocity += delta * scaleFactor;
