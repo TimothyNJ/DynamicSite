@@ -42,12 +42,7 @@ class custom_wheel_selector_engine {
         this.element = this.createElement();
         this.wheelEl = this.element.querySelector('.custom-wheel-items');
         
-        // Bind methods
-        this.handleWheel = this.handleWheel.bind(this);
-        this.handleTouchStart = this.handleTouchStart.bind(this);
-        this.handleTouchMove = this.handleTouchMove.bind(this);
-        this.handleTouchEnd = this.handleTouchEnd.bind(this);
-        this.animate = this.animate.bind(this);
+        // Methods are auto-bound with arrow functions
         
         // Start animation loop
         this.animationId = null;
@@ -220,7 +215,7 @@ class custom_wheel_selector_engine {
         document.head.appendChild(style);
     }
     
-    handleWheel(e) {
+    handleWheel = (e) => {
         e.preventDefault();
         e.stopPropagation();
         
@@ -238,7 +233,7 @@ class custom_wheel_selector_engine {
         console.log(`[custom_wheel] Wheel delta: ${delta}, velocity: ${this.physics.velocity.toFixed(2)}`);
     }
     
-    handleTouchStart(e) {
+    handleTouchStart = (e) => {
         e.preventDefault();
         const touch = e.touches[0];
         this.physics.lastTouchY = touch.clientY;
@@ -247,7 +242,7 @@ class custom_wheel_selector_engine {
         this.physics.momentumTracking = [];
     }
     
-    handleTouchMove(e) {
+    handleTouchMove = (e) => {
         if (!this.physics.isDragging) return;
         e.preventDefault();
         
@@ -272,7 +267,7 @@ class custom_wheel_selector_engine {
         this.physics.lastTouchY = touch.clientY;
     }
     
-    handleTouchEnd(e) {
+    handleTouchEnd = (e) => {
         if (!this.physics.isDragging) return;
         e.preventDefault();
         
