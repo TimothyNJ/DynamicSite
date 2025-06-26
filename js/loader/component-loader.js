@@ -12,7 +12,8 @@ console.log('[component-loader] Component loader initializing');
 
 // Page to component mapping
 const pageComponents = {
-  'settings': ['ComponentFactory']
+  'settings': ['ComponentFactory'],
+  'progress': ['ComponentFactory']
 };
 
 // Component module paths
