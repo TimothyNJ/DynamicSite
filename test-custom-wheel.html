@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Wheel Selector Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .test-container h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .selector-container {
+            margin-bottom: 30px;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1a1a1a;
+                color: #fff;
+            }
+            
+            .test-container {
+                background: #2a2a2a;
+            }
+            
+            .test-container h2 {
+                color: #fff;
+            }
+            
+            .result {
+                background: #3a3a3a;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>Custom Wheel Selector Test</h2>
+        
+        <div class="selector-container">
+            <h3>Year Selector (Compare with BetterScroll)</h3>
+            <div id="year-selector"></div>
+            <div class="result" id="year-result">Selected: None</div>
+        </div>
+        
+        <div class="selector-container">
+            <h3>Language Selector</h3>
+            <div id="language-selector"></div>
+            <div class="result" id="language-result">Selected: None</div>
+        </div>
+        
+        <div class="selector-container">
+            <h3>Number Selector</h3>
+            <div id="number-selector"></div>
+            <div class="result" id="number-result">Selected: None</div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { ComponentFactory } from './js/factory/ComponentFactory.js';
+        
+        const factory = new ComponentFactory();
+        
+        // Create year selector (same as BetterScroll example)
+        const currentYear = new Date().getFullYear();
+        const years = [];
+        for (let i = currentYear - 50; i <= currentYear + 50; i++) {
+            years.push({ value: i, name: i.toString() });
+        }
+        
+        factory.createWheelSelector('year-selector', {
+            options: years,
+            defaultValue: currentYear,
+            onChange: (value) => {
+                document.getElementById('year-result').textContent = `Selected: ${value}`;
+            }
+        });
+        
+        // Create language selector
+        factory.createWheelSelector('language-selector', {
+            options: [
+                { value: 'en', name: 'English' },
+                { value: 'es', name: 'Español' },
+                { value: 'fr', name: 'Français' },
+                { value: 'de', name: 'Deutsch' },
+                { value: 'it', name: 'Italiano' },
+                { value: 'pt', name: 'Português' },
+                { value: 'ja', name: '日本語' },
+                { value: 'ko', name: '한국어' },
+                { value: 'zh', name: '中文' }
+            ],
+            defaultValue: 'en',
+            onChange: (value) => {
+                document.getElementById('language-result').textContent = `Selected: ${value}`;
+            }
+        });
+        
+        // Create number selector
+        const numbers = [];
+        for (let i = 0; i <= 100; i += 5) {
+            numbers.push({ value: i, name: i.toString() });
+        }
+        
+        factory.createWheelSelector('number-selector', {
+            options: numbers,
+            defaultValue: 50,
+            onChange: (value) => {
+                document.getElementById('number-result').textContent = `Selected: ${value}`;
+            }
+        });
+    </script>
+</body>
+</html>

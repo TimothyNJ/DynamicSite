@@ -19,6 +19,7 @@ import { wheel_time_selector_component_engine } from '../engines/wheel_time_sele
 import { wheel_date_picker_component_engine } from '../engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from '../engines/calendar_picker_component_engine.js';
 import { wheel_selector_component_engine } from '../engines/wheel_selector_component_engine.js';
+import { custom_wheel_selector_engine } from '../engines/custom_wheel_selector_engine.js';
 
 class ComponentFactory {
   constructor() {
@@ -33,6 +34,7 @@ class ComponentFactory {
     this.wheelDateInstances = new Map();
     this.calendarInstances = new Map();
     this.wheelSelectorInstances = new Map();
+    this.customWheelInstances = new Map();
     this.initialized = false;
     
     console.log('[ComponentFactory] Factory initialized for engine-based components');
@@ -1067,17 +1069,17 @@ class ComponentFactory {
   }
 
   /**
-   * Create a wheel selector using wheel_selector_component_engine
+   * Create a wheel selector using custom_wheel_selector_engine
    * 
    * @param {string} containerId - Container element ID
    * @param {Object} config - Configuration options
    * @returns {Object} Wheel selector engine instance
    */
   createWheelSelector(containerId, config = {}) {
-    console.log(`[ComponentFactory] Creating wheel selector in container: ${containerId}`);
+    console.log(`[ComponentFactory] Creating custom wheel selector in container: ${containerId}`);
     
-    if (!wheel_selector_component_engine) {
-      console.error('[ComponentFactory] ERROR: wheel_selector_component_engine not available');
+    if (!custom_wheel_selector_engine) {
+      console.error('[ComponentFactory] ERROR: custom_wheel_selector_engine not available');
       return null;
     }
     
@@ -1090,20 +1092,20 @@ class ComponentFactory {
       delete cleanOptions.onChange;
       
       // Pass handler as second parameter as expected by the engine
-      const wheelSelectorEngine = new wheel_selector_component_engine(cleanOptions, handler);
+      const wheelSelectorEngine = new custom_wheel_selector_engine(cleanOptions, handler);
       const element = wheelSelectorEngine.render(containerId);
       
       if (element) {
         const key = config.id || containerId;
-        this.wheelSelectorInstances.set(key, wheelSelectorEngine);
-        console.log(`[ComponentFactory] Wheel selector created successfully: ${key}`);
+        this.customWheelInstances.set(key, wheelSelectorEngine);
+        console.log(`[ComponentFactory] Custom wheel selector created successfully: ${key}`);
         return wheelSelectorEngine;
       } else {
-        console.error(`[ComponentFactory] Failed to render wheel selector in: ${containerId}`);
+        console.error(`[ComponentFactory] Failed to render custom wheel selector in: ${containerId}`);
         return null;
       }
     } catch (error) {
-      console.error('[ComponentFactory] Error creating wheel selector:', error);
+      console.error('[ComponentFactory] Error creating custom wheel selector:', error);
       return null;
     }
   }
