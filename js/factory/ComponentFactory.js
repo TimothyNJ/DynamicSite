@@ -20,6 +20,7 @@ import { wheel_date_picker_component_engine } from '../engines/wheel_date_picker
 import { calendar_picker_component_engine } from '../engines/calendar_picker_component_engine.js';
 import { wheel_selector_component_engine } from '../engines/wheel_selector_component_engine.js';
 import { custom_wheel_selector_engine } from '../engines/custom_wheel_selector_engine.js';
+import { ios_drum_wheel_engine } from '../engines/ios_drum_wheel_engine.js';
 
 class ComponentFactory {
   constructor() {
@@ -1076,10 +1077,10 @@ class ComponentFactory {
    * @returns {Object} Wheel selector engine instance
    */
   createWheelSelector(containerId, config = {}) {
-    console.log(`[ComponentFactory] Creating custom wheel selector in container: ${containerId}`);
+    console.log(`[ComponentFactory] Creating iOS drum wheel selector in container: ${containerId}`);
     
-    if (!custom_wheel_selector_engine) {
-      console.error('[ComponentFactory] ERROR: custom_wheel_selector_engine not available');
+    if (!ios_drum_wheel_engine) {
+      console.error('[ComponentFactory] ERROR: ios_drum_wheel_engine not available');
       return null;
     }
     
@@ -1092,20 +1093,20 @@ class ComponentFactory {
       delete cleanOptions.onChange;
       
       // Pass handler as second parameter as expected by the engine
-      const wheelSelectorEngine = new custom_wheel_selector_engine(cleanOptions, handler);
+      const wheelSelectorEngine = new ios_drum_wheel_engine(cleanOptions, handler);
       const element = wheelSelectorEngine.render(containerId);
       
       if (element) {
         const key = config.id || containerId;
         this.customWheelInstances.set(key, wheelSelectorEngine);
-        console.log(`[ComponentFactory] Custom wheel selector created successfully: ${key}`);
+        console.log(`[ComponentFactory] iOS drum wheel selector created successfully: ${key}`);
         return wheelSelectorEngine;
       } else {
-        console.error(`[ComponentFactory] Failed to render custom wheel selector in: ${containerId}`);
+        console.error(`[ComponentFactory] Failed to render iOS drum wheel selector in: ${containerId}`);
         return null;
       }
     } catch (error) {
-      console.error('[ComponentFactory] Error creating custom wheel selector:', error);
+      console.error('[ComponentFactory] Error creating iOS drum wheel selector:', error);
       return null;
     }
   }
