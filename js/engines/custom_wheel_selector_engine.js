@@ -114,10 +114,7 @@ class custom_wheel_selector_engine {
         container.addEventListener('click', this.handleClick, { passive: false });
         
         // Set initial position
-        // Adjust so that the selected item appears centered, not at top
-        // We need to offset by half the visible items (3.5 items for 7 visible)
-        const centerOffset = Math.floor(this.visual.itemsVisible / 2) * this.physics.itemHeight;
-        this.physics.position = this.currentIndex * this.physics.itemHeight - centerOffset;
+        this.physics.position = this.currentIndex * this.physics.itemHeight;
         this.physics.targetPosition = this.physics.position;
         
         return container;
@@ -309,9 +306,7 @@ class custom_wheel_selector_engine {
         const clampedIndex = Math.max(0, Math.min(this.options.length - 1, targetIndex));
         
         // Set position directly to clicked item
-        // Account for center offset in our coordinate system
-        const centerOffset = Math.floor(this.visual.itemsVisible / 2) * this.physics.itemHeight;
-        this.physics.position = clampedIndex * this.physics.itemHeight - centerOffset;
+        this.physics.position = clampedIndex * this.physics.itemHeight;
         this.physics.velocity = 0;
         
         console.log(`[custom_wheel] Clicked item at index: ${clampedIndex}`);
@@ -373,10 +368,8 @@ class custom_wheel_selector_engine {
                 this.physics.velocity *= Math.pow(this.physics.friction, deltaTime * 60); // Normalize to 60fps
                 
                 // Clamp position to valid range
-                // Account for the center offset in our coordinate system
-                const centerOffset = Math.floor(this.visual.itemsVisible / 2) * this.physics.itemHeight;
-                const minPos = -centerOffset;
-                const maxPos = (this.options.length - 1) * this.physics.itemHeight - centerOffset;
+                const minPos = 0;
+                const maxPos = (this.options.length - 1) * this.physics.itemHeight;
                 
                 if (this.physics.position < minPos) {
                     this.physics.position = minPos;
@@ -443,9 +436,7 @@ class custom_wheel_selector_engine {
         const index = this.options.findIndex(option => option.value == value);
         if (index >= 0 && index !== this.currentIndex) {
             this.currentIndex = index;
-            // Account for center offset when setting position
-            const centerOffset = Math.floor(this.visual.itemsVisible / 2) * this.physics.itemHeight;
-            this.physics.targetPosition = index * this.physics.itemHeight - centerOffset;
+            this.physics.targetPosition = index * this.physics.itemHeight;
             this.physics.position = this.physics.targetPosition;
             this.physics.velocity = 0;
             this.value = value;
