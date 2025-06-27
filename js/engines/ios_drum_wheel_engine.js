@@ -142,7 +142,7 @@ class ios_drum_wheel_engine {
                 position: relative;
                 width: 100%;
                 max-width: 300px;
-                height: 216px;
+                height: 216px;  /* 9 items × 24px */
                 margin: 0 auto;
                 overflow: hidden;
                 user-select: none;
@@ -260,51 +260,51 @@ class ios_drum_wheel_engine {
     }    
     // Update panel content based on current rotation
     updatePanelContent() {
-        const itemsPerRotation = this.options.length;
-        const degreesPerItem = 360 / itemsPerRotation;
-        
-        // Calculate which item should be at the front (selected)
+        // Calculate which item should be selected based on rotation
+        const degreesPerItem = 360 / this.options.length;
         const normalizedRotation = ((this.drum.rotation % 360) + 360) % 360;
-        const selectedIndex = Math.round(normalizedRotation / degreesPerItem) % itemsPerRotation;
+        const selectedIndex = Math.round(normalizedRotation / degreesPerItem) % this.options.length;
         
-        // Update each panel
-        this.drum.panels.forEach((panel, i) => {
-            const panelAngle = (i * this.drum.panelAngle - this.drum.rotation) % 360;
+        // Update each panel with consecutive items
+        this.drum.panels.forEach((panel, panelIndex) => {
+            // Calculate panel's position in the drum
+            const panelAngle = (panelIndex * this.drum.panelAngle - this.drum.rotation) % 360;
             const normalizedAngle = ((panelAngle % 360) + 360) % 360;
             
             // Determine if panel is visible (front half of cylinder)
             const isVisible = normalizedAngle > 270 || normalizedAngle < 90;
             
-            // Calculate which option to show in this panel
-            const offset = Math.round(panelAngle / degreesPerItem);
-            let optionIndex = (selectedIndex - offset + itemsPerRotation) % itemsPerRotation;
+            // Map panel to item index (consecutive items)
+            // Panel 8 (center) shows selected item
+            // Panel 0 shows selectedIndex - 8, Panel 1 shows selectedIndex - 7, etc.
+            const panelOffset = panelIndex - 8;
+            let itemIndex = selectedIndex - panelOffset;
             
-            // Handle negative modulo
-            if (optionIndex < 0) optionIndex += itemsPerRotation;
+            // Handle wraparound for circular list
+            itemIndex = ((itemIndex % this.options.length) + this.options.length) % this.options.length;
             
-            // Ensure index is within bounds
-            if (optionIndex >= 0 && optionIndex < this.options.length) {
-                const option = this.options[optionIndex];
+            // Update panel content
+            if (itemIndex >= 0 && itemIndex < this.options.length) {
+                const option = this.options[itemIndex];
                 panel.textContent = option.name;
                 panel.setAttribute('data-value', option.value);
-                panel.setAttribute('data-index', optionIndex);
+                panel.setAttribute('data-index', itemIndex);
                 
                 // Update visibility classes
                 panel.classList.toggle('visible', isVisible);
-                panel.classList.toggle('selected', normalizedAngle > 350 || normalizedAngle < 10);
+                // Selected item is at center (panel 8 when rotation aligns)
+                const isSelected = normalizedAngle > 350 || normalizedAngle < 10;
+                panel.classList.toggle('selected', isSelected);
             } else {
                 panel.textContent = '';
                 panel.classList.remove('visible', 'selected');
             }
         });
         
-        // Update current value
-        const currentIndex = Math.round(this.drum.rotation / degreesPerItem) % this.options.length;
-        const normalizedIndex = ((currentIndex % this.options.length) + this.options.length) % this.options.length;
-        
-        if (normalizedIndex !== this.currentIndex && normalizedIndex < this.options.length) {
-            this.currentIndex = normalizedIndex;
-            const selectedOption = this.options[normalizedIndex];
+        // Update current value based on selected index
+        if (selectedIndex !== this.currentIndex && selectedIndex < this.options.length) {
+            this.currentIndex = selectedIndex;
+            const selectedOption = this.options[selectedIndex];
             if (selectedOption) {
                 this.value = selectedOption.value;
                 this.onChange(this.value);
