@@ -290,11 +290,15 @@ class custom_wheel_selector_engine {
     updateItemTransforms() {
         const centerIndex = this.physics.position / this.physics.itemHeight;
         
+        // Debug: Log the exact position
+        const snapPosition = Math.round(this.physics.position);
+        const expectedIndex = Math.round(centerIndex);
+        
         this.itemsEls.forEach((item, index) => {
             const offset = index - centerIndex;
             const absOffset = Math.abs(offset);
             
-            // Calculate Y position
+            // Calculate Y position - when offset is 0, item should be at center (y=0)
             const y = offset * this.physics.itemHeight;
             
             // Calculate rotation for 3D effect
@@ -349,26 +353,21 @@ class custom_wheel_selector_engine {
                     this.physics.velocity = 0;
                 }
             } else {
-                // Snap to nearest item
+                // Always snap to nearest item when velocity is zero
                 const targetIndex = Math.round(this.physics.position / this.physics.itemHeight);
                 const targetPos = targetIndex * this.physics.itemHeight;
                 
-                // Smooth approach to target
-                const diff = targetPos - this.physics.position;
-                if (Math.abs(diff) > 0.1) {
-                    this.physics.position += diff * 0.2; // Smooth snapping
-                } else {
-                    this.physics.position = targetPos;
-                    
-                    // Check if selection changed
-                    if (targetIndex !== this.currentIndex) {
-                        this.currentIndex = targetIndex;
-                        const selectedOption = this.options[targetIndex];
-                        if (selectedOption) {
-                            this.value = selectedOption.value;
-                            this.onChange(this.value);
-                            console.log(`[custom_wheel] Selected: ${selectedOption.name} (${selectedOption.value})`);
-                        }
+                // Force immediate snap
+                this.physics.position = targetPos;
+                
+                // Check if selection changed
+                if (targetIndex !== this.currentIndex) {
+                    this.currentIndex = targetIndex;
+                    const selectedOption = this.options[targetIndex];
+                    if (selectedOption) {
+                        this.value = selectedOption.value;
+                        this.onChange(this.value);
+                        console.log(`[custom_wheel] Selected: ${selectedOption.name} (${selectedOption.value})`);
                     }
                 }
             }
