@@ -18,12 +18,14 @@ class custom_wheel_selector_engine {
             velocity: 0,          // Current velocity
             targetPosition: 0,    // Where we want to be
             itemHeight: 24,       // Height of each item (reduced for tighter spacing)
-            friction: 0.95,       // Friction coefficient
+            friction: 0.92,       // Friction coefficient (reduced for longer scrolling)
             snapThreshold: 0.5,   // Velocity threshold for snapping
             lastTouchY: 0,
             isDragging: false,
             lastTime: Date.now(),
-            momentumTracking: []  // Track recent movements for momentum
+            momentumTracking: [],  // Track recent movements for momentum
+            touchVelocityScale: 250,  // Scale factor for touch velocity (increased for iPhone)
+            maxVelocity: 1500        // Maximum velocity limit (increased for fast swipes)
         };
         
         // Visual parameters
@@ -227,8 +229,7 @@ class custom_wheel_selector_engine {
         this.physics.velocity += delta * scaleFactor;
         
         // Limit maximum velocity
-        const maxVelocity = 500;
-        this.physics.velocity = Math.max(-maxVelocity, Math.min(maxVelocity, this.physics.velocity));
+        this.physics.velocity = Math.max(-this.physics.maxVelocity, Math.min(this.physics.maxVelocity, this.physics.velocity));
         
         console.log(`[custom_wheel] Wheel delta: ${delta}, velocity: ${this.physics.velocity.toFixed(2)}`);
     }
@@ -279,7 +280,7 @@ class custom_wheel_selector_engine {
             const timeSpan = Date.now() - this.physics.momentumTracking[0].time;
             
             if (timeSpan > 0) {
-                this.physics.velocity = (totalDelta / timeSpan) * 100; // Scale for momentum
+                this.physics.velocity = (totalDelta / timeSpan) * this.physics.touchVelocityScale; // Increased scale for better iPhone response
             }
         }
     }
