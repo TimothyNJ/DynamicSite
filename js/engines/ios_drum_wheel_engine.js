@@ -294,11 +294,11 @@ class ios_drum_wheel_engine {
             
             /* Panel visibility states */
             .ios-drum-panel {
-                transition: opacity 0.3s ease, font-weight 0.2s ease;
+                transition: font-weight 0.2s ease;
             }
             
             .ios-drum-panel.hidden {
-                opacity: 0;
+                display: none;
             }
             
             .ios-drum-panel.selected {
@@ -436,17 +436,21 @@ class ios_drum_wheel_engine {
             const panelNumber = i + 1;
             const angle = this.getCurrentPanelAngle(panelNumber);
             
-            // Panels are visible between roughly 315° and 45° (front quadrant)
-            // This gives us positions 5-13 visible
-            const isVisible = angle > 315 || angle < 45;
-            panel.classList.toggle('hidden', !isVisible);
+            // Normalize angle to 0-360 range for easier logic
+            const normalizedAngle = ((angle % 360) + 360) % 360;
             
-            // Update opacity for smooth fade effect
+            // Panels should be visible in the front hemisphere (roughly -90° to +90° from center)
+            // This translates to angles between 270° and 90° (going through 0°)
+            const isVisible = normalizedAngle >= 270 || normalizedAngle <= 90;
+            
+            // Set visibility
             if (isVisible) {
-                // Calculate opacity based on angle from center
-                const distanceFromCenter = Math.min(angle, 360 - angle);
-                const opacity = Math.max(0, 1 - (distanceFromCenter / 45));
-                panel.style.opacity = opacity;
+                panel.classList.remove('hidden');
+                // All visible panels have full opacity
+                panel.style.opacity = 1;
+            } else {
+                panel.classList.add('hidden');
+                panel.style.opacity = 0;
             }
         });
     }
