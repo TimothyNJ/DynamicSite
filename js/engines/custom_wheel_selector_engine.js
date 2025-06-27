@@ -111,6 +111,7 @@ class custom_wheel_selector_engine {
         container.addEventListener('touchstart', this.handleTouchStart, { passive: false });
         container.addEventListener('touchmove', this.handleTouchMove, { passive: false });
         container.addEventListener('touchend', this.handleTouchEnd, { passive: false });
+        container.addEventListener('click', this.handleClick, { passive: false });
         
         // Set initial position
         this.physics.position = this.currentIndex * this.physics.itemHeight;
@@ -233,6 +234,9 @@ class custom_wheel_selector_engine {
         // Update velocity directly without any limits
         this.physics.velocity += delta * scaleFactor;
         
+        // Start animation if not running
+        this.startAnimation();
+        
         console.log(`[custom_wheel] Wheel delta: ${delta}, velocity: ${this.physics.velocity.toFixed(2)}`);
     }
     
@@ -287,6 +291,28 @@ class custom_wheel_selector_engine {
         }
     }
     
+    handleClick = (e) => {
+        // Find which item was clicked
+        const rect = this.element.getBoundingClientRect();
+        const clickY = e.clientY - rect.top;
+        const centerY = rect.height / 2;
+        const offset = (clickY - centerY) / this.physics.itemHeight;
+        
+        // Calculate target index
+        const currentIndex = Math.round(this.physics.position / this.physics.itemHeight);
+        const targetIndex = Math.round(currentIndex + offset);
+        
+        // Clamp to valid range
+        const clampedIndex = Math.max(0, Math.min(this.options.length - 1, targetIndex));
+        
+        // Set position directly to clicked item
+        this.physics.position = clampedIndex * this.physics.itemHeight;
+        this.physics.velocity = 0;
+        
+        console.log(`[custom_wheel] Clicked item at index: ${clampedIndex}`);
+        this.startAnimation();
+    }
+    
     updateItemTransforms() {
         const centerIndex = this.physics.position / this.physics.itemHeight;
         
@@ -330,16 +356,16 @@ class custom_wheel_selector_engine {
         const deltaTime = (now - this.physics.lastTime) / 1000; // Convert to seconds
         this.physics.lastTime = now;
         
+        let isMoving = false;
+        
         if (!this.physics.isDragging) {
-            // Apply velocity without any threshold - take it as it is
-            if (this.physics.velocity !== 0) {
+            // Consider velocity effectively zero if below threshold
+            if (Math.abs(this.physics.velocity) > 0.1) {
+                isMoving = true;
                 this.physics.position += this.physics.velocity * deltaTime;
                 
-                // Apply friction only if there's meaningful velocity
-                // This preserves tiny movements that users make when testing responsiveness
-                if (Math.abs(this.physics.velocity) > 1) {
-                    this.physics.velocity *= Math.pow(this.physics.friction, deltaTime * 60); // Normalize to 60fps
-                }
+                // Apply friction
+                this.physics.velocity *= Math.pow(this.physics.friction, deltaTime * 60); // Normalize to 60fps
                 
                 // Clamp position to valid range
                 const minPos = 0;
@@ -353,37 +379,56 @@ class custom_wheel_selector_engine {
                     this.physics.velocity = 0;
                 }
             } else {
-                // Always snap to nearest item when velocity is zero
+                // Velocity is effectively zero, snap to nearest item
+                this.physics.velocity = 0; // Force to exact zero
+                
                 const targetIndex = Math.round(this.physics.position / this.physics.itemHeight);
                 const targetPos = targetIndex * this.physics.itemHeight;
+                const diff = targetPos - this.physics.position;
                 
-                // Force immediate snap
-                this.physics.position = targetPos;
-                
-                // Check if selection changed
-                if (targetIndex !== this.currentIndex) {
-                    this.currentIndex = targetIndex;
-                    const selectedOption = this.options[targetIndex];
-                    if (selectedOption) {
-                        this.value = selectedOption.value;
-                        this.onChange(this.value);
-                        console.log(`[custom_wheel] Selected: ${selectedOption.name} (${selectedOption.value})`);
-                    }
+                if (Math.abs(diff) > 0.01) {
+                    // Animate to snap position
+                    this.physics.position += diff * 0.3;
+                    isMoving = true;
+                } else {
+                    // Exactly at snap position
+                    this.physics.position = targetPos;
                 }
+            }
+        } else {
+            isMoving = true;
+        }
+        
+        // Update selection continuously based on current position
+        const currentIndex = Math.round(this.physics.position / this.physics.itemHeight);
+        if (currentIndex !== this.currentIndex && currentIndex >= 0 && currentIndex < this.options.length) {
+            this.currentIndex = currentIndex;
+            const selectedOption = this.options[currentIndex];
+            if (selectedOption) {
+                this.value = selectedOption.value;
+                this.onChange(this.value);
+                console.log(`[custom_wheel] Selected: ${selectedOption.name} (${selectedOption.value})`);
             }
         }
         
         // Update visual transforms
         this.updateItemTransforms();
         
-        // Continue animation
-        this.animationId = requestAnimationFrame(this.animate);
+        // Continue animation only if moving or dragging
+        if (isMoving || this.physics.isDragging) {
+            this.animationId = requestAnimationFrame(this.animate);
+        } else {
+            // Stop animation when settled
+            this.animationId = null;
+            console.log('[custom_wheel] Animation stopped - wheel settled');
+        }
     }
     
     startAnimation() {
         if (!this.animationId) {
             this.physics.lastTime = Date.now();
             this.animationId = requestAnimationFrame(this.animate);
+            console.log('[custom_wheel] Animation started');
         }
     }
     
@@ -429,6 +474,7 @@ class custom_wheel_selector_engine {
         this.element.removeEventListener('touchstart', this.handleTouchStart);
         this.element.removeEventListener('touchmove', this.handleTouchMove);
         this.element.removeEventListener('touchend', this.handleTouchEnd);
+        this.element.removeEventListener('click', this.handleClick);
         
         // Remove from DOM
         if (this.element && this.element.parentNode) {
