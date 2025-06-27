@@ -187,19 +187,23 @@ class custom_wheel_selector_engine {
             
             .custom-wheel-item.selected {
                 color: var(--text-color-primary, #000);
-                font-weight: 500;
+                font-weight: 600;
+                font-size: 18px;
+                transform-origin: center center;
             }
             
             .custom-wheel-indicator {
                 position: absolute;
                 top: 50%;
-                left: 10%;
-                right: 10%;
+                left: 5%;
+                right: 5%;
                 height: 24px;
                 transform: translateY(-50%);
                 pointer-events: none;
-                border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
-                border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+                border-top: 2px solid var(--accent-color, #007AFF);
+                border-bottom: 2px solid var(--accent-color, #007AFF);
+                background: var(--indicator-bg, rgba(0, 122, 255, 0.05));
+                border-radius: 4px;
             }
             
             /* Dark mode support */
@@ -209,6 +213,8 @@ class custom_wheel_selector_engine {
                     --text-color: #ffffff;
                     --text-color-primary: #ffffff;
                     --border-color: rgba(255, 255, 255, 0.1);
+                    --accent-color: #0A84FF;
+                    --indicator-bg: rgba(10, 132, 255, 0.1);
                 }
             }
         `;
