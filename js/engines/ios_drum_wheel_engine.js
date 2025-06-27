@@ -325,7 +325,9 @@ class ios_drum_wheel_engine {
         console.log(`[ios_drum] Initializing ${this.drum.panelCount} panels with ${this.options.length} options`);
         
         // Panel 9 starts at front center and should show the current value
-        // Work backward and forward from Panel 9 to assign consecutive values
+        // For a descending array (2025, 2024, 2023...), visual order should be:
+        // - Panels above center (1-8) show LARGER indices (earlier years)
+        // - Panels below center (10-16) show SMALLER indices (later years)
         const centerPanelNumber = 9;
         
         for (let panelNum = 1; panelNum <= this.drum.panelCount; panelNum++) {
@@ -333,8 +335,12 @@ class ios_drum_wheel_engine {
             const panel = this.drum.panels[panelIndex];
             
             // Calculate offset from Panel 9
+            // For panels above center (1-8): offset is negative, so we need larger indices
+            // For panels below center (10-16): offset is positive, so we need smaller indices
             const offsetFromCenter = panelNum - centerPanelNumber;
-            let itemIndex = this.currentIndex + offsetFromCenter;
+            
+            // For descending arrays, subtract the offset to get correct visual order
+            let itemIndex = this.currentIndex - offsetFromCenter;
             
             // Handle wraparound for circular list
             if (this.options.length > 0) {
@@ -393,18 +399,22 @@ class ios_drum_wheel_engine {
         if (angle > 135 && angle < 225) {
             let newIndex = -1;
             
+            // For descending arrays (2025, 2024, 2023...):
+            // Rolling DOWN visually = showing LATER years = SMALLER indices
+            // Rolling UP visually = showing EARLIER years = LARGER indices
+            
             if (direction === 'down' && position === this.POSITIONS.UPDATE_DOWN) {
-                // Get what's on the panel at position 15 and add 1
+                // Rolling down: Position 16 needs the next later year (smaller index)
                 const panelAt15 = this.getPanelAtPosition(15);
                 const panel15Index = panelAt15 - 1;
                 const panel15ItemIndex = parseInt(this.drum.panels[panel15Index].getAttribute('data-item-index'));
-                newIndex = (panel15ItemIndex + 1) % this.options.length;
+                newIndex = (panel15ItemIndex - 1 + this.options.length) % this.options.length;
             } else if (direction === 'up' && position === this.POSITIONS.UPDATE_UP) {
-                // Get what's on the panel at position 3 and subtract 1
+                // Rolling up: Position 2 needs the next earlier year (larger index)
                 const panelAt3 = this.getPanelAtPosition(3);
                 const panel3Index = panelAt3 - 1;
                 const panel3ItemIndex = parseInt(this.drum.panels[panel3Index].getAttribute('data-item-index'));
-                newIndex = (panel3ItemIndex - 1 + this.options.length) % this.options.length;
+                newIndex = (panel3ItemIndex + 1) % this.options.length;
             }
             
             if (newIndex >= 0 && newIndex < this.options.length) {
