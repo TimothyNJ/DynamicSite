@@ -1,6 +1,6 @@
 // ios_drum_wheel_engine.js
 // True iOS-style cylindrical drum wheel selector with authentic 3D effect
-// Implements physical drum model with 16 fixed panels where Panel 9 is center at rest
+// Implements physical drum model with position-based updates
 
 class ios_drum_wheel_engine {
     constructor(options = {}, onChange = null) {
@@ -25,12 +25,13 @@ class ios_drum_wheel_engine {
             panelContents: []         // Track what's painted on each panel
         };
         
-        // Panel position constants (1-indexed to match description)
-        this.PANEL_POSITIONS = {
-            BACK_CENTER: 1,       // Facing away at back
-            UPDATE_UP: 2,         // Updates when rolling up
-            CENTER: 9,            // Front center (selected)
-            UPDATE_DOWN: 16       // Updates when rolling down
+        // Position constants (1-indexed to match description)
+        // These are FIXED LOCATIONS in space, not panel IDs
+        this.POSITIONS = {
+            BACK_CENTER: 1,       // Position facing away at back
+            UPDATE_UP: 2,         // Position that updates when rolling up
+            FRONT_CENTER: 9,      // Position at front center (selected)
+            UPDATE_DOWN: 16       // Position that updates when rolling down
         };
         
         // Physics for smooth interaction
@@ -146,7 +147,7 @@ class ios_drum_wheel_engine {
     calculatePanelRestAngle(panelNumber) {
         // Panel 9 should be at 0°, Panel 1 at 180°
         // Each panel is 22.5° apart
-        const offset = (panelNumber - this.PANEL_POSITIONS.CENTER) * this.drum.panelAngle;
+        const offset = (panelNumber - this.POSITIONS.FRONT_CENTER) * this.drum.panelAngle;
         return offset;
     }
     
@@ -158,23 +159,35 @@ class ios_drum_wheel_engine {
         return ((currentAngle % 360) + 360) % 360;
     }
     
-    // Determine which panel is currently at center (position 9)
-    getCenterPanelNumber() {
-        let closestPanel = 1;
-        let closestDistance = 360;
+    // Determine which panel is currently at a specific position
+    getPanelAtPosition(position) {
+        // As drum rotates, panels move through positions
+        // Calculate how many positions the drum has rotated
+        const positionsRotated = Math.round(this.drum.rotation / this.drum.panelAngle);
         
-        for (let panelNum = 1; panelNum <= this.drum.panelCount; panelNum++) {
-            const angle = this.getCurrentPanelAngle(panelNum);
-            // Distance from front center (0° or 360°)
-            const distance = Math.min(angle, 360 - angle);
-            
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestPanel = panelNum;
-            }
-        }
+        // Calculate which panel is at the requested position
+        let panelNumber = position - positionsRotated;
         
-        return closestPanel;
+        // Handle wraparound
+        while (panelNumber < 1) panelNumber += this.drum.panelCount;
+        while (panelNumber > this.drum.panelCount) panelNumber -= this.drum.panelCount;
+        
+        return panelNumber;
+    }
+    
+    // Get the position of a specific panel
+    getPositionOfPanel(panelNumber) {
+        // Calculate how many positions the drum has rotated
+        const positionsRotated = Math.round(this.drum.rotation / this.drum.panelAngle);
+        
+        // Calculate current position of the panel
+        let position = panelNumber + positionsRotated;
+        
+        // Handle wraparound
+        while (position < 1) position += this.drum.panelCount;
+        while (position > this.drum.panelCount) position -= this.drum.panelCount;
+        
+        return position;
     }
     
     addStyles() {
@@ -311,16 +324,16 @@ class ios_drum_wheel_engine {
     initializePanelContent() {
         console.log(`[ios_drum] Initializing ${this.drum.panelCount} panels with ${this.options.length} options`);
         
-        // Calculate what should be painted on each panel initially
-        // Panel 9 (center) should show the current value
-        const centerPanelIndex = this.PANEL_POSITIONS.CENTER - 1; // 0-indexed
+        // Panel 9 starts at front center and should show the current value
+        // Work backward and forward from Panel 9 to assign consecutive values
+        const centerPanelNumber = 9;
         
-        for (let i = 0; i < this.drum.panelCount; i++) {
-            const panelNumber = i + 1;
-            const panel = this.drum.panels[i];
+        for (let panelNum = 1; panelNum <= this.drum.panelCount; panelNum++) {
+            const panelIndex = panelNum - 1;
+            const panel = this.drum.panels[panelIndex];
             
-            // Calculate offset from center panel
-            const offsetFromCenter = i - centerPanelIndex;
+            // Calculate offset from Panel 9
+            const offsetFromCenter = panelNum - centerPanelNumber;
             let itemIndex = this.currentIndex + offsetFromCenter;
             
             // Handle wraparound for circular list
@@ -332,15 +345,16 @@ class ios_drum_wheel_engine {
             if (itemIndex >= 0 && itemIndex < this.options.length) {
                 const option = this.options[itemIndex];
                 panel.textContent = option.name;
-                this.drum.panelContents[i] = option.name;
+                this.drum.panelContents[panelIndex] = option.name;
                 panel.setAttribute('data-value', option.value);
                 panel.setAttribute('data-item-index', itemIndex);
                 
-                console.log(`[ios_drum] Panel ${panelNumber}: "${option.name}" (item index: ${itemIndex})`);
+                console.log(`[ios_drum] Panel ${panelNum}: "${option.name}" (item index: ${itemIndex})`);
             }
         }
         
         this.updatePanelVisibility();
+        this.updateSelection();
     }
     
     // Update panel content based on rotation direction
@@ -349,15 +363,18 @@ class ios_drum_wheel_engine {
         
         if (direction === 0) return; // No movement
         
-        // Only update panels 2 (rolling up) or 16 (rolling down)
+        // Check which panels are at the update positions
+        const panelAtUpdateUpPosition = this.getPanelAtPosition(this.POSITIONS.UPDATE_UP);
+        const panelAtUpdateDownPosition = this.getPanelAtPosition(this.POSITIONS.UPDATE_DOWN);
+        
         if (direction > 0) {
             // Drum rolling down (front moves down, back moves up)
-            // Update panel 16 if it's on the back
-            this.updatePanelIfNeeded(16, 'down');
+            // Update the panel at Position 16 (UPDATE_DOWN)
+            this.updatePanelAtPosition(this.POSITIONS.UPDATE_DOWN, 'down');
         } else {
             // Drum rolling up (front moves up, back moves down)
-            // Update panel 2 if it's on the back
-            this.updatePanelIfNeeded(2, 'up');
+            // Update the panel at Position 2 (UPDATE_UP)
+            this.updatePanelAtPosition(this.POSITIONS.UPDATE_UP, 'up');
         }
         
         // Update visibility and selection states
@@ -365,25 +382,27 @@ class ios_drum_wheel_engine {
         this.updateSelection();
     }
     
-    // Update a specific panel if it's on the back of the drum
-    updatePanelIfNeeded(panelNumber, direction) {
+    // Update a panel at a specific position
+    updatePanelAtPosition(position, direction) {
+        const panelNumber = this.getPanelAtPosition(position);
         const panelIndex = panelNumber - 1;
-        const angle = this.getCurrentPanelAngle(panelNumber);
+        const panel = this.drum.panels[panelIndex];
         
-        // Only update if panel is truly on back (between 135° and 225°)
+        // Verify panel is truly on back (between 135° and 225°)
+        const angle = this.getCurrentPanelAngle(panelNumber);
         if (angle > 135 && angle < 225) {
-            const panel = this.drum.panels[panelIndex];
-            let newContent = '';
             let newIndex = -1;
             
-            if (direction === 'down' && panelNumber === 16) {
-                // Get what's on panel 15 and add 1
-                const panel15Index = 14;
+            if (direction === 'down' && position === this.POSITIONS.UPDATE_DOWN) {
+                // Get what's on the panel at position 15 and add 1
+                const panelAt15 = this.getPanelAtPosition(15);
+                const panel15Index = panelAt15 - 1;
                 const panel15ItemIndex = parseInt(this.drum.panels[panel15Index].getAttribute('data-item-index'));
                 newIndex = (panel15ItemIndex + 1) % this.options.length;
-            } else if (direction === 'up' && panelNumber === 2) {
-                // Get what's on panel 3 and subtract 1
-                const panel3Index = 2;
+            } else if (direction === 'up' && position === this.POSITIONS.UPDATE_UP) {
+                // Get what's on the panel at position 3 and subtract 1
+                const panelAt3 = this.getPanelAtPosition(3);
+                const panel3Index = panelAt3 - 1;
                 const panel3ItemIndex = parseInt(this.drum.panels[panel3Index].getAttribute('data-item-index'));
                 newIndex = (panel3ItemIndex - 1 + this.options.length) % this.options.length;
             }
@@ -391,7 +410,7 @@ class ios_drum_wheel_engine {
             if (newIndex >= 0 && newIndex < this.options.length) {
                 const option = this.options[newIndex];
                 if (panel.textContent !== option.name) {
-                    console.log(`[ios_drum] Updating panel ${panelNumber}: "${panel.textContent}" → "${option.name}" (angle: ${angle.toFixed(1)}°)`);
+                    console.log(`[ios_drum] Updating Panel ${panelNumber} at Position ${position}: "${panel.textContent}" → "${option.name}" (angle: ${angle.toFixed(1)}°)`);
                     panel.textContent = option.name;
                     this.drum.panelContents[panelIndex] = option.name;
                     panel.setAttribute('data-value', option.value);
@@ -408,7 +427,7 @@ class ios_drum_wheel_engine {
             const angle = this.getCurrentPanelAngle(panelNumber);
             
             // Panels are visible between roughly 315° and 45° (front quadrant)
-            // This gives us panels 5-13 visible when at rest
+            // This gives us positions 5-13 visible
             const isVisible = angle > 315 || angle < 45;
             panel.classList.toggle('hidden', !isVisible);
             
@@ -422,18 +441,20 @@ class ios_drum_wheel_engine {
         });
     }
     
-    // Update selection based on which panel is at center
+    // Update selection based on which panel is at Position 9 (front center)
     updateSelection() {
-        const centerPanel = this.getCenterPanelNumber();
-        const centerPanelIndex = centerPanel - 1;
+        // Find which panel is at Position 9
+        const panelAtFrontCenter = this.getPanelAtPosition(this.POSITIONS.FRONT_CENTER);
+        const centerPanelIndex = panelAtFrontCenter - 1;
         const centerPanelElement = this.drum.panels[centerPanelIndex];
         
         // Update selected class on all panels
         this.drum.panels.forEach((panel, i) => {
-            panel.classList.toggle('selected', i === centerPanelIndex);
+            const panelNum = i + 1;
+            panel.classList.toggle('selected', panelNum === panelAtFrontCenter);
         });
         
-        // Get the value from the center panel
+        // Get the value from the panel at Position 9
         const itemIndex = parseInt(centerPanelElement.getAttribute('data-item-index'));
         if (!isNaN(itemIndex) && itemIndex >= 0 && itemIndex < this.options.length) {
             const option = this.options[itemIndex];
@@ -442,6 +463,7 @@ class ios_drum_wheel_engine {
                 this.value = option.value;
                 this.onChange(this.value);
                 console.log(`[Progress View] Year selected: ${option.name}`);
+                console.log(`[ios_drum] Panel ${panelAtFrontCenter} at Position 9 selected: ${option.name} (${option.value})`);
             }
         }
     }
@@ -573,24 +595,20 @@ class ios_drum_wheel_engine {
                 this.drumEl.style.transform = `translateZ(-${this.drum.cylinderRadius}px) rotateX(${this.drum.rotation}deg)`;
                 this.updatePanelContent();
             } else {
-                // Snap to nearest item
-                const centerPanel = this.getCenterPanelNumber();
-                const centerAngle = this.getCurrentPanelAngle(centerPanel);
+                // Snap to nearest position to ensure a panel is centered
+                const positionsRotated = this.drum.rotation / this.drum.panelAngle;
+                const nearestPosition = Math.round(positionsRotated);
+                const targetRotation = nearestPosition * this.drum.panelAngle;
+                const diff = targetRotation - this.drum.rotation;
                 
-                // Calculate how much to rotate to center this panel
-                let snapRotation = 0;
-                if (centerAngle < 180) {
-                    snapRotation = -centerAngle;
-                } else {
-                    snapRotation = 360 - centerAngle;
-                }
-                
-                if (Math.abs(snapRotation) > 0.1) {
-                    const snapDelta = snapRotation * 0.2;
-                    this.drum.rotation += snapDelta;
+                if (Math.abs(diff) > 0.1) {
+                    this.drum.rotation += diff * 0.2;
                     this.drumEl.style.transform = `translateZ(-${this.drum.cylinderRadius}px) rotateX(${this.drum.rotation}deg)`;
                     this.updatePanelContent();
                 } else {
+                    this.drum.rotation = targetRotation;
+                    this.drumEl.style.transform = `translateZ(-${this.drum.cylinderRadius}px) rotateX(${this.drum.rotation}deg)`;
+                    this.updatePanelContent();
                     this.isMoving = false;
                     this.physics.velocity = 0;
                 }
