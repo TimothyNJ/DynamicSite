@@ -16,7 +16,7 @@ class ios_drum_wheel_engine {
         this.drum = {
             panelCount: 16,           // Fixed panels on the drum
             cylinderRadius: 100,      // Radius of the 3D cylinder
-            itemHeight: 36,           // Height of each item
+            itemHeight: 24,           // Height of each item (reduced for tighter spacing)
             perspective: 800,         // Perspective distance
             rotation: 0,              // Current drum rotation
             panelAngle: null,         // Will be calculated
@@ -233,16 +233,15 @@ class ios_drum_wheel_engine {
             
             /* Panel states based on visibility */
             .ios-drum-panel {
-                opacity: 0.4;
-                transition: opacity 0.3s ease;
+                transition: font-weight 0.2s ease;
             }
             
             .ios-drum-panel.visible {
-                opacity: 1;
+                /* Visible panels have normal appearance */
             }
             
             .ios-drum-panel.selected {
-                font-weight: 600;
+                font-weight: 700;  /* Bold for selected item */
                 color: var(--text-color-primary, #000);
             }
             
