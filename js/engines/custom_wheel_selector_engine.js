@@ -24,8 +24,7 @@ class custom_wheel_selector_engine {
             isDragging: false,
             lastTime: Date.now(),
             momentumTracking: [],  // Track recent movements for momentum
-            touchVelocityScale: 250,  // Scale factor for touch velocity (increased for iPhone)
-            maxVelocity: 1500        // Maximum velocity limit (increased for fast swipes)
+            touchVelocityScale: 250  // Scale factor for touch velocity (increased for iPhone)
         };
         
         // Visual parameters
@@ -225,11 +224,8 @@ class custom_wheel_selector_engine {
         const delta = e.deltaY;
         const scaleFactor = 1.2; // Increased for faster rotation
         
-        // Update velocity
+        // Update velocity directly without any limits
         this.physics.velocity += delta * scaleFactor;
-        
-        // Limit maximum velocity
-        this.physics.velocity = Math.max(-this.physics.maxVelocity, Math.min(this.physics.maxVelocity, this.physics.velocity));
         
         console.log(`[custom_wheel] Wheel delta: ${delta}, velocity: ${this.physics.velocity.toFixed(2)}`);
     }
@@ -325,12 +321,15 @@ class custom_wheel_selector_engine {
         this.physics.lastTime = now;
         
         if (!this.physics.isDragging) {
-            // Apply velocity
-            if (Math.abs(this.physics.velocity) > 0.1) {
+            // Apply velocity without any threshold - take it as it is
+            if (this.physics.velocity !== 0) {
                 this.physics.position += this.physics.velocity * deltaTime;
                 
-                // Apply friction
-                this.physics.velocity *= Math.pow(this.physics.friction, deltaTime * 60); // Normalize to 60fps
+                // Apply friction only if there's meaningful velocity
+                // This preserves tiny movements that users make when testing responsiveness
+                if (Math.abs(this.physics.velocity) > 1) {
+                    this.physics.velocity *= Math.pow(this.physics.friction, deltaTime * 60); // Normalize to 60fps
+                }
                 
                 // Clamp position to valid range
                 const minPos = 0;
