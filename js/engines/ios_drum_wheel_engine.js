@@ -265,6 +265,8 @@ class ios_drum_wheel_engine {
         const normalizedRotation = ((this.drum.rotation % 360) + 360) % 360;
         const selectedIndex = Math.round(normalizedRotation / degreesPerItem) % this.options.length;
         
+        let updatedPanels = 0;
+        
         // Update each panel
         this.drum.panels.forEach((panel, panelIndex) => {
             // Calculate panel's current angle in the drum
@@ -278,7 +280,6 @@ class ios_drum_wheel_engine {
             // Only update content if panel is on the back of the drum
             if (normalizedAngle > 90 && normalizedAngle < 270) {
                 // Panel is on back - safe to update content
-                // Calculate which item this panel should show when it comes back around
                 const panelOffset = panelIndex - 8; // Center panel is index 8
                 let itemIndex = selectedIndex - panelOffset;
                 
@@ -288,9 +289,15 @@ class ios_drum_wheel_engine {
                 // Update panel content
                 if (itemIndex >= 0 && itemIndex < this.options.length) {
                     const option = this.options[itemIndex];
+                    const oldContent = panel.textContent;
                     panel.textContent = option.name;
                     panel.setAttribute('data-value', option.value);
                     panel.setAttribute('data-index', itemIndex);
+                    
+                    if (oldContent !== option.name) {
+                        console.log(`[ios_drum] Updated panel ${panelIndex} from "${oldContent}" to "${option.name}" (angle: ${normalizedAngle.toFixed(1)}°)`);
+                        updatedPanels++;
+                    }
                 }
             }
             
@@ -301,6 +308,10 @@ class ios_drum_wheel_engine {
             const isSelected = normalizedAngle > 350 || normalizedAngle < 10;
             panel.classList.toggle('selected', isSelected);
         });
+        
+        if (updatedPanels > 0) {
+            console.log(`[ios_drum] Updated ${updatedPanels} panels on back of drum`);
+        }
         
         // Update current value based on selected index
         if (selectedIndex !== this.currentIndex && selectedIndex < this.options.length) {
@@ -316,6 +327,8 @@ class ios_drum_wheel_engine {
     
     // Initialize panel content - paint numbers on panels
     initializePanelContent() {
+        console.log(`[ios_drum] Initializing panel content for ${this.options.length} options`);
+        
         // Set initial content for all panels based on current position
         this.drum.panels.forEach((panel, panelIndex) => {
             // Calculate which item this panel should show
@@ -331,6 +344,7 @@ class ios_drum_wheel_engine {
                 panel.textContent = option.name;
                 panel.setAttribute('data-value', option.value);
                 panel.setAttribute('data-index', itemIndex);
+                console.log(`[ios_drum] Panel ${panelIndex}: ${option.name} (index: ${itemIndex})`);
             } else {
                 panel.textContent = '';
             }
@@ -352,6 +366,8 @@ class ios_drum_wheel_engine {
         if (Math.abs(this.physics.velocity) > this.physics.maxVelocity) {
             this.physics.velocity = Math.sign(this.physics.velocity) * this.physics.maxVelocity;
         }
+        
+        console.log(`[ios_drum] Wheel event - delta: ${delta}, velocity: ${this.physics.velocity.toFixed(2)}, rotation: ${this.drum.rotation.toFixed(1)}°`);
         
         this.isMoving = true;
     }
