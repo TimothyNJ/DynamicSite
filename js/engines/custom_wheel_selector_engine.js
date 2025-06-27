@@ -316,16 +316,17 @@ class custom_wheel_selector_engine {
     updateItemTransforms() {
         const centerIndex = this.physics.position / this.physics.itemHeight;
         
-        // Debug: Log the exact position
-        const snapPosition = Math.round(this.physics.position);
-        const expectedIndex = Math.round(centerIndex);
+        // Calculate the center offset to properly position items
+        // We need to know where the center of the viewport is
+        const viewportHeight = 168; // 7 items * 24px as defined in CSS
+        const centerOffset = (viewportHeight / 2) - (this.physics.itemHeight / 2);
         
         this.itemsEls.forEach((item, index) => {
             const offset = index - centerIndex;
             const absOffset = Math.abs(offset);
             
-            // Calculate Y position - when offset is 0, item should be at center (y=0)
-            const y = offset * this.physics.itemHeight;
+            // Calculate Y position - adjust so offset=0 appears at center
+            const y = (offset * this.physics.itemHeight) - centerOffset;
             
             // Calculate rotation for 3D effect
             const maxRotation = this.visual.rotateX;
