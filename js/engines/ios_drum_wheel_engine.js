@@ -47,7 +47,7 @@ class ios_drum_wheel_engine {
         
         // Set initial rotation to show current value
         this.setRotationForIndex(this.currentIndex);
-        this.updatePanelContent();
+        this.initializePanelContent();
         
         // Start animation
         this.animate();
@@ -265,40 +265,41 @@ class ios_drum_wheel_engine {
         const normalizedRotation = ((this.drum.rotation % 360) + 360) % 360;
         const selectedIndex = Math.round(normalizedRotation / degreesPerItem) % this.options.length;
         
-        // Update each panel with consecutive items
+        // Update each panel
         this.drum.panels.forEach((panel, panelIndex) => {
-            // Calculate panel's position in the drum
-            const panelAngle = (panelIndex * this.drum.panelAngle - this.drum.rotation) % 360;
-            const normalizedAngle = ((panelAngle % 360) + 360) % 360;
+            // Calculate panel's current angle in the drum
+            const panelBaseAngle = panelIndex * this.drum.panelAngle;
+            const currentAngle = (panelBaseAngle - this.drum.rotation) % 360;
+            const normalizedAngle = ((currentAngle % 360) + 360) % 360;
             
             // Determine if panel is visible (front half of cylinder)
             const isVisible = normalizedAngle > 270 || normalizedAngle < 90;
             
-            // Map panel to item index (consecutive items)
-            // Panel 8 (center) shows selected item
-            // Panel 0 shows selectedIndex - 8, Panel 1 shows selectedIndex - 7, etc.
-            const panelOffset = panelIndex - 8;
-            let itemIndex = selectedIndex - panelOffset;
-            
-            // Handle wraparound for circular list
-            itemIndex = ((itemIndex % this.options.length) + this.options.length) % this.options.length;
-            
-            // Update panel content
-            if (itemIndex >= 0 && itemIndex < this.options.length) {
-                const option = this.options[itemIndex];
-                panel.textContent = option.name;
-                panel.setAttribute('data-value', option.value);
-                panel.setAttribute('data-index', itemIndex);
+            // Only update content if panel is on the back of the drum
+            if (normalizedAngle > 90 && normalizedAngle < 270) {
+                // Panel is on back - safe to update content
+                // Calculate which item this panel should show when it comes back around
+                const panelOffset = panelIndex - 8; // Center panel is index 8
+                let itemIndex = selectedIndex - panelOffset;
                 
-                // Update visibility classes
-                panel.classList.toggle('visible', isVisible);
-                // Selected item is at center (panel 8 when rotation aligns)
-                const isSelected = normalizedAngle > 350 || normalizedAngle < 10;
-                panel.classList.toggle('selected', isSelected);
-            } else {
-                panel.textContent = '';
-                panel.classList.remove('visible', 'selected');
+                // Handle wraparound for circular list
+                itemIndex = ((itemIndex % this.options.length) + this.options.length) % this.options.length;
+                
+                // Update panel content
+                if (itemIndex >= 0 && itemIndex < this.options.length) {
+                    const option = this.options[itemIndex];
+                    panel.textContent = option.name;
+                    panel.setAttribute('data-value', option.value);
+                    panel.setAttribute('data-index', itemIndex);
+                }
             }
+            
+            // Update visibility classes
+            panel.classList.toggle('visible', isVisible);
+            
+            // Selected state when panel is at center
+            const isSelected = normalizedAngle > 350 || normalizedAngle < 10;
+            panel.classList.toggle('selected', isSelected);
         });
         
         // Update current value based on selected index
@@ -311,7 +312,31 @@ class ios_drum_wheel_engine {
                 console.log(`[ios_drum] Selected: ${selectedOption.name} (${selectedOption.value})`);
             }
         }
-    }    
+    }
+    
+    // Initialize panel content - paint numbers on panels
+    initializePanelContent() {
+        // Set initial content for all panels based on current position
+        this.drum.panels.forEach((panel, panelIndex) => {
+            // Calculate which item this panel should show
+            const panelOffset = panelIndex - 8; // Center panel is index 8
+            let itemIndex = this.currentIndex - panelOffset;
+            
+            // Handle wraparound for circular list
+            itemIndex = ((itemIndex % this.options.length) + this.options.length) % this.options.length;
+            
+            // Set panel content
+            if (itemIndex >= 0 && itemIndex < this.options.length) {
+                const option = this.options[itemIndex];
+                panel.textContent = option.name;
+                panel.setAttribute('data-value', option.value);
+                panel.setAttribute('data-index', itemIndex);
+            } else {
+                panel.textContent = '';
+            }
+        });
+    }
+    
     // Event handlers
     handleWheel = (e) => {
         e.preventDefault();
