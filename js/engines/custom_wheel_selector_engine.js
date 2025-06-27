@@ -148,9 +148,6 @@ class custom_wheel_selector_engine {
                 height: 100%;
                 overflow: hidden;
                 perspective: 1000px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
                 mask-image: linear-gradient(
                     to bottom,
                     transparent,
@@ -168,18 +165,15 @@ class custom_wheel_selector_engine {
             }
             
             .custom-wheel-items {
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
+                position: absolute;
                 width: 100%;
+                top: 50%;
+                transform: translateY(-50%);
                 transform-style: preserve-3d;
-                transition: none; /* We'll handle animation in JS */
             }
             
             .custom-wheel-item {
-                position: relative;
-                flex-shrink: 0;
+                position: absolute;
                 width: 100%;
                 height: 24px;
                 line-height: 24px;
@@ -188,6 +182,7 @@ class custom_wheel_selector_engine {
                 color: var(--text-color, #333);
                 transform-origin: center center;
                 backface-visibility: hidden;
+                transition: none; /* We'll handle animation in JS */
                 cursor: pointer;
             }
             
@@ -321,16 +316,16 @@ class custom_wheel_selector_engine {
     updateItemTransforms() {
         const centerIndex = this.physics.position / this.physics.itemHeight;
         
-        // Transform the container to position the selected item at center
-        // When position = 0, we want item 0 centered, so we translate up by 0
-        // When position = 1, we want item 1 centered, so we translate up by 1 item height
-        const containerTranslateY = -this.physics.position;
-        this.wheelEl.style.transform = `translateY(${containerTranslateY}px)`;
+        // Debug: Log the exact position
+        const snapPosition = Math.round(this.physics.position);
+        const expectedIndex = Math.round(centerIndex);
         
-        // Apply 3D transforms to individual items for perspective effect
         this.itemsEls.forEach((item, index) => {
             const offset = index - centerIndex;
             const absOffset = Math.abs(offset);
+            
+            // Calculate Y position - when offset is 0, item should be at center (y=0)
+            const y = offset * this.physics.itemHeight;
             
             // Calculate rotation for 3D effect
             const maxRotation = this.visual.rotateX;
@@ -346,8 +341,8 @@ class custom_wheel_selector_engine {
             // Calculate scale for perspective effect
             const scale = 1 - (absOffset * 0.05);
             
-            // Apply only 3D transforms to items (not Y position - flexbox handles that)
-            item.style.transform = `translateZ(${-absOffset * 20}px) rotateX(${-rotation}deg) scale(${scale})`;
+            // Apply transforms
+            item.style.transform = `translateY(${y}px) translateZ(${-absOffset * 20}px) rotateX(${-rotation}deg) scale(${scale})`;
             item.style.opacity = opacity;
             
             // Update selected state
