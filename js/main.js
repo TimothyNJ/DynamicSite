@@ -304,91 +304,108 @@ function initializeLottieExample(container) {
   let mesh;
   
   init();
-  animate();
   
   function init() {
+    // Renderer - create first
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(300, 350);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+    container.appendChild(renderer.domElement);
+    
+    // Camera - exact from Lottie example
     camera = new THREE.PerspectiveCamera(50, 300 / 350, 0.5, 1000);
-    camera.position.z = 100;
+    camera.position.z = 5;
     
     // Scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0); // Light gray background
+    scene.background = new THREE.Color(0x111111);
     
-    // Lighting - much brighter
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6)); // Increased ambient
+    // Lighting - RoomEnvironment style
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
     
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2); // Doubled intensity
-    dirLight1.position.set(20, 20, 20);
-    scene.add(dirLight1);
+    // Add multiple lights for realistic lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
     
-    const dirLight2 = new THREE.DirectionalLight(0xffffff, 1);
-    dirLight2.position.set(-20, 20, -20);
-    scene.add(dirLight2);
+    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight1.position.set(1, 1, 1);
+    scene.add(directionalLight1);
     
-    // Geometry - RoundedBoxGeometry equivalent
-    const geometry = new THREE.BoxGeometry(30, 30, 30);
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight2.position.set(-1, -1, 1);
+    scene.add(directionalLight2);
     
-    // Create texture with gradient (since we can't load Lottie files)
+    // Geometry - RoundedBoxGeometry style
+    const radius = 0.1;
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    
+    // Create a dark gradient texture
     const canvas = document.createElement('canvas');
     canvas.width = 512;
     canvas.height = 512;
     const ctx = canvas.getContext('2d');
     
-    // Create animated gradient pattern
-    const gradient = ctx.createLinearGradient(0, 0, 512, 512);
-    gradient.addColorStop(0, '#ff006e');
-    gradient.addColorStop(0.5, '#8338ec');
-    gradient.addColorStop(1, '#3a86ff');
+    // Dark gradient
+    const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+    gradient.addColorStop(0, '#1a1a1a');
+    gradient.addColorStop(0.5, '#0d0d0d');
+    gradient.addColorStop(1, '#000000');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 512, 512);
     
-    // Add some text
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 120px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('3D', 256, 256);
+    // Add subtle pattern
+    ctx.globalAlpha = 0.1;
+    for (let i = 0; i < 512; i += 4) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, 512);
+      ctx.stroke();
+    }
     
     const texture = new THREE.CanvasTexture(canvas);
     texture.needsUpdate = true;
     
-    // Material
+    // Material - Glossy black material
     const material = new THREE.MeshStandardMaterial({
-      map: texture,
-      metalness: 0.1,
-      roughness: 0.5
+      color: 0x111111,
+      metalness: 0.9,
+      roughness: 0.1,
+      envMapIntensity: 1.0,
+      map: texture
     });
     
     // Mesh
     mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
     
-    // Renderer
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(300, 350);
-    container.appendChild(renderer.domElement);
+    // Animation
+    animate();
     
-    // Controls (mouse rotation)
-    container.addEventListener('mousemove', onMouseMove);
+    // Controls
+    container.addEventListener('pointermove', onPointerMove);
   }
   
-  function onMouseMove(event) {
+  function onPointerMove(event) {
     const rect = container.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     
     if (mesh) {
-      mesh.rotation.y = x * Math.PI;
-      mesh.rotation.x = y * Math.PI;
+      mesh.rotation.y = x * 0.5;
+      mesh.rotation.x = y * 0.5;
     }
   }
   
-  function animate() {
+  function animate(time) {
     requestAnimationFrame(animate);
     
     if (mesh) {
-      mesh.rotation.y += 0.005;
+      mesh.rotation.x = Math.sin(time * 0.0005) * 0.2;
+      mesh.rotation.y = Math.sin(time * 0.001) * 0.2;
     }
     
     renderer.render(scene, camera);
