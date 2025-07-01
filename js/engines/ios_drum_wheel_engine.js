@@ -413,13 +413,29 @@ class ios_drum_wheel_engine {
                 const panelAt15 = this.getPanelAtPosition(15);
                 const panel15Index = panelAt15 - 1;
                 const panel15ItemIndex = parseInt(this.drum.panels[panel15Index].getAttribute('data-item-index'));
-                newIndex = (panel15ItemIndex - 1 + this.options.length) % this.options.length;
+                
+                // Check if we're at the boundary
+                if (!isNaN(panel15ItemIndex)) {
+                    newIndex = panel15ItemIndex - 1;
+                    // Only wrap if we have a circular list, otherwise stop at boundaries
+                    if (newIndex < 0) {
+                        newIndex = this.options.length - 1; // Wrap to end
+                    }
+                }
             } else if (direction === 'up' && position === this.POSITIONS.UPDATE_UP) {
                 // Rolling up: Position 2 needs the next earlier year (larger index)
                 const panelAt3 = this.getPanelAtPosition(3);
                 const panel3Index = panelAt3 - 1;
                 const panel3ItemIndex = parseInt(this.drum.panels[panel3Index].getAttribute('data-item-index'));
-                newIndex = (panel3ItemIndex + 1) % this.options.length;
+                
+                // Check if we're at the boundary
+                if (!isNaN(panel3ItemIndex)) {
+                    newIndex = panel3ItemIndex + 1;
+                    // Only wrap if we have a circular list, otherwise stop at boundaries
+                    if (newIndex >= this.options.length) {
+                        newIndex = 0; // Wrap to beginning
+                    }
+                }
             }
             
             if (newIndex >= 0 && newIndex < this.options.length) {
