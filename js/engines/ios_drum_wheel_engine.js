@@ -158,37 +158,7 @@ class ios_drum_wheel_engine {
         // Normalize to 0-360 range
         return ((currentAngle % 360) + 360) % 360;
     }
-    
-    // Determine which panel is currently at a specific position
-    getPanelAtPosition(position) {
-        // As drum rotates, panels move through positions
-        // Calculate how many positions the drum has rotated
-        const positionsRotated = Math.round(this.drum.rotation / this.drum.panelAngle);
-        
-        // Calculate which panel is at the requested position
-        let panelNumber = position - positionsRotated;
-        
-        // Handle wraparound
-        while (panelNumber < 1) panelNumber += this.drum.panelCount;
-        while (panelNumber > this.drum.panelCount) panelNumber -= this.drum.panelCount;
-        
-        return panelNumber;
-    }
-    
-    // Get the position of a specific panel
-    getPositionOfPanel(panelNumber) {
-        // Calculate how many positions the drum has rotated
-        const positionsRotated = Math.round(this.drum.rotation / this.drum.panelAngle);
-        
-        // Calculate current position of the panel
-        let position = panelNumber + positionsRotated;
-        
-        // Handle wraparound
-        while (position < 1) position += this.drum.panelCount;
-        while (position > this.drum.panelCount) position -= this.drum.panelCount;
-        
-        return position;
-    }
+
     
     addStyles() {
         if (document.getElementById('ios-drum-wheel-styles')) {
@@ -363,88 +333,39 @@ class ios_drum_wheel_engine {
     
     // Update panel content based on rotation direction
     updatePanelContent() {
-        const direction = Math.sign(this.physics.velocity);
+        // Calculate the current selected index based on rotation
+        // Each item corresponds to one panel angle of rotation
+        const itemsRotated = Math.round(this.drum.rotation / this.drum.panelAngle);
+        const newSelectedIndex = (this.currentIndex - itemsRotated + this.options.length * 1000) % this.options.length;
         
-        if (direction === 0) return; // No movement
-        
-        // Store last direction for update logic
-        this.physics.lastDirection = direction;
-        
-        // Drum rolling down (front moves down, back moves up)
-        // Check all panels to see if any are at the update positions
-        this.drum.panels.forEach((panel, i) => {
-            const panelNumber = i + 1;
-            const currentPosition = this.getPositionOfPanel(panelNumber);
+        // Update all panels based on their current position relative to the selected item
+        for (let panelNum = 1; panelNum <= this.drum.panelCount; panelNum++) {
+            const panelIndex = panelNum - 1;
+            const panel = this.drum.panels[panelIndex];
             
-            // Only update panels that are at the specific update positions
-            if (direction > 0 && currentPosition === this.POSITIONS.UPDATE_DOWN) {
-                // This panel is at Position 16 - update it for downward scrolling
-                this.updatePanelAtPosition(this.POSITIONS.UPDATE_DOWN, 'down');
-            } else if (direction < 0 && currentPosition === this.POSITIONS.UPDATE_UP) {
-                // This panel is at Position 2 - update it for upward scrolling  
-                this.updatePanelAtPosition(this.POSITIONS.UPDATE_UP, 'up');
+            // Calculate what item this panel should show
+            const offsetFromCenter = panelNum - 9; // Panel 9 is center
+            let itemIndex = (newSelectedIndex + offsetFromCenter + this.options.length * 1000) % this.options.length;
+            
+            // Update the panel content
+            if (itemIndex >= 0 && itemIndex < this.options.length) {
+                const option = this.options[itemIndex];
+                const currentContent = panel.textContent;
+                
+                if (currentContent !== option.name) {
+                    panel.textContent = option.name;
+                    this.drum.panelContents[panelIndex] = option.name;
+                    panel.setAttribute('data-value', option.value);
+                    panel.setAttribute('data-item-index', itemIndex);
+                }
             }
-        });
+        }
         
         // Update visibility and selection states
         this.updatePanelVisibility();
         this.updateSelection();
     }
-    
-    // Update a panel at a specific position
-    updatePanelAtPosition(position, direction) {
-        const panelNumber = this.getPanelAtPosition(position);
-        const panelIndex = panelNumber - 1;
-        const panel = this.drum.panels[panelIndex];
-        
-        // Verify panel is truly on back (between 135° and 225°)
-        const angle = this.getCurrentPanelAngle(panelNumber);
-        if (angle > 135 && angle < 225) {
-            let newIndex = -1;
-            
-            // Get reference values from adjacent panels
-            if (direction === 'down' && position === this.POSITIONS.UPDATE_DOWN) {
-                // Rolling down: Position 16 needs the next item in sequence
-                const panelAt15 = this.getPanelAtPosition(15);
-                const panel15Index = panelAt15 - 1;
-                const panel15ItemIndex = parseInt(this.drum.panels[panel15Index].getAttribute('data-item-index'));
-                
-                // Check if we're at the boundary
-                if (!isNaN(panel15ItemIndex)) {
-                    newIndex = panel15ItemIndex + 1;
-                    // Wrap around if needed
-                    if (newIndex >= this.options.length) {
-                        newIndex = 0; // Wrap to beginning
-                    }
-                }
-            } else if (direction === 'up' && position === this.POSITIONS.UPDATE_UP) {
-                // Rolling up: Position 2 needs the previous item in sequence
-                const panelAt3 = this.getPanelAtPosition(3);
-                const panel3Index = panelAt3 - 1;
-                const panel3ItemIndex = parseInt(this.drum.panels[panel3Index].getAttribute('data-item-index'));
-                
-                // Check if we're at the boundary
-                if (!isNaN(panel3ItemIndex)) {
-                    newIndex = panel3ItemIndex - 1;
-                    // Wrap around if needed
-                    if (newIndex < 0) {
-                        newIndex = this.options.length - 1; // Wrap to end
-                    }
-                }
-            }
-            
-            if (newIndex >= 0 && newIndex < this.options.length) {
-                const option = this.options[newIndex];
-                if (panel.textContent !== option.name) {
-                    console.log(`[ios_drum] Updating Panel ${panelNumber} at Position ${position}: "${panel.textContent}" → "${option.name}" (angle: ${angle.toFixed(1)}°)`);
-                    panel.textContent = option.name;
-                    this.drum.panelContents[panelIndex] = option.name;
-                    panel.setAttribute('data-value', option.value);
-                    panel.setAttribute('data-item-index', newIndex);
-                }
-            }
-        }
-    }
+
     
     // Update panel visibility based on current angles
     updatePanelVisibility() {
@@ -473,27 +394,23 @@ class ios_drum_wheel_engine {
     
     // Update selection based on which panel is at Position 9 (front center)
     updateSelection() {
-        // Find which panel is at Position 9
-        const panelAtFrontCenter = this.getPanelAtPosition(this.POSITIONS.FRONT_CENTER);
-        const centerPanelIndex = panelAtFrontCenter - 1;
-        const centerPanelElement = this.drum.panels[centerPanelIndex];
+        // The selected item is always at Panel 9 after rotation is applied
+        const centerPanelIndex = 8; // Panel 9, 0-indexed
+        const centerPanel = this.drum.panels[centerPanelIndex];
         
         // Update selected class on all panels
         this.drum.panels.forEach((panel, i) => {
-            const panelNum = i + 1;
-            panel.classList.toggle('selected', panelNum === panelAtFrontCenter);
+            panel.classList.toggle('selected', i === centerPanelIndex);
         });
         
-        // Get the value from the panel at Position 9
-        const itemIndex = parseInt(centerPanelElement.getAttribute('data-item-index'));
+        // Get the value from the center panel
+        const itemIndex = parseInt(centerPanel.getAttribute('data-item-index'));
         if (!isNaN(itemIndex) && itemIndex >= 0 && itemIndex < this.options.length) {
             const option = this.options[itemIndex];
-            if (this.currentIndex !== itemIndex) {
-                this.currentIndex = itemIndex;
+            if (this.value !== option.value) {
                 this.value = option.value;
                 this.onChange(this.value);
                 console.log(`[Progress View] Year selected: ${option.name}`);
-                console.log(`[ios_drum] Panel ${panelAtFrontCenter} at Position 9 selected: ${option.name} (${option.value})`);
             }
         }
     }
