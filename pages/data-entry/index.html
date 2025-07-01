@@ -1,419 +1,346 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Entry - Three.js Drum Test</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f7;
-        }
-        
-        h1 {
-            color: #1d1d1f;
-            font-size: 48px;
-            font-weight: 600;
-            margin-bottom: 40px;
-        }
-        
-        .demo-container {
-            display: flex;
-            gap: 40px;
-            align-items: flex-start;
-            flex-wrap: wrap;
-        }
-        
-        .demo-section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .demo-section h2 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 24px;
-            font-weight: 600;
-        }
-        
-        .drum-container {
-            margin: 20px 0;
-        }
-        
-        .selection-display {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f0f0f0;
-            border-radius: 8px;
-            font-size: 18px;
-            text-align: center;
-        }
-        
-        .selection-display span {
-            font-weight: 600;
-            color: #007AFF;
-        }
-        
-        .comparison-note {
-            margin-top: 20px;
-            padding: 15px;
-            background: #fffacd;
-            border-radius: 8px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-    </style>
-</head>
-<body>
-    <h1>Data Entry - Three.js Drum Wheel Test</h1>
+<h1>Data Entry Forms</h1>
+
+<div class="data-entry-section">
+    <h2>Three.js Drum Wheel Demo</h2>
+    <p>Testing the Three.js drum wheel implementation for year selection:</p>
     
-    <div class="demo-container">
-        <div class="demo-section">
-            <h2>Three.js Drum Wheel</h2>
-            <div id="threejs-drum" class="drum-container"></div>
-            <div class="selection-display">
-                Selected Year: <span id="threejs-selection">2024</span>
-            </div>
-            <div class="comparison-note">
-                <strong>Three.js Implementation:</strong><br>
-                • True 3D cylinder with texture mapping<br>
-                • ~250 lines of code total<br>
-                • No panel position tracking<br>
-                • Numbers are permanently "painted" on cylinder<br>
-                • Smooth GPU-accelerated rendering
-            </div>
-        </div>
-        
-        <div class="demo-section">
-            <h2>Current CSS Implementation</h2>
-            <div id="css-drum" class="drum-container"></div>
-            <div class="selection-display">
-                Selected Year: <span id="css-selection">2024</span>
-            </div>
-            <div class="comparison-note">
-                <strong>CSS Transform Implementation:</strong><br>
-                • 16 panels positioned in a circle<br>
-                • ~400+ lines of code<br>
-                • Complex panel/position tracking<br>
-                • Issues with panel updates<br>
-                • CPU-based transform calculations
-            </div>
+    <div class="form-group">
+        <label for="year-selector">Select Year:</label>
+        <div id="threejs-drum-container" style="margin: 20px 0;"></div>
+        <div class="selected-value">
+            Selected: <span id="selected-year">2024</span>
         </div>
     </div>
+</div>
 
-    <!-- Load Three.js from CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
-    <!-- Inline the Three.js drum wheel code for testing -->
-    <script>
-        // Three.js Drum Wheel Implementation
-        class ThreeDrumWheelEngine {
-            constructor(container, options = {}) {
-                this.container = container;
-                this.options = {
-                    items: options.items || [],
-                    selectedIndex: options.selectedIndex || 0,
-                    onChange: options.onChange || (() => {}),
-                    itemHeight: options.itemHeight || 50,
-                    visibleItems: options.visibleItems || 7,
-                    ...options
-                };
+<div class="data-entry-section">
+    <h2>Other Form Elements</h2>
+    <p>Additional data entry components will be added here.</p>
+</div>
 
-                this.currentRotation = 0;
-                this.targetRotation = 0;
-                this.isDragging = false;
-                this.previousMouseY = 0;
-                this.velocity = 0;
-                this.selectedIndex = this.options.selectedIndex;
+<!-- Load Three.js from CDN for this demo -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-                this.init();
-            }
+<script>
+// Three.js Drum Wheel Implementation (inline for now)
+class ThreeDrumWheelEngine {
+    constructor(container, options = {}) {
+        this.container = container;
+        this.options = {
+            items: options.items || [],
+            selectedIndex: options.selectedIndex || 0,
+            onChange: options.onChange || (() => {}),
+            ...options
+        };
 
-            init() {
-                // Setup container
-                this.container.style.width = '300px';
-                this.container.style.height = '350px';
-                this.container.style.position = 'relative';
-                this.container.style.overflow = 'hidden';
-                this.container.style.cursor = 'grab';
-                this.container.style.borderRadius = '12px';
+        this.currentRotation = 0;
+        this.targetRotation = 0;
+        this.isDragging = false;
+        this.previousMouseY = 0;
+        this.velocity = 0;
+        this.selectedIndex = this.options.selectedIndex;
 
-                // Create Three.js scene
-                this.scene = new THREE.Scene();
-                this.scene.background = new THREE.Color(0xf0f0f0);
+        this.init();
+    }
 
-                // Setup camera
-                const aspect = 300 / 350;
-                this.camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 1000);
-                this.camera.position.z = 200;
+    init() {
+        // Setup container
+        this.container.style.width = '300px';
+        this.container.style.height = '350px';
+        this.container.style.position = 'relative';
+        this.container.style.overflow = 'hidden';
+        this.container.style.cursor = 'grab';
+        this.container.style.borderRadius = '12px';
+        this.container.style.margin = '0 auto';
 
-                // Setup renderer
-                this.renderer = new THREE.WebGLRenderer({ antialias: true });
-                this.renderer.setSize(300, 350);
-                this.renderer.setPixelRatio(window.devicePixelRatio);
-                this.container.appendChild(this.renderer.domElement);
+        // Create Three.js scene
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0xf0f0f0);
 
-                // Add lighting
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-                this.scene.add(ambientLight);
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
-                directionalLight.position.set(0, 1, 1);
-                this.scene.add(directionalLight);
+        // Setup camera
+        const aspect = 300 / 350;
+        this.camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 1000);
+        this.camera.position.z = 200;
 
-                // Create drum
-                this.createDrum();
+        // Setup renderer
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setSize(300, 350);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.container.appendChild(this.renderer.domElement);
 
-                // Add selection indicator
-                this.createSelectionIndicator();
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        directionalLight.position.set(0, 1, 1);
+        this.scene.add(directionalLight);
 
-                // Setup interactions
-                this.setupInteractions();
+        // Create drum
+        this.createDrum();
 
-                // Start animation
-                this.animate();
-            }
+        // Add selection indicator
+        this.createSelectionIndicator();
 
-            createDrum() {
-                const itemCount = this.options.items.length;
-                const radius = 80;
-                const height = 300;
+        // Setup interactions
+        this.setupInteractions();
 
-                // Create texture with years
-                const canvas = document.createElement('canvas');
-                canvas.width = 2048;
-                canvas.height = 1024;
-                const ctx = canvas.getContext('2d');
+        // Start animation
+        this.animate();
+    }
 
-                // Background
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+    createDrum() {
+        const itemCount = this.options.items.length;
+        const radius = 80;
+        const height = 300;
 
-                // Draw items
-                ctx.fillStyle = '#333333';
-                ctx.font = 'bold 64px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+        // Create texture with years
+        const canvas = document.createElement('canvas');
+        canvas.width = 2048;
+        canvas.height = 1024;
+        const ctx = canvas.getContext('2d');
 
-                this.options.items.forEach((item, index) => {
-                    const x = ((index + 0.5) / itemCount) * canvas.width;
-                    const y = canvas.height / 2;
-                    ctx.fillText(String(item), x, y);
-                });
+        // Background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Create texture
-                const texture = new THREE.CanvasTexture(canvas);
-                texture.needsUpdate = true;
+        // Draw items
+        ctx.fillStyle = '#333333';
+        ctx.font = 'bold 64px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
-                // Create cylinder geometry
-                const geometry = new THREE.CylinderGeometry(radius, radius, height, 32, 1, true);
-                
-                // Rotate geometry to have seam at back
-                geometry.rotateY(Math.PI);
+        this.options.items.forEach((item, index) => {
+            const x = ((index + 0.5) / itemCount) * canvas.width;
+            const y = canvas.height / 2;
+            ctx.fillText(String(item), x, y);
+        });
 
-                // Create material
-                const material = new THREE.MeshPhongMaterial({
-                    map: texture,
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.9
-                });
+        // Create texture
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
 
-                // Create mesh
-                this.drum = new THREE.Mesh(geometry, material);
-                this.scene.add(this.drum);
+        // Create cylinder geometry
+        const geometry = new THREE.CylinderGeometry(radius, radius, height, 32, 1, true);
+        
+        // Rotate geometry to have seam at back
+        geometry.rotateY(Math.PI);
 
-                // Calculate angle per item
-                this.anglePerItem = (Math.PI * 2) / itemCount;
-            }
+        // Create material
+        const material = new THREE.MeshPhongMaterial({
+            map: texture,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.9
+        });
 
-            createSelectionIndicator() {
-                // Create selection highlight (a thin box at the front)
-                const geometry = new THREE.BoxGeometry(120, 50, 1);
-                const material = new THREE.MeshBasicMaterial({
-                    color: 0x007AFF,
-                    transparent: true,
-                    opacity: 0.3
-                });
-                this.selectionBox = new THREE.Mesh(geometry, material);
-                this.selectionBox.position.z = 81;
-                this.scene.add(this.selectionBox);
-            }
+        // Create mesh
+        this.drum = new THREE.Mesh(geometry, material);
+        this.scene.add(this.drum);
 
-            setupInteractions() {
-                const canvas = this.renderer.domElement;
+        // Calculate angle per item
+        this.anglePerItem = (Math.PI * 2) / itemCount;
+    }
 
-                // Mouse events
-                canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
-                canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
-                canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
-                canvas.addEventListener('mouseleave', this.onMouseUp.bind(this));
+    createSelectionIndicator() {
+        // Create selection highlight
+        const geometry = new THREE.BoxGeometry(120, 50, 1);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x007AFF,
+            transparent: true,
+            opacity: 0.3
+        });
+        this.selectionBox = new THREE.Mesh(geometry, material);
+        this.selectionBox.position.z = 81;
+        this.scene.add(this.selectionBox);
+    }
 
-                // Touch events
-                canvas.addEventListener('touchstart', this.onTouchStart.bind(this));
-                canvas.addEventListener('touchmove', this.onTouchMove.bind(this));
-                canvas.addEventListener('touchend', this.onTouchEnd.bind(this));
+    setupInteractions() {
+        const canvas = this.renderer.domElement;
 
-                // Wheel event
-                canvas.addEventListener('wheel', this.onWheel.bind(this));
-            }
+        // Mouse events
+        canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
+        canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+        canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
+        canvas.addEventListener('mouseleave', this.onMouseUp.bind(this));
 
-            onMouseDown(e) {
-                this.isDragging = true;
-                this.previousMouseY = e.clientY;
-                this.velocity = 0;
-                this.container.style.cursor = 'grabbing';
-            }
+        // Touch events
+        canvas.addEventListener('touchstart', this.onTouchStart.bind(this));
+        canvas.addEventListener('touchmove', this.onTouchMove.bind(this));
+        canvas.addEventListener('touchend', this.onTouchEnd.bind(this));
 
-            onMouseMove(e) {
-                if (!this.isDragging) return;
+        // Wheel event
+        canvas.addEventListener('wheel', this.onWheel.bind(this));
+    }
 
-                const deltaY = e.clientY - this.previousMouseY;
-                this.velocity = deltaY * 0.01;
+    onMouseDown(e) {
+        this.isDragging = true;
+        this.previousMouseY = e.clientY;
+        this.velocity = 0;
+        this.container.style.cursor = 'grabbing';
+    }
+
+    onMouseMove(e) {
+        if (!this.isDragging) return;
+
+        const deltaY = e.clientY - this.previousMouseY;
+        this.velocity = deltaY * 0.01;
+        this.targetRotation += this.velocity;
+        this.previousMouseY = e.clientY;
+    }
+
+    onMouseUp() {
+        this.isDragging = false;
+        this.container.style.cursor = 'grab';
+        this.applyMomentum();
+    }
+
+    onTouchStart(e) {
+        if (e.touches.length === 1) {
+            this.isDragging = true;
+            this.previousMouseY = e.touches[0].clientY;
+            this.velocity = 0;
+        }
+    }
+
+    onTouchMove(e) {
+        if (!this.isDragging || e.touches.length !== 1) return;
+        e.preventDefault();
+
+        const deltaY = e.touches[0].clientY - this.previousMouseY;
+        this.velocity = deltaY * 0.01;
+        this.targetRotation += this.velocity;
+        this.previousMouseY = e.touches[0].clientY;
+    }
+
+    onTouchEnd() {
+        this.isDragging = false;
+        this.applyMomentum();
+    }
+
+    onWheel(e) {
+        e.preventDefault();
+        this.velocity = -e.deltaY * 0.001;
+        this.targetRotation += this.velocity * 10;
+        this.snapToItem();
+    }
+
+    applyMomentum() {
+        const deceleration = 0.95;
+        const minVelocity = 0.001;
+
+        const momentumAnimation = () => {
+            if (Math.abs(this.velocity) > minVelocity) {
                 this.targetRotation += this.velocity;
-                this.previousMouseY = e.clientY;
-            }
-
-            onMouseUp() {
-                this.isDragging = false;
-                this.container.style.cursor = 'grab';
-                this.applyMomentum();
-            }
-
-            onTouchStart(e) {
-                if (e.touches.length === 1) {
-                    this.isDragging = true;
-                    this.previousMouseY = e.touches[0].clientY;
-                    this.velocity = 0;
-                }
-            }
-
-            onTouchMove(e) {
-                if (!this.isDragging || e.touches.length !== 1) return;
-                e.preventDefault();
-
-                const deltaY = e.touches[0].clientY - this.previousMouseY;
-                this.velocity = deltaY * 0.01;
-                this.targetRotation += this.velocity;
-                this.previousMouseY = e.touches[0].clientY;
-            }
-
-            onTouchEnd() {
-                this.isDragging = false;
-                this.applyMomentum();
-            }
-
-            onWheel(e) {
-                e.preventDefault();
-                this.velocity = -e.deltaY * 0.001;
-                this.targetRotation += this.velocity * 10;
+                this.velocity *= deceleration;
+                requestAnimationFrame(momentumAnimation);
+            } else {
                 this.snapToItem();
             }
+        };
 
-            applyMomentum() {
-                const deceleration = 0.95;
-                const minVelocity = 0.001;
+        momentumAnimation();
+    }
 
-                const momentumAnimation = () => {
-                    if (Math.abs(this.velocity) > minVelocity) {
-                        this.targetRotation += this.velocity;
-                        this.velocity *= deceleration;
-                        requestAnimationFrame(momentumAnimation);
-                    } else {
-                        this.snapToItem();
-                    }
-                };
+    snapToItem() {
+        // Calculate nearest item
+        const currentItem = Math.round(this.targetRotation / this.anglePerItem);
+        this.targetRotation = currentItem * this.anglePerItem;
 
-                momentumAnimation();
-            }
+        // Calculate selected index
+        const itemCount = this.options.items.length;
+        this.selectedIndex = (((-currentItem % itemCount) + itemCount) % itemCount);
 
-            snapToItem() {
-                // Calculate nearest item
-                const currentItem = Math.round(this.targetRotation / this.anglePerItem);
-                this.targetRotation = currentItem * this.anglePerItem;
+        // Trigger onChange
+        if (this.options.onChange) {
+            this.options.onChange(this.options.items[this.selectedIndex], this.selectedIndex);
+        }
+    }
 
-                // Calculate selected index (accounting for reverse rotation)
-                const itemCount = this.options.items.length;
-                this.selectedIndex = (((-currentItem % itemCount) + itemCount) % itemCount);
+    animate() {
+        requestAnimationFrame(() => this.animate());
 
-                // Trigger onChange
-                if (this.options.onChange) {
-                    this.options.onChange(this.options.items[this.selectedIndex], this.selectedIndex);
-                }
-            }
+        // Smooth rotation
+        this.currentRotation += (this.targetRotation - this.currentRotation) * 0.1;
+        this.drum.rotation.y = this.currentRotation;
 
-            animate() {
-                requestAnimationFrame(() => this.animate());
+        // Update renderer
+        this.renderer.render(this.scene, this.camera);
+    }
 
-                // Smooth rotation
-                this.currentRotation += (this.targetRotation - this.currentRotation) * 0.1;
-                this.drum.rotation.y = this.currentRotation;
+    destroy() {
+        // Clean up
+        const canvas = this.renderer.domElement;
+        canvas.removeEventListener('mousedown', this.onMouseDown);
+        canvas.removeEventListener('mousemove', this.onMouseMove);
+        canvas.removeEventListener('mouseup', this.onMouseUp);
+        canvas.removeEventListener('touchstart', this.onTouchStart);
+        canvas.removeEventListener('touchmove', this.onTouchMove);
+        canvas.removeEventListener('touchend', this.onTouchEnd);
+        canvas.removeEventListener('wheel', this.onWheel);
 
-                // Update renderer
-                this.renderer.render(this.scene, this.camera);
-            }
+        this.renderer.dispose();
+        this.container.removeChild(this.renderer.domElement);
+    }
+}
 
-            // Public methods
-            getSelectedValue() {
-                return this.options.items[this.selectedIndex];
-            }
-
-            setSelectedIndex(index) {
-                this.selectedIndex = index;
-                this.targetRotation = -index * this.anglePerItem;
-            }
-
-            destroy() {
-                // Remove event listeners
-                const canvas = this.renderer.domElement;
-                canvas.removeEventListener('mousedown', this.onMouseDown);
-                canvas.removeEventListener('mousemove', this.onMouseMove);
-                canvas.removeEventListener('mouseup', this.onMouseUp);
-                canvas.removeEventListener('touchstart', this.onTouchStart);
-                canvas.removeEventListener('touchmove', this.onTouchMove);
-                canvas.removeEventListener('touchend', this.onTouchEnd);
-                canvas.removeEventListener('wheel', this.onWheel);
-
-                // Clean up Three.js
-                this.renderer.dispose();
-                this.container.removeChild(this.renderer.domElement);
-            }
+// Initialize the drum wheel when the page loads
+// Using a timeout to ensure the container is properly rendered
+setTimeout(() => {
+    const container = document.getElementById('threejs-drum-container');
+    if (container) {
+        // Generate years array
+        const years = [];
+        for (let year = 2025; year >= 1926; year--) {
+            years.push(year);
         }
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // Generate years array
-            const years = [];
-            for (let year = 2025; year >= 1926; year--) {
-                years.push(year);
+        // Create Three.js drum wheel
+        const drumWheel = new ThreeDrumWheelEngine(container, {
+            items: years,
+            selectedIndex: 1, // Start at 2024
+            onChange: (value, index) => {
+                document.getElementById('selected-year').textContent = value;
+                console.log('[Three.js Drum] Selected:', value, 'Index:', index);
             }
-
-            // Create Three.js drum wheel
-            const threejsContainer = document.getElementById('threejs-drum');
-            const threejsDrum = new ThreeDrumWheelEngine(threejsContainer, {
-                items: years,
-                selectedIndex: 1, // Start at 2024
-                onChange: (value, index) => {
-                    document.getElementById('threejs-selection').textContent = value;
-                    console.log('[Three.js Drum] Selected:', value, 'Index:', index);
-                }
-            });
-
-            // For now, just show a placeholder for the CSS version
-            const cssContainer = document.getElementById('css-drum');
-            cssContainer.style.width = '300px';
-            cssContainer.style.height = '350px';
-            cssContainer.style.background = '#f0f0f0';
-            cssContainer.style.borderRadius = '12px';
-            cssContainer.style.display = 'flex';
-            cssContainer.style.alignItems = 'center';
-            cssContainer.style.justifyContent = 'center';
-            cssContainer.style.color = '#999';
-            cssContainer.innerHTML = '<div>CSS Drum Wheel<br>(Currently in progress page)</div>';
         });
-    </script>
-</body>
-</html>
+    }
+}, 100);
+</script>
+
+<style>
+.data-entry-section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.data-entry-section h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #1d1d1f;
+}
+
+.form-group {
+    margin: 20px 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.selected-value {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+.selected-value span {
+    font-weight: 600;
+    color: #007AFF;
+}
+</style>
