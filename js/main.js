@@ -312,12 +312,12 @@ function initializeLottieExample(container) {
     
     // Scene
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x202533, -1, 100);
+    scene.background = new THREE.Color(0xf0f0f0); // Light gray background
     
-    // Lighting - based on RoomEnvironment style
-    scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+    // Lighting - much brighter
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6)); // Increased ambient
     
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1);
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2); // Doubled intensity
     dirLight1.position.set(20, 20, 20);
     scene.add(dirLight1);
     
@@ -367,7 +367,6 @@ function initializeLottieExample(container) {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(300, 350);
-    renderer.setClearColor(0x202533);
     container.appendChild(renderer.domElement);
     
     // Controls (mouse rotation)
