@@ -3,7 +3,8 @@
  * A 3D cylindrical drum selector using Three.js
  */
 
-import * as THREE from 'three';
+// Use global THREE from CDN instead of import
+// import * as THREE from 'three';
 
 export class ThreeDrumWheelEngine {
     constructor(container, options = {}) {
