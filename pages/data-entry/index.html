@@ -25,6 +25,10 @@
 // Three.js Drum Wheel Implementation (inline for now)
 class ThreeDrumWheelEngine {
     constructor(container, options = {}) {
+        console.log('[Three.js Debug] ThreeDrumWheelEngine constructor called');
+        console.log('[Three.js Debug] Container:', container);
+        console.log('[Three.js Debug] Options:', options);
+        
         this.container = container;
         this.options = {
             items: options.items || [],
@@ -44,6 +48,8 @@ class ThreeDrumWheelEngine {
     }
 
     init() {
+        console.log('[Three.js Debug] init() called');
+        
         // Setup container
         this.container.style.width = '300px';
         this.container.style.height = '350px';
@@ -52,9 +58,19 @@ class ThreeDrumWheelEngine {
         this.container.style.cursor = 'grab';
         this.container.style.borderRadius = '12px';
         this.container.style.margin = '0 auto';
-
-        // Create Three.js scene
-        this.scene = new THREE.Scene();
+        
+        console.log('[Three.js Debug] Container styled');
+        console.log('[Three.js Debug] About to create THREE.Scene...');
+        
+        try {
+            // Create Three.js scene
+            this.scene = new THREE.Scene();
+            console.log('[Three.js Debug] THREE.Scene created successfully');
+        } catch (error) {
+            console.error('[Three.js Debug] Error creating THREE.Scene:', error);
+            console.error('[Three.js Debug] Is THREE defined?', typeof THREE);
+            throw error;
+        }
         this.scene.background = new THREE.Color(0xf0f0f0);
 
         // Setup camera
@@ -285,24 +301,44 @@ class ThreeDrumWheelEngine {
 
 // Initialize the drum wheel when the page loads
 // Using a timeout to ensure the container is properly rendered
+console.log('[Three.js Debug] Script starting');
+console.log('[Three.js Debug] THREE available?', typeof THREE !== 'undefined');
+
 setTimeout(() => {
+    console.log('[Three.js Debug] Timeout fired');
+    console.log('[Three.js Debug] THREE available in timeout?', typeof THREE !== 'undefined');
+    
     const container = document.getElementById('threejs-drum-container');
+    console.log('[Three.js Debug] Container found?', !!container);
+    
     if (container) {
+        console.log('[Three.js Debug] Container dimensions:', container.offsetWidth, 'x', container.offsetHeight);
+        
         // Generate years array
         const years = [];
         for (let year = 2025; year >= 1926; year--) {
             years.push(year);
         }
+        console.log('[Three.js Debug] Years array length:', years.length);
 
-        // Create Three.js drum wheel
-        const drumWheel = new ThreeDrumWheelEngine(container, {
-            items: years,
-            selectedIndex: 1, // Start at 2024
-            onChange: (value, index) => {
-                document.getElementById('selected-year').textContent = value;
-                console.log('[Three.js Drum] Selected:', value, 'Index:', index);
-            }
-        });
+        try {
+            // Create Three.js drum wheel
+            console.log('[Three.js Debug] Creating ThreeDrumWheelEngine...');
+            const drumWheel = new ThreeDrumWheelEngine(container, {
+                items: years,
+                selectedIndex: 1, // Start at 2024
+                onChange: (value, index) => {
+                    document.getElementById('selected-year').textContent = value;
+                    console.log('[Three.js Drum] Selected:', value, 'Index:', index);
+                }
+            });
+            console.log('[Three.js Debug] ThreeDrumWheelEngine created successfully');
+        } catch (error) {
+            console.error('[Three.js Debug] Error creating drum wheel:', error);
+            console.error('[Three.js Debug] Error stack:', error.stack);
+        }
+    } else {
+        console.error('[Three.js Debug] Container not found!');
     }
 }, 100);
 </script>
