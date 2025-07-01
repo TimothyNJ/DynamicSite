@@ -325,22 +325,20 @@ class ios_drum_wheel_engine {
         console.log(`[ios_drum] Initializing ${this.drum.panelCount} panels with ${this.options.length} options`);
         
         // Panel 9 starts at front center and should show the current value
-        // For a descending array (2025, 2024, 2023...), visual order should be:
-        // - Panels above center (1-8) show LARGER indices (earlier years)
-        // - Panels below center (10-16) show SMALLER indices (later years)
         const centerPanelNumber = 9;
         
         for (let panelNum = 1; panelNum <= this.drum.panelCount; panelNum++) {
             const panelIndex = panelNum - 1;
             const panel = this.drum.panels[panelIndex];
             
-            // Calculate offset from Panel 9
-            // For panels above center (1-8): offset is negative, so we need larger indices
-            // For panels below center (10-16): offset is positive, so we need smaller indices
+            // Calculate offset from Panel 9 (center)
             const offsetFromCenter = panelNum - centerPanelNumber;
             
-            // For descending arrays, subtract the offset to get correct visual order
-            let itemIndex = this.currentIndex - offsetFromCenter;
+            // For a wheel showing items in visual order:
+            // - Items ABOVE center (smaller panel numbers) are EARLIER in visual sequence
+            // - Items BELOW center (larger panel numbers) are LATER in visual sequence
+            // This means we ADD the offset to move through the array
+            let itemIndex = this.currentIndex + offsetFromCenter;
             
             // Handle wraparound for circular list
             if (this.options.length > 0) {
@@ -404,36 +402,33 @@ class ios_drum_wheel_engine {
         if (angle > 135 && angle < 225) {
             let newIndex = -1;
             
-            // For descending arrays (2025, 2024, 2023...):
-            // Rolling DOWN visually = showing LATER years = SMALLER indices
-            // Rolling UP visually = showing EARLIER years = LARGER indices
-            
+            // Get reference values from adjacent panels
             if (direction === 'down' && position === this.POSITIONS.UPDATE_DOWN) {
-                // Rolling down: Position 16 needs the next later year (smaller index)
+                // Rolling down: Position 16 needs the next item in sequence
                 const panelAt15 = this.getPanelAtPosition(15);
                 const panel15Index = panelAt15 - 1;
                 const panel15ItemIndex = parseInt(this.drum.panels[panel15Index].getAttribute('data-item-index'));
                 
                 // Check if we're at the boundary
                 if (!isNaN(panel15ItemIndex)) {
-                    newIndex = panel15ItemIndex - 1;
-                    // Only wrap if we have a circular list, otherwise stop at boundaries
-                    if (newIndex < 0) {
-                        newIndex = this.options.length - 1; // Wrap to end
+                    newIndex = panel15ItemIndex + 1;
+                    // Wrap around if needed
+                    if (newIndex >= this.options.length) {
+                        newIndex = 0; // Wrap to beginning
                     }
                 }
             } else if (direction === 'up' && position === this.POSITIONS.UPDATE_UP) {
-                // Rolling up: Position 2 needs the next earlier year (larger index)
+                // Rolling up: Position 2 needs the previous item in sequence
                 const panelAt3 = this.getPanelAtPosition(3);
                 const panel3Index = panelAt3 - 1;
                 const panel3ItemIndex = parseInt(this.drum.panels[panel3Index].getAttribute('data-item-index'));
                 
                 // Check if we're at the boundary
                 if (!isNaN(panel3ItemIndex)) {
-                    newIndex = panel3ItemIndex + 1;
-                    // Only wrap if we have a circular list, otherwise stop at boundaries
-                    if (newIndex >= this.options.length) {
-                        newIndex = 0; // Wrap to beginning
+                    newIndex = panel3ItemIndex - 1;
+                    // Wrap around if needed
+                    if (newIndex < 0) {
+                        newIndex = this.options.length - 1; // Wrap to end
                     }
                 }
             }
