@@ -369,19 +369,24 @@ class ios_drum_wheel_engine {
         
         if (direction === 0) return; // No movement
         
-        // Check which panels are at the update positions
-        const panelAtUpdateUpPosition = this.getPanelAtPosition(this.POSITIONS.UPDATE_UP);
-        const panelAtUpdateDownPosition = this.getPanelAtPosition(this.POSITIONS.UPDATE_DOWN);
+        // Store last direction for update logic
+        this.physics.lastDirection = direction;
         
-        if (direction > 0) {
-            // Drum rolling down (front moves down, back moves up)
-            // Update the panel at Position 16 (UPDATE_DOWN)
-            this.updatePanelAtPosition(this.POSITIONS.UPDATE_DOWN, 'down');
-        } else {
-            // Drum rolling up (front moves up, back moves down)
-            // Update the panel at Position 2 (UPDATE_UP)
-            this.updatePanelAtPosition(this.POSITIONS.UPDATE_UP, 'up');
-        }
+        // Drum rolling down (front moves down, back moves up)
+        // Check all panels to see if any are at the update positions
+        this.drum.panels.forEach((panel, i) => {
+            const panelNumber = i + 1;
+            const currentPosition = this.getPositionOfPanel(panelNumber);
+            
+            // Only update panels that are at the specific update positions
+            if (direction > 0 && currentPosition === this.POSITIONS.UPDATE_DOWN) {
+                // This panel is at Position 16 - update it for downward scrolling
+                this.updatePanelAtPosition(this.POSITIONS.UPDATE_DOWN, 'down');
+            } else if (direction < 0 && currentPosition === this.POSITIONS.UPDATE_UP) {
+                // This panel is at Position 2 - update it for upward scrolling  
+                this.updatePanelAtPosition(this.POSITIONS.UPDATE_UP, 'up');
+            }
+        });
         
         // Update visibility and selection states
         this.updatePanelVisibility();
