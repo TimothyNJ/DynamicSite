@@ -278,6 +278,46 @@ function initializeSettingsComponents() {
   }
 }
 
+// Data Entry page initialization
+function initializeDataEntryComponents() {
+  console.log('[Data Entry] Initializing Three.js drum wheel...');
+  console.log('[Data Entry] THREE available?', typeof THREE !== 'undefined');
+  
+  if (typeof THREE === 'undefined') {
+    console.error('[Data Entry] Three.js not loaded!');
+    return;
+  }
+  
+  // Import the Three.js drum wheel engine
+  import('./components/three_drum_wheel_engine.js').then(module => {
+    console.log('[Data Entry] Three.js drum wheel module loaded');
+    
+    const container = document.getElementById('threejs-drum-container');
+    if (!container) {
+      console.error('[Data Entry] Container not found!');
+      return;
+    }
+    
+    // Generate years array
+    const years = [];
+    for (let year = 2025; year >= 1926; year--) {
+      years.push(year);
+    }
+    
+    // Create Three.js drum wheel
+    const drumWheel = new module.ThreeDrumWheelEngine(container, {
+      items: years,
+      selectedIndex: 1, // Start at 2024
+      onChange: (value, index) => {
+        document.getElementById('selected-year').textContent = value;
+        console.log('[Three.js Drum] Selected:', value, 'Index:', index);
+      }
+    });
+  }).catch(error => {
+    console.error('[Data Entry] Error loading Three.js drum wheel:', error);
+  });
+}
+
 // Progress View page initialization
 function initializeProgressViewComponents() {
   if (!window.componentFactory) {
@@ -322,6 +362,10 @@ window.initializePageComponents = function(pageName) {
     // Initialize progress view components
     console.log('[main.js] Initializing progress components');
     initializeProgressViewComponents();
+  } else if (pageName === 'data-entry') {
+    // Initialize data entry components
+    console.log('[main.js] Initializing data entry components');
+    initializeDataEntryComponents();
   }
   
   // Add other page-specific initialization as needed
