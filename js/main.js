@@ -280,7 +280,7 @@ function initializeSettingsComponents() {
 
 // Data Entry page initialization
 function initializeDataEntryComponents() {
-  console.log('[Data Entry] Initializing Three.js drum wheel...');
+  console.log('[Data Entry] Initializing Three.js Lottie example...');
   console.log('[Data Entry] THREE available?', typeof THREE !== 'undefined');
   
   if (typeof THREE === 'undefined') {
@@ -288,34 +288,112 @@ function initializeDataEntryComponents() {
     return;
   }
   
-  // Import the Three.js drum wheel engine
-  import('./components/three_drum_wheel_engine.js').then(module => {
-    console.log('[Data Entry] Three.js drum wheel module loaded');
+  const container = document.getElementById('threejs-drum-container');
+  if (!container) {
+    console.error('[Data Entry] Container not found!');
+    return;
+  }
+  
+  // Initialize Three.js Lottie-style example
+  initializeLottieExample(container);
+}
+
+// Three.js Lottie example implementation
+function initializeLottieExample(container) {
+  let renderer, scene, camera;
+  let mesh;
+  
+  init();
+  animate();
+  
+  function init() {
+    camera = new THREE.PerspectiveCamera(50, 300 / 350, 0.5, 1000);
+    camera.position.z = 100;
     
-    const container = document.getElementById('threejs-drum-container');
-    if (!container) {
-      console.error('[Data Entry] Container not found!');
-      return;
-    }
+    // Scene
+    scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x202533, -1, 100);
     
-    // Generate years array
-    const years = [];
-    for (let year = 2025; year >= 1926; year--) {
-      years.push(year);
-    }
+    // Lighting - based on RoomEnvironment style
+    scene.add(new THREE.AmbientLight(0xffffff, 0.2));
     
-    // Create Three.js drum wheel
-    const drumWheel = new module.ThreeDrumWheelEngine(container, {
-      items: years,
-      selectedIndex: 1, // Start at 2024
-      onChange: (value, index) => {
-        document.getElementById('selected-year').textContent = value;
-        console.log('[Three.js Drum] Selected:', value, 'Index:', index);
-      }
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight1.position.set(20, 20, 20);
+    scene.add(dirLight1);
+    
+    const dirLight2 = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight2.position.set(-20, 20, -20);
+    scene.add(dirLight2);
+    
+    // Geometry - RoundedBoxGeometry equivalent
+    const geometry = new THREE.BoxGeometry(30, 30, 30);
+    
+    // Create texture with gradient (since we can't load Lottie files)
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    // Create animated gradient pattern
+    const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+    gradient.addColorStop(0, '#ff006e');
+    gradient.addColorStop(0.5, '#8338ec');
+    gradient.addColorStop(1, '#3a86ff');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 512, 512);
+    
+    // Add some text
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 120px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('3D', 256, 256);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    
+    // Material
+    const material = new THREE.MeshStandardMaterial({
+      map: texture,
+      metalness: 0.1,
+      roughness: 0.5
     });
-  }).catch(error => {
-    console.error('[Data Entry] Error loading Three.js drum wheel:', error);
-  });
+    
+    // Mesh
+    mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+    
+    // Renderer
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(300, 350);
+    renderer.setClearColor(0x202533);
+    container.appendChild(renderer.domElement);
+    
+    // Controls (mouse rotation)
+    container.addEventListener('mousemove', onMouseMove);
+  }
+  
+  function onMouseMove(event) {
+    const rect = container.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    if (mesh) {
+      mesh.rotation.y = x * Math.PI;
+      mesh.rotation.x = y * Math.PI;
+    }
+  }
+  
+  function animate() {
+    requestAnimationFrame(animate);
+    
+    if (mesh) {
+      mesh.rotation.y += 0.005;
+    }
+    
+    renderer.render(scene, camera);
+  }
 }
 
 // Progress View page initialization
