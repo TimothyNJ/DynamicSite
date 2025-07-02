@@ -345,12 +345,21 @@ function initializeLottieExample(container) {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
     
+    // Single strong point light from above-front (45° toward viewer)
+    const mainLight = new THREE.PointLight(0xffffff, 2.0);
+    mainLight.position.set(0, 2, 1.5); // Above and toward viewer
+    scene.add(mainLight);
+    
+    // Subtle ambient light to prevent complete darkness
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    scene.add(ambientLight);
+    
     // Environment for reflections using RoomEnvironment approach
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     scene.environment = pmremGenerator.fromScene(createSimpleEnvironment()).texture;
     
-    // Create rounded box geometry manually since RoundedBoxGeometry isn't in base Three.js
-    const geometry = createRoundedBoxGeometry(1, 1, 1, 0.1, 4);
+    // Create rounded box geometry with more pronounced curves
+    const geometry = createRoundedBoxGeometry(1, 1, 1, 0.15, 8);
     
     // Create Lottie-style animated texture
     const canvas = document.createElement('canvas');
@@ -393,16 +402,16 @@ function initializeLottieExample(container) {
     
     const texture = new THREE.CanvasTexture(canvas);
     
-    // Material - highly reflective with darker tone to match example
+    // Material - maximum glossiness to match example
     const material = new THREE.MeshPhysicalMaterial({
       map: texture,
       color: 0x202020,  // Darker base color
-      metalness: 0.1,
-      roughness: 0.1,
+      metalness: 0.0,
+      roughness: 0.0,   // Zero roughness for maximum gloss
       clearcoat: 1.0,
       clearcoatRoughness: 0.0,
       reflectivity: 1.0,
-      envMapIntensity: 0.8
+      envMapIntensity: 1.2
     });
     
     // Create mesh
@@ -499,19 +508,18 @@ function initializeLottieExample(container) {
   // Helper function to create simple environment for reflections
   function createSimpleEnvironment() {
     const envScene = new THREE.Scene();
-    envScene.background = new THREE.Color(0xf0f0f5);
     
-    // Add gradient lighting
-    const light1 = new THREE.DirectionalLight(0xffffff, 1);
-    light1.position.set(1, 1, 1);
-    envScene.add(light1);
+    // Bright environment for reflections
+    const envLight1 = new THREE.DirectionalLight(0xffffff, 2);
+    envLight1.position.set(1, 1, 1);
+    envScene.add(envLight1);
     
-    const light2 = new THREE.DirectionalLight(0xffffff, 0.5);
-    light2.position.set(-1, -1, 1);
-    envScene.add(light2);
+    const envLight2 = new THREE.DirectionalLight(0xffffff, 1);
+    envLight2.position.set(-1, 1, -1);
+    envScene.add(envLight2);
     
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    envScene.add(ambientLight);
+    const envAmbient = new THREE.AmbientLight(0xffffff, 1);
+    envScene.add(envAmbient);
     
     return envScene;
   }
