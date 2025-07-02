@@ -822,10 +822,14 @@ function initializeLottieExample(container) {
     const eps = 0.00001;
     const radius0 = radius - eps;
     
+    // Adjust width and height to account for the radius
+    const actualWidth = width - radius * 2;
+    const actualHeight = height - radius * 2;
+    
     shape.absarc(radius0, radius0, radius0, -Math.PI / 2, -Math.PI, true);
-    shape.absarc(radius0, height - radius * 2 + radius0, radius0, Math.PI, Math.PI / 2, true);
-    shape.absarc(width - radius * 2 + radius0, height - radius * 2 + radius0, radius0, Math.PI / 2, 0, true);
-    shape.absarc(width - radius * 2 + radius0, radius0, radius0, 0, -Math.PI / 2, true);
+    shape.absarc(radius0, actualHeight + radius0, radius0, Math.PI, Math.PI / 2, true);
+    shape.absarc(actualWidth + radius0, actualHeight + radius0, radius0, Math.PI / 2, 0, true);
+    shape.absarc(actualWidth + radius0, radius0, radius0, 0, -Math.PI / 2, true);
     
     const geometry = new THREE.ExtrudeGeometry(shape, {
       depth: depth - radius * 2,
