@@ -318,6 +318,72 @@ function initializeDataEntryComponents() {
         lottieControls.setRotationSpeed(speed);
       }
     });
+    
+    // Helper function to create light position sliders
+    function createLightSlider(lightName, lightLabel, axis, defaultValue) {
+      const containerId = `${lightName}-light-${axis}-slider-container`;
+      
+      componentFactory.createSlider({
+        containerId: containerId,
+        sliderClass: `${lightName}-light-${axis}-slider`,
+        options: [
+          { text: '-3', value: '-3', position: 1, dataAttributes: 'data-value="-3"', active: defaultValue === -3 },
+          { text: '-2', value: '-2', position: 2, dataAttributes: 'data-value="-2"', active: defaultValue === -2 },
+          { text: '-1', value: '-1', position: 3, dataAttributes: 'data-value="-1"', active: defaultValue === -1 },
+          { text: '0', value: '0', position: 4, dataAttributes: 'data-value="0"', active: defaultValue === 0 },
+          { text: '1', value: '1', position: 5, dataAttributes: 'data-value="1"', active: defaultValue === 1 },
+          { text: '2', value: '2', position: 6, dataAttributes: 'data-value="2"', active: defaultValue === 2 },
+          { text: '3', value: '3', position: 7, dataAttributes: 'data-value="3"', active: defaultValue === 3 }
+        ]
+      }, (selectedOption) => {
+        const value = parseFloat(selectedOption.getAttribute('data-value'));
+        console.log(`[${lightLabel} ${axis.toUpperCase()}] Selected:`, value);
+        if (lottieControls && lottieControls.setLightPosition) {
+          lottieControls.setLightPosition(lightName, axis, value);
+        }
+      });
+    }
+    
+    // Create all light position sliders
+    // Main light (default: 0, 2, 1.5)
+    createLightSlider('main', 'Main Light', 'x', 0);
+    createLightSlider('main', 'Main Light', 'y', 2);
+    // Special case for main light Z (1.5)
+    componentFactory.createSlider({
+      containerId: 'main-light-z-slider-container',
+      sliderClass: 'main-light-z-slider',
+      options: [
+        { text: '-3', value: '-3', position: 1, dataAttributes: 'data-value="-3"' },
+        { text: '-2', value: '-2', position: 2, dataAttributes: 'data-value="-2"' },
+        { text: '-1', value: '-1', position: 3, dataAttributes: 'data-value="-1"' },
+        { text: '0', value: '0', position: 4, dataAttributes: 'data-value="0"' },
+        { text: '1', value: '1', position: 5, dataAttributes: 'data-value="1"' },
+        { text: '1.5', value: '1.5', position: 6, dataAttributes: 'data-value="1.5"', active: true },
+        { text: '2', value: '2', position: 7, dataAttributes: 'data-value="2"' },
+        { text: '3', value: '3', position: 8, dataAttributes: 'data-value="3"' }
+      ]
+    }, (selectedOption) => {
+      const value = parseFloat(selectedOption.getAttribute('data-value'));
+      console.log('[Main Light Z] Selected:', value);
+      if (lottieControls && lottieControls.setLightPosition) {
+        lottieControls.setLightPosition('main', 'z', value);
+      }
+    });
+    
+    // Front light (default: 0, 0, 3)
+    createLightSlider('front', 'Front Light', 'x', 0);
+    createLightSlider('front', 'Front Light', 'y', 0);
+    createLightSlider('front', 'Front Light', 'z', 3);
+    
+    // Left light (default: -2, 0, 2)
+    createLightSlider('left', 'Left Light', 'x', -2);
+    createLightSlider('left', 'Left Light', 'y', 0);
+    createLightSlider('left', 'Left Light', 'z', 2);
+    
+    // Right light (default: 2, 0, 2)
+    createLightSlider('right', 'Right Light', 'x', 2);
+    createLightSlider('right', 'Right Light', 'y', 0);
+    createLightSlider('right', 'Right Light', 'z', 2);
   }
 }
 
@@ -572,6 +638,23 @@ function initializeLottieExample(container) {
     setRotationSpeed: function(speed) {
       rotationSpeedMultiplier = speed;
       console.log('[Lottie Cube] Rotation speed set to:', speed);
+    },
+    setLightPosition: function(lightName, axis, value) {
+      switch(lightName) {
+        case 'main':
+          mainLight.position[axis] = value;
+          break;
+        case 'front':
+          frontLight.position[axis] = value;
+          break;
+        case 'left':
+          leftFillLight.position[axis] = value;
+          break;
+        case 'right':
+          rightFillLight.position[axis] = value;
+          break;
+      }
+      console.log(`[Lottie Cube] ${lightName} light ${axis} set to:`, value);
     }
   };
 }
