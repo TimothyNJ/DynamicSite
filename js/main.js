@@ -833,32 +833,153 @@ function initializeLottieExample(container) {
   
   // Helper function to create rounded box geometry
   function createRoundedBoxGeometry(width, height, depth, radius, smoothness) {
-    const shape = new THREE.Shape();
-    const eps = 0.00001;
-    const radius0 = radius - eps;
+    // Create a proper rounded box by modifying a standard BoxGeometry
+    // This avoids the corner artifacts from ExtrudeGeometry
     
-    // Adjust width and height to account for the radius
-    const actualWidth = width - radius * 2;
-    const actualHeight = height - radius * 2;
+    class RoundedBoxGeometry extends THREE.BoxGeometry {
+      constructor(width = 1, height = 1, depth = 1, radius = 0.1, widthSegments = 1, heightSegments = 1, depthSegments = 1) {
+        // Ensure minimum segments for rounding
+        const minSegments = Math.ceil(radius * 4 / Math.min(width, height, depth)) + 1;
+        widthSegments = Math.max(minSegments, widthSegments);
+        heightSegments = Math.max(minSegments, heightSegments);
+        depthSegments = Math.max(minSegments, depthSegments);
+        
+        super(width, height, depth, widthSegments, heightSegments, depthSegments);
+        
+        // Clamp radius
+        radius = Math.min(radius, Math.min(width, height, depth) / 2);
+        
+        const positions = this.attributes.position;
+        const normals = this.attributes.normal;
+        
+        // Helper to smooth vertices
+        const smoothVertex = (x, y, z) => {
+          const absX = Math.abs(x);
+          const absY = Math.abs(y);
+          const absZ = Math.abs(z);
+          
+          const halfWidth = width / 2;
+          const halfHeight = height / 2;
+          const halfDepth = depth / 2;
+          
+          // Check if vertex is near a corner
+          const nearCornerX = absX > halfWidth - radius;
+          const nearCornerY = absY > halfHeight - radius;
+          const nearCornerZ = absZ > halfDepth - radius;
+          
+          if (nearCornerX && nearCornerY && nearCornerZ) {
+            // This is a corner vertex - apply spherical rounding
+            const cornerX = (halfWidth - radius) * Math.sign(x);
+            const cornerY = (halfHeight - radius) * Math.sign(y);
+            const cornerZ = (halfDepth - radius) * Math.sign(z);
+            
+            // Calculate position on sphere
+            const dx = x - cornerX;
+            const dy = y - cornerY;
+            const dz = z - cornerZ;
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            
+            if (distance > 0) {
+              const scale = radius / distance;
+              return {
+                x: cornerX + dx * scale,
+                y: cornerY + dy * scale,
+                z: cornerZ + dz * scale,
+                nx: dx / distance,
+                ny: dy / distance,
+                nz: dz / distance
+              };
+            }
+          } else if (nearCornerX && nearCornerY) {
+            // Edge along Z axis
+            const cornerX = (halfWidth - radius) * Math.sign(x);
+            const cornerY = (halfHeight - radius) * Math.sign(y);
+            
+            const dx = x - cornerX;
+            const dy = y - cornerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0) {
+              const scale = radius / distance;
+              return {
+                x: cornerX + dx * scale,
+                y: cornerY + dy * scale,
+                z: z,
+                nx: dx / distance,
+                ny: dy / distance,
+                nz: 0
+              };
+            }
+          } else if (nearCornerX && nearCornerZ) {
+            // Edge along Y axis
+            const cornerX = (halfWidth - radius) * Math.sign(x);
+            const cornerZ = (halfDepth - radius) * Math.sign(z);
+            
+            const dx = x - cornerX;
+            const dz = z - cornerZ;
+            const distance = Math.sqrt(dx * dx + dz * dz);
+            
+            if (distance > 0) {
+              const scale = radius / distance;
+              return {
+                x: cornerX + dx * scale,
+                y: y,
+                z: cornerZ + dz * scale,
+                nx: dx / distance,
+                ny: 0,
+                nz: dz / distance
+              };
+            }
+          } else if (nearCornerY && nearCornerZ) {
+            // Edge along X axis
+            const cornerY = (halfHeight - radius) * Math.sign(y);
+            const cornerZ = (halfDepth - radius) * Math.sign(z);
+            
+            const dy = y - cornerY;
+            const dz = z - cornerZ;
+            const distance = Math.sqrt(dy * dy + dz * dz);
+            
+            if (distance > 0) {
+              const scale = radius / distance;
+              return {
+                x: x,
+                y: cornerY + dy * scale,
+                z: cornerZ + dz * scale,
+                nx: 0,
+                ny: dy / distance,
+                nz: dz / distance
+              };
+            }
+          }
+          
+          // Not near a corner or edge - return original
+          return { x, y, z, nx: 0, ny: 0, nz: 0 };
+        };
+        
+        // Apply rounding to all vertices
+        for (let i = 0; i < positions.count; i++) {
+          const x = positions.getX(i);
+          const y = positions.getY(i);
+          const z = positions.getZ(i);
+          
+          const smoothed = smoothVertex(x, y, z);
+          
+          positions.setXYZ(i, smoothed.x, smoothed.y, smoothed.z);
+          
+          // Update normals if changed
+          if (smoothed.nx !== 0 || smoothed.ny !== 0 || smoothed.nz !== 0) {
+            normals.setXYZ(i, smoothed.nx, smoothed.ny, smoothed.nz);
+          }
+        }
+        
+        // Update the geometry
+        positions.needsUpdate = true;
+        normals.needsUpdate = true;
+      }
+    }
     
-    shape.absarc(radius0, radius0, radius0, -Math.PI / 2, -Math.PI, true);
-    shape.absarc(radius0, actualHeight + radius0, radius0, Math.PI, Math.PI / 2, true);
-    shape.absarc(actualWidth + radius0, actualHeight + radius0, radius0, Math.PI / 2, 0, true);
-    shape.absarc(actualWidth + radius0, radius0, radius0, 0, -Math.PI / 2, true);
-    
-    const geometry = new THREE.ExtrudeGeometry(shape, {
-      depth: depth - radius * 2,
-      bevelEnabled: true,
-      bevelSegments: smoothness * 2,  // Will be 64 segments for ultimate smoothness
-      steps: 1,
-      bevelSize: radius,
-      bevelThickness: radius,
-      curveSegments: smoothness  // Will be 32 curve segments
-    });
-    
-    geometry.center();
-    
-    return geometry;
+    // Create and return the rounded box geometry
+    return new RoundedBoxGeometry(width, height, depth, radius, smoothness, smoothness, smoothness);
   }
   
   // Return control interface
