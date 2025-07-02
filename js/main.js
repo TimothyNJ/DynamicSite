@@ -539,8 +539,8 @@ function initializeLottieExample(container) {
     
     // Function to update canvas animation
     function updateCanvasTexture(time) {
-      // Clear canvas with dark background
-      ctx.fillStyle = '#000000';
+      // Clear canvas with very dark background
+      ctx.fillStyle = '#0a0a0a';
       ctx.fillRect(0, 0, 512, 512);
       
       // Create tunnel effect with glowing center
@@ -557,18 +557,19 @@ function initializeLottieExample(container) {
           const pulseAmount = 10;
           const radius = baseRadius + Math.sin(phase + i * 0.5 + j * 0.5) * pulseAmount;
           
-          // Create gradient for tunnel depth effect
+          // Create strong gradient for tunnel depth effect
           const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
           
-          // Center glow color - changes with phase for variety
+          // Center glow color - bright and saturated
           const hue = (phase * 50 + i * 30 + j * 30) % 360;
-          const glowColor = `hsl(${hue}, 70%, 60%)`;
           
-          // Tunnel gradient - bright center (glow showing through) to dark edges
-          gradient.addColorStop(0, glowColor); // Center glow
-          gradient.addColorStop(0.3, `hsl(${hue}, 60%, 40%)`); // Mid tunnel
-          gradient.addColorStop(0.7, `hsl(${hue}, 50%, 20%)`); // Deeper tunnel
-          gradient.addColorStop(1, '#000000'); // Edge blends to surface
+          // Much brighter tunnel gradient with stronger glow
+          gradient.addColorStop(0, `hsl(${hue}, 100%, 80%)`); // Bright center glow
+          gradient.addColorStop(0.2, `hsl(${hue}, 90%, 70%)`); // Strong mid glow
+          gradient.addColorStop(0.4, `hsl(${hue}, 80%, 50%)`); // Mid tunnel
+          gradient.addColorStop(0.7, `hsl(${hue}, 70%, 30%)`); // Deeper tunnel
+          gradient.addColorStop(0.9, `hsl(${hue}, 60%, 15%)`); // Near edge
+          gradient.addColorStop(1, '#0a0a0a'); // Edge matches surface
           
           // Draw tunnel opening
           ctx.beginPath();
@@ -576,11 +577,15 @@ function initializeLottieExample(container) {
           ctx.fillStyle = gradient;
           ctx.fill();
           
-          // Add subtle rim light to enhance 3D effect
+          // Add bright rim light for 3D effect
           ctx.beginPath();
           ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.strokeStyle = `hsla(${hue}, 50%, 30%, 0.5)`;
-          ctx.lineWidth = 2;
+          const rimGradient = ctx.createRadialGradient(x, y, radius * 0.8, x, y, radius);
+          rimGradient.addColorStop(0, 'transparent');
+          rimGradient.addColorStop(0.8, 'transparent');
+          rimGradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0.6)`);
+          ctx.strokeStyle = rimGradient;
+          ctx.lineWidth = 3;
           ctx.stroke();
         }
       }
@@ -588,10 +593,10 @@ function initializeLottieExample(container) {
     
     const texture = new THREE.CanvasTexture(canvas);
     
-    // Material - glossy dark surface to show tunnel glow
+    // Material - glossy surface that still catches light
     const material = new THREE.MeshPhysicalMaterial({
       map: texture,
-      color: 0x0a0a0a,  // Very dark base color
+      color: 0x404040,  // Medium gray so it catches light
       metalness: 0.0,
       roughness: 0.0,   // Zero roughness for maximum gloss
       clearcoat: 1.0,
