@@ -539,6 +539,83 @@ function initializeLottieExample(container) {
     backLight.position.set(0, 0, -2); // Directly behind the cube
     scene.add(backLight);
     
+    // Create animated fog plane behind the cube
+    const fogPlaneGeometry = new THREE.PlaneGeometry(4, 4, 32, 32);
+    const fogPlaneCanvas = document.createElement('canvas');
+    fogPlaneCanvas.width = 512;
+    fogPlaneCanvas.height = 512;
+    const fogCtx = fogPlaneCanvas.getContext('2d');
+    
+    // Create fog texture
+    const fogTexture = new THREE.CanvasTexture(fogPlaneCanvas);
+    
+    // Fog material with transparency
+    const fogPlaneMaterial = new THREE.MeshBasicMaterial({
+      map: fogTexture,
+      transparent: true,
+      opacity: 0.8,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    
+    const fogPlane = new THREE.Mesh(fogPlaneGeometry, fogPlaneMaterial);
+    fogPlane.position.set(0, 0, -1.5); // Between cube and backlight
+    scene.add(fogPlane);
+    
+    // Function to animate fog texture
+    function updateFogTexture(time) {
+      // Clear canvas
+      fogCtx.clearRect(0, 0, 512, 512);
+      
+      // Create dreamy fog effect with multiple layers
+      const slowTime = time * 0.0001; // Very slow animation
+      
+      // Draw multiple cloud layers
+      for (let layer = 0; layer < 3; layer++) {
+        const layerTime = slowTime + layer * 0.5;
+        const layerOpacity = 0.3 - layer * 0.1;
+        
+        // Create gradient circles for cloud effect
+        for (let i = 0; i < 20; i++) {
+          // Animate positions with sine waves for dreamy drift
+          const baseX = (i % 5) * 100 + 50;
+          const baseY = Math.floor(i / 5) * 100 + 50;
+          
+          const x = baseX + Math.sin(layerTime + i * 0.3) * 30;
+          const y = baseY + Math.cos(layerTime * 0.7 + i * 0.2) * 20;
+          
+          // Size varies over time
+          const size = 80 + Math.sin(layerTime * 2 + i) * 20;
+          
+          // Create radial gradient for each cloud puff
+          const gradient = fogCtx.createRadialGradient(x, y, 0, x, y, size);
+          
+          // Color gradients - slightly blue-white for ethereal look
+          const hue = 200 + Math.sin(layerTime + i * 0.1) * 20;
+          const lightness = 70 + Math.sin(layerTime * 1.5 + i * 0.2) * 20;
+          
+          gradient.addColorStop(0, `hsla(${hue}, 30%, ${lightness}%, ${layerOpacity})`);
+          gradient.addColorStop(0.4, `hsla(${hue}, 20%, ${lightness - 10}%, ${layerOpacity * 0.6})`);
+          gradient.addColorStop(0.7, `hsla(${hue}, 10%, ${lightness - 20}%, ${layerOpacity * 0.3})`);
+          gradient.addColorStop(1, `hsla(${hue}, 10%, ${lightness - 30}%, 0)`);
+          
+          fogCtx.fillStyle = gradient;
+          fogCtx.fillRect(0, 0, 512, 512);
+        }
+      }
+      
+      // Add overall opacity gradient from center
+      const centerGradient = fogCtx.createRadialGradient(256, 256, 0, 256, 256, 256);
+      centerGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+      centerGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
+      centerGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      
+      fogCtx.fillStyle = centerGradient;
+      fogCtx.fillRect(0, 0, 512, 512);
+      
+      fogTexture.needsUpdate = true;
+    }
+    
     // Additional rim light from below-back
     rimLight = new THREE.DirectionalLight(0xffffff, 1.5);
     rimLight.position.set(0, -2, -2); // Below and behind
@@ -643,6 +720,9 @@ function initializeLottieExample(container) {
       // Update canvas texture
       updateCanvasTexture(time);
       texture.needsUpdate = true;
+      
+      // Update fog texture
+      updateFogTexture(time);
       
       if (!isDragging) {
         // Apply velocity-based rotation (momentum)
