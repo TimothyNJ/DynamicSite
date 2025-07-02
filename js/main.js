@@ -496,11 +496,11 @@ function initializeLottieExample(container) {
     // Renderer with exact settings from Lottie example
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(300, 350);
+    renderer.setSize(350, 350);
     container.appendChild(renderer.domElement);
     
     // Camera - perspective camera with closer position
-    camera = new THREE.PerspectiveCamera(50, 300 / 350, 0.1, 100);
+    camera = new THREE.PerspectiveCamera(50, 350 / 350, 0.1, 100);
     camera.position.set(0, 0, 3);
     camera.lookAt(0, 0, 0);
     
