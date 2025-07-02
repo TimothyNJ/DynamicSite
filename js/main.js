@@ -295,13 +295,37 @@ function initializeDataEntryComponents() {
   }
   
   // Initialize Three.js Lottie-style example
-  initializeLottieExample(container);
+  const lottieControls = initializeLottieExample(container);
+  
+  // Create rotation speed slider
+  if (window.componentFactory) {
+    console.log('[Data Entry] Creating rotation speed slider...');
+    
+    componentFactory.createSlider({
+      containerId: 'rotation-speed-slider-container',
+      sliderClass: 'rotation-speed-slider',
+      options: [
+        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+      ]
+    }, (selectedOption) => {
+      const speed = parseFloat(selectedOption.getAttribute('data-value') || selectedOption.querySelector('h3').textContent);
+      console.log('[Rotation Speed] Selected:', speed);
+      if (lottieControls && lottieControls.setRotationSpeed) {
+        lottieControls.setRotationSpeed(speed);
+      }
+    });
+  }
 }
 
 // Three.js Lottie example implementation
 function initializeLottieExample(container) {
   let renderer, scene, camera;
   let mesh;
+  let rotationSpeedMultiplier = 0; // Start with no auto-rotation
   
   init();
   
@@ -410,9 +434,9 @@ function initializeLottieExample(container) {
         
         // Only apply auto-rotation if no recent user interaction
         if (Math.abs(rotationVelocity.x) < 0.001 && Math.abs(rotationVelocity.y) < 0.001) {
-          autoRotationTime += 0.01;
-          mesh.rotation.x += Math.sin(autoRotationTime * 0.1) * 0.002;
-          mesh.rotation.y += autoRotationTime * 0.01;
+          autoRotationTime += 0.01 * rotationSpeedMultiplier;
+          mesh.rotation.x += Math.sin(autoRotationTime * 0.1) * 0.002 * rotationSpeedMultiplier;
+          mesh.rotation.y += autoRotationTime * 0.01 * rotationSpeedMultiplier;
         }
       }
       
@@ -517,6 +541,14 @@ function initializeLottieExample(container) {
     
     return geometry;
   }
+  
+  // Return control interface
+  return {
+    setRotationSpeed: function(speed) {
+      rotationSpeedMultiplier = speed;
+      console.log('[Lottie Cube] Rotation speed set to:', speed);
+    }
+  };
 }
 
 // Progress View page initialization
