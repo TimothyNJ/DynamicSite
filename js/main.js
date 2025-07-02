@@ -568,7 +568,7 @@ function initializeLottieExample(container) {
       fogCtx.clearRect(0, 0, 512, 512);
       
       // Create dreamy fog effect with multiple layers
-      const slowTime = time * 0.0001; // Very slow animation
+      const slowTime = time * 0.0005; // Increased speed (was 0.0001)
       
       // Draw multiple cloud layers
       for (let layer = 0; layer < 3; layer++) {
@@ -662,11 +662,11 @@ function initializeLottieExample(container) {
           const hue = (phase * 50 + i * 30 + j * 30) % 360;
           
           // Much brighter tunnel gradient with stronger glow
-          gradient.addColorStop(0, `hsl(${hue}, 100%, 80%)`); // Bright center glow
-          gradient.addColorStop(0.2, `hsl(${hue}, 90%, 70%)`); // Strong mid glow
-          gradient.addColorStop(0.4, `hsl(${hue}, 80%, 50%)`); // Mid tunnel
-          gradient.addColorStop(0.7, `hsl(${hue}, 70%, 30%)`); // Deeper tunnel
-          gradient.addColorStop(0.9, `hsl(${hue}, 60%, 15%)`); // Near edge
+          gradient.addColorStop(0, `hsl(${hue}, 100%, 95%)`); // Brighter center glow (was 80%)
+          gradient.addColorStop(0.2, `hsl(${hue}, 90%, 85%)`); // Stronger mid glow (was 70%)
+          gradient.addColorStop(0.4, `hsl(${hue}, 80%, 65%)`); // Mid tunnel (was 50%)
+          gradient.addColorStop(0.7, `hsl(${hue}, 70%, 45%)`); // Deeper tunnel (was 30%)
+          gradient.addColorStop(0.9, `hsl(${hue}, 60%, 25%)`); // Near edge (was 15%)
           gradient.addColorStop(1, '#0a0a0a'); // Edge matches surface
           
           // Draw tunnel opening
