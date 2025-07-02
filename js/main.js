@@ -635,11 +635,12 @@ function initializeLottieExample(container) {
     // Apply subdivision for better symmetry and smoothness
     // Using three-subdivide with edge splitting to prevent corner skewing
     console.log('[Three.js] Applying Loop subdivision to cube for better symmetry...');
-    geometry = LoopSubdivision.modify(geometry, 2, {
+    geometry = LoopSubdivision.modify(geometry, 1, {
       split: true,        // Critical for preventing corner skewing in boxes
       uvSmooth: true,     // Smooth UV coordinates for better texture mapping
       preserveEdges: false, // Allow smoothing for rounded appearance
-      flatOnly: false     // Apply smoothing, not just subdivision
+      flatOnly: false,    // Apply smoothing, not just subdivision
+      maxTriangles: 10000 // Reasonable limit for performance
     });
     console.log('[Three.js] Subdivision complete, geometry now has', geometry.attributes.position.count, 'vertices');
     
