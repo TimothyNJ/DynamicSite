@@ -16,6 +16,9 @@ console.log(`[main.js] Starting application initialization [Deployment: ${DEPLOY
 // Import styles - Single source of truth (SCSS)
 import '../styles/styles.scss';
 
+// Import Three.js subdivision library for better cube symmetry
+import { LoopSubdivision } from 'three-subdivide';
+
 // Import core modules
 import { globalMouseTracker } from './core/mouse-tracker.js';
 
@@ -627,7 +630,19 @@ function initializeLottieExample(container) {
     scene.environment = pmremGenerator.fromScene(createSimpleEnvironment()).texture;
     
     // Create rounded box geometry with maximum smoothness for continuous light flow
-    const geometry = createRoundedBoxGeometry(1, 1, 1, 0.15, 32);
+    let geometry = createRoundedBoxGeometry(1, 1, 1, 0.15, 32);
+    
+    // Apply subdivision for better symmetry and smoothness
+    // Using three-subdivide with edge splitting to prevent corner skewing
+    console.log('[Three.js] Applying Loop subdivision to cube for better symmetry...');
+    geometry = LoopSubdivision.modify(geometry, 1, {
+      split: true,        // Critical for preventing corner skewing in boxes
+      uvSmooth: true,     // Smooth UV coordinates for better texture mapping
+      preserveEdges: false, // Allow smoothing for rounded appearance
+      flatOnly: false,    // Apply smoothing, not just subdivision
+      maxTriangles: 10000 // Reasonable limit for performance
+    });
+    console.log('[Three.js] Subdivision complete, geometry now has', geometry.attributes.position.count, 'vertices');
     
     // Create Lottie-style animated texture
     const canvas = document.createElement('canvas');
