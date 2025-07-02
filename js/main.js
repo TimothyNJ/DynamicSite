@@ -535,9 +535,8 @@ function initializeLottieExample(container) {
     scene.add(ambientLight);
     
     // Add backlighting for rim glow effect
-    backLight = new THREE.DirectionalLight(0xffffff, 2.0);
-    backLight.position.set(0, 1, -3); // Behind and slightly above
-    backLight.target.position.set(0, 0, 0);
+    backLight = new THREE.PointLight(0xffffff, 3.0);
+    backLight.position.set(0, 0, -2); // Directly behind the cube
     scene.add(backLight);
     
     // Additional rim light from below-back
