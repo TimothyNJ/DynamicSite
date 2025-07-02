@@ -393,6 +393,9 @@ function initializeLottieExample(container) {
   let mesh;
   let rotationSpeedMultiplier = 0; // Start with no auto-rotation
   
+  // Declare lights at module level so they can be accessed by control methods
+  let mainLight, frontLight, leftFillLight, rightFillLight;
+  
   init();
   
   function init() {
@@ -412,23 +415,23 @@ function initializeLottieExample(container) {
     scene.background = new THREE.Color(0x000000);
     
     // Primary point light from above-front (45° toward viewer) - strongest
-    const mainLight = new THREE.PointLight(0xffffff, 2.0);
+    mainLight = new THREE.PointLight(0xffffff, 2.0);
     mainLight.position.set(0, 2, 1.5); // Above and toward viewer
     scene.add(mainLight);
     
     // Front fill light - directly from viewer position
-    const frontLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    frontLight = new THREE.DirectionalLight(0xffffff, 0.4);
     frontLight.position.set(0, 0, 3); // Same as camera position
     frontLight.target.position.set(0, 0, 0);
     scene.add(frontLight);
     
     // Slight side lights for additional fill
-    const leftFillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+    leftFillLight = new THREE.DirectionalLight(0xffffff, 0.3);
     leftFillLight.position.set(-2, 0, 2);
     leftFillLight.target.position.set(0, 0, 0);
     scene.add(leftFillLight);
     
-    const rightFillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+    rightFillLight = new THREE.DirectionalLight(0xffffff, 0.3);
     rightFillLight.position.set(2, 0, 2);
     rightFillLight.target.position.set(0, 0, 0);
     scene.add(rightFillLight);
