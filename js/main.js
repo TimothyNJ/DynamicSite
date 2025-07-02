@@ -281,6 +281,41 @@ function initializeSettingsComponents() {
   }
 }
 
+// Vendor Request page initialization
+function initializeVendorRequestComponents() {
+  console.log('[Vendor Request] Initializing 3D component demo...');
+  console.log('[Vendor Request] THREE available?', typeof THREE !== 'undefined');
+  
+  if (typeof THREE === 'undefined') {
+    console.error('[Vendor Request] Three.js not loaded!');
+    return;
+  }
+  
+  if (!window.componentFactory) {
+    console.error('[Vendor Request] ComponentFactory not available');
+    return;
+  }
+  
+  // Create 3D component demonstration
+  const threeDObject = componentFactory.create3DObject('vendor-3d-demo-container', {
+    width: 300,
+    height: 300,
+    geometry: 'roundedBox',
+    geometryParams: {
+      width: 1.2,
+      height: 0.8,
+      depth: 1.0,
+      radius: 0.1,
+      smoothness: 32
+    },
+    texture: 'animated',
+    enableInteraction: true,
+    rotationSpeed: 0.5
+  });
+  
+  console.log('[Vendor Request] 3D component initialized:', threeDObject);
+}
+
 // Data Entry page initialization
 function initializeDataEntryComponents() {
   console.log('[Data Entry] Initializing Three.js Lottie example...');
@@ -1062,6 +1097,10 @@ window.initializePageComponents = function(pageName) {
     // Initialize data entry components
     console.log('[main.js] Initializing data entry components');
     initializeDataEntryComponents();
+  } else if (pageName === 'vendor-request') {
+    // Initialize vendor request components
+    console.log('[main.js] Initializing vendor request components');
+    initializeVendorRequestComponents();
   }
   
   // Add other page-specific initialization as needed

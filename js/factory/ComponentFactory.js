@@ -18,6 +18,7 @@ import { file_upload_input_component_engine } from '../engines/file_upload_input
 import { wheel_time_selector_component_engine } from '../engines/wheel_time_selector_component_engine.js';
 import { wheel_date_picker_component_engine } from '../engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from '../engines/calendar_picker_component_engine.js';
+import { ThreeD_component_engine } from '../engines/3_D_component_engine.js';
 import { wheel_selector_component_engine } from '../engines/wheel_selector_component_engine.js';
 import { custom_wheel_selector_engine } from '../engines/custom_wheel_selector_engine.js';
 import { ios_drum_wheel_engine } from '../engines/ios_drum_wheel_engine.js';
@@ -39,6 +40,33 @@ class ComponentFactory {
     this.initialized = false;
     
     console.log('[ComponentFactory] Factory initialized for engine-based components');
+  }
+
+  /**
+   * Create a 3D object component
+   * @param {string} containerId - ID of the container element
+   * @param {Object} config - Configuration for the 3D object
+   * @returns {3_D_component_engine} The 3D component instance
+   */
+  create3DObject(containerId, config = {}) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+      console.error(`[ComponentFactory] Container ${containerId} not found`);
+      return null;
+    }
+    
+    // Check if Three.js is loaded
+    if (typeof THREE === 'undefined') {
+      console.error('[ComponentFactory] Three.js not loaded. Add Three.js script before using 3D components.');
+      return null;
+    }
+    
+    console.log('[ComponentFactory] Creating 3D object with config:', config);
+    
+    const threeDObject = new ThreeD_component_engine(container, config);
+    threeDObject.init();
+    
+    return threeDObject;
   }
 
   /**
