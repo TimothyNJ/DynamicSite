@@ -306,109 +306,163 @@ function initializeLottieExample(container) {
   init();
   
   function init() {
-    // Renderer - create first
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    // Renderer with exact settings from Lottie example
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(300, 350);
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
     container.appendChild(renderer.domElement);
     
-    // Camera - exact from Lottie example
-    camera = new THREE.PerspectiveCamera(50, 300 / 350, 0.5, 1000);
-    camera.position.z = 5;
+    // Camera - perspective camera positioned to show cube nicely
+    camera = new THREE.PerspectiveCamera(50, 300 / 350, 0.1, 100);
+    camera.position.set(2, 2, 2);
+    camera.lookAt(0, 0, 0);
     
-    // Scene
+    // Scene with light gray background like the example
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x111111);
+    scene.background = new THREE.Color(0xf0f0f5);
     
-    // Lighting - RoomEnvironment style
+    // Environment for reflections using RoomEnvironment approach
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmremGenerator.fromScene(createSimpleEnvironment()).texture;
     
-    // Add multiple lights for realistic lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-    scene.add(ambientLight);
+    // Create rounded box geometry manually since RoundedBoxGeometry isn't in base Three.js
+    const geometry = createRoundedBoxGeometry(1, 1, 1, 0.1, 4);
     
-    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight1.position.set(1, 1, 1);
-    scene.add(directionalLight1);
-    
-    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-    directionalLight2.position.set(-1, -1, 1);
-    scene.add(directionalLight2);
-    
-    // Geometry - RoundedBoxGeometry style
-    const radius = 0.1;
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    
-    // Create a dark gradient texture
+    // Create Lottie-style animated texture
     const canvas = document.createElement('canvas');
     canvas.width = 512;
     canvas.height = 512;
     const ctx = canvas.getContext('2d');
     
-    // Dark gradient
-    const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-    gradient.addColorStop(0, '#1a1a1a');
-    gradient.addColorStop(0.5, '#0d0d0d');
-    gradient.addColorStop(1, '#000000');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 512, 512);
-    
-    // Add subtle pattern
-    ctx.globalAlpha = 0.1;
-    for (let i = 0; i < 512; i += 4) {
-      ctx.strokeStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i, 512);
-      ctx.stroke();
+    // Function to update canvas animation
+    function updateCanvasTexture(time) {
+      // Clear canvas
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 512, 512);
+      
+      // Create animated pattern similar to Lottie style
+      const phase = time * 0.001;
+      
+      // Draw animated circles/shapes
+      for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < 6; j++) {
+          const x = (i + 0.5) * 85;
+          const y = (j + 0.5) * 85;
+          const radius = 20 + Math.sin(phase + i * 0.5 + j * 0.5) * 10;
+          
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fillStyle = `hsl(${(phase * 50 + i * 30 + j * 30) % 360}, 70%, 60%)`;
+          ctx.fill();
+        }
+      }
+      
+      // Add some text/graphics overlay
+      ctx.fillStyle = '#333333';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.globalAlpha = 0.3;
+      ctx.fillText('LOTTIE', 256, 256);
+      ctx.globalAlpha = 1.0;
     }
     
     const texture = new THREE.CanvasTexture(canvas);
-    texture.needsUpdate = true;
     
-    // Material - Glossy black material
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x111111,
-      metalness: 0.9,
-      roughness: 0.1,
-      envMapIntensity: 1.0,
-      map: texture
+    // Material - highly reflective like the example
+    const material = new THREE.MeshPhysicalMaterial({
+      map: texture,
+      color: 0xffffff,
+      metalness: 0.0,
+      roughness: 0.05,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      reflectivity: 0.9,
+      envMapIntensity: 1.0
     });
     
-    // Mesh
+    // Create mesh
     mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
     
-    // Animation
-    animate();
+    // Animation loop
+    function animate(time) {
+      requestAnimationFrame(animate);
+      
+      // Update canvas texture
+      updateCanvasTexture(time);
+      texture.needsUpdate = true;
+      
+      // Subtle rotation like the example
+      mesh.rotation.x = Math.sin(time * 0.0005) * 0.1 + 0.1;
+      mesh.rotation.y = Math.sin(time * 0.0007) * 0.1 + time * 0.0002;
+      
+      renderer.render(scene, camera);
+    }
     
-    // Controls
+    animate(0);
+    
+    // Mouse interaction
     container.addEventListener('pointermove', onPointerMove);
-  }
-  
-  function onPointerMove(event) {
-    const rect = container.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     
-    if (mesh) {
-      mesh.rotation.y = x * 0.5;
-      mesh.rotation.x = y * 0.5;
+    let mouseX = 0, mouseY = 0;
+    
+    function onPointerMove(event) {
+      const rect = container.getBoundingClientRect();
+      mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      // Subtle camera movement based on mouse
+      camera.position.x = 2 + mouseX * 0.5;
+      camera.position.y = 2 + mouseY * 0.5;
+      camera.lookAt(0, 0, 0);
     }
   }
   
-  function animate(time) {
-    requestAnimationFrame(animate);
+  // Helper function to create simple environment for reflections
+  function createSimpleEnvironment() {
+    const envScene = new THREE.Scene();
+    envScene.background = new THREE.Color(0xf0f0f5);
     
-    if (mesh) {
-      mesh.rotation.x = Math.sin(time * 0.0005) * 0.2;
-      mesh.rotation.y = Math.sin(time * 0.001) * 0.2;
-    }
+    // Add gradient lighting
+    const light1 = new THREE.DirectionalLight(0xffffff, 1);
+    light1.position.set(1, 1, 1);
+    envScene.add(light1);
     
-    renderer.render(scene, camera);
+    const light2 = new THREE.DirectionalLight(0xffffff, 0.5);
+    light2.position.set(-1, -1, 1);
+    envScene.add(light2);
+    
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    envScene.add(ambientLight);
+    
+    return envScene;
+  }
+  
+  // Helper function to create rounded box geometry
+  function createRoundedBoxGeometry(width, height, depth, radius, smoothness) {
+    const shape = new THREE.Shape();
+    const eps = 0.00001;
+    const radius0 = radius - eps;
+    
+    shape.absarc(radius0, radius0, radius0, -Math.PI / 2, -Math.PI, true);
+    shape.absarc(radius0, height - radius * 2 + radius0, radius0, Math.PI, Math.PI / 2, true);
+    shape.absarc(width - radius * 2 + radius0, height - radius * 2 + radius0, radius0, Math.PI / 2, 0, true);
+    shape.absarc(width - radius * 2 + radius0, radius0, radius0, 0, -Math.PI / 2, true);
+    
+    const geometry = new THREE.ExtrudeGeometry(shape, {
+      depth: depth - radius * 2,
+      bevelEnabled: true,
+      bevelSegments: smoothness * 2,
+      steps: 1,
+      bevelSize: radius,
+      bevelThickness: radius,
+      curveSegments: smoothness
+    });
+    
+    geometry.center();
+    
+    return geometry;
   }
 }
 
