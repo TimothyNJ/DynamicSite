@@ -345,45 +345,129 @@ function initializeDataEntryComponents() {
     }
     
     // Create all light position sliders
-    // Main light (default: 0, 2, 1.5)
-    createLightSlider('main', 'Main Light', 'x', 0);
-    createLightSlider('main', 'Main Light', 'y', 2);
-    // Special case for main light Z (1.5)
+    // Main light (default: -1.5, 1.7, 2)
+    // Special case for main light X (-1.5)
     componentFactory.createSlider({
-      containerId: 'main-light-z-slider-container',
-      sliderClass: 'main-light-z-slider',
+      containerId: 'main-light-x-slider-container',
+      sliderClass: 'main-light-x-slider',
+      options: [
+        { text: '-3', value: '-3', position: 1, dataAttributes: 'data-value="-3"' },
+        { text: '-2', value: '-2', position: 2, dataAttributes: 'data-value="-2"' },
+        { text: '-1.5', value: '-1.5', position: 3, dataAttributes: 'data-value="-1.5"', active: true },
+        { text: '-1', value: '-1', position: 4, dataAttributes: 'data-value="-1"' },
+        { text: '0', value: '0', position: 5, dataAttributes: 'data-value="0"' },
+        { text: '1', value: '1', position: 6, dataAttributes: 'data-value="1"' },
+        { text: '2', value: '2', position: 7, dataAttributes: 'data-value="2"' },
+        { text: '3', value: '3', position: 8, dataAttributes: 'data-value="3"' }
+      ]
+    }, (selectedOption) => {
+      const value = parseFloat(selectedOption.getAttribute('data-value'));
+      console.log('[Main Light X] Selected:', value);
+      if (lottieControls && lottieControls.setLightPosition) {
+        lottieControls.setLightPosition('main', 'x', value);
+      }
+    });
+    
+    // Special case for main light Y (1.7)
+    componentFactory.createSlider({
+      containerId: 'main-light-y-slider-container',
+      sliderClass: 'main-light-y-slider',
       options: [
         { text: '-3', value: '-3', position: 1, dataAttributes: 'data-value="-3"' },
         { text: '-2', value: '-2', position: 2, dataAttributes: 'data-value="-2"' },
         { text: '-1', value: '-1', position: 3, dataAttributes: 'data-value="-1"' },
         { text: '0', value: '0', position: 4, dataAttributes: 'data-value="0"' },
         { text: '1', value: '1', position: 5, dataAttributes: 'data-value="1"' },
-        { text: '1.5', value: '1.5', position: 6, dataAttributes: 'data-value="1.5"', active: true },
+        { text: '1.7', value: '1.7', position: 6, dataAttributes: 'data-value="1.7"', active: true },
         { text: '2', value: '2', position: 7, dataAttributes: 'data-value="2"' },
         { text: '3', value: '3', position: 8, dataAttributes: 'data-value="3"' }
       ]
     }, (selectedOption) => {
       const value = parseFloat(selectedOption.getAttribute('data-value'));
-      console.log('[Main Light Z] Selected:', value);
+      console.log('[Main Light Y] Selected:', value);
       if (lottieControls && lottieControls.setLightPosition) {
-        lottieControls.setLightPosition('main', 'z', value);
+        lottieControls.setLightPosition('main', 'y', value);
       }
     });
     
-    // Front light (default: 0, 0, 3)
-    createLightSlider('front', 'Front Light', 'x', 0);
-    createLightSlider('front', 'Front Light', 'y', 0);
+    // Main light Z stays at 2
+    createLightSlider('main', 'Main Light', 'z', 2);
+    
+    // Front light (default: 0.5, 0.5, 3)
+    // Special case for front light X and Y (0.5)
+    componentFactory.createSlider({
+      containerId: 'front-light-x-slider-container',
+      sliderClass: 'front-light-x-slider',
+      options: [
+        { text: '-3', value: '-3', position: 1, dataAttributes: 'data-value="-3"' },
+        { text: '-2', value: '-2', position: 2, dataAttributes: 'data-value="-2"' },
+        { text: '-1', value: '-1', position: 3, dataAttributes: 'data-value="-1"' },
+        { text: '0', value: '0', position: 4, dataAttributes: 'data-value="0"' },
+        { text: '0.5', value: '0.5', position: 5, dataAttributes: 'data-value="0.5"', active: true },
+        { text: '1', value: '1', position: 6, dataAttributes: 'data-value="1"' },
+        { text: '2', value: '2', position: 7, dataAttributes: 'data-value="2"' },
+        { text: '3', value: '3', position: 8, dataAttributes: 'data-value="3"' }
+      ]
+    }, (selectedOption) => {
+      const value = parseFloat(selectedOption.getAttribute('data-value'));
+      console.log('[Front Light X] Selected:', value);
+      if (lottieControls && lottieControls.setLightPosition) {
+        lottieControls.setLightPosition('front', 'x', value);
+      }
+    });
+    
+    componentFactory.createSlider({
+      containerId: 'front-light-y-slider-container',
+      sliderClass: 'front-light-y-slider',
+      options: [
+        { text: '-3', value: '-3', position: 1, dataAttributes: 'data-value="-3"' },
+        { text: '-2', value: '-2', position: 2, dataAttributes: 'data-value="-2"' },
+        { text: '-1', value: '-1', position: 3, dataAttributes: 'data-value="-1"' },
+        { text: '0', value: '0', position: 4, dataAttributes: 'data-value="0"' },
+        { text: '0.5', value: '0.5', position: 5, dataAttributes: 'data-value="0.5"', active: true },
+        { text: '1', value: '1', position: 6, dataAttributes: 'data-value="1"' },
+        { text: '2', value: '2', position: 7, dataAttributes: 'data-value="2"' },
+        { text: '3', value: '3', position: 8, dataAttributes: 'data-value="3"' }
+      ]
+    }, (selectedOption) => {
+      const value = parseFloat(selectedOption.getAttribute('data-value'));
+      console.log('[Front Light Y] Selected:', value);
+      if (lottieControls && lottieControls.setLightPosition) {
+        lottieControls.setLightPosition('front', 'y', value);
+      }
+    });
+    
     createLightSlider('front', 'Front Light', 'z', 3);
     
-    // Left light (default: -2, 0, 2)
-    createLightSlider('left', 'Left Light', 'x', -2);
+    // Left light (default: -3, 0, 1)
+    createLightSlider('left', 'Left Light', 'x', -3);
     createLightSlider('left', 'Left Light', 'y', 0);
-    createLightSlider('left', 'Left Light', 'z', 2);
+    createLightSlider('left', 'Left Light', 'z', 1);
     
-    // Right light (default: 2, 0, 2)
-    createLightSlider('right', 'Right Light', 'x', 2);
-    createLightSlider('right', 'Right Light', 'y', 0);
-    createLightSlider('right', 'Right Light', 'z', 2);
+    // Right light (default: 3, -0.5, 1)
+    createLightSlider('right', 'Right Light', 'x', 3);
+    // Special case for right light Y (-0.5)
+    componentFactory.createSlider({
+      containerId: 'right-light-y-slider-container',
+      sliderClass: 'right-light-y-slider',
+      options: [
+        { text: '-3', value: '-3', position: 1, dataAttributes: 'data-value="-3"' },
+        { text: '-2', value: '-2', position: 2, dataAttributes: 'data-value="-2"' },
+        { text: '-1', value: '-1', position: 3, dataAttributes: 'data-value="-1"' },
+        { text: '-0.5', value: '-0.5', position: 4, dataAttributes: 'data-value="-0.5"', active: true },
+        { text: '0', value: '0', position: 5, dataAttributes: 'data-value="0"' },
+        { text: '1', value: '1', position: 6, dataAttributes: 'data-value="1"' },
+        { text: '2', value: '2', position: 7, dataAttributes: 'data-value="2"' },
+        { text: '3', value: '3', position: 8, dataAttributes: 'data-value="3"' }
+      ]
+    }, (selectedOption) => {
+      const value = parseFloat(selectedOption.getAttribute('data-value'));
+      console.log('[Right Light Y] Selected:', value);
+      if (lottieControls && lottieControls.setLightPosition) {
+        lottieControls.setLightPosition('right', 'y', value);
+      }
+    });
+    createLightSlider('right', 'Right Light', 'z', 1);
   }
 }
 
@@ -414,25 +498,25 @@ function initializeLottieExample(container) {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
     
-    // Primary point light from above-front (45° toward viewer) - strongest
-    mainLight = new THREE.PointLight(0xffffff, 2.0);
-    mainLight.position.set(0, 2, 1.5); // Above and toward viewer
+    // Primary point light - Apple-style 30° elevation, 30° to left
+    mainLight = new THREE.PointLight(0xffffff, 2.5);
+    mainLight.position.set(-1.5, 1.7, 2); // 30° up, 30° left
     scene.add(mainLight);
     
-    // Front fill light - directly from viewer position
-    frontLight = new THREE.DirectionalLight(0xffffff, 0.4);
-    frontLight.position.set(0, 0, 3); // Same as camera position
+    // Front fill light - soft fill from slightly right and lower
+    frontLight = new THREE.DirectionalLight(0xffffff, 0.3);
+    frontLight.position.set(0.5, 0.5, 3); // Slight right, lower than main
     frontLight.target.position.set(0, 0, 0);
     scene.add(frontLight);
     
-    // Slight side lights for additional fill
-    leftFillLight = new THREE.DirectionalLight(0xffffff, 0.3);
-    leftFillLight.position.set(-2, 0, 2);
+    // Subtle side fills for preventing harsh shadows
+    leftFillLight = new THREE.DirectionalLight(0xffffff, 0.2);
+    leftFillLight.position.set(-3, 0, 1);
     leftFillLight.target.position.set(0, 0, 0);
     scene.add(leftFillLight);
     
-    rightFillLight = new THREE.DirectionalLight(0xffffff, 0.3);
-    rightFillLight.position.set(2, 0, 2);
+    rightFillLight = new THREE.DirectionalLight(0xffffff, 0.15);
+    rightFillLight.position.set(3, -0.5, 1);
     rightFillLight.target.position.set(0, 0, 0);
     scene.add(rightFillLight);
     
@@ -444,8 +528,8 @@ function initializeLottieExample(container) {
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     scene.environment = pmremGenerator.fromScene(createSimpleEnvironment()).texture;
     
-    // Create rounded box geometry with more pronounced curves
-    const geometry = createRoundedBoxGeometry(1, 1, 1, 0.15, 8);
+    // Create rounded box geometry with maximum smoothness for continuous light flow
+    const geometry = createRoundedBoxGeometry(1, 1, 1, 0.15, 32);
     
     // Create Lottie-style animated texture
     const canvas = document.createElement('canvas');
@@ -624,11 +708,11 @@ function initializeLottieExample(container) {
     const geometry = new THREE.ExtrudeGeometry(shape, {
       depth: depth - radius * 2,
       bevelEnabled: true,
-      bevelSegments: smoothness * 2,
+      bevelSegments: smoothness * 2,  // Will be 64 segments for ultimate smoothness
       steps: 1,
       bevelSize: radius,
       bevelThickness: radius,
-      curveSegments: smoothness
+      curveSegments: smoothness  // Will be 32 curve segments
     });
     
     geometry.center();
