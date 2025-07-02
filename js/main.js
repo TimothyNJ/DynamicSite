@@ -468,6 +468,16 @@ function initializeDataEntryComponents() {
       }
     });
     createLightSlider('right', 'Right Light', 'z', 1);
+    
+    // Back light (default: 0, 1, -3)
+    createLightSlider('back', 'Back Light', 'x', 0);
+    createLightSlider('back', 'Back Light', 'y', 1);
+    createLightSlider('back', 'Back Light', 'z', -3);
+    
+    // Rim light (default: 0, -2, -2)
+    createLightSlider('rim', 'Rim Light', 'x', 0);
+    createLightSlider('rim', 'Rim Light', 'y', -2);
+    createLightSlider('rim', 'Rim Light', 'z', -2);
   }
 }
 
@@ -478,7 +488,7 @@ function initializeLottieExample(container) {
   let rotationSpeedMultiplier = 0; // Start with no auto-rotation
   
   // Declare lights at module level so they can be accessed by control methods
-  let mainLight, frontLight, leftFillLight, rightFillLight;
+  let mainLight, frontLight, leftFillLight, rightFillLight, backLight, rimLight;
   
   init();
   
@@ -523,6 +533,18 @@ function initializeLottieExample(container) {
     // Subtle ambient light to prevent any complete darkness
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
     scene.add(ambientLight);
+    
+    // Add backlighting for rim glow effect
+    backLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    backLight.position.set(0, 1, -3); // Behind and slightly above
+    backLight.target.position.set(0, 0, 0);
+    scene.add(backLight);
+    
+    // Additional rim light from below-back
+    rimLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    rimLight.position.set(0, -2, -2); // Below and behind
+    rimLight.target.position.set(0, 0, 0);
+    scene.add(rimLight);
     
     // Environment for reflections using RoomEnvironment approach
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
@@ -760,6 +782,12 @@ function initializeLottieExample(container) {
           break;
         case 'right':
           rightFillLight.position[axis] = value;
+          break;
+        case 'back':
+          backLight.position[axis] = value;
+          break;
+        case 'rim':
+          rimLight.position[axis] = value;
           break;
       }
       console.log(`[Lottie Cube] ${lightName} light ${axis} set to:`, value);
