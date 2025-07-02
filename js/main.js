@@ -539,43 +539,59 @@ function initializeLottieExample(container) {
     
     // Function to update canvas animation
     function updateCanvasTexture(time) {
-      // Clear canvas
-      ctx.fillStyle = '#ffffff';
+      // Clear canvas with dark background
+      ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, 512, 512);
       
-      // Create animated pattern similar to Lottie style
+      // Create tunnel effect with glowing center
       const phase = time * 0.001;
       
-      // Draw animated circles/shapes
+      // Draw tunnels as expanding/contracting holes
       for (let i = 0; i < 6; i++) {
         for (let j = 0; j < 6; j++) {
           const x = (i + 0.5) * 85;
           const y = (j + 0.5) * 85;
-          const radius = 20 + Math.sin(phase + i * 0.5 + j * 0.5) * 10;
           
+          // Pulsing radius for tunnel opening
+          const baseRadius = 15;
+          const pulseAmount = 10;
+          const radius = baseRadius + Math.sin(phase + i * 0.5 + j * 0.5) * pulseAmount;
+          
+          // Create gradient for tunnel depth effect
+          const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+          
+          // Center glow color - changes with phase for variety
+          const hue = (phase * 50 + i * 30 + j * 30) % 360;
+          const glowColor = `hsl(${hue}, 70%, 60%)`;
+          
+          // Tunnel gradient - bright center (glow showing through) to dark edges
+          gradient.addColorStop(0, glowColor); // Center glow
+          gradient.addColorStop(0.3, `hsl(${hue}, 60%, 40%)`); // Mid tunnel
+          gradient.addColorStop(0.7, `hsl(${hue}, 50%, 20%)`); // Deeper tunnel
+          gradient.addColorStop(1, '#000000'); // Edge blends to surface
+          
+          // Draw tunnel opening
           ctx.beginPath();
           ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fillStyle = `hsl(${(phase * 50 + i * 30 + j * 30) % 360}, 70%, 60%)`;
+          ctx.fillStyle = gradient;
           ctx.fill();
+          
+          // Add subtle rim light to enhance 3D effect
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.strokeStyle = `hsla(${hue}, 50%, 30%, 0.5)`;
+          ctx.lineWidth = 2;
+          ctx.stroke();
         }
       }
-      
-      // Add some text/graphics overlay
-      ctx.fillStyle = '#333333';
-      ctx.font = 'bold 48px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.globalAlpha = 0.3;
-      ctx.fillText('LOTTIE', 256, 256);
-      ctx.globalAlpha = 1.0;
     }
     
     const texture = new THREE.CanvasTexture(canvas);
     
-    // Material - maximum glossiness to match example
+    // Material - glossy dark surface to show tunnel glow
     const material = new THREE.MeshPhysicalMaterial({
       map: texture,
-      color: 0x202020,  // Darker base color
+      color: 0x0a0a0a,  // Very dark base color
       metalness: 0.0,
       roughness: 0.0,   // Zero roughness for maximum gloss
       clearcoat: 1.0,
