@@ -312,14 +312,14 @@ function initializeLottieExample(container) {
     renderer.setSize(300, 350);
     container.appendChild(renderer.domElement);
     
-    // Camera - perspective camera positioned to show cube nicely
+    // Camera - perspective camera with closer position
     camera = new THREE.PerspectiveCamera(50, 300 / 350, 0.1, 100);
-    camera.position.set(2, 2, 2);
+    camera.position.set(0, 0, 3);
     camera.lookAt(0, 0, 0);
     
-    // Scene with light gray background like the example
+    // Scene with dark background like the actual example
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f5);
+    scene.background = new THREE.Color(0x000000);
     
     // Environment for reflections using RoomEnvironment approach
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
@@ -369,21 +369,25 @@ function initializeLottieExample(container) {
     
     const texture = new THREE.CanvasTexture(canvas);
     
-    // Material - highly reflective like the example
+    // Material - highly reflective with darker tone to match example
     const material = new THREE.MeshPhysicalMaterial({
       map: texture,
-      color: 0xffffff,
-      metalness: 0.0,
-      roughness: 0.05,
+      color: 0x202020,  // Darker base color
+      metalness: 0.1,
+      roughness: 0.1,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      reflectivity: 0.9,
-      envMapIntensity: 1.0
+      clearcoatRoughness: 0.0,
+      reflectivity: 1.0,
+      envMapIntensity: 0.8
     });
     
     // Create mesh
     mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
+    
+    // Mouse tracking variables
+    let mouseX = 0, mouseY = 0;
+    let targetRotationX = 0, targetRotationY = 0;
     
     // Animation loop
     function animate(time) {
@@ -393,29 +397,37 @@ function initializeLottieExample(container) {
       updateCanvasTexture(time);
       texture.needsUpdate = true;
       
-      // Subtle rotation like the example
-      mesh.rotation.x = Math.sin(time * 0.0005) * 0.1 + 0.1;
-      mesh.rotation.y = Math.sin(time * 0.0007) * 0.1 + time * 0.0002;
+      // Smooth mouse-based rotation with easing
+      targetRotationX = mouseY * Math.PI * 0.5; // Rotate based on vertical mouse position
+      targetRotationY = mouseX * Math.PI * 0.5; // Rotate based on horizontal mouse position
+      
+      // Apply easing to rotation
+      mesh.rotation.x += (targetRotationX - mesh.rotation.x) * 0.05;
+      mesh.rotation.y += (targetRotationY - mesh.rotation.y) * 0.05;
+      
+      // Add subtle automatic rotation on top
+      mesh.rotation.x += Math.sin(time * 0.0001) * 0.01;
+      mesh.rotation.y += time * 0.00005;
       
       renderer.render(scene, camera);
     }
     
     animate(0);
     
-    // Mouse interaction
+    // Mouse/touch interaction
     container.addEventListener('pointermove', onPointerMove);
-    
-    let mouseX = 0, mouseY = 0;
+    container.addEventListener('pointerleave', onPointerLeave);
     
     function onPointerMove(event) {
       const rect = container.getBoundingClientRect();
       mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-      
-      // Subtle camera movement based on mouse
-      camera.position.x = 2 + mouseX * 0.5;
-      camera.position.y = 2 + mouseY * 0.5;
-      camera.lookAt(0, 0, 0);
+    }
+    
+    function onPointerLeave() {
+      // Smoothly return to center when mouse leaves
+      mouseX = 0;
+      mouseY = 0;
     }
   }
   
