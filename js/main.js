@@ -385,9 +385,11 @@ function initializeLottieExample(container) {
     mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
     
-    // Mouse tracking variables
-    let mouseX = 0, mouseY = 0;
-    let targetRotationX = 0, targetRotationY = 0;
+    // Interaction variables
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let rotationVelocity = { x: 0, y: 0 };
+    let autoRotationTime = 0;
     
     // Animation loop
     function animate(time) {
@@ -397,17 +399,22 @@ function initializeLottieExample(container) {
       updateCanvasTexture(time);
       texture.needsUpdate = true;
       
-      // Smooth mouse-based rotation with easing
-      targetRotationX = mouseY * Math.PI * 0.5; // Rotate based on vertical mouse position
-      targetRotationY = mouseX * Math.PI * 0.5; // Rotate based on horizontal mouse position
-      
-      // Apply easing to rotation
-      mesh.rotation.x += (targetRotationX - mesh.rotation.x) * 0.05;
-      mesh.rotation.y += (targetRotationY - mesh.rotation.y) * 0.05;
-      
-      // Add subtle automatic rotation on top
-      mesh.rotation.x += Math.sin(time * 0.0001) * 0.01;
-      mesh.rotation.y += time * 0.00005;
+      if (!isDragging) {
+        // Apply velocity-based rotation (momentum)
+        mesh.rotation.x += rotationVelocity.x;
+        mesh.rotation.y += rotationVelocity.y;
+        
+        // Dampen velocity
+        rotationVelocity.x *= 0.95;
+        rotationVelocity.y *= 0.95;
+        
+        // Only apply auto-rotation if no recent user interaction
+        if (Math.abs(rotationVelocity.x) < 0.001 && Math.abs(rotationVelocity.y) < 0.001) {
+          autoRotationTime += 0.01;
+          mesh.rotation.x += Math.sin(autoRotationTime * 0.1) * 0.002;
+          mesh.rotation.y += autoRotationTime * 0.01;
+        }
+      }
       
       renderer.render(scene, camera);
     }
@@ -415,20 +422,54 @@ function initializeLottieExample(container) {
     animate(0);
     
     // Mouse/touch interaction
+    container.addEventListener('pointerdown', onPointerDown);
     container.addEventListener('pointermove', onPointerMove);
-    container.addEventListener('pointerleave', onPointerLeave);
+    container.addEventListener('pointerup', onPointerUp);
+    container.addEventListener('pointerleave', onPointerUp);
+    
+    function onPointerDown(event) {
+      isDragging = true;
+      const rect = container.getBoundingClientRect();
+      previousMousePosition = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+      // Stop any rotation when starting to drag
+      rotationVelocity = { x: 0, y: 0 };
+      autoRotationTime = 0;
+      container.style.cursor = 'grabbing';
+    }
     
     function onPointerMove(event) {
+      if (!isDragging) return;
+      
       const rect = container.getBoundingClientRect();
-      mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      const currentMousePosition = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+      
+      const deltaX = currentMousePosition.x - previousMousePosition.x;
+      const deltaY = currentMousePosition.y - previousMousePosition.y;
+      
+      // Direct rotation based on drag
+      mesh.rotation.y += deltaX * 0.01;
+      mesh.rotation.x += deltaY * 0.01;
+      
+      // Store velocity for momentum
+      rotationVelocity.x = deltaY * 0.005;
+      rotationVelocity.y = deltaX * 0.005;
+      
+      previousMousePosition = currentMousePosition;
     }
     
-    function onPointerLeave() {
-      // Smoothly return to center when mouse leaves
-      mouseX = 0;
-      mouseY = 0;
+    function onPointerUp() {
+      isDragging = false;
+      container.style.cursor = 'grab';
     }
+    
+    // Set initial cursor
+    container.style.cursor = 'grab';
   }
   
   // Helper function to create simple environment for reflections
