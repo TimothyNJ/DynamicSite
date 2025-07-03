@@ -146,20 +146,9 @@ export class ThreeD_component_engine {
     }
     
     calculateBaseSize(config) {
-        // Calculate size based on camera distance and FOV
-        // For a cube of size 1 at distance 3 with FOV 50
-        // We want about 1.5x the projected size for some padding
-        const cameraZ = config?.cameraPosition?.z || 3;
-        const fov = config?.cameraFOV || 50;
-        const objectSize = 1.5; // Largest dimension of our objects with padding
-        
-        // Calculate projected size
-        const vFOV = (fov * Math.PI) / 180;
-        const projectedHeight = 2 * Math.tan(vFOV / 2) * cameraZ;
-        const pixelsPerUnit = 200 / projectedHeight; // Base scale
-        
-        // Return a size that fits the object nicely
-        return Math.round(objectSize * pixelsPerUnit);
+        // For now, use a fixed size that fits the cube well
+        // The cube appears to need about 180px to look good without excess space
+        return 180;
     }
     
     init() {
