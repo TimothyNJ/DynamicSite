@@ -57,13 +57,10 @@ export class ThreeD_component_engine {
     }
     
     mergeConfig(config) {
-        // Calculate appropriate container size based on geometry
-        const baseSize = this.calculateBaseSize(config);
-        
         return Object.assign({
-            // Container dimensions
-            width: baseSize,
-            height: baseSize,
+            // Initial container dimensions (temporary, will resize to content)
+            width: 100,
+            height: 100,
             
             // Geometry settings
             geometry: 'roundedBox', // 'roundedBox', 'sphere', 'torus', 'cylinder'
@@ -145,12 +142,6 @@ export class ThreeD_component_engine {
         }, config);
     }
     
-    calculateBaseSize(config) {
-        // For now, use a fixed size that fits the cube well
-        // The cube appears to need about 180px to look good without excess space
-        return 180;
-    }
-    
     init() {
         if (this.isInitialized) {
             console.warn('[3D Component Engine] Already initialized');
@@ -189,7 +180,6 @@ export class ThreeD_component_engine {
         // Set container styles for flex layout participation
         this.container.style.flex = '0 0 auto';  // No grow, no shrink, auto basis
         this.container.style.maxWidth = '100%';
-        this.container.style.minWidth = `${this.config.width * 0.5}px`;  // Half size minimum
         this.container.style.width = `${this.config.width}px`;
         this.container.style.height = `${this.config.height}px`;
         this.container.style.position = 'relative';
@@ -557,6 +547,40 @@ export class ThreeD_component_engine {
         this.mesh.rotation.y = -0.55; // Turn right ~31 degrees
         
         this.scene.add(this.mesh);
+        
+        // Resize container to fit content
+        this.resizeContainerToFitContent();
+    }
+    
+    resizeContainerToFitContent() {
+        // Render once to ensure geometry is calculated
+        this.renderer.render(this.scene, this.camera);
+        
+        // Calculate bounding box of the mesh
+        const box = new THREE.Box3().setFromObject(this.mesh);
+        const size = box.getSize(new THREE.Vector3());
+        
+        // Project 3D size to screen pixels
+        const distance = this.camera.position.z;
+        const vFov = (this.camera.fov * Math.PI) / 180;
+        const visibleHeight = 2 * Math.tan(vFov / 2) * distance;
+        
+        // Calculate pixel dimensions with small padding
+        const padding = 20; // 10px padding on each side
+        const scale = this.config.height / visibleHeight;
+        const width = Math.ceil(size.x * scale) + padding;
+        const height = Math.ceil(size.y * scale) + padding;
+        
+        // Update container and renderer size
+        this.config.width = width;
+        this.config.height = height;
+        this.container.style.width = `${width}px`;
+        this.container.style.height = `${height}px`;
+        this.renderer.setSize(width, height);
+        
+        // Update camera aspect ratio
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
     }
     
     setupInteraction() {
