@@ -530,6 +530,11 @@ export class ThreeD_component_engine {
     
     createMesh() {
         this.mesh = new THREE.Mesh(this.geometry, this.material);
+        
+        // Set initial rotation for isometric-style view
+        this.mesh.rotation.x = 0.5; // Tilt down ~30 degrees
+        this.mesh.rotation.y = 0.7; // Turn left ~40 degrees
+        
         this.scene.add(this.mesh);
     }
     
