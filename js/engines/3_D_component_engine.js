@@ -532,7 +532,7 @@ export class ThreeD_component_engine {
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         
         // Set initial rotation for isometric-style view
-        this.mesh.rotation.x = 0.65; // Tilt down ~37 degrees
+        this.mesh.rotation.x = 0.577; // Tilt down ~33 degrees (reduced from 37)
         this.mesh.rotation.y = -0.55; // Turn right ~31 degrees
         
         this.scene.add(this.mesh);
@@ -654,9 +654,10 @@ export class ThreeD_component_engine {
         if (event.ctrlKey || event.metaKey) {
             event.preventDefault();
             
-            // Calculate scale based on deltaY
-            // Negative deltaY = zoom in, positive = zoom out
-            const scaleFactor = event.deltaY > 0 ? 0.95 : 1.05;
+            // Calculate scale based on deltaY magnitude for smooth scaling
+            // Smaller movements = smaller changes
+            const sensitivity = 0.002;
+            const scaleFactor = 1 - (event.deltaY * sensitivity);
             
             // Apply scale to mesh
             this.mesh.scale.multiplyScalar(scaleFactor);
