@@ -195,7 +195,7 @@ export class ThreeD_component_engine {
     
     setupScene() {
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(this.config.backgroundColor);
+        // Don't set background - keep it transparent
         
         // Setup environment for reflections
         const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
