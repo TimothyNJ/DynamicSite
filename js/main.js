@@ -302,10 +302,10 @@ function initializeVendorRequestComponents() {
     height: 300,
     geometry: 'roundedBox',
     geometryParams: {
-      width: 1.2,
-      height: 0.8,
+      width: 1.0,
+      height: 1.0,
       depth: 1.0,
-      radius: 0.1,
+      radius: 0.15,
       smoothness: 32
     },
     texture: 'animated',
