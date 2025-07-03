@@ -552,6 +552,9 @@ export class ThreeD_component_engine {
         this.renderer.domElement.addEventListener('touchmove', this.onTouchMove.bind(this));
         this.renderer.domElement.addEventListener('touchend', this.onTouchEnd.bind(this));
         
+        // Wheel event for trackpad pinch
+        this.renderer.domElement.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
+        
         // Initialize touch tracking
         this.touches = [];
         this.lastPinchDistance = null;
@@ -643,6 +646,25 @@ export class ThreeD_component_engine {
         
         if (this.touches.length < 2) {
             this.lastPinchDistance = null;
+        }
+    }
+    
+    onWheel(event) {
+        // Check if it's a pinch gesture (ctrl key or gesture)
+        if (event.ctrlKey || event.metaKey) {
+            event.preventDefault();
+            
+            // Calculate scale based on deltaY
+            // Negative deltaY = zoom in, positive = zoom out
+            const scaleFactor = event.deltaY > 0 ? 0.95 : 1.05;
+            
+            // Apply scale to mesh
+            this.mesh.scale.multiplyScalar(scaleFactor);
+            
+            // Clamp scale to reasonable bounds
+            const minScale = 0.5;
+            const maxScale = 3.0;
+            this.mesh.scale.clampScalar(minScale, maxScale);
         }
     }
     
@@ -806,6 +828,9 @@ export class ThreeD_component_engine {
             this.renderer.domElement.removeEventListener('touchstart', this.onTouchStart);
             this.renderer.domElement.removeEventListener('touchmove', this.onTouchMove);
             this.renderer.domElement.removeEventListener('touchend', this.onTouchEnd);
+            
+            // Remove wheel event listener
+            this.renderer.domElement.removeEventListener('wheel', this.onWheel);
             
             this.renderer.dispose();
             this.container.removeChild(this.renderer.domElement);
