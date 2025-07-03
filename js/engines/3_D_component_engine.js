@@ -57,10 +57,13 @@ export class ThreeD_component_engine {
     }
     
     mergeConfig(config) {
+        // Calculate appropriate container size based on geometry
+        const baseSize = this.calculateBaseSize(config);
+        
         return Object.assign({
             // Container dimensions
-            width: 350,
-            height: 350,
+            width: baseSize,
+            height: baseSize,
             
             // Geometry settings
             geometry: 'roundedBox', // 'roundedBox', 'sphere', 'torus', 'cylinder'
@@ -142,6 +145,23 @@ export class ThreeD_component_engine {
         }, config);
     }
     
+    calculateBaseSize(config) {
+        // Calculate size based on camera distance and FOV
+        // For a cube of size 1 at distance 3 with FOV 50
+        // We want about 1.5x the projected size for some padding
+        const cameraZ = config?.cameraPosition?.z || 3;
+        const fov = config?.cameraFOV || 50;
+        const objectSize = 1.5; // Largest dimension of our objects with padding
+        
+        // Calculate projected size
+        const vFOV = (fov * Math.PI) / 180;
+        const projectedHeight = 2 * Math.tan(vFOV / 2) * cameraZ;
+        const pixelsPerUnit = 200 / projectedHeight; // Base scale
+        
+        // Return a size that fits the object nicely
+        return Math.round(objectSize * pixelsPerUnit);
+    }
+    
     init() {
         if (this.isInitialized) {
             console.warn('[3D Component Engine] Already initialized');
@@ -180,13 +200,14 @@ export class ThreeD_component_engine {
         // Set container styles for flex layout participation
         this.container.style.flex = '0 0 auto';  // No grow, no shrink, auto basis
         this.container.style.maxWidth = '100%';
-        this.container.style.minWidth = `${this.config.width * 0.25}px`;  // Quarter size minimum
+        this.container.style.minWidth = `${this.config.width * 0.5}px`;  // Half size minimum
         this.container.style.width = `${this.config.width}px`;
         this.container.style.height = `${this.config.height}px`;
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
         this.container.style.margin = '0 auto';  // Center horizontally
         this.container.style.border = '1px solid #cccccc';  // Border that follows toggle
+        this.container.style.display = 'inline-block';  // Size to content
     }
     
     setupCamera() {
