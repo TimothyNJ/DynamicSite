@@ -541,10 +541,21 @@ export class ThreeD_component_engine {
     setupInteraction() {
         this.renderer.domElement.style.cursor = 'grab';
         
+        // Mouse/pointer events
         this.renderer.domElement.addEventListener('pointerdown', this.onPointerDown);
         this.renderer.domElement.addEventListener('pointermove', this.onPointerMove);
         this.renderer.domElement.addEventListener('pointerup', this.onPointerUp);
         this.renderer.domElement.addEventListener('pointerleave', this.onPointerUp);
+        
+        // Touch events for pinch-to-zoom
+        this.renderer.domElement.addEventListener('touchstart', this.onTouchStart.bind(this));
+        this.renderer.domElement.addEventListener('touchmove', this.onTouchMove.bind(this));
+        this.renderer.domElement.addEventListener('touchend', this.onTouchEnd.bind(this));
+        
+        // Initialize touch tracking
+        this.touches = [];
+        this.lastPinchDistance = null;
+        this.baseScale = 1;
     }
     
     onPointerDown(event) {
@@ -583,6 +594,56 @@ export class ThreeD_component_engine {
     onPointerUp() {
         this.isDragging = false;
         this.renderer.domElement.style.cursor = 'grab';
+    }
+    
+    onTouchStart(event) {
+        // Prevent default to avoid scrolling
+        event.preventDefault();
+        
+        this.touches = Array.from(event.touches);
+        
+        if (this.touches.length === 2) {
+            // Initialize pinch distance
+            const dx = this.touches[0].clientX - this.touches[1].clientX;
+            const dy = this.touches[0].clientY - this.touches[1].clientY;
+            this.lastPinchDistance = Math.sqrt(dx * dx + dy * dy);
+        }
+    }
+    
+    onTouchMove(event) {
+        event.preventDefault();
+        
+        this.touches = Array.from(event.touches);
+        
+        if (this.touches.length === 2) {
+            // Calculate current pinch distance
+            const dx = this.touches[0].clientX - this.touches[1].clientX;
+            const dy = this.touches[0].clientY - this.touches[1].clientY;
+            const currentPinchDistance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (this.lastPinchDistance) {
+                // Calculate scale change
+                const scaleDelta = currentPinchDistance / this.lastPinchDistance;
+                
+                // Apply scale to mesh
+                this.mesh.scale.multiplyScalar(scaleDelta);
+                
+                // Clamp scale to reasonable bounds
+                const minScale = 0.5;
+                const maxScale = 3.0;
+                this.mesh.scale.clampScalar(minScale, maxScale);
+            }
+            
+            this.lastPinchDistance = currentPinchDistance;
+        }
+    }
+    
+    onTouchEnd(event) {
+        this.touches = Array.from(event.touches);
+        
+        if (this.touches.length < 2) {
+            this.lastPinchDistance = null;
+        }
     }
     
     updateAnimatedTexture(time) {
@@ -740,6 +801,11 @@ export class ThreeD_component_engine {
             this.renderer.domElement.removeEventListener('pointermove', this.onPointerMove);
             this.renderer.domElement.removeEventListener('pointerup', this.onPointerUp);
             this.renderer.domElement.removeEventListener('pointerleave', this.onPointerUp);
+            
+            // Remove touch event listeners
+            this.renderer.domElement.removeEventListener('touchstart', this.onTouchStart);
+            this.renderer.domElement.removeEventListener('touchmove', this.onTouchMove);
+            this.renderer.domElement.removeEventListener('touchend', this.onTouchEnd);
             
             this.renderer.dispose();
             this.container.removeChild(this.renderer.domElement);
