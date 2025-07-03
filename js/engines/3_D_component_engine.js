@@ -172,6 +172,7 @@ export class ThreeD_component_engine {
     
     setupRenderer() {
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer.setClearColor(0x000000, 0); // Fully transparent
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(this.config.width, this.config.height);
         this.container.appendChild(this.renderer.domElement);
