@@ -182,7 +182,7 @@ export class ThreeD_component_engine {
         this.container.appendChild(this.renderer.domElement);
         
         // Set container styles for flex layout participation
-        this.container.style.flex = '0 0 auto';  // No grow, no shrink, auto basis
+        this.container.style.flex = '0 1 auto';  // No grow, CAN shrink, auto basis
         this.container.style.maxWidth = '100%';
         this.container.style.width = `${this.config.width}px`;
         this.container.style.height = `${this.config.height}px`;
@@ -190,7 +190,7 @@ export class ThreeD_component_engine {
         this.container.style.overflow = 'hidden';
         this.container.style.margin = '0 auto';  // Center horizontally
         this.container.style.border = '1px solid #cccccc';  // Border that follows toggle
-        this.container.style.display = 'inline-block';  // Size to content
+        // Removed display: inline-block to properly participate in flex layout
     }
     
     setupCamera() {

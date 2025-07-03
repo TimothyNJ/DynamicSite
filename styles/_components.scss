@@ -59,6 +59,31 @@
 }
 
 // ==============================================
+// Vendor Request Container - Same pattern as settings
+// ==============================================
+.vendor-request-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;  // Center children horizontally
+  width: fit-content;  // Only as wide as content needs
+  max-width: 100%;     // But never wider than parent
+  flex: 0 1 auto;      // Prevent growing beyond content
+  gap: 20px;           // Space between items
+  box-sizing: border-box;
+  border: 1px solid purple; // Debug border
+}
+
+// ==============================================
+// Demo Item - For component demos
+// ==============================================
+.demo-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+// ==============================================
 // Settings Layout Classes
 // ==============================================
 // All grid and demo component styles removed
