@@ -49,9 +49,6 @@ export class ThreeD_component_engine {
         this.fogCanvas = null;
         this.fogContext = null;
         
-        // Fog particles
-        this.fogParticles = null;
-        
         // Bind methods
         this.animate = this.animate.bind(this);
         this.onPointerDown = this.onPointerDown.bind(this);
@@ -157,8 +154,7 @@ export class ThreeD_component_engine {
         this.setupCamera();
         this.setupScene();
         this.setupLighting();
-        // this.createFogPlane(); // Removed fog plane background
-        this.createFogParticles(); // Add 3D fog particles
+        this.createFogPlane();
         this.createTexture();
         this.createGeometry();
         this.createMaterial();
@@ -269,38 +265,6 @@ export class ThreeD_component_engine {
         this.fogPlane = new THREE.Mesh(fogPlaneGeometry, fogPlaneMaterial);
         this.fogPlane.position.set(0, 0, -1.5); // Between object and backlight
         this.scene.add(this.fogPlane);
-    }
-    
-    createFogParticles() {
-        // Create 3D fog particles that orbit around the cube
-        this.fogParticles = [];
-        const particleCount = 8;
-        
-        for (let i = 0; i < particleCount; i++) {
-            // Create each particle as a soft glowing sphere
-            const particleGeometry = new THREE.SphereGeometry(0.15, 16, 16);
-            const particleMaterial = new THREE.MeshBasicMaterial({
-                color: new THREE.Color(0.4, 0.6, 1.0), // Soft blue
-                transparent: true,
-                opacity: 0.3,
-                blending: THREE.AdditiveBlending
-            });
-            
-            const particle = new THREE.Mesh(particleGeometry, particleMaterial);
-            
-            // Position particles around and behind the cube
-            const angle = (i / particleCount) * Math.PI * 2;
-            particle.userData = {
-                angle: angle,
-                radius: 0.8 + Math.random() * 0.3, // 0.8 to 1.1 units from center
-                yOffset: (Math.random() - 0.5) * 0.5,
-                speed: 0.1 + Math.random() * 0.1, // Slow movement
-                zOffset: -0.5 - Math.random() * 0.5 // Behind the cube
-            };
-            
-            this.fogParticles.push(particle);
-            this.scene.add(particle);
-        }
     }
     
     createEnvironment() {
@@ -699,32 +663,6 @@ export class ThreeD_component_engine {
         this.fogTexture.needsUpdate = true;
     }
     
-    updateFogParticles(time) {
-        if (!this.fogParticles) return;
-        
-        this.fogParticles.forEach((particle, i) => {
-            const userData = particle.userData;
-            
-            // Update angle for orbiting motion
-            userData.angle += userData.speed * 0.01;
-            
-            // Calculate position with gentle sine wave movement
-            const x = Math.cos(userData.angle) * userData.radius;
-            const y = userData.yOffset + Math.sin(time * 0.0005 + i) * 0.1;
-            const z = Math.sin(userData.angle) * userData.radius * 0.3 + userData.zOffset;
-            
-            particle.position.set(x, y, z);
-            
-            // Gentle size pulsing
-            const scale = 1 + Math.sin(time * 0.001 + i * 0.5) * 0.2;
-            particle.scale.set(scale, scale, scale);
-            
-            // Fade based on z position - more visible when behind
-            const opacity = 0.2 + ((-z - 0.5) * 0.3);
-            particle.material.opacity = Math.max(0.1, Math.min(0.4, opacity));
-        });
-    }
-    
     animate(time) {
         if (!this.isInitialized) return;
         
@@ -735,13 +673,10 @@ export class ThreeD_component_engine {
             this.updateAnimatedTexture(time);
         }
         
-        // Update fog particles
-        this.updateFogParticles(time);
-        
-        // Update fog texture - removed
-        // if (this.fogTexture) {
-        //     this.updateFogTexture(time);
-        // }
+        // Update fog texture
+        if (this.fogTexture) {
+            this.updateFogTexture(time);
+        }
         
         // Apply rotation
         if (!this.isDragging && this.config.enableAnimation) {
@@ -793,16 +728,6 @@ export class ThreeD_component_engine {
             
             this.renderer.dispose();
             this.container.removeChild(this.renderer.domElement);
-        }
-        
-        // Dispose fog particles
-        if (this.fogParticles) {
-            this.fogParticles.forEach(particle => {
-                particle.geometry.dispose();
-                particle.material.dispose();
-                this.scene.remove(particle);
-            });
-            this.fogParticles = null;
         }
         
         if (this.geometry) {
