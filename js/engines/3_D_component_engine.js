@@ -171,7 +171,7 @@ export class ThreeD_component_engine {
     }
     
     setupRenderer() {
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(this.config.width, this.config.height);
         this.container.appendChild(this.renderer.domElement);
@@ -639,9 +639,8 @@ export class ThreeD_component_engine {
         const width = ctx.canvas.width;
         const height = ctx.canvas.height;
         
-        // Clear canvas with semi-transparent black
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
-        ctx.fillRect(0, 0, width, height);
+        // Clear canvas completely transparent
+        ctx.clearRect(0, 0, width, height);
         
         // Create animated fog particles
         const particleCount = 5;
