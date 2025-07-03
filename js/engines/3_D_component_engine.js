@@ -659,7 +659,7 @@ export class ThreeD_component_engine {
             
             const x = centerX + Math.cos(angle) * distance;
             const y = centerY + Math.sin(angle) * distance;
-            const radius = (Math.sin(t * 0.5 + i * 2) * 0.5 + 0.5) * 60 + 30;
+            const radius = (Math.sin(t * 0.5 + i * 2) * 0.5 + 0.5) * 60 + 60;
             
             const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
             gradient.addColorStop(0, 'rgba(100, 150, 255, 0.3)');
