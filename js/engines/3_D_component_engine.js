@@ -176,6 +176,15 @@ export class ThreeD_component_engine {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(this.config.width, this.config.height);
         this.container.appendChild(this.renderer.domElement);
+        
+        // Set container styles for flex layout participation
+        this.container.style.flex = '0 1 auto';  // No grow, shrink allowed, auto basis
+        this.container.style.maxWidth = '100%';
+        this.container.style.minWidth = `${this.config.width * 0.25}px`;  // Quarter size minimum
+        this.container.style.width = `${this.config.width}px`;
+        this.container.style.height = `${this.config.height}px`;
+        this.container.style.position = 'relative';
+        this.container.style.overflow = 'hidden';
     }
     
     setupCamera() {
@@ -628,13 +637,26 @@ export class ThreeD_component_engine {
                 // Calculate scale change
                 const scaleDelta = currentPinchDistance / this.lastPinchDistance;
                 
-                // Apply scale to mesh
-                this.mesh.scale.multiplyScalar(scaleDelta);
+                // Calculate new dimensions
+                const currentWidth = this.container.offsetWidth;
+                const currentHeight = this.container.offsetHeight;
+                const newWidth = currentWidth * scaleDelta;
+                const newHeight = currentHeight * scaleDelta;
                 
-                // Clamp scale to reasonable bounds
-                const minScale = 0.5;
-                const maxScale = 3.0;
-                this.mesh.scale.clampScalar(minScale, maxScale);
+                // Apply constraints
+                const minSize = this.config.width * 0.25;  // Quarter original size
+                const maxSize = this.config.width * 3;     // Triple original size
+                const clampedWidth = Math.max(minSize, Math.min(maxSize, newWidth));
+                const clampedHeight = Math.max(minSize, Math.min(maxSize, newHeight));
+                
+                // Update container size
+                this.container.style.width = `${clampedWidth}px`;
+                this.container.style.height = `${clampedHeight}px`;
+                
+                // Update Three.js renderer to match
+                this.renderer.setSize(clampedWidth, clampedHeight);
+                this.camera.aspect = clampedWidth / clampedHeight;
+                this.camera.updateProjectionMatrix();
             }
             
             this.lastPinchDistance = currentPinchDistance;
@@ -656,16 +678,29 @@ export class ThreeD_component_engine {
             
             // Calculate scale based on deltaY magnitude for smooth scaling
             // Smaller movements = smaller changes
-            const sensitivity = 0.002;
+            const sensitivity = 0.0035;  // Middle ground between 0.002 and fixed 5%
             const scaleFactor = 1 - (event.deltaY * sensitivity);
             
-            // Apply scale to mesh
-            this.mesh.scale.multiplyScalar(scaleFactor);
+            // Calculate new dimensions
+            const currentWidth = this.container.offsetWidth;
+            const currentHeight = this.container.offsetHeight;
+            const newWidth = currentWidth * scaleFactor;
+            const newHeight = currentHeight * scaleFactor;
             
-            // Clamp scale to reasonable bounds
-            const minScale = 0.5;
-            const maxScale = 3.0;
-            this.mesh.scale.clampScalar(minScale, maxScale);
+            // Apply constraints
+            const minSize = this.config.width * 0.25;  // Quarter original size
+            const maxSize = this.config.width * 3;     // Triple original size
+            const clampedWidth = Math.max(minSize, Math.min(maxSize, newWidth));
+            const clampedHeight = Math.max(minSize, Math.min(maxSize, newHeight));
+            
+            // Update container size
+            this.container.style.width = `${clampedWidth}px`;
+            this.container.style.height = `${clampedHeight}px`;
+            
+            // Update Three.js renderer to match
+            this.renderer.setSize(clampedWidth, clampedHeight);
+            this.camera.aspect = clampedWidth / clampedHeight;
+            this.camera.updateProjectionMatrix();
         }
     }
     
