@@ -38,6 +38,10 @@ export class ThreeD_component_engine {
         this.rotationVelocity = { x: 0, y: 0 };
         this.autoRotationTime = 0;
         
+        // Store initial dimensions for constraint calculations
+        this.initialWidth = null;
+        this.initialHeight = null;
+        
         // Texture canvas for animated textures
         this.textureCanvas = null;
         this.textureContext = null;
@@ -277,6 +281,12 @@ export class ThreeD_component_engine {
         this.fogPlane = new THREE.Mesh(fogPlaneGeometry, fogPlaneMaterial);
         this.fogPlane.position.set(0, 0, -1.5); // Between object and backlight
         this.scene.add(this.fogPlane);
+        
+        // Add debug border to fog plane
+        const edges = new THREE.EdgesGeometry(fogPlaneGeometry);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 }); // Green debug border
+        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
+        this.fogPlane.add(lineSegments);
     }
     
     createEnvironment() {
@@ -570,8 +580,8 @@ export class ThreeD_component_engine {
         // Render once to ensure geometry is properly calculated
         tempRenderer.render(this.scene, tempCamera);
         
-        // Calculate bounding box of the mesh
-        const box = new THREE.Box3().setFromObject(this.mesh);
+        // Calculate bounding box of the entire scene (includes fog plane)
+        const box = new THREE.Box3().setFromObject(this.scene);
         const size = box.getSize(new THREE.Vector3());
         
         // Project 3D size to screen pixels using the temporary setup
@@ -579,11 +589,10 @@ export class ThreeD_component_engine {
         const vFov = (tempCamera.fov * Math.PI) / 180;
         const visibleHeight = 2 * Math.tan(vFov / 2) * distance;
         
-        // Calculate pixel dimensions with minimal padding
-        const padding = 10; // Just 5px padding on each side
+        // Calculate pixel dimensions - no extra padding as fog plane provides it
         const scale = 1000 / visibleHeight; // Based on temp renderer size
-        const width = Math.ceil(size.x * scale) + padding;
-        const height = Math.ceil(size.y * scale) + padding;
+        const width = Math.ceil(size.x * scale);
+        const height = Math.ceil(size.y * scale);
         
         // Dispose of temporary renderer
         tempRenderer.dispose();
@@ -593,6 +602,10 @@ export class ThreeD_component_engine {
         this.config.height = height;
         this.container.style.width = `${width}px`;
         this.container.style.height = `${height}px`;
+        
+        // Store initial dimensions for constraint calculations
+        this.initialWidth = width;
+        this.initialHeight = height;
         
         // Update the real renderer
         this.renderer.setSize(width, height);
@@ -743,9 +756,14 @@ export class ThreeD_component_engine {
             const newHeight = currentHeight * scaleFactor;
             
             // Apply constraints
-            const minSize = this.config.width * 0.25;  // Quarter original size
-            const maxSize = this.config.width * 3;     // Triple original size
-            const clampedWidth = Math.max(minSize, Math.min(maxSize, newWidth));
+            const minSize = this.initialWidth * 0.25;  // Quarter original size
+            const maxSize = this.initialWidth * 3;     // Triple original size
+            
+            // Also constrain by parent container width
+            const parentWidth = this.container.parentElement ? this.container.parentElement.offsetWidth : window.innerWidth;
+            const maxAllowedWidth = Math.min(maxSize, parentWidth);
+            
+            const clampedWidth = Math.max(minSize, Math.min(maxAllowedWidth, newWidth));
             const clampedHeight = Math.max(minSize, Math.min(maxSize, newHeight));
             
             // Update container size
