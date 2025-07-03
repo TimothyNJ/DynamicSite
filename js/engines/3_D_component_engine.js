@@ -553,32 +553,51 @@ export class ThreeD_component_engine {
     }
     
     resizeContainerToFitContent() {
-        // Render once to ensure geometry is calculated
-        this.renderer.render(this.scene, this.camera);
+        // Create temporary offscreen renderer for measurement
+        const tempRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        tempRenderer.setSize(1000, 1000); // Large size to avoid any clipping
+        
+        // Create temporary camera with same settings but square aspect
+        const tempCamera = new THREE.PerspectiveCamera(
+            this.config.cameraFOV,
+            1, // Square aspect ratio for consistent measurement
+            0.1,
+            100
+        );
+        tempCamera.position.copy(this.camera.position);
+        tempCamera.lookAt(0, 0, 0);
+        
+        // Render once to ensure geometry is properly calculated
+        tempRenderer.render(this.scene, tempCamera);
         
         // Calculate bounding box of the mesh
         const box = new THREE.Box3().setFromObject(this.mesh);
         const size = box.getSize(new THREE.Vector3());
         
-        // Project 3D size to screen pixels
-        const distance = this.camera.position.z;
-        const vFov = (this.camera.fov * Math.PI) / 180;
+        // Project 3D size to screen pixels using the temporary setup
+        const distance = tempCamera.position.z;
+        const vFov = (tempCamera.fov * Math.PI) / 180;
         const visibleHeight = 2 * Math.tan(vFov / 2) * distance;
         
-        // Calculate pixel dimensions with small padding
-        const padding = 20; // 10px padding on each side
-        const scale = this.config.height / visibleHeight;
+        // Calculate pixel dimensions with minimal padding
+        const padding = 10; // Just 5px padding on each side
+        const scale = 1000 / visibleHeight; // Based on temp renderer size
         const width = Math.ceil(size.x * scale) + padding;
         const height = Math.ceil(size.y * scale) + padding;
         
-        // Update container and renderer size
+        // Dispose of temporary renderer
+        tempRenderer.dispose();
+        
+        // Now update the real container and renderer with calculated size
         this.config.width = width;
         this.config.height = height;
         this.container.style.width = `${width}px`;
         this.container.style.height = `${height}px`;
+        
+        // Update the real renderer
         this.renderer.setSize(width, height);
         
-        // Update camera aspect ratio
+        // Update camera aspect ratio for the real renderer
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
     }
