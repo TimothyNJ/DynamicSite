@@ -178,13 +178,14 @@ export class ThreeD_component_engine {
         this.container.appendChild(this.renderer.domElement);
         
         // Set container styles for flex layout participation
-        this.container.style.flex = '0 1 auto';  // No grow, shrink allowed, auto basis
+        this.container.style.flex = '0 0 auto';  // No grow, no shrink, auto basis
         this.container.style.maxWidth = '100%';
         this.container.style.minWidth = `${this.config.width * 0.25}px`;  // Quarter size minimum
         this.container.style.width = `${this.config.width}px`;
         this.container.style.height = `${this.config.height}px`;
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
+        this.container.style.margin = '0 auto';  // Center horizontally
     }
     
     setupCamera() {
