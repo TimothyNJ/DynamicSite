@@ -247,7 +247,7 @@ export class ThreeD_component_engine {
     
     createFogPlane() {
         // Create animated fog plane behind the object
-        const fogPlaneGeometry = new THREE.PlaneGeometry(4, 4, 32, 32);
+        const fogPlaneGeometry = new THREE.PlaneGeometry(2.5, 2.5, 32, 32);
         this.fogCanvas = document.createElement('canvas');
         this.fogCanvas.width = 512;
         this.fogCanvas.height = 512;
@@ -645,11 +645,21 @@ export class ThreeD_component_engine {
         
         // Create animated fog particles
         const particleCount = 5;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const maxDistance = Math.min(width, height) * 0.35; // Max distance from center
+        
         for (let i = 0; i < particleCount; i++) {
             const t = time * 0.001 + i * 1.5;
-            const x = (Math.sin(t * 0.3 + i) * 0.5 + 0.5) * width;
-            const y = (Math.cos(t * 0.2 + i * 0.7) * 0.5 + 0.5) * height;
-            const radius = (Math.sin(t * 0.5 + i * 2) * 0.5 + 0.5) * 80 + 40;
+            
+            // Radial movement around center
+            const angle = t * 0.3 + i * (Math.PI * 2 / particleCount);
+            const radiusVariation = Math.sin(t * 0.5 + i * 2) * 0.3 + 0.7; // 0.4 to 1.0
+            const distance = radiusVariation * maxDistance;
+            
+            const x = centerX + Math.cos(angle) * distance;
+            const y = centerY + Math.sin(angle) * distance;
+            const radius = (Math.sin(t * 0.5 + i * 2) * 0.5 + 0.5) * 60 + 30;
             
             const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
             gradient.addColorStop(0, 'rgba(100, 150, 255, 0.3)');
