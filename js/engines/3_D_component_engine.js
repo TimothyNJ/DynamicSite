@@ -186,6 +186,7 @@ export class ThreeD_component_engine {
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
         this.container.style.margin = '0 auto';  // Center horizontally
+        this.container.style.border = '1px solid #cccccc';  // Border that follows toggle
     }
     
     setupCamera() {
