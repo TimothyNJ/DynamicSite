@@ -43,6 +43,12 @@ export class ThreeD_component_engine {
         this.textureContext = null;
         this.texture = null;
         
+        // Fog plane for background effect
+        this.fogPlane = null;
+        this.fogTexture = null;
+        this.fogCanvas = null;
+        this.fogContext = null;
+        
         // Bind methods
         this.animate = this.animate.bind(this);
         this.onPointerDown = this.onPointerDown.bind(this);
@@ -148,6 +154,7 @@ export class ThreeD_component_engine {
         this.setupCamera();
         this.setupScene();
         this.setupLighting();
+        this.createFogPlane();
         this.createTexture();
         this.createGeometry();
         this.createMaterial();
@@ -235,6 +242,29 @@ export class ThreeD_component_engine {
             this.lights.rim.target.position.set(0, 0, 0);
             this.scene.add(this.lights.rim);
         }
+    }
+    
+    createFogPlane() {
+        // Create animated fog plane behind the object
+        const fogPlaneGeometry = new THREE.PlaneGeometry(4, 4, 32, 32);
+        this.fogCanvas = document.createElement('canvas');
+        this.fogCanvas.width = 512;
+        this.fogCanvas.height = 512;
+        this.fogContext = this.fogCanvas.getContext('2d');
+        
+        this.fogTexture = new THREE.CanvasTexture(this.fogCanvas);
+        
+        const fogPlaneMaterial = new THREE.MeshBasicMaterial({
+            map: this.fogTexture,
+            transparent: true,
+            opacity: 0.8,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending
+        });
+        
+        this.fogPlane = new THREE.Mesh(fogPlaneGeometry, fogPlaneMaterial);
+        this.fogPlane.position.set(0, 0, -1.5); // Between object and backlight
+        this.scene.add(this.fogPlane);
     }
     
     createEnvironment() {
@@ -602,6 +632,37 @@ export class ThreeD_component_engine {
         this.texture.needsUpdate = true;
     }
     
+    updateFogTexture(time) {
+        if (!this.fogContext || !this.fogTexture) return;
+        
+        const ctx = this.fogContext;
+        const width = ctx.canvas.width;
+        const height = ctx.canvas.height;
+        
+        // Clear canvas with semi-transparent black
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Create animated fog particles
+        const particleCount = 5;
+        for (let i = 0; i < particleCount; i++) {
+            const t = time * 0.001 + i * 1.5;
+            const x = (Math.sin(t * 0.3 + i) * 0.5 + 0.5) * width;
+            const y = (Math.cos(t * 0.2 + i * 0.7) * 0.5 + 0.5) * height;
+            const radius = (Math.sin(t * 0.5 + i * 2) * 0.5 + 0.5) * 80 + 40;
+            
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+            gradient.addColorStop(0, 'rgba(100, 150, 255, 0.3)');
+            gradient.addColorStop(0.5, 'rgba(50, 100, 200, 0.1)');
+            gradient.addColorStop(1, 'rgba(0, 50, 150, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+        }
+        
+        this.fogTexture.needsUpdate = true;
+    }
+    
     animate(time) {
         if (!this.isInitialized) return;
         
@@ -610,6 +671,11 @@ export class ThreeD_component_engine {
         // Update animated texture
         if (this.config.texture === 'animated') {
             this.updateAnimatedTexture(time);
+        }
+        
+        // Update fog texture
+        if (this.fogTexture) {
+            this.updateFogTexture(time);
         }
         
         // Apply rotation
