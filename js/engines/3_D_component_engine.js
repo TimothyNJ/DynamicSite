@@ -189,7 +189,7 @@ export class ThreeD_component_engine {
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
         this.container.style.margin = '0 auto';  // Center horizontally
-        this.container.style.border = '2px solid red';  // TEMPORARY RED BORDER TO SEE CLIPPING
+        this.container.style.border = '1px solid red';  // TEMPORARY RED BORDER TO SEE CLIPPING
         // Removed display: inline-block to properly participate in flex layout
     }
     
