@@ -310,10 +310,31 @@ function initializeVendorRequestComponents() {
     },
     texture: 'animated',
     enableInteraction: true,
-    rotationSpeed: 0.5
+    rotationSpeed: 0  // Start with no rotation
   });
   
   console.log('[Vendor Request] 3D component initialized:', threeDObject);
+  
+  // Create rotation speed slider
+  console.log('[Vendor Request] Creating rotation speed slider...');
+  
+  componentFactory.createSlider({
+    containerId: 'rotation-speed-slider-container',
+    sliderClass: 'rotation-speed-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value') || selectedOption.querySelector('h3').textContent);
+    console.log('[Rotation Speed] Selected:', speed);
+    if (threeDObject && threeDObject.setRotationSpeed) {
+      threeDObject.setRotationSpeed(speed);
+    }
+  });
 }
 
 // Data Entry page initialization
