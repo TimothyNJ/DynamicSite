@@ -662,14 +662,29 @@ export class ThreeD_component_engine {
         const deltaX = currentMousePosition.x - this.previousMousePosition.x;
         const deltaY = currentMousePosition.y - this.previousMousePosition.y;
         
-        // Fixed: Reduced sensitivity for better control
-        const sensitivity = 0.005;  // Reduced from 0.01 for more precise control
-        this.mesh.rotation.y -= deltaX * sensitivity;  // Negative for natural drag behavior
-        this.mesh.rotation.x -= deltaY * sensitivity;  // Also negative for consistency
+        // Convert mouse movement to spherical rotation
+        // This creates a more intuitive "grab and drag" feel
+        const rotateSpeed = 0.01; // Sensitivity
         
-        // Update velocity for momentum (with adjusted sensitivity)
-        this.rotationVelocity.x = -deltaY * sensitivity * 0.5;  // Negative to match rotation
-        this.rotationVelocity.y = -deltaX * sensitivity * 0.5;  // Negative to match rotation
+        // Create rotation quaternion for horizontal movement (around world Y axis)
+        const quaternionY = new THREE.Quaternion();
+        quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -deltaX * rotateSpeed);
+        
+        // Get the current right vector of the object for vertical rotation
+        const rightVector = new THREE.Vector3(1, 0, 0);
+        rightVector.applyQuaternion(this.mesh.quaternion);
+        
+        // Create rotation quaternion for vertical movement (around object's right axis)
+        const quaternionX = new THREE.Quaternion();
+        quaternionX.setFromAxisAngle(rightVector, -deltaY * rotateSpeed);
+        
+        // Apply rotations: first Y (global), then X (local)
+        this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
+        this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+        
+        // Update velocity for momentum (simplified for quaternion rotation)
+        this.rotationVelocity.x = -deltaY * rotateSpeed * 0.5;
+        this.rotationVelocity.y = -deltaX * rotateSpeed * 0.5;
         
         this.previousMousePosition = currentMousePosition;
     }
@@ -890,19 +905,45 @@ export class ThreeD_component_engine {
         
         // Apply rotation
         if (!this.isDragging && this.config.enableAnimation) {
-            // Momentum rotation
-            this.mesh.rotation.x += this.rotationVelocity.x;
-            this.mesh.rotation.y += this.rotationVelocity.y;
-            
-            // Dampen velocity
-            this.rotationVelocity.x *= 0.95;
-            this.rotationVelocity.y *= 0.95;
-            
-            // Auto rotation
-            if (Math.abs(this.rotationVelocity.x) < 0.001 && Math.abs(this.rotationVelocity.y) < 0.001) {
+            // Momentum rotation using quaternions
+            if (Math.abs(this.rotationVelocity.x) > 0.001 || Math.abs(this.rotationVelocity.y) > 0.001) {
+                // Apply momentum as quaternion rotations
+                const quaternionY = new THREE.Quaternion();
+                quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.rotationVelocity.y);
+                
+                // Get the current right vector for X rotation
+                const rightVector = new THREE.Vector3(1, 0, 0);
+                rightVector.applyQuaternion(this.mesh.quaternion);
+                
+                const quaternionX = new THREE.Quaternion();
+                quaternionX.setFromAxisAngle(rightVector, this.rotationVelocity.x);
+                
+                // Apply momentum rotations
+                this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
+                this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+                
+                // Dampen velocity
+                this.rotationVelocity.x *= 0.95;
+                this.rotationVelocity.y *= 0.95;
+            } else {
+                // Auto rotation when momentum stops
                 this.autoRotationTime += 0.01 * this.config.rotationSpeed;
-                this.mesh.rotation.x += Math.sin(this.autoRotationTime * 0.1) * 0.002 * this.config.rotationSpeed;
-                this.mesh.rotation.y += this.autoRotationTime * 0.01 * this.config.rotationSpeed;
+                
+                // Apply auto rotation using quaternions for consistency
+                const autoQuaternionY = new THREE.Quaternion();
+                autoQuaternionY.setFromAxisAngle(
+                    new THREE.Vector3(0, 1, 0), 
+                    this.autoRotationTime * 0.01 * this.config.rotationSpeed
+                );
+                
+                const autoQuaternionX = new THREE.Quaternion();
+                autoQuaternionX.setFromAxisAngle(
+                    new THREE.Vector3(1, 0, 0),
+                    Math.sin(this.autoRotationTime * 0.1) * 0.002 * this.config.rotationSpeed
+                );
+                
+                this.mesh.quaternion.multiplyQuaternions(autoQuaternionY, this.mesh.quaternion);
+                this.mesh.quaternion.multiplyQuaternions(autoQuaternionX, this.mesh.quaternion);
             }
         }
         
