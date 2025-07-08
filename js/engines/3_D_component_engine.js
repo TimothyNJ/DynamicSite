@@ -781,27 +781,30 @@ export class ThreeD_component_engine {
         }
         
         // Calculate the actual rotation that occurred in recent frames
-        // This should be based on actual cube rotation, not mouse movement
-        // For sticky point, if the cube isn't rotating, velocity should be zero
-        
-        // Check if there was significant rotation in the last few frames
         const recent = this.mousePositionHistory.slice(-3);
         const first = recent[0];
         const last = recent[recent.length - 1];
         
         const deltaTime = (last.time - first.time) / 1000;
         if (deltaTime > 0) {
-            // For sticky point rotation, velocity should reflect actual rotation speed
-            // If mouse is stationary, rotation is zero regardless of position
             const deltaX = last.position.x - first.position.x;
             const deltaY = last.position.y - first.position.y;
             
             // Only set velocity if there was actual movement
             const movementThreshold = 2; // pixels
             if (Math.abs(deltaX) > movementThreshold || Math.abs(deltaY) > movementThreshold) {
-                const rotateSpeed = 0.002;
-                this.rotationVelocity.x = -deltaY * rotateSpeed / deltaTime;
-                this.rotationVelocity.y = -deltaX * rotateSpeed / deltaTime;
+                // Much more conservative velocity calculation
+                // The sticky rotation is already handling the rotation, so momentum should be subtle
+                const rotateSpeed = 0.0001; // Reduced from 0.002 (20x reduction)
+                const dampingFactor = 0.3; // Additional damping to prevent wild spins
+                
+                this.rotationVelocity.x = -deltaY * rotateSpeed * dampingFactor / deltaTime;
+                this.rotationVelocity.y = -deltaX * rotateSpeed * dampingFactor / deltaTime;
+                
+                // Cap maximum velocity to prevent wild spinning
+                const maxVelocity = 0.02;
+                this.rotationVelocity.x = Math.max(-maxVelocity, Math.min(maxVelocity, this.rotationVelocity.x));
+                this.rotationVelocity.y = Math.max(-maxVelocity, Math.min(maxVelocity, this.rotationVelocity.y));
             } else {
                 // No significant movement - no momentum
                 this.rotationVelocity = { x: 0, y: 0 };
