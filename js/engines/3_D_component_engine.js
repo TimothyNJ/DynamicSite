@@ -724,7 +724,9 @@ export class ThreeD_component_engine {
         this.applyStickyRotation(mouse);
         
         // Track actual rotation that occurred
-        const rotationDelta = beforeRotation.clone().conjugate().multiply(this.mesh.quaternion);
+        const rotationDelta = new THREE.Quaternion();
+        rotationDelta.multiplyQuaternions(this.mesh.quaternion, beforeRotation.conjugate());
+        
         this.rotationHistory.push({
             quaternion: rotationDelta,
             time: Date.now()
@@ -799,7 +801,28 @@ export class ThreeD_component_engine {
         
         // Convert quaternion to axis-angle
         const axis = new THREE.Vector3();
-        const angle = totalRotation.getAxisAngle(axis);
+        let angle = 0;
+        
+        // Handle identity quaternion (no rotation)
+        if (totalRotation.w > 0.9999) {
+            this.rotationVelocity = { x: 0, y: 0 };
+            return;
+        }
+        
+        // Extract axis and angle
+        angle = 2 * Math.acos(totalRotation.w);
+        const s = Math.sqrt(1 - totalRotation.w * totalRotation.w);
+        if (s < 0.001) {
+            axis.set(totalRotation.x, totalRotation.y, totalRotation.z);
+        } else {
+            axis.set(totalRotation.x / s, totalRotation.y / s, totalRotation.z / s);
+        }
+        
+        // Ensure angle is in correct range
+        if (angle > Math.PI) {
+            angle = 2 * Math.PI - angle;
+            axis.multiplyScalar(-1);
+        }
         
         // Only apply momentum if there was significant rotation
         const minRotation = 0.01; // radians
