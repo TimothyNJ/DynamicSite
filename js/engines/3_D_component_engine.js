@@ -770,7 +770,7 @@ export class ThreeD_component_engine {
             
             // Create and apply rotation quaternion
             const rotationQuaternion = new THREE.Quaternion();
-            rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle * 0.8); // High responsiveness
+            rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle); // Perfect tracking
             
             this.mesh.quaternion.multiplyQuaternions(rotationQuaternion, this.mesh.quaternion);
         }
