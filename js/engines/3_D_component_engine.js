@@ -832,8 +832,8 @@ export class ThreeD_component_engine {
             const rotationPerSecond = angle / deltaTime;
             
             // Decompose into Y (horizontal) and X (vertical) components
-            // with conservative scaling to prevent wild spins
-            const scale = 0.1; // Very conservative momentum
+            // with moderate scaling for natural momentum
+            const scale = 0.3; // Increased from 0.1 for more noticeable momentum
             this.rotationVelocity.y = axis.y * rotationPerSecond * scale;
             this.rotationVelocity.x = axis.x * rotationPerSecond * scale;
             
@@ -1081,9 +1081,9 @@ export class ThreeD_component_engine {
                 this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
                 this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
                 
-                // Dampen velocity
-                this.rotationVelocity.x *= 0.95;
-                this.rotationVelocity.y *= 0.95;
+                // Dampen velocity - much slower decay for longer momentum
+                this.rotationVelocity.x *= 0.98;  // Only lose 2% per frame
+                this.rotationVelocity.y *= 0.98;
             } else {
                 // Auto rotation when momentum stops
                 this.autoRotationTime += 0.01 * this.config.rotationSpeed;
