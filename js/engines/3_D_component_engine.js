@@ -642,8 +642,9 @@ export class ThreeD_component_engine {
         this.grabbedPoint = null;
         this.grabbedLocalPoint = null;
         
-        // Mouse position tracking for velocity calculation
-        this.mousePositionHistory = [];
+        // Track actual rotation for proper momentum
+        this.previousQuaternion = null;
+        this.rotationHistory = [];
         this.maxHistoryLength = 5;
     }
     
@@ -697,14 +698,9 @@ export class ThreeD_component_engine {
         this.autoRotationTime = 0;
         this.renderer.domElement.style.cursor = 'grabbing';
         
-        // Clear mouse history for velocity tracking
-        this.mousePositionHistory = [];
-        
-        // Add initial position to history
-        this.mousePositionHistory.push({
-            position: this.previousMousePosition,
-            time: Date.now()
-        });
+        // Initialize rotation tracking
+        this.previousQuaternion = this.mesh.quaternion.clone();
+        this.rotationHistory = [];
     }
     
     onPointerMove(event) {
@@ -716,15 +712,8 @@ export class ThreeD_component_engine {
             y: event.clientY - rect.top
         };
         
-        // Track mouse position for velocity calculation
-        this.mousePositionHistory.push({
-            position: currentMousePosition,
-            time: Date.now()
-        });
-        
-        if (this.mousePositionHistory.length > this.maxHistoryLength) {
-            this.mousePositionHistory.shift();
-        }
+        // Store the quaternion before rotation
+        const beforeRotation = this.mesh.quaternion.clone();
         
         // Convert to normalized device coordinates
         const mouse = new THREE.Vector2();
@@ -734,8 +723,19 @@ export class ThreeD_component_engine {
         // Apply sticky point rotation
         this.applyStickyRotation(mouse);
         
-        // Calculate velocity for momentum when released
-        this.calculateVelocityFromHistory();
+        // Track actual rotation that occurred
+        const rotationDelta = beforeRotation.clone().conjugate().multiply(this.mesh.quaternion);
+        this.rotationHistory.push({
+            quaternion: rotationDelta,
+            time: Date.now()
+        });
+        
+        if (this.rotationHistory.length > this.maxHistoryLength) {
+            this.rotationHistory.shift();
+        }
+        
+        // Calculate velocity from actual rotation
+        this.calculateVelocityFromRotation();
         
         this.previousMousePosition = currentMousePosition;
     }
@@ -774,41 +774,50 @@ export class ThreeD_component_engine {
         }
     }
     
-    calculateVelocityFromHistory() {
-        if (this.mousePositionHistory.length < 2) {
+    calculateVelocityFromRotation() {
+        if (this.rotationHistory.length < 2) {
             this.rotationVelocity = { x: 0, y: 0 };
             return;
         }
         
-        // Calculate the actual rotation that occurred in recent frames
-        const recent = this.mousePositionHistory.slice(-3);
-        const first = recent[0];
-        const last = recent[recent.length - 1];
+        // Get recent rotation history
+        const recent = this.rotationHistory.slice(-3);
+        if (recent.length < 2) return;
         
-        const deltaTime = (last.time - first.time) / 1000;
-        if (deltaTime > 0) {
-            const deltaX = last.position.x - first.position.x;
-            const deltaY = last.position.y - first.position.y;
+        // Calculate time delta
+        const deltaTime = (recent[recent.length - 1].time - recent[0].time) / 1000;
+        if (deltaTime <= 0) {
+            this.rotationVelocity = { x: 0, y: 0 };
+            return;
+        }
+        
+        // Accumulate rotations over the time period
+        let totalRotation = new THREE.Quaternion();
+        for (let i = 0; i < recent.length; i++) {
+            totalRotation.multiply(recent[i].quaternion);
+        }
+        
+        // Convert quaternion to axis-angle
+        const axis = new THREE.Vector3();
+        const angle = totalRotation.getAxisAngle(axis);
+        
+        // Only apply momentum if there was significant rotation
+        const minRotation = 0.01; // radians
+        if (Math.abs(angle) > minRotation) {
+            // Project rotation onto world axes for momentum
+            // This ensures momentum continues in the same visual direction
+            const rotationPerSecond = angle / deltaTime;
             
-            // Only set velocity if there was actual movement
-            const movementThreshold = 2; // pixels
-            if (Math.abs(deltaX) > movementThreshold || Math.abs(deltaY) > movementThreshold) {
-                // Much more conservative velocity calculation
-                // The sticky rotation is already handling the rotation, so momentum should be subtle
-                const rotateSpeed = 0.0001; // Reduced from 0.002 (20x reduction)
-                const dampingFactor = 0.3; // Additional damping to prevent wild spins
-                
-                this.rotationVelocity.x = -deltaY * rotateSpeed * dampingFactor / deltaTime;
-                this.rotationVelocity.y = -deltaX * rotateSpeed * dampingFactor / deltaTime;
-                
-                // Cap maximum velocity to prevent wild spinning
-                const maxVelocity = 0.02;
-                this.rotationVelocity.x = Math.max(-maxVelocity, Math.min(maxVelocity, this.rotationVelocity.x));
-                this.rotationVelocity.y = Math.max(-maxVelocity, Math.min(maxVelocity, this.rotationVelocity.y));
-            } else {
-                // No significant movement - no momentum
-                this.rotationVelocity = { x: 0, y: 0 };
-            }
+            // Decompose into Y (horizontal) and X (vertical) components
+            // with conservative scaling to prevent wild spins
+            const scale = 0.1; // Very conservative momentum
+            this.rotationVelocity.y = axis.y * rotationPerSecond * scale;
+            this.rotationVelocity.x = axis.x * rotationPerSecond * scale;
+            
+            // Cap velocities
+            const maxVel = 0.02;
+            this.rotationVelocity.x = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.x));
+            this.rotationVelocity.y = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.y));
         } else {
             this.rotationVelocity = { x: 0, y: 0 };
         }
