@@ -699,6 +699,12 @@ export class ThreeD_component_engine {
         
         // Clear mouse history for velocity tracking
         this.mousePositionHistory = [];
+        
+        // Add initial position to history
+        this.mousePositionHistory.push({
+            position: this.previousMousePosition,
+            time: Date.now()
+        });
     }
     
     onPointerMove(event) {
@@ -774,20 +780,34 @@ export class ThreeD_component_engine {
             return;
         }
         
-        // Use recent positions to calculate velocity for momentum
+        // Calculate the actual rotation that occurred in recent frames
+        // This should be based on actual cube rotation, not mouse movement
+        // For sticky point, if the cube isn't rotating, velocity should be zero
+        
+        // Check if there was significant rotation in the last few frames
         const recent = this.mousePositionHistory.slice(-3);
         const first = recent[0];
         const last = recent[recent.length - 1];
         
         const deltaTime = (last.time - first.time) / 1000;
         if (deltaTime > 0) {
+            // For sticky point rotation, velocity should reflect actual rotation speed
+            // If mouse is stationary, rotation is zero regardless of position
             const deltaX = last.position.x - first.position.x;
             const deltaY = last.position.y - first.position.y;
             
-            // Convert to rotation velocities (simplified)
-            const rotateSpeed = 0.002;
-            this.rotationVelocity.x = -deltaY * rotateSpeed / deltaTime;
-            this.rotationVelocity.y = -deltaX * rotateSpeed / deltaTime;
+            // Only set velocity if there was actual movement
+            const movementThreshold = 2; // pixels
+            if (Math.abs(deltaX) > movementThreshold || Math.abs(deltaY) > movementThreshold) {
+                const rotateSpeed = 0.002;
+                this.rotationVelocity.x = -deltaY * rotateSpeed / deltaTime;
+                this.rotationVelocity.y = -deltaX * rotateSpeed / deltaTime;
+            } else {
+                // No significant movement - no momentum
+                this.rotationVelocity = { x: 0, y: 0 };
+            }
+        } else {
+            this.rotationVelocity = { x: 0, y: 0 };
         }
     }
     
