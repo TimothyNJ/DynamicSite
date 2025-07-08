@@ -636,6 +636,17 @@ export class ThreeD_component_engine {
         this.touches = [];
         this.lastPinchDistance = null;
         this.baseScale = 1;
+        
+        // Initialize raycaster for sticky point rotation
+        this.raycaster = new THREE.Raycaster();
+        this.grabbedPoint = null;
+        this.grabbedNormal = null;
+        this.isOverObject = false;
+        this.rotationMode = 'velocity'; // 'sticky' or 'velocity'
+        
+        // Mouse position tracking for velocity calculation
+        this.mousePositionHistory = [];
+        this.maxHistoryLength = 5;
     }
     
     onPointerDown(event) {
@@ -645,9 +656,40 @@ export class ThreeD_component_engine {
             x: event.clientX - rect.left,
             y: event.clientY - rect.top
         };
+        
+        // Convert to normalized device coordinates (-1 to +1)
+        const mouse = new THREE.Vector2();
+        mouse.x = (this.previousMousePosition.x / rect.width) * 2 - 1;
+        mouse.y = -(this.previousMousePosition.y / rect.height) * 2 + 1;
+        
+        // Raycast to check if we're clicking on the object
+        this.raycaster.setFromCamera(mouse, this.camera);
+        const intersects = this.raycaster.intersectObject(this.mesh);
+        
+        if (intersects.length > 0) {
+            // We're clicking on the object - use sticky point mode
+            this.rotationMode = 'sticky';
+            this.grabbedPoint = intersects[0].point.clone();
+            this.grabbedNormal = intersects[0].face.normal.clone();
+            
+            // Convert grabbed point to object's local space
+            const localPoint = this.grabbedPoint.clone();
+            this.mesh.worldToLocal(localPoint);
+            this.grabbedLocalPoint = localPoint;
+            
+            this.isOverObject = true;
+        } else {
+            // Not clicking on object - use velocity mode
+            this.rotationMode = 'velocity';
+            this.isOverObject = false;
+        }
+        
         this.rotationVelocity = { x: 0, y: 0 };
         this.autoRotationTime = 0;
         this.renderer.domElement.style.cursor = 'grabbing';
+        
+        // Clear mouse history
+        this.mousePositionHistory = [];
     }
     
     onPointerMove(event) {
@@ -659,12 +701,98 @@ export class ThreeD_component_engine {
             y: event.clientY - rect.top
         };
         
+        // Add to mouse history for velocity calculation
+        this.mousePositionHistory.push({
+            position: currentMousePosition,
+            time: Date.now()
+        });
+        
+        // Keep history size limited
+        if (this.mousePositionHistory.length > this.maxHistoryLength) {
+            this.mousePositionHistory.shift();
+        }
+        
+        // Convert to normalized device coordinates
+        const mouse = new THREE.Vector2();
+        mouse.x = (currentMousePosition.x / rect.width) * 2 - 1;
+        mouse.y = -(currentMousePosition.y / rect.height) * 2 + 1;
+        
+        // Check if we're still over the object
+        this.raycaster.setFromCamera(mouse, this.camera);
+        const intersects = this.raycaster.intersectObject(this.mesh);
+        
+        const wasOverObject = this.isOverObject;
+        this.isOverObject = intersects.length > 0;
+        
+        // Handle mode transitions
+        if (wasOverObject && !this.isOverObject && this.rotationMode === 'sticky') {
+            // Just left the object - switch to velocity mode
+            this.rotationMode = 'velocity';
+            this.calculateVelocityFromHistory();
+        } else if (!wasOverObject && this.isOverObject && this.rotationMode === 'velocity') {
+            // Just entered the object - switch to sticky mode if we have a grabbed point
+            if (intersects.length > 0) {
+                this.rotationMode = 'sticky';
+                this.grabbedPoint = intersects[0].point.clone();
+                this.grabbedNormal = intersects[0].face.normal.clone();
+                const localPoint = this.grabbedPoint.clone();
+                this.mesh.worldToLocal(localPoint);
+                this.grabbedLocalPoint = localPoint;
+            }
+        }
+        
+        // Apply rotation based on mode
+        if (this.rotationMode === 'sticky' && this.isOverObject && this.grabbedLocalPoint) {
+            this.applyStickyRotation(mouse);
+        } else {
+            this.applyVelocityRotation(currentMousePosition);
+        }
+        
+        this.previousMousePosition = currentMousePosition;
+    }
+    
+    applyStickyRotation(mouseNDC) {
+        // Get the current world position of the grabbed point
+        const currentWorldPoint = this.grabbedLocalPoint.clone();
+        this.mesh.localToWorld(currentWorldPoint);
+        
+        // Create a ray from the camera through the mouse position
+        this.raycaster.setFromCamera(mouseNDC, this.camera);
+        const ray = this.raycaster.ray;
+        
+        // Find the point on the ray closest to the camera at the same distance as grabbed point
+        const cameraToGrabbed = currentWorldPoint.clone().sub(this.camera.position);
+        const distance = cameraToGrabbed.length();
+        const targetPoint = ray.origin.clone().add(ray.direction.clone().multiplyScalar(distance));
+        
+        // Calculate rotation to align grabbed point with target
+        const currentDirection = currentWorldPoint.clone().sub(this.mesh.position).normalize();
+        const targetDirection = targetPoint.clone().sub(this.mesh.position).normalize();
+        
+        // Calculate rotation axis and angle
+        const rotationAxis = currentDirection.clone().cross(targetDirection);
+        const rotationAngle = currentDirection.angleTo(targetDirection);
+        
+        // Apply rotation if significant
+        if (rotationAxis.length() > 0.001 && rotationAngle > 0.001) {
+            rotationAxis.normalize();
+            
+            // Create and apply rotation quaternion
+            const rotationQuaternion = new THREE.Quaternion();
+            rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle * 0.5); // 0.5 for smoother motion
+            
+            this.mesh.quaternion.multiplyQuaternions(rotationQuaternion, this.mesh.quaternion);
+        }
+        
+        // Update velocity for smooth transition when leaving object
+        this.calculateVelocityFromHistory();
+    }
+    
+    applyVelocityRotation(currentMousePosition) {
         const deltaX = currentMousePosition.x - this.previousMousePosition.x;
         const deltaY = currentMousePosition.y - this.previousMousePosition.y;
         
-        // Convert mouse movement to spherical rotation
-        // This creates a more intuitive "grab and drag" feel
-        const rotateSpeed = 0.01; // Sensitivity
+        const rotateSpeed = 0.01;
         
         // Create rotation quaternion for horizontal movement (around world Y axis)
         const quaternionY = new THREE.Quaternion();
@@ -678,20 +806,43 @@ export class ThreeD_component_engine {
         const quaternionX = new THREE.Quaternion();
         quaternionX.setFromAxisAngle(rightVector, -deltaY * rotateSpeed);
         
-        // Apply rotations: first Y (global), then X (local)
+        // Apply rotations
         this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
         this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
         
-        // Update velocity for momentum (simplified for quaternion rotation)
+        // Update velocity for momentum
         this.rotationVelocity.x = -deltaY * rotateSpeed * 0.5;
         this.rotationVelocity.y = -deltaX * rotateSpeed * 0.5;
+    }
+    
+    calculateVelocityFromHistory() {
+        if (this.mousePositionHistory.length < 2) {
+            this.rotationVelocity = { x: 0, y: 0 };
+            return;
+        }
         
-        this.previousMousePosition = currentMousePosition;
+        // Use the last few positions to calculate average velocity
+        const recent = this.mousePositionHistory.slice(-3);
+        const first = recent[0];
+        const last = recent[recent.length - 1];
+        
+        const deltaTime = (last.time - first.time) / 1000; // Convert to seconds
+        if (deltaTime > 0) {
+            const deltaX = last.position.x - first.position.x;
+            const deltaY = last.position.y - first.position.y;
+            
+            const rotateSpeed = 0.01;
+            this.rotationVelocity.x = -deltaY * rotateSpeed * 0.5 / deltaTime;
+            this.rotationVelocity.y = -deltaX * rotateSpeed * 0.5 / deltaTime;
+        }
     }
     
     onPointerUp() {
         this.isDragging = false;
         this.renderer.domElement.style.cursor = 'grab';
+        this.grabbedPoint = null;
+        this.grabbedLocalPoint = null;
+        this.rotationMode = 'velocity';
     }
     
     onTouchStart(event) {
