@@ -720,29 +720,16 @@ export class ThreeD_component_engine {
         mouse.x = (currentMousePosition.x / rect.width) * 2 - 1;
         mouse.y = -(currentMousePosition.y / rect.height) * 2 + 1;
         
-        // Apply sticky point rotation
-        this.applyStickyRotation(mouse);
+        // Apply sticky point translation
+        this.applyStickyTranslation(mouse);
         
-        // Track actual rotation that occurred
-        const rotationDelta = new THREE.Quaternion();
-        rotationDelta.multiplyQuaternions(this.mesh.quaternion, beforeRotation.conjugate());
-        
-        this.rotationHistory.push({
-            quaternion: rotationDelta,
-            time: Date.now()
-        });
-        
-        if (this.rotationHistory.length > this.maxHistoryLength) {
-            this.rotationHistory.shift();
-        }
-        
-        // Calculate velocity from actual rotation
-        this.calculateVelocityFromRotation();
+        // For pure translation, set rotation velocity to zero
+        this.rotationVelocity = { x: 0, y: 0 };
         
         this.previousMousePosition = currentMousePosition;
     }
     
-    applyStickyRotation(mouseNDC) {
+    applyStickyTranslation(mouseNDC) {
         // Get the current world position of the grabbed point
         const currentWorldPoint = this.grabbedLocalPoint.clone();
         this.mesh.localToWorld(currentWorldPoint);
@@ -751,29 +738,18 @@ export class ThreeD_component_engine {
         this.raycaster.setFromCamera(mouseNDC, this.camera);
         const ray = this.raycaster.ray;
         
-        // Find the point on the ray at the same distance as grabbed point
+        // Find where the ray intersects at the same distance as the grabbed point
         const cameraToGrabbed = currentWorldPoint.clone().sub(this.camera.position);
         const distance = cameraToGrabbed.length();
         const targetPoint = ray.origin.clone().add(ray.direction.clone().multiplyScalar(distance));
         
-        // Calculate rotation to align grabbed point with target
-        const currentDirection = currentWorldPoint.clone().sub(this.mesh.position).normalize();
-        const targetDirection = targetPoint.clone().sub(this.mesh.position).normalize();
+        // Calculate the translation needed to move grabbed point to target
+        const translation = targetPoint.clone().sub(currentWorldPoint);
         
-        // Calculate rotation axis and angle
-        const rotationAxis = currentDirection.clone().cross(targetDirection);
-        const rotationAngle = currentDirection.angleTo(targetDirection);
+        // Apply translation to keep the grabbed point under the cursor
+        this.mesh.position.add(translation);
         
-        // Apply rotation if significant
-        if (rotationAxis.length() > 0.001 && rotationAngle > 0.001) {
-            rotationAxis.normalize();
-            
-            // Create and apply rotation quaternion
-            const rotationQuaternion = new THREE.Quaternion();
-            rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle); // Perfect tracking
-            
-            this.mesh.quaternion.multiplyQuaternions(rotationQuaternion, this.mesh.quaternion);
-        }
+        // No rotation needed - the grabbed point now perfectly tracks the cursor via translation
     }
     
     calculateVelocityFromRotation() {
