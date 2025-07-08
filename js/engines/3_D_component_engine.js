@@ -662,11 +662,14 @@ export class ThreeD_component_engine {
         const deltaX = currentMousePosition.x - this.previousMousePosition.x;
         const deltaY = currentMousePosition.y - this.previousMousePosition.y;
         
-        this.mesh.rotation.y += deltaX * 0.01;
-        this.mesh.rotation.x += deltaY * 0.01;
+        // Fixed: Inverted Y rotation and reduced sensitivity for better control
+        const sensitivity = 0.005;  // Reduced from 0.01 for more precise control
+        this.mesh.rotation.y -= deltaX * sensitivity;  // Changed from += to -= to fix inversion
+        this.mesh.rotation.x += deltaY * sensitivity;
         
-        this.rotationVelocity.x = deltaY * 0.005;
-        this.rotationVelocity.y = deltaX * 0.005;
+        // Update velocity for momentum (with adjusted sensitivity)
+        this.rotationVelocity.x = deltaY * sensitivity * 0.5;
+        this.rotationVelocity.y = -deltaX * sensitivity * 0.5;  // Also inverted for consistency
         
         this.previousMousePosition = currentMousePosition;
     }
