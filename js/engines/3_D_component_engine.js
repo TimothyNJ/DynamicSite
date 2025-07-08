@@ -1012,7 +1012,7 @@ export class ThreeD_component_engine {
             rightVector.applyQuaternion(this.mesh.quaternion);
             
             const quaternionX = new THREE.Quaternion();
-            quaternionX.setFromAxisAngle(rightVector, -event.deltaY * sensitivity);
+            quaternionX.setFromAxisAngle(rightVector, event.deltaY * sensitivity);
             
             // Apply rotations
             this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
@@ -1024,7 +1024,7 @@ export class ThreeD_component_engine {
             // Add small momentum based on swipe speed
             // This makes the interaction feel more natural
             if (Math.abs(event.deltaX) > 0.5 || Math.abs(event.deltaY) > 0.5) {
-                this.rotationVelocity.x = -event.deltaY * sensitivity * 0.5;
+                this.rotationVelocity.x = event.deltaY * sensitivity * 0.5;
                 this.rotationVelocity.y = -event.deltaX * sensitivity * 0.5;
                 
                 // Cap velocities
