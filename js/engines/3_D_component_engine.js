@@ -751,28 +751,75 @@ export class ThreeD_component_engine {
         this.raycaster.setFromCamera(mouseNDC, this.camera);
         const ray = this.raycaster.ray;
         
-        // Find the point on the ray at the same distance as grabbed point
-        const cameraToGrabbed = currentWorldPoint.clone().sub(this.camera.position);
-        const distance = cameraToGrabbed.length();
-        const targetPoint = ray.origin.clone().add(ray.direction.clone().multiplyScalar(distance));
+        // Get the center of the object in world space
+        const center = new THREE.Vector3();
+        this.mesh.getWorldPosition(center);
         
-        // Calculate rotation to align grabbed point with target
-        const currentDirection = currentWorldPoint.clone().sub(this.mesh.position).normalize();
-        const targetDirection = targetPoint.clone().sub(this.mesh.position).normalize();
+        // Calculate vectors from center to current grabbed point and from center to camera
+        const centerToGrabbed = currentWorldPoint.clone().sub(center);
+        const centerToCamera = this.camera.position.clone().sub(center);
         
-        // Calculate rotation axis and angle
-        const rotationAxis = currentDirection.clone().cross(targetDirection);
-        const rotationAngle = currentDirection.angleTo(targetDirection);
+        // Find the plane that contains the center and is perpendicular to the camera direction
+        // This ensures rotation happens in a way that's visible to the camera
+        const cameraDirection = center.clone().sub(this.camera.position).normalize();
         
-        // Apply rotation if significant
-        if (rotationAxis.length() > 0.001 && rotationAngle > 0.001) {
-            rotationAxis.normalize();
+        // Project the grabbed point onto a sphere centered at the object's center
+        // This ensures we're always rotating around the center
+        const radius = centerToGrabbed.length();
+        
+        // Find where the mouse ray intersects with the sphere of rotation
+        // This is a ray-sphere intersection problem
+        const rayOriginToCenter = center.clone().sub(ray.origin);
+        const tca = rayOriginToCenter.dot(ray.direction);
+        const d2 = rayOriginToCenter.lengthSq() - tca * tca;
+        const radius2 = radius * radius;
+        
+        if (d2 > radius2) {
+            // Ray misses the sphere, find the closest point on the sphere to the ray
+            const closestPointOnRay = ray.origin.clone().add(ray.direction.clone().multiplyScalar(tca));
+            const directionToSphere = closestPointOnRay.clone().sub(center).normalize();
+            const targetPoint = center.clone().add(directionToSphere.multiplyScalar(radius));
             
-            // Create and apply rotation quaternion
-            const rotationQuaternion = new THREE.Quaternion();
-            rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle); // Perfect tracking
+            // Calculate rotation from current to target
+            const currentDirection = centerToGrabbed.normalize();
+            const targetDirection = targetPoint.clone().sub(center).normalize();
             
-            this.mesh.quaternion.multiplyQuaternions(rotationQuaternion, this.mesh.quaternion);
+            // The rotation axis must pass through the center
+            const rotationAxis = currentDirection.clone().cross(targetDirection);
+            const rotationAngle = currentDirection.angleTo(targetDirection);
+            
+            if (rotationAxis.length() > 0.001 && rotationAngle > 0.001) {
+                rotationAxis.normalize();
+                const rotationQuaternion = new THREE.Quaternion();
+                rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle);
+                this.mesh.quaternion.multiplyQuaternions(rotationQuaternion, this.mesh.quaternion);
+            }
+        } else {
+            // Ray intersects the sphere
+            const thc = Math.sqrt(radius2 - d2);
+            const t0 = tca - thc;
+            const t1 = tca + thc;
+            
+            // Use the closest intersection point
+            const t = t0 > 0 ? t0 : t1;
+            if (t > 0) {
+                const targetPoint = ray.origin.clone().add(ray.direction.clone().multiplyScalar(t));
+                
+                // Calculate rotation from current to target
+                const currentDirection = centerToGrabbed.normalize();
+                const targetDirection = targetPoint.clone().sub(center).normalize();
+                
+                // The rotation axis must pass through the center
+                const rotationAxis = currentDirection.clone().cross(targetDirection);
+                const rotationAngle = currentDirection.angleTo(targetDirection);
+                
+                if (rotationAxis.length() > 0.001 && rotationAngle > 0.001) {
+                    rotationAxis.normalize();
+                    const rotationQuaternion = new THREE.Quaternion();
+                    rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle);
+                    this.mesh.quaternion.multiplyQuaternions(rotationQuaternion, this.mesh.quaternion);
+                }
+            }
         }
     }
     
