@@ -832,8 +832,8 @@ export class ThreeD_component_engine {
             const rotationPerSecond = angle / deltaTime;
             
             // Decompose into Y (horizontal) and X (vertical) components
-            // with moderate scaling for natural momentum
-            const scale = 0.3; // Increased from 0.1 for more noticeable momentum
+            // with realistic scaling for air resistance
+            const scale = 0.5; // Increased for more realistic momentum transfer
             this.rotationVelocity.y = axis.y * rotationPerSecond * scale;
             this.rotationVelocity.x = axis.x * rotationPerSecond * scale;
             
@@ -1065,7 +1065,7 @@ export class ThreeD_component_engine {
         // Apply rotation
         if (!this.isDragging && this.config.enableAnimation) {
             // Momentum rotation using quaternions
-            if (Math.abs(this.rotationVelocity.x) > 0.001 || Math.abs(this.rotationVelocity.y) > 0.001) {
+            if (Math.abs(this.rotationVelocity.x) > 0.0001 || Math.abs(this.rotationVelocity.y) > 0.0001) {
                 // Apply momentum as quaternion rotations
                 const quaternionY = new THREE.Quaternion();
                 quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.rotationVelocity.y);
@@ -1081,9 +1081,9 @@ export class ThreeD_component_engine {
                 this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
                 this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
                 
-                // Dampen velocity - much slower decay for longer momentum
-                this.rotationVelocity.x *= 0.98;  // Only lose 2% per frame
-                this.rotationVelocity.y *= 0.98;
+                // Dampen velocity - very slow decay like a real object in air
+                this.rotationVelocity.x *= 0.995;  // Only lose 0.5% per frame
+                this.rotationVelocity.y *= 0.995;
             } else {
                 // Auto rotation when momentum stops
                 this.autoRotationTime += 0.01 * this.config.rotationSpeed;
