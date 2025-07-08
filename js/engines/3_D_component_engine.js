@@ -964,10 +964,11 @@ export class ThreeD_component_engine {
     }
     
     onWheel(event) {
+        event.preventDefault();
+        
         // Check if it's a pinch gesture (ctrl key or gesture)
         if (event.ctrlKey || event.metaKey) {
-            event.preventDefault();
-            
+            // Pinch to zoom behavior
             // Calculate scale based on deltaY magnitude for smooth scaling
             // Smaller movements = smaller changes
             const sensitivity = 0.0035;  // Middle ground between 0.002 and fixed 5%
@@ -998,6 +999,39 @@ export class ThreeD_component_engine {
             this.renderer.setSize(clampedWidth, clampedHeight);
             this.camera.aspect = clampedWidth / clampedHeight;
             this.camera.updateProjectionMatrix();
+        } else {
+            // Two-finger swipe for rotation
+            const sensitivity = 0.01; // Adjust for comfortable rotation speed
+            
+            // Apply rotation using quaternions (same approach as momentum)
+            const quaternionY = new THREE.Quaternion();
+            quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -event.deltaX * sensitivity);
+            
+            // Get the current right vector for X rotation
+            const rightVector = new THREE.Vector3(1, 0, 0);
+            rightVector.applyQuaternion(this.mesh.quaternion);
+            
+            const quaternionX = new THREE.Quaternion();
+            quaternionX.setFromAxisAngle(rightVector, -event.deltaY * sensitivity);
+            
+            // Apply rotations
+            this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
+            this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+            
+            // Reset auto-rotation time since user is interacting
+            this.autoRotationTime = 0;
+            
+            // Add small momentum based on swipe speed
+            // This makes the interaction feel more natural
+            if (Math.abs(event.deltaX) > 0.5 || Math.abs(event.deltaY) > 0.5) {
+                this.rotationVelocity.x = -event.deltaY * sensitivity * 0.5;
+                this.rotationVelocity.y = -event.deltaX * sensitivity * 0.5;
+                
+                // Cap velocities
+                const maxVel = 0.02;
+                this.rotationVelocity.x = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.x));
+                this.rotationVelocity.y = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.y));
+            }
         }
     }
     
