@@ -10,8 +10,8 @@
  * - Z-axis: Points towards the viewer (blue in debug mode)
  * 
  * Rotation Controls:
- * - Horizontal swipe/drag: Rotates around Y-axis (vertical axis)
- * - Vertical swipe/drag: Rotates around X-axis (horizontal axis)
+ * - Horizontal swipe/drag: Rotates around Y-axis (vertical world axis)
+ * - Vertical swipe/drag: Rotates around screen's horizontal axis (screen-space rotation)
  * - Pinch gesture: Scales the component
  * 
  * @class 3_D_component_engine
@@ -1017,13 +1017,15 @@ export class ThreeD_component_engine {
             const quaternionY = new THREE.Quaternion();
             quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -event.deltaX * sensitivity);
             
-            // Vertical swipe rotates around X-axis (horizontal axis through object)
-            // We need to get the current X-axis in world space since object may be rotated
-            const xAxis = new THREE.Vector3(1, 0, 0);
-            xAxis.applyQuaternion(this.mesh.quaternion);
+            // Vertical swipe rotates around screen's horizontal axis (X-axis in screen space)
+            // Calculate the horizontal axis in screen space
+            const cameraDirection = new THREE.Vector3();
+            this.camera.getWorldDirection(cameraDirection);
+            const screenXAxis = new THREE.Vector3();
+            screenXAxis.crossVectors(this.camera.up, cameraDirection).normalize();
             
             const quaternionX = new THREE.Quaternion();
-            quaternionX.setFromAxisAngle(xAxis, -event.deltaY * sensitivity);
+            quaternionX.setFromAxisAngle(screenXAxis, -event.deltaY * sensitivity);
             
             // Apply rotations
             this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
@@ -1162,12 +1164,14 @@ export class ThreeD_component_engine {
                 const quaternionY = new THREE.Quaternion();
                 quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.rotationVelocity.y);
                 
-                // Get the current X-axis (horizontal axis) for vertical rotation
-                const xAxis = new THREE.Vector3(1, 0, 0);
-                xAxis.applyQuaternion(this.mesh.quaternion);
+                // Get the screen's horizontal axis (X-axis in screen space) for vertical rotation
+                const cameraDirection = new THREE.Vector3();
+                this.camera.getWorldDirection(cameraDirection);
+                const screenXAxis = new THREE.Vector3();
+                screenXAxis.crossVectors(this.camera.up, cameraDirection).normalize();
                 
                 const quaternionX = new THREE.Quaternion();
-                quaternionX.setFromAxisAngle(xAxis, this.rotationVelocity.x);
+                quaternionX.setFromAxisAngle(screenXAxis, this.rotationVelocity.x);
                 
                 // Apply momentum rotations
                 this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
