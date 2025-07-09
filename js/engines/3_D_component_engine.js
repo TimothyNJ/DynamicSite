@@ -4,6 +4,16 @@
  * A reusable component engine for creating interactive 3D objects using Three.js.
  * Supports various geometries, textures, animations, and interactions.
  * 
+ * Coordinate System:
+ * - X-axis: Points to the right (red in debug mode)
+ * - Y-axis: Points up (green in debug mode)
+ * - Z-axis: Points towards the viewer (blue in debug mode)
+ * 
+ * Rotation Controls:
+ * - Horizontal swipe/drag: Rotates around Y-axis (vertical axis)
+ * - Vertical swipe/drag: Rotates around X-axis (horizontal axis)
+ * - Pinch gesture: Scales the component
+ * 
  * @class 3_D_component_engine
  */
 
@@ -1003,16 +1013,17 @@ export class ThreeD_component_engine {
             // Two-finger swipe for rotation
             const sensitivity = 0.01; // Adjust for comfortable rotation speed
             
-            // Apply rotation using quaternions (same approach as momentum)
+            // Horizontal swipe rotates around Y-axis (vertical axis through object)
             const quaternionY = new THREE.Quaternion();
             quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -event.deltaX * sensitivity);
             
-            // Get the current right vector for X rotation
-            const rightVector = new THREE.Vector3(1, 0, 0);
-            rightVector.applyQuaternion(this.mesh.quaternion);
+            // Vertical swipe rotates around X-axis (horizontal axis through object)
+            // We need to get the current X-axis in world space since object may be rotated
+            const xAxis = new THREE.Vector3(1, 0, 0);
+            xAxis.applyQuaternion(this.mesh.quaternion);
             
             const quaternionX = new THREE.Quaternion();
-            quaternionX.setFromAxisAngle(rightVector, -event.deltaY * sensitivity);
+            quaternionX.setFromAxisAngle(xAxis, -event.deltaY * sensitivity);
             
             // Apply rotations
             this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
@@ -1151,12 +1162,12 @@ export class ThreeD_component_engine {
                 const quaternionY = new THREE.Quaternion();
                 quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.rotationVelocity.y);
                 
-                // Get the current right vector for X rotation
-                const rightVector = new THREE.Vector3(1, 0, 0);
-                rightVector.applyQuaternion(this.mesh.quaternion);
+                // Get the current X-axis (horizontal axis) for vertical rotation
+                const xAxis = new THREE.Vector3(1, 0, 0);
+                xAxis.applyQuaternion(this.mesh.quaternion);
                 
                 const quaternionX = new THREE.Quaternion();
-                quaternionX.setFromAxisAngle(rightVector, this.rotationVelocity.x);
+                quaternionX.setFromAxisAngle(xAxis, this.rotationVelocity.x);
                 
                 // Apply momentum rotations
                 this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
