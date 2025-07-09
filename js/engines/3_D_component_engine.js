@@ -1025,7 +1025,7 @@ export class ThreeD_component_engine {
             screenXAxis.crossVectors(this.camera.up, cameraDirection).normalize();
             
             const quaternionX = new THREE.Quaternion();
-            quaternionX.setFromAxisAngle(screenXAxis, -event.deltaY * sensitivity);
+            quaternionX.setFromAxisAngle(screenXAxis, event.deltaY * sensitivity);
             
             // Apply rotations
             this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
