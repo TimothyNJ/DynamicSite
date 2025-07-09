@@ -12,6 +12,7 @@
  * Rotation Controls:
  * - Horizontal swipe/drag: Rotates around Y-axis (vertical world axis)
  * - Vertical swipe/drag: Rotates around screen's horizontal axis (screen-space rotation)
+ * - Two-finger spin: Rotates around camera's forward axis (Z-axis in view space)
  * - Pinch gesture: Scales the component
  * 
  * @class 3_D_component_engine
@@ -645,6 +646,7 @@ export class ThreeD_component_engine {
         // Initialize touch tracking
         this.touches = [];
         this.lastPinchDistance = null;
+        this.lastTouchAngle = null;  // For rotation tracking
         this.baseScale = 1;
         
         // Initialize raycaster for sticky point rotation
@@ -921,6 +923,9 @@ export class ThreeD_component_engine {
             const dx = this.touches[0].clientX - this.touches[1].clientX;
             const dy = this.touches[0].clientY - this.touches[1].clientY;
             this.lastPinchDistance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Initialize rotation angle
+            this.lastTouchAngle = Math.atan2(dy, dx);
         }
     }
     
@@ -930,38 +935,76 @@ export class ThreeD_component_engine {
         this.touches = Array.from(event.touches);
         
         if (this.touches.length === 2) {
-            // Calculate current pinch distance
+            // Calculate current vector between touches
             const dx = this.touches[0].clientX - this.touches[1].clientX;
             const dy = this.touches[0].clientY - this.touches[1].clientY;
             const currentPinchDistance = Math.sqrt(dx * dx + dy * dy);
+            const currentAngle = Math.atan2(dy, dx);
             
+            // Handle pinch-to-zoom
             if (this.lastPinchDistance) {
                 // Calculate scale change
                 const scaleDelta = currentPinchDistance / this.lastPinchDistance;
                 
-                // Calculate new dimensions
-                const currentWidth = this.container.offsetWidth;
-                const currentHeight = this.container.offsetHeight;
-                const newWidth = currentWidth * scaleDelta;
-                const newHeight = currentHeight * scaleDelta;
+                // Only apply scale if it's significant (not a rotation gesture)
+                const scaleThreshold = 0.02; // 2% change threshold
+                if (Math.abs(scaleDelta - 1) > scaleThreshold) {
+                    // Calculate new dimensions
+                    const currentWidth = this.container.offsetWidth;
+                    const currentHeight = this.container.offsetHeight;
+                    const newWidth = currentWidth * scaleDelta;
+                    const newHeight = currentHeight * scaleDelta;
+                    
+                    // Apply constraints
+                    const minSize = this.config.width * 0.25;  // Quarter original size
+                    const maxSize = this.config.width * 3;     // Triple original size
+                    const clampedWidth = Math.max(minSize, Math.min(maxSize, newWidth));
+                    const clampedHeight = Math.max(minSize, Math.min(maxSize, newHeight));
+                    
+                    // Update container size
+                    this.container.style.width = `${clampedWidth}px`;
+                    this.container.style.height = `${clampedHeight}px`;
+                    
+                    // Update Three.js renderer to match
+                    this.renderer.setSize(clampedWidth, clampedHeight);
+                    this.camera.aspect = clampedWidth / clampedHeight;
+                    this.camera.updateProjectionMatrix();
+                }
+            }
+            
+            // Handle rotation
+            if (this.lastTouchAngle !== null) {
+                // Calculate rotation change
+                let rotationDelta = currentAngle - this.lastTouchAngle;
                 
-                // Apply constraints
-                const minSize = this.config.width * 0.25;  // Quarter original size
-                const maxSize = this.config.width * 3;     // Triple original size
-                const clampedWidth = Math.max(minSize, Math.min(maxSize, newWidth));
-                const clampedHeight = Math.max(minSize, Math.min(maxSize, newHeight));
+                // Handle angle wrap-around
+                if (rotationDelta > Math.PI) {
+                    rotationDelta -= 2 * Math.PI;
+                } else if (rotationDelta < -Math.PI) {
+                    rotationDelta += 2 * Math.PI;
+                }
                 
-                // Update container size
-                this.container.style.width = `${clampedWidth}px`;
-                this.container.style.height = `${clampedHeight}px`;
-                
-                // Update Three.js renderer to match
-                this.renderer.setSize(clampedWidth, clampedHeight);
-                this.camera.aspect = clampedWidth / clampedHeight;
-                this.camera.updateProjectionMatrix();
+                // Apply rotation threshold to filter out noise
+                const rotationThreshold = 0.02; // radians
+                if (Math.abs(rotationDelta) > rotationThreshold) {
+                    // Apply rotation around camera's forward axis (Z-axis in view space)
+                    const cameraDirection = new THREE.Vector3();
+                    this.camera.getWorldDirection(cameraDirection);
+                    
+                    // Create rotation quaternion
+                    const quaternionZ = new THREE.Quaternion();
+                    quaternionZ.setFromAxisAngle(cameraDirection, -rotationDelta);
+                    
+                    // Apply rotation
+                    this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
+                    
+                    // Reset auto-rotation time
+                    this.autoRotationTime = 0;
+                }
             }
             
             this.lastPinchDistance = currentPinchDistance;
+            this.lastTouchAngle = currentAngle;
         }
     }
     
@@ -970,6 +1013,7 @@ export class ThreeD_component_engine {
         
         if (this.touches.length < 2) {
             this.lastPinchDistance = null;
+            this.lastTouchAngle = null;
         }
     }
     
