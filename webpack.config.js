@@ -18,6 +18,9 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     clean: true
   },
+  externals: {
+    'three': 'THREE'
+  },
   plugins: [
     new webpack.DefinePlugin({
       BUILD_TIMESTAMP: JSON.stringify(buildTimestamp)
