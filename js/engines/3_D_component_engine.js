@@ -1007,16 +1007,17 @@ export class ThreeD_component_engine {
             const quaternionY = new THREE.Quaternion();
             quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -event.deltaX * sensitivity);
             
-            // Get the current right vector for X rotation
-            const rightVector = new THREE.Vector3(1, 0, 0);
-            rightVector.applyQuaternion(this.mesh.quaternion);
+            // Get the current local X-axis for pitch rotation
+            const xAxis = new THREE.Vector3(1, 0, 0);
+            xAxis.applyQuaternion(this.mesh.quaternion);
             
             const quaternionX = new THREE.Quaternion();
-            quaternionX.setFromAxisAngle(rightVector, event.deltaY * sensitivity);
+            quaternionX.setFromAxisAngle(xAxis, event.deltaY * sensitivity);
             
-            // Apply rotations
-            this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
-            this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+            // Combine rotations before applying to avoid order dependency
+            const combinedRotation = new THREE.Quaternion();
+            combinedRotation.multiplyQuaternions(quaternionX, quaternionY);
+            this.mesh.quaternion.multiplyQuaternions(combinedRotation, this.mesh.quaternion);
             
             // Reset auto-rotation time since user is interacting
             this.autoRotationTime = 0;
@@ -1024,8 +1025,9 @@ export class ThreeD_component_engine {
             // Add small momentum based on swipe speed
             // This makes the interaction feel more natural
             if (Math.abs(event.deltaX) > 0.5 || Math.abs(event.deltaY) > 0.5) {
-                this.rotationVelocity.x = event.deltaY * sensitivity * 0.5;
-                this.rotationVelocity.y = -event.deltaX * sensitivity * 0.5;
+                // Match momentum signs to rotation signs for consistency
+                this.rotationVelocity.x = event.deltaY * sensitivity * 0.5;  // Positive deltaY = positive X rotation
+                this.rotationVelocity.y = -event.deltaX * sensitivity * 0.5; // Negative deltaX = positive Y rotation
                 
                 // Cap velocities
                 const maxVel = 0.02;
@@ -1151,12 +1153,12 @@ export class ThreeD_component_engine {
                 const quaternionY = new THREE.Quaternion();
                 quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.rotationVelocity.y);
                 
-                // Get the current right vector for X rotation
-                const rightVector = new THREE.Vector3(1, 0, 0);
-                rightVector.applyQuaternion(this.mesh.quaternion);
+                // Get the current local X-axis for pitch rotation
+                const xAxis = new THREE.Vector3(1, 0, 0);
+                xAxis.applyQuaternion(this.mesh.quaternion);
                 
                 const quaternionX = new THREE.Quaternion();
-                quaternionX.setFromAxisAngle(rightVector, this.rotationVelocity.x);
+                quaternionX.setFromAxisAngle(xAxis, this.rotationVelocity.x);
                 
                 // Apply momentum rotations
                 this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
