@@ -1259,8 +1259,34 @@ export class ThreeD_component_engine {
         this.isGesturing = false;
     }
     
+    // Helper method to check if cursor is within fog plane bounds
+    isCursorInFogPlane(event) {
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        const mousePosition = {
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top
+        };
+        
+        // Convert to normalized device coordinates (-1 to +1)
+        const mouse = new THREE.Vector2();
+        mouse.x = (mousePosition.x / rect.width) * 2 - 1;
+        mouse.y = -(mousePosition.y / rect.height) * 2 + 1;
+        
+        // Check if cursor intersects with fog plane
+        this.raycaster.setFromCamera(mouse, this.camera);
+        const fogIntersects = this.raycaster.intersectObject(this.fogPlane);
+        
+        return fogIntersects.length > 0;
+    }
+    
     onWheel(event) {
         event.preventDefault();
+        
+        // Check if cursor is within fog plane bounds
+        if (!this.isCursorInFogPlane(event)) {
+            // Cursor is outside fog plane, ignore swipe gestures
+            return;
+        }
         
         // Mark as gesturing
         this.isGesturing = true;
