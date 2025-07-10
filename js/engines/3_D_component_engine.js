@@ -1092,7 +1092,7 @@ export class ThreeD_component_engine {
                     const newHeight = currentHeight * scaleDelta;
                     
                     // Apply constraints
-                    const minSize = this.initialWidth * 0.25;  // Quarter original size
+                    const minSize = this.initialWidth * 0.5;  // Half original size
                     const maxSize = this.initialWidth * 3;     // Triple original size
                     const clampedWidth = Math.max(minSize, Math.min(maxSize, newWidth));
                     const clampedHeight = Math.max(minSize, Math.min(maxSize, newHeight));
@@ -1310,7 +1310,7 @@ export class ThreeD_component_engine {
             const newHeight = currentHeight * scaleFactor;
             
             // Apply constraints
-            const minSize = this.initialWidth * 0.25;  // Quarter original size
+            const minSize = this.initialWidth * 0.5;  // Half original size
             const maxSize = this.initialWidth * 3;     // Triple original size
             
             // Also constrain by parent container width
