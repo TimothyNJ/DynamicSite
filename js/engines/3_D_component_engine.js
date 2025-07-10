@@ -71,6 +71,9 @@ export class ThreeD_component_engine {
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
+        this.onGestureStart = this.onGestureStart.bind(this);
+        this.onGestureChange = this.onGestureChange.bind(this);
+        this.onGestureEnd = this.onGestureEnd.bind(this);
     }
     
     mergeConfig(config) {
@@ -643,9 +646,15 @@ export class ThreeD_component_engine {
         this.renderer.domElement.addEventListener('touchend', this.onTouchEnd.bind(this));
         
         // WebKit gesture events for Safari trackpad support
-        this.renderer.domElement.addEventListener('gesturestart', this.onGestureStart.bind(this));
-        this.renderer.domElement.addEventListener('gesturechange', this.onGestureChange.bind(this));
-        this.renderer.domElement.addEventListener('gestureend', this.onGestureEnd.bind(this));
+        // Only add WebKit gesture events if they're supported
+        if ('GestureEvent' in window) {
+            console.log('[3D Component Engine] GestureEvent is supported - adding listeners');
+            this.renderer.domElement.addEventListener('gesturestart', this.onGestureStart.bind(this));
+            this.renderer.domElement.addEventListener('gesturechange', this.onGestureChange.bind(this));
+            this.renderer.domElement.addEventListener('gestureend', this.onGestureEnd.bind(this));
+        } else {
+            console.log('[3D Component Engine] GestureEvent is NOT supported in this browser');
+        }
         
         // Wheel event for trackpad pinch
         this.renderer.domElement.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
@@ -967,8 +976,8 @@ export class ThreeD_component_engine {
                     const newHeight = currentHeight * scaleDelta;
                     
                     // Apply constraints
-                    const minSize = this.config.width * 0.25;  // Quarter original size
-                    const maxSize = this.config.width * 3;     // Triple original size
+                    const minSize = this.initialWidth * 0.25;  // Quarter original size
+                    const maxSize = this.initialWidth * 3;     // Triple original size
                     const clampedWidth = Math.max(minSize, Math.min(maxSize, newWidth));
                     const clampedHeight = Math.max(minSize, Math.min(maxSize, newHeight));
                     
@@ -1035,6 +1044,7 @@ export class ThreeD_component_engine {
         // Store initial rotation and scale
         this.gestureRotation = event.rotation || 0;
         this.gestureScale = event.scale || 1;
+        console.log('[3D Component Engine] Gesture start - rotation:', this.gestureRotation, 'scale:', this.gestureScale);
     }
     
     onGestureChange(event) {
@@ -1043,9 +1053,10 @@ export class ThreeD_component_engine {
         // Handle rotation
         if (event.rotation !== undefined) {
             const rotationDelta = (event.rotation - this.gestureRotation) * Math.PI / 180; // Convert degrees to radians
+            console.log('[3D Component Engine] Gesture change - rotation:', event.rotation, 'delta (radians):', rotationDelta);
             
             // Apply rotation threshold
-            const rotationThreshold = 0.02; // radians
+            const rotationThreshold = 0.01; // radians (lowered from 0.02)
             if (Math.abs(rotationDelta) > rotationThreshold) {
                 // Apply rotation around camera's forward axis (Z-axis in view space)
                 const cameraDirection = new THREE.Vector3();
@@ -1058,6 +1069,7 @@ export class ThreeD_component_engine {
                 
                 // Reset auto-rotation time
                 this.autoRotationTime = 0;
+                console.log('[3D Component Engine] Rotation applied!');
             }
             
             this.gestureRotation = event.rotation;
@@ -1077,8 +1089,8 @@ export class ThreeD_component_engine {
                 const newHeight = currentHeight * scaleDelta;
                 
                 // Apply constraints
-                const minSize = this.config.width * 0.25;
-                const maxSize = this.config.width * 3;
+                const minSize = this.initialWidth * 0.25;
+                const maxSize = this.initialWidth * 3;
                 const clampedWidth = Math.max(minSize, Math.min(maxSize, newWidth));
                 const clampedHeight = Math.max(minSize, Math.min(maxSize, newHeight));
                 
@@ -1168,8 +1180,8 @@ export class ThreeD_component_engine {
             // Add small momentum based on swipe speed
             // This makes the interaction feel more natural
             if (Math.abs(event.deltaX) > 0.5 || Math.abs(event.deltaY) > 0.5) {
-                this.rotationVelocity.x = -event.deltaY * sensitivity * 0.5;
-                this.rotationVelocity.y = -event.deltaX * sensitivity * 0.5;
+                this.rotationVelocity.x = event.deltaY * sensitivity * 0.5;
+                this.rotationVelocity.y = event.deltaX * sensitivity * 0.5;
                 
                 // Cap velocities
                 const maxVel = 0.02;
@@ -1369,9 +1381,11 @@ export class ThreeD_component_engine {
             this.renderer.domElement.removeEventListener('touchend', this.onTouchEnd);
             
             // Remove WebKit gesture event listeners
-            this.renderer.domElement.removeEventListener('gesturestart', this.onGestureStart);
-            this.renderer.domElement.removeEventListener('gesturechange', this.onGestureChange);
-            this.renderer.domElement.removeEventListener('gestureend', this.onGestureEnd);
+            if ('GestureEvent' in window) {
+                this.renderer.domElement.removeEventListener('gesturestart', this.onGestureStart);
+                this.renderer.domElement.removeEventListener('gesturechange', this.onGestureChange);
+                this.renderer.domElement.removeEventListener('gestureend', this.onGestureEnd);
+            }
             
             // Remove wheel event listener
             this.renderer.domElement.removeEventListener('wheel', this.onWheel);
