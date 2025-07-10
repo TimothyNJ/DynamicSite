@@ -13,6 +13,8 @@
  * - Horizontal swipe/drag: Rotates around Y-axis (vertical world axis)
  * - Vertical swipe/drag: Rotates around screen's horizontal axis (screen-space rotation)
  * - Two-finger spin: Rotates around camera's forward axis (Z-axis in view space)
+ *   - Touch screens: Supported on all browsers
+ *   - Trackpad: Safari only (uses WebKit gesture events)
  * - Pinch gesture: Scales the component
  * 
  * @class 3_D_component_engine
@@ -640,6 +642,11 @@ export class ThreeD_component_engine {
         this.renderer.domElement.addEventListener('touchmove', this.onTouchMove.bind(this));
         this.renderer.domElement.addEventListener('touchend', this.onTouchEnd.bind(this));
         
+        // WebKit gesture events for Safari trackpad support
+        this.renderer.domElement.addEventListener('gesturestart', this.onGestureStart.bind(this));
+        this.renderer.domElement.addEventListener('gesturechange', this.onGestureChange.bind(this));
+        this.renderer.domElement.addEventListener('gestureend', this.onGestureEnd.bind(this));
+        
         // Wheel event for trackpad pinch
         this.renderer.domElement.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
         
@@ -648,6 +655,10 @@ export class ThreeD_component_engine {
         this.lastPinchDistance = null;
         this.lastTouchAngle = null;  // For rotation tracking
         this.baseScale = 1;
+        
+        // WebKit gesture tracking
+        this.gestureRotation = 0;
+        this.gestureScale = 1;
         
         // Initialize raycaster for sticky point rotation
         this.raycaster = new THREE.Raycaster();
@@ -1017,6 +1028,82 @@ export class ThreeD_component_engine {
         }
     }
     
+    // WebKit gesture events for Safari trackpad support
+    onGestureStart(event) {
+        event.preventDefault();
+        
+        // Store initial rotation and scale
+        this.gestureRotation = event.rotation || 0;
+        this.gestureScale = event.scale || 1;
+    }
+    
+    onGestureChange(event) {
+        event.preventDefault();
+        
+        // Handle rotation
+        if (event.rotation !== undefined) {
+            const rotationDelta = (event.rotation - this.gestureRotation) * Math.PI / 180; // Convert degrees to radians
+            
+            // Apply rotation threshold
+            const rotationThreshold = 0.02; // radians
+            if (Math.abs(rotationDelta) > rotationThreshold) {
+                // Apply rotation around camera's forward axis (Z-axis in view space)
+                const cameraDirection = new THREE.Vector3();
+                this.camera.getWorldDirection(cameraDirection);
+                
+                const quaternionZ = new THREE.Quaternion();
+                quaternionZ.setFromAxisAngle(cameraDirection, -rotationDelta);
+                
+                this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
+                
+                // Reset auto-rotation time
+                this.autoRotationTime = 0;
+            }
+            
+            this.gestureRotation = event.rotation;
+        }
+        
+        // Handle scale (pinch)
+        if (event.scale !== undefined) {
+            const scaleDelta = event.scale / this.gestureScale;
+            
+            // Apply scale threshold
+            const scaleThreshold = 0.02;
+            if (Math.abs(scaleDelta - 1) > scaleThreshold) {
+                // Calculate new dimensions
+                const currentWidth = this.container.offsetWidth;
+                const currentHeight = this.container.offsetHeight;
+                const newWidth = currentWidth * scaleDelta;
+                const newHeight = currentHeight * scaleDelta;
+                
+                // Apply constraints
+                const minSize = this.config.width * 0.25;
+                const maxSize = this.config.width * 3;
+                const clampedWidth = Math.max(minSize, Math.min(maxSize, newWidth));
+                const clampedHeight = Math.max(minSize, Math.min(maxSize, newHeight));
+                
+                // Update container size
+                this.container.style.width = `${clampedWidth}px`;
+                this.container.style.height = `${clampedHeight}px`;
+                
+                // Update Three.js renderer
+                this.renderer.setSize(clampedWidth, clampedHeight);
+                this.camera.aspect = clampedWidth / clampedHeight;
+                this.camera.updateProjectionMatrix();
+            }
+            
+            this.gestureScale = event.scale;
+        }
+    }
+    
+    onGestureEnd(event) {
+        event.preventDefault();
+        
+        // Reset gesture tracking
+        this.gestureRotation = 0;
+        this.gestureScale = 1;
+    }
+    
     onWheel(event) {
         event.preventDefault();
         
@@ -1280,6 +1367,11 @@ export class ThreeD_component_engine {
             this.renderer.domElement.removeEventListener('touchstart', this.onTouchStart);
             this.renderer.domElement.removeEventListener('touchmove', this.onTouchMove);
             this.renderer.domElement.removeEventListener('touchend', this.onTouchEnd);
+            
+            // Remove WebKit gesture event listeners
+            this.renderer.domElement.removeEventListener('gesturestart', this.onGestureStart);
+            this.renderer.domElement.removeEventListener('gesturechange', this.onGestureChange);
+            this.renderer.domElement.removeEventListener('gestureend', this.onGestureEnd);
             
             // Remove wheel event listener
             this.renderer.domElement.removeEventListener('wheel', this.onWheel);
