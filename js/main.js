@@ -268,6 +268,12 @@ function initializeSettingsComponents() {
         // Call the global toggleBorders function from script.js
         if (window.toggleBorders) {
           window.toggleBorders();
+          
+          // Save the state - check if borders are currently hidden
+          const siteContainer = document.querySelector('.site-container');
+          const bordersHidden = siteContainer && siteContainer.classList.contains('borders-hidden');
+          localStorage.setItem('showBorders', bordersHidden ? 'false' : 'true');
+          console.log('[Borders Toggle] Borders are now:', bordersHidden ? 'hidden' : 'visible');
         } else {
           console.error('[Borders Toggle] toggleBorders function not found');
         }
@@ -429,9 +435,19 @@ function initializeApp() {
   
   // Initialize borders based on saved preference (default to true)
   const bordersEnabled = localStorage.getItem('showBorders') !== 'false';
-  if (bordersEnabled && window.toggleBorders) {
-    console.log('[main.js] Enabling borders by default');
-    window.toggleBorders();
+  if (bordersEnabled) {
+    console.log('[main.js] Borders should be enabled, waiting for toggleBorders function...');
+    // Wait for script.js to load and define toggleBorders
+    const checkForToggleBorders = setInterval(() => {
+      if (window.toggleBorders) {
+        console.log('[main.js] toggleBorders function found, enabling borders');
+        window.toggleBorders();
+        clearInterval(checkForToggleBorders);
+      }
+    }, 100); // Check every 100ms
+    
+    // Stop checking after 5 seconds
+    setTimeout(() => clearInterval(checkForToggleBorders), 5000);
   }
   
   // Apply saved theme preference if it exists, default to dark
