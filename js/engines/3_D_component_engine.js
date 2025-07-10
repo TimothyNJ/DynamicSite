@@ -52,6 +52,22 @@ export class ThreeD_component_engine {
         this.rotationVelocity = { x: 0, y: 0 };
         this.autoRotationTime = 0;
         
+        // Gesture state machine
+        this.gestureState = {
+            type: 'none', // 'none', 'swipe', 'twist', 'pinch', 'drag'
+            startTime: 0,
+            lastUpdateTime: 0,
+            transitionCooldown: 100, // ms to wait before allowing new gesture type
+            // Swipe-specific state
+            swipeVelocity: { x: 0, y: 0 },
+            // Twist-specific state  
+            twistAngle: null,
+            twistVelocity: 0,
+            // Pinch-specific state
+            pinchDistance: null,
+            pinchVelocity: 0
+        };
+        
         // Store initial dimensions for constraint calculations
         this.initialWidth = null;
         this.initialHeight = null;
@@ -679,6 +695,76 @@ export class ThreeD_component_engine {
         this.previousQuaternion = null;
         this.rotationHistory = [];
         this.maxHistoryLength = 5;
+        
+        // Wheel gesture timeout
+        this.wheelGestureTimeout = null;
+    }
+    
+    // Gesture state management
+    detectGestureType(dx, dy, currentDistance, currentAngle) {
+        const now = Date.now();
+        const timeSinceLastUpdate = now - this.gestureState.lastUpdateTime;
+        
+        // If we're in cooldown period, maintain current gesture type
+        if (now - this.gestureState.startTime < this.gestureState.transitionCooldown) {
+            return this.gestureState.type;
+        }
+        
+        // Calculate gesture metrics
+        let distanceChange = 0;
+        let angleChange = 0;
+        let hasSignificantPinch = false;
+        let hasSignificantTwist = false;
+        
+        // Check for pinch
+        if (this.gestureState.pinchDistance !== null) {
+            distanceChange = Math.abs(currentDistance - this.gestureState.pinchDistance);
+            hasSignificantPinch = distanceChange > currentDistance * 0.02; // 2% threshold
+        }
+        
+        // Check for twist
+        if (this.gestureState.twistAngle !== null) {
+            angleChange = Math.abs(currentAngle - this.gestureState.twistAngle);
+            // Handle angle wrap-around
+            if (angleChange > Math.PI) {
+                angleChange = 2 * Math.PI - angleChange;
+            }
+            hasSignificantTwist = angleChange > 0.02; // radians threshold
+        }
+        
+        // Determine gesture type based on which is dominant
+        if (hasSignificantPinch && !hasSignificantTwist) {
+            return 'pinch';
+        } else if (hasSignificantTwist && !hasSignificantPinch) {
+            return 'twist';
+        } else if (hasSignificantPinch && hasSignificantTwist) {
+            // Both are significant - choose based on relative magnitude
+            const pinchRatio = distanceChange / currentDistance;
+            const twistRatio = angleChange / Math.PI;
+            return pinchRatio > twistRatio ? 'pinch' : 'twist';
+        } else {
+            // No significant pinch or twist - it's a swipe
+            return 'swipe';
+        }
+    }
+    
+    transitionGesture(newType) {
+        if (this.gestureState.type !== newType) {
+            console.log(`[3D Component] Gesture transition: ${this.gestureState.type} -> ${newType}`);
+            this.gestureState.type = newType;
+            this.gestureState.startTime = Date.now();
+            
+            // Clear state for previous gesture type
+            if (newType !== 'swipe') {
+                this.gestureState.swipeVelocity = { x: 0, y: 0 };
+            }
+            if (newType !== 'twist') {
+                this.gestureState.twistVelocity = 0;
+            }
+            if (newType !== 'pinch') {
+                this.gestureState.pinchVelocity = 0;
+            }
+        }
     }
     
     onPointerDown(event) {
@@ -942,6 +1028,7 @@ export class ThreeD_component_engine {
         if (this.touches.length === 1) {
             // Single touch - could be drag for momentum
             // Let pointer events handle this
+            this.gestureState.type = 'drag';
         } else if (this.touches.length === 2) {
             // Two-finger touch - controlled gesture, no momentum
             // Set gesture flag to prevent momentum during touch
@@ -954,6 +1041,12 @@ export class ThreeD_component_engine {
             
             // Initialize rotation angle
             this.lastTouchAngle = Math.atan2(dy, dx);
+            
+            // Initialize gesture state
+            this.gestureState.pinchDistance = this.lastPinchDistance;
+            this.gestureState.twistAngle = this.lastTouchAngle;
+            this.gestureState.lastUpdateTime = Date.now();
+            this.gestureState.type = 'none'; // Will be determined on first move
         }
     }
     
@@ -969,8 +1062,12 @@ export class ThreeD_component_engine {
             const currentPinchDistance = Math.sqrt(dx * dx + dy * dy);
             const currentAngle = Math.atan2(dy, dx);
             
+            // Detect gesture type
+            const detectedGesture = this.detectGestureType(dx, dy, currentPinchDistance, currentAngle);
+            this.transitionGesture(detectedGesture);
+            
             // Handle pinch-to-zoom
-            if (this.lastPinchDistance) {
+            if (this.gestureState.type === 'pinch' && this.lastPinchDistance) {
                 // Calculate scale change
                 const scaleDelta = currentPinchDistance / this.lastPinchDistance;
                 
@@ -1001,7 +1098,7 @@ export class ThreeD_component_engine {
             }
             
             // Handle rotation - NO MOMENTUM for controlled gestures
-            if (this.lastTouchAngle !== null) {
+            if (this.gestureState.type === 'twist' && this.lastTouchAngle !== null) {
                 // Calculate rotation change
                 let rotationDelta = currentAngle - this.lastTouchAngle;
                 
@@ -1034,8 +1131,14 @@ export class ThreeD_component_engine {
                 }
             }
             
-            this.lastPinchDistance = currentPinchDistance;
-            this.lastTouchAngle = currentAngle;
+            // Update state based on gesture type
+            if (this.gestureState.type !== 'none') {
+                this.lastPinchDistance = currentPinchDistance;
+                this.lastTouchAngle = currentAngle;
+                this.gestureState.pinchDistance = currentPinchDistance;
+                this.gestureState.twistAngle = currentAngle;
+                this.gestureState.lastUpdateTime = Date.now();
+            }
         }
     }
     
@@ -1047,6 +1150,12 @@ export class ThreeD_component_engine {
             this.lastTouchAngle = null;
             // Clear gesture flag when touch ends
             this.isGesturing = false;
+            
+            // Reset gesture state
+            this.gestureState.type = 'none';
+            this.gestureState.startTime = 0;
+            this.gestureState.pinchDistance = null;
+            this.gestureState.twistAngle = null;
         }
     }
     
@@ -1142,8 +1251,15 @@ export class ThreeD_component_engine {
     onWheel(event) {
         event.preventDefault();
         
+        // Mark as gesturing
+        this.isGesturing = true;
+        const now = Date.now();
+        
         // Check if it's a pinch gesture (ctrl key or gesture)
         if (event.ctrlKey || event.metaKey) {
+            // Transition to pinch gesture
+            this.transitionGesture('pinch');
+            
             // Pinch to zoom behavior - NO MOMENTUM
             // Calculate scale based on deltaY magnitude for smooth scaling
             const sensitivity = 0.0035;  // Middle ground between 0.002 and fixed 5%
@@ -1174,7 +1290,13 @@ export class ThreeD_component_engine {
             this.renderer.setSize(clampedWidth, clampedHeight);
             this.camera.aspect = clampedWidth / clampedHeight;
             this.camera.updateProjectionMatrix();
+            
+            // Update gesture state
+            this.gestureState.lastUpdateTime = now;
         } else {
+            // Transition to swipe gesture
+            this.transitionGesture('swipe');
+            
             // Two-finger swipe for controlled rotation - NO MOMENTUM
             const sensitivity = 0.01; // Adjust for comfortable rotation speed
             
@@ -1200,7 +1322,20 @@ export class ThreeD_component_engine {
             
             // IMPORTANT: No velocity calculation for wheel events
             // Wheel scrolling is for precise control, not throwing
+            
+            // Update gesture state
+            this.gestureState.lastUpdateTime = now;
         }
+        
+        // Set a short timeout to clear gesture state
+        if (this.wheelGestureTimeout) {
+            clearTimeout(this.wheelGestureTimeout);
+        }
+        this.wheelGestureTimeout = setTimeout(() => {
+            this.isGesturing = false;
+            this.gestureState.type = 'none';
+            this.gestureState.startTime = 0;
+        }, 150);
     }
     
     updateAnimatedTexture(time) {
@@ -1404,6 +1539,11 @@ export class ThreeD_component_engine {
             
             this.renderer.dispose();
             this.container.removeChild(this.renderer.domElement);
+        }
+        
+        // Clear timeouts
+        if (this.wheelGestureTimeout) {
+            clearTimeout(this.wheelGestureTimeout);
         }
         
         if (this.geometry) {
