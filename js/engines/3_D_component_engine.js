@@ -47,6 +47,7 @@ export class ThreeD_component_engine {
         this.animationId = null;
         this.isInitialized = false;
         this.isDragging = false;
+        this.isGesturing = false;  // Track if any gesture (touch/trackpad) is active
         this.previousMousePosition = { x: 0, y: 0 };
         this.rotationVelocity = { x: 0, y: 0 };
         this.autoRotationTime = 0;
@@ -939,6 +940,9 @@ export class ThreeD_component_engine {
         this.touches = Array.from(event.touches);
         
         if (this.touches.length === 2) {
+            // Set gesture flag to prevent momentum during touch
+            this.isGesturing = true;
+            
             // Initialize pinch distance
             const dx = this.touches[0].clientX - this.touches[1].clientX;
             const dy = this.touches[0].clientY - this.touches[1].clientY;
@@ -1034,12 +1038,17 @@ export class ThreeD_component_engine {
         if (this.touches.length < 2) {
             this.lastPinchDistance = null;
             this.lastTouchAngle = null;
+            // Clear gesture flag when touch ends
+            this.isGesturing = false;
         }
     }
     
     // WebKit gesture events for Safari trackpad support
     onGestureStart(event) {
         event.preventDefault();
+        
+        // Set gesture flag to prevent momentum during gesture
+        this.isGesturing = true;
         
         // Store initial rotation and scale
         this.gestureRotation = event.rotation || 0;
@@ -1114,6 +1123,9 @@ export class ThreeD_component_engine {
         // Reset gesture tracking
         this.gestureRotation = 0;
         this.gestureScale = 1;
+        
+        // Clear gesture flag when gesture ends
+        this.isGesturing = false;
     }
     
     onWheel(event) {
@@ -1299,8 +1311,8 @@ export class ThreeD_component_engine {
             this.updateFogTexture(time);
         }
         
-        // Apply rotation
-        if (!this.isDragging && this.config.enableAnimation) {
+        // Apply rotation only when not actively interacting
+        if (!this.isDragging && !this.isGesturing && this.config.enableAnimation) {
             // Momentum rotation using quaternions
             if (Math.abs(this.rotationVelocity.x) > 0.0001 || Math.abs(this.rotationVelocity.y) > 0.0001) {
                 // Apply momentum as quaternion rotations
