@@ -670,6 +670,9 @@ export class ThreeD_component_engine {
         this.gestureRotation = 0;
         this.gestureScale = 1;
         
+        // Wheel event timeout for gesture tracking
+        this.wheelTimeout = null;
+        
         // Initialize raycaster for sticky point rotation
         this.raycaster = new THREE.Raycaster();
         this.grabbedPoint = null;
@@ -1017,7 +1020,7 @@ export class ThreeD_component_engine {
                     
                     // Create rotation quaternion
                     const quaternionZ = new THREE.Quaternion();
-                    quaternionZ.setFromAxisAngle(cameraDirection, -rotationDelta);
+                    quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta); // Removed negative sign for consistency
                     
                     // Apply rotation
                     this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
@@ -1072,7 +1075,7 @@ export class ThreeD_component_engine {
                 this.camera.getWorldDirection(cameraDirection);
                 
                 const quaternionZ = new THREE.Quaternion();
-                quaternionZ.setFromAxisAngle(cameraDirection, -rotationDelta);
+                quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta); // Removed negative sign
                 
                 this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
                 
@@ -1130,6 +1133,19 @@ export class ThreeD_component_engine {
     
     onWheel(event) {
         event.preventDefault();
+        
+        // Set gesture flag during wheel events to prevent momentum
+        this.isGesturing = true;
+        
+        // Clear any existing timeout
+        if (this.wheelTimeout) {
+            clearTimeout(this.wheelTimeout);
+        }
+        
+        // Set a timeout to clear the gesture flag after wheel events stop
+        this.wheelTimeout = setTimeout(() => {
+            this.isGesturing = false;
+        }, 150); // 150ms after last wheel event
         
         // Check if it's a pinch gesture (ctrl key or gesture)
         if (event.ctrlKey || event.metaKey) {
@@ -1189,17 +1205,8 @@ export class ThreeD_component_engine {
             // Reset auto-rotation time since user is interacting
             this.autoRotationTime = 0;
             
-            // Add small momentum based on swipe speed
-            // This makes the interaction feel more natural
-            if (Math.abs(event.deltaX) > 0.5 || Math.abs(event.deltaY) > 0.5) {
-                this.rotationVelocity.x = event.deltaY * sensitivity * 0.5;
-                this.rotationVelocity.y = event.deltaX * sensitivity * 0.5;
-                
-                // Cap velocities
-                const maxVel = 0.02;
-                this.rotationVelocity.x = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.x));
-                this.rotationVelocity.y = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.y));
-            }
+            // DON'T add momentum during active scrolling - it will be calculated
+            // from actual rotation history when the gesture ends
         }
     }
     
@@ -1379,6 +1386,11 @@ export class ThreeD_component_engine {
         
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
+        }
+        
+        // Clear any pending wheel timeout
+        if (this.wheelTimeout) {
+            clearTimeout(this.wheelTimeout);
         }
         
         if (this.renderer) {
