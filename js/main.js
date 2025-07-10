@@ -261,6 +261,13 @@ function initializeSettingsComponents() {
     applyThemeByName(savedTheme);
     
     // Size Guides and Borders Button
+    // Check if borders are enabled (default to true)
+    const bordersEnabled = localStorage.getItem('showBorders') !== 'false';
+    if (bordersEnabled && window.toggleBorders) {
+      // Toggle borders on if they should be enabled
+      window.toggleBorders();
+    }
+    
     componentFactory.createTextButton('borders-toggle-button-container', {
       id: 'borders-toggle-button',
       text: 'Size Guides and Borders',
