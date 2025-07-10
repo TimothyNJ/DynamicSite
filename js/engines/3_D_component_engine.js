@@ -768,7 +768,6 @@ export class ThreeD_component_engine {
     }
     
     onPointerDown(event) {
-        this.isDragging = true;
         const rect = this.renderer.domElement.getBoundingClientRect();
         this.previousMousePosition = {
             x: event.clientX - rect.left,
@@ -780,8 +779,20 @@ export class ThreeD_component_engine {
         mouse.x = (this.previousMousePosition.x / rect.width) * 2 - 1;
         mouse.y = -(this.previousMousePosition.y / rect.height) * 2 + 1;
         
-        // Raycast to find the initial grabbed point on the object
+        // First check if we're clicking within the fog plane bounds
         this.raycaster.setFromCamera(mouse, this.camera);
+        const fogIntersects = this.raycaster.intersectObject(this.fogPlane);
+        
+        // Only allow drag if clicking within fog plane (green border)
+        if (fogIntersects.length === 0) {
+            // Click is outside fog plane, ignore drag
+            return;
+        }
+        
+        // If we're here, click is within fog plane, proceed with drag
+        this.isDragging = true;
+        
+        // Raycast to find the initial grabbed point on the object
         const intersects = this.raycaster.intersectObject(this.mesh);
         
         if (intersects.length > 0) {
