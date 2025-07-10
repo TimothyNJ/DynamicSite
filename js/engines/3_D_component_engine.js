@@ -1280,13 +1280,14 @@ export class ThreeD_component_engine {
     }
     
     onWheel(event) {
-        event.preventDefault();
-        
         // Check if cursor is within fog plane bounds
         if (!this.isCursorInFogPlane(event)) {
-            // Cursor is outside fog plane, ignore swipe gestures
+            // Cursor is outside fog plane, let the page scroll normally
             return;
         }
+        
+        // Only prevent default scrolling if we're going to handle the gesture
+        event.preventDefault();
         
         // Mark as gesturing
         this.isGesturing = true;
