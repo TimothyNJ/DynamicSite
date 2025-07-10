@@ -670,9 +670,6 @@ export class ThreeD_component_engine {
         this.gestureRotation = 0;
         this.gestureScale = 1;
         
-        // Wheel event timeout for gesture tracking
-        this.wheelTimeout = null;
-        
         // Initialize raycaster for sticky point rotation
         this.raycaster = new THREE.Raycaster();
         this.grabbedPoint = null;
@@ -942,7 +939,11 @@ export class ThreeD_component_engine {
         
         this.touches = Array.from(event.touches);
         
-        if (this.touches.length === 2) {
+        if (this.touches.length === 1) {
+            // Single touch - could be drag for momentum
+            // Let pointer events handle this
+        } else if (this.touches.length === 2) {
+            // Two-finger touch - controlled gesture, no momentum
             // Set gesture flag to prevent momentum during touch
             this.isGesturing = true;
             
@@ -999,7 +1000,7 @@ export class ThreeD_component_engine {
                 }
             }
             
-            // Handle rotation
+            // Handle rotation - NO MOMENTUM for controlled gestures
             if (this.lastTouchAngle !== null) {
                 // Calculate rotation change
                 let rotationDelta = currentAngle - this.lastTouchAngle;
@@ -1020,13 +1021,16 @@ export class ThreeD_component_engine {
                     
                     // Create rotation quaternion
                     const quaternionZ = new THREE.Quaternion();
-                    quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta); // Removed negative sign for consistency
+                    quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta);
                     
-                    // Apply rotation
+                    // Apply rotation directly - this is controlled movement
                     this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
                     
                     // Reset auto-rotation time
                     this.autoRotationTime = 0;
+                    
+                    // IMPORTANT: No velocity calculation for touch rotation
+                    // Two-finger rotate is for precise control
                 }
             }
             
@@ -1062,26 +1066,30 @@ export class ThreeD_component_engine {
     onGestureChange(event) {
         event.preventDefault();
         
-        // Handle rotation
+        // Handle rotation - NO MOMENTUM for controlled gestures
         if (event.rotation !== undefined) {
             const rotationDelta = (event.rotation - this.gestureRotation) * Math.PI / 180; // Convert degrees to radians
             console.log('[3D Component Engine] Gesture change - rotation:', event.rotation, 'delta (radians):', rotationDelta);
             
             // Apply rotation threshold
-            const rotationThreshold = 0.01; // radians (lowered from 0.02)
+            const rotationThreshold = 0.01; // radians
             if (Math.abs(rotationDelta) > rotationThreshold) {
                 // Apply rotation around camera's forward axis (Z-axis in view space)
                 const cameraDirection = new THREE.Vector3();
                 this.camera.getWorldDirection(cameraDirection);
                 
                 const quaternionZ = new THREE.Quaternion();
-                quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta); // Removed negative sign
+                quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta);
                 
+                // Apply rotation directly - this is controlled movement
                 this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
                 
                 // Reset auto-rotation time
                 this.autoRotationTime = 0;
                 console.log('[3D Component Engine] Rotation applied!');
+                
+                // IMPORTANT: No velocity calculation for WebKit gestures
+                // Trackpad gestures are for precise control
             }
             
             this.gestureRotation = event.rotation;
@@ -1134,24 +1142,10 @@ export class ThreeD_component_engine {
     onWheel(event) {
         event.preventDefault();
         
-        // Set gesture flag during wheel events to prevent momentum
-        this.isGesturing = true;
-        
-        // Clear any existing timeout
-        if (this.wheelTimeout) {
-            clearTimeout(this.wheelTimeout);
-        }
-        
-        // Set a timeout to clear the gesture flag after wheel events stop
-        this.wheelTimeout = setTimeout(() => {
-            this.isGesturing = false;
-        }, 150); // 150ms after last wheel event
-        
         // Check if it's a pinch gesture (ctrl key or gesture)
         if (event.ctrlKey || event.metaKey) {
-            // Pinch to zoom behavior
+            // Pinch to zoom behavior - NO MOMENTUM
             // Calculate scale based on deltaY magnitude for smooth scaling
-            // Smaller movements = smaller changes
             const sensitivity = 0.0035;  // Middle ground between 0.002 and fixed 5%
             const scaleFactor = 1 - (event.deltaY * sensitivity);
             
@@ -1181,7 +1175,7 @@ export class ThreeD_component_engine {
             this.camera.aspect = clampedWidth / clampedHeight;
             this.camera.updateProjectionMatrix();
         } else {
-            // Two-finger swipe for rotation
+            // Two-finger swipe for controlled rotation - NO MOMENTUM
             const sensitivity = 0.01; // Adjust for comfortable rotation speed
             
             // Horizontal swipe rotates around Y-axis (vertical axis through object)
@@ -1189,7 +1183,6 @@ export class ThreeD_component_engine {
             quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -event.deltaX * sensitivity);
             
             // Vertical swipe rotates around screen's horizontal axis (X-axis in screen space)
-            // Calculate the horizontal axis in screen space
             const cameraDirection = new THREE.Vector3();
             this.camera.getWorldDirection(cameraDirection);
             const screenXAxis = new THREE.Vector3();
@@ -1198,15 +1191,15 @@ export class ThreeD_component_engine {
             const quaternionX = new THREE.Quaternion();
             quaternionX.setFromAxisAngle(screenXAxis, event.deltaY * sensitivity);
             
-            // Apply rotations
+            // Apply rotations directly - this is controlled movement
             this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
             this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
             
             // Reset auto-rotation time since user is interacting
             this.autoRotationTime = 0;
             
-            // DON'T add momentum during active scrolling - it will be calculated
-            // from actual rotation history when the gesture ends
+            // IMPORTANT: No velocity calculation for wheel events
+            // Wheel scrolling is for precise control, not throwing
         }
     }
     
@@ -1386,11 +1379,6 @@ export class ThreeD_component_engine {
         
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
-        }
-        
-        // Clear any pending wheel timeout
-        if (this.wheelTimeout) {
-            clearTimeout(this.wheelTimeout);
         }
         
         if (this.renderer) {
