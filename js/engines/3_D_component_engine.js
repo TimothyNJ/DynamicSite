@@ -216,6 +216,8 @@ export class ThreeD_component_engine {
         
         // Set container styles for flex layout participation
         this.container.style.display = 'flex';  // Make it a flex container
+        this.container.style.justifyContent = 'center';  // Center horizontally
+        this.container.style.alignItems = 'center';  // Center vertically
         this.container.style.flex = '0 1 auto';  // No grow, CAN shrink, auto basis
         this.container.style.maxWidth = '100%';
         this.container.style.width = `${this.config.width}px`;
