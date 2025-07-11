@@ -99,6 +99,9 @@ export class ThreeD_component_engine {
             width: 100,
             height: 100,
             
+            // Responsive mode flag
+            responsive: false,  // If true, uses CSS variable for sizing
+            
             // Geometry settings
             geometry: 'roundedBox', // 'roundedBox', 'sphere', 'torus', 'cylinder'
             geometryParams: {
@@ -211,7 +214,13 @@ export class ThreeD_component_engine {
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.renderer.setClearColor(0x000000, 0); // Fully transparent
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setSize(this.config.width, this.config.height);
+        
+        // For responsive mode, read CSS variable
+        const size = this.config.responsive ? 
+            parseInt(getComputedStyle(document.documentElement).getPropertyValue('--3d-canvas-size')) :
+            this.config.width;
+        
+        this.renderer.setSize(size, size);
         this.container.appendChild(this.renderer.domElement);
         
         // Set container styles for flex layout participation
@@ -220,8 +229,14 @@ export class ThreeD_component_engine {
         this.container.style.alignItems = 'center';  // Center vertically
         this.container.style.flex = '0 1 auto';  // No grow, CAN shrink, auto basis
         this.container.style.maxWidth = '100%';
-        this.container.style.width = `${this.config.width}px`;
-        this.container.style.height = `${this.config.height}px`;
+        
+        // Add conditional container styling based on responsive flag
+        if (!this.config.responsive) {
+            // Only set container dimensions for non-responsive mode
+            this.container.style.width = `${this.config.width}px`;
+            this.container.style.height = `${this.config.height}px`;
+        }
+        
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
         this.container.style.margin = '0 auto';  // Center horizontally
@@ -702,6 +717,12 @@ export class ThreeD_component_engine {
         
         // Wheel gesture timeout
         this.wheelGestureTimeout = null;
+        
+        // Add viewport resize listener for responsive mode
+        if (this.config.responsive) {
+            this.resizeHandler = () => this.updateResponsiveSize();
+            window.addEventListener('resize', this.resizeHandler);
+        }
     }
     
     // Gesture state management
@@ -1554,6 +1575,17 @@ export class ThreeD_component_engine {
         console.log('[3D Component Engine] Rotation speed set to:', speed);
     }
     
+    updateResponsiveSize() {
+        if (!this.config.responsive) return;
+        
+        const size = parseInt(getComputedStyle(document.documentElement)
+            .getPropertyValue('--3d-canvas-size'));
+        
+        this.renderer.setSize(size, size);
+        this.camera.aspect = 1; // Square aspect
+        this.camera.updateProjectionMatrix();
+    }
+    
     setLightPosition(lightName, axis, value) {
         if (this.lights[lightName]) {
             this.lights[lightName].position[axis] = value;
@@ -1589,6 +1621,11 @@ export class ThreeD_component_engine {
             
             // Remove wheel event listener
             this.renderer.domElement.removeEventListener('wheel', this.onWheel);
+            
+            // Clean up resize listener
+            if (this.config.responsive && this.resizeHandler) {
+                window.removeEventListener('resize', this.resizeHandler);
+            }
             
             this.renderer.dispose();
             this.container.removeChild(this.renderer.domElement);
