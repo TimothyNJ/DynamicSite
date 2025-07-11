@@ -105,6 +105,9 @@ $z-index-tooltip: 1070;
   --component-container-margin: 5px 0;     // External spacing around components
   --component-content-padding: 2px 10px;   // Internal padding for content
   // Note: --component-gap already exists above (4px)
+  
+  // 3D Component responsive sizing
+  --3d-canvas-size: min(300px, 80vw);
   // Note: --component-border-radius already exists above (9999px)
   
   // Typography Variables
