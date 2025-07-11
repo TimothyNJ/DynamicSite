@@ -633,8 +633,9 @@ export class ThreeD_component_engine {
         // Now update the real container and renderer with calculated size
         this.config.width = width;
         this.config.height = height;
-        this.container.style.width = `${width}px`;
-        this.container.style.height = `${height}px`;
+        // Removed - let container naturally fit the canvas
+        // this.container.style.width = `${width}px`;
+        // this.container.style.height = `${height}px`;
         
         // Store initial dimensions for constraint calculations
         this.initialWidth = width;
@@ -1077,6 +1078,8 @@ export class ThreeD_component_engine {
             const detectedGesture = this.detectGestureType(dx, dy, currentPinchDistance, currentAngle);
             this.transitionGesture(detectedGesture);
             
+            // PINCH ZOOM DISABLED - Container now fits content
+            /*
             // Handle pinch-to-zoom
             if (this.gestureState.type === 'pinch' && this.lastPinchDistance) {
                 // Calculate scale change
@@ -1107,6 +1110,7 @@ export class ThreeD_component_engine {
                     this.camera.updateProjectionMatrix();
                 }
             }
+            */
             
             // Handle rotation - NO MOMENTUM for controlled gestures
             if (this.gestureState.type === 'twist' && this.lastTouchAngle !== null) {
@@ -1215,6 +1219,8 @@ export class ThreeD_component_engine {
             this.gestureRotation = event.rotation;
         }
         
+        // PINCH ZOOM DISABLED - Container now fits content
+        /*
         // Handle scale (pinch)
         if (event.scale !== undefined) {
             const scaleDelta = event.scale / this.gestureScale;
@@ -1246,6 +1252,7 @@ export class ThreeD_component_engine {
             
             this.gestureScale = event.scale;
         }
+        */
     }
     
     onGestureEnd(event) {
@@ -1293,6 +1300,8 @@ export class ThreeD_component_engine {
         this.isGesturing = true;
         const now = Date.now();
         
+        // PINCH ZOOM DISABLED - Container now fits content
+        /*
         // Check if it's a pinch gesture (ctrl key or gesture)
         if (event.ctrlKey || event.metaKey) {
             // Transition to pinch gesture
@@ -1332,6 +1341,9 @@ export class ThreeD_component_engine {
             // Update gesture state
             this.gestureState.lastUpdateTime = now;
         } else {
+        */
+        // Now all wheel events are treated as rotation
+        if (true) {
             // Transition to swipe gesture
             this.transitionGesture('swipe');
             
