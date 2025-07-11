@@ -160,6 +160,27 @@ function initializeSettingsComponents() {
       onChange: (files) => console.log('[Demo] Files selected:', files)
     });
     
+    // 11. 3D Component demo (Small - with viewport responsive sizing)
+    if (typeof THREE !== 'undefined') {
+      const small3D = componentFactory.create3DObject('3D_Cube_Small', {
+        responsive: true,  // Enable viewport-based sizing
+        geometry: 'roundedBox',
+        geometryParams: {
+          width: 1.0,
+          height: 1.0,
+          depth: 1.0,
+          radius: 0.15,
+          smoothness: 32
+        },
+        texture: 'animated',
+        enableInteraction: true,
+        rotationSpeed: 0.25
+      });
+      console.log('[Demo] 3D Cube Small initialized with viewport responsive sizing');
+    } else {
+      console.error('[Demo] Three.js not loaded - cannot create 3D component');
+    }
+    
     console.log('[Settings Page] Demo components initialized');
     
     // User Settings Components
