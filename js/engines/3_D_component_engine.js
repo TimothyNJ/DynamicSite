@@ -174,7 +174,7 @@ export class ThreeD_component_engine {
             backgroundColor: 0x000000,
             
             // Camera settings
-            cameraPosition: { x: 0, y: 0, z: 8 },
+            cameraPosition: { x: 0, y: 0, z: 3 },
             cameraFOV: 50
         }, config);
     }
