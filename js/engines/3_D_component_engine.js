@@ -215,9 +215,9 @@ export class ThreeD_component_engine {
         this.renderer.setClearColor(0x000000, 0); // Fully transparent
         this.renderer.setPixelRatio(window.devicePixelRatio);
         
-        // For responsive mode, read CSS variable
+        // For responsive mode, calculate size based on viewport
         const size = this.config.responsive ? 
-            parseInt(getComputedStyle(document.documentElement).getPropertyValue('--3d-canvas-size')) :
+            Math.min(300, window.innerWidth * 0.8) :
             this.config.width;
         
         this.renderer.setSize(size, size);
@@ -1578,12 +1578,15 @@ export class ThreeD_component_engine {
     updateResponsiveSize() {
         if (!this.config.responsive) return;
         
-        const size = parseInt(getComputedStyle(document.documentElement)
-            .getPropertyValue('--3d-canvas-size'));
+        const size = Math.min(300, window.innerWidth * 0.8);
         
         this.renderer.setSize(size, size);
         this.camera.aspect = 1; // Square aspect
         this.camera.updateProjectionMatrix();
+        
+        // Also update container size for responsive mode
+        this.container.style.width = `${size}px`;
+        this.container.style.height = `${size}px`;
     }
     
     setLightPosition(lightName, axis, value) {

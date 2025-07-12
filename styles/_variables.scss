@@ -107,7 +107,7 @@ $z-index-tooltip: 1070;
   // Note: --component-gap already exists above (4px)
   
   // 3D Component responsive sizing
-  --3d-canvas-size: min(300px, 80vw);
+  --3d-canvas-size: 300px;  // Base size, will be overridden by JS for responsive mode
   // Note: --component-border-radius already exists above (9999px)
   
   // Typography Variables

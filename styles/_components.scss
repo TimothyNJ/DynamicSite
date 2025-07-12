@@ -112,9 +112,3 @@
   max-width: 100%;
   flex: 0 1 auto;  // Prevent growing beyond content
 }
-
-// 3D Component responsive container
-[id="3D_Cube_Small"] {
-  width: var(--3d-canvas-size);
-  height: var(--3d-canvas-size);
-}
