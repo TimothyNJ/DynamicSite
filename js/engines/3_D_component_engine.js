@@ -217,7 +217,7 @@ export class ThreeD_component_engine {
         
         // For responsive mode, calculate size based on viewport
         const size = this.config.responsive ? 
-            Math.min(300, window.innerWidth * 0.8) :
+            Math.max(18, Math.min(500, window.innerWidth * 0.05)) :  // clamp(18px, 5vw, 500px)
             this.config.width;
         
         this.renderer.setSize(size, size);
@@ -235,6 +235,10 @@ export class ThreeD_component_engine {
             // Only set container dimensions for non-responsive mode
             this.container.style.width = `${this.config.width}px`;
             this.container.style.height = `${this.config.height}px`;
+        } else {
+            // Set initial size for responsive mode
+            this.container.style.width = `${size}px`;
+            this.container.style.height = `${size}px`;
         }
         
         this.container.style.position = 'relative';
@@ -1578,7 +1582,7 @@ export class ThreeD_component_engine {
     updateResponsiveSize() {
         if (!this.config.responsive) return;
         
-        const size = Math.min(300, window.innerWidth * 0.8);
+        const size = Math.max(18, Math.min(500, window.innerWidth * 0.05));  // clamp(18px, 5vw, 500px)
         
         this.renderer.setSize(size, size);
         this.camera.aspect = 1; // Square aspect
