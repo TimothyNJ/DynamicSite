@@ -222,7 +222,7 @@ export class ThreeD_component_engine {
         
         // For responsive mode, calculate size based on viewport
         const size = this.config.responsive ? 
-            Math.max(50, Math.min(500, window.innerWidth * 0.05)) :  // clamp(50px, 5vw, 500px)
+            Math.max(50, Math.min(500, window.innerWidth * 0.1)) :  // clamp(50px, 10vw, 500px)
             this.config.width;
         
         console.log(`[3D Engine] Setting up renderer - responsive: ${this.config.responsive}, calculated size: ${size}`);
@@ -268,7 +268,7 @@ export class ThreeD_component_engine {
     setupCamera() {
         // For responsive mode, calculate the size the same way as in setupRenderer
         const size = this.config.responsive ? 
-            Math.max(50, Math.min(500, window.innerWidth * 0.05)) :
+            Math.max(50, Math.min(500, window.innerWidth * 0.1)) :
             this.config.width;
             
         this.camera = new THREE.PerspectiveCamera(
@@ -1604,7 +1604,7 @@ export class ThreeD_component_engine {
     updateResponsiveSize() {
         if (!this.config.responsive) return;
         
-        const size = Math.max(50, Math.min(500, window.innerWidth * 0.05));  // clamp(50px, 5vw, 500px)
+        const size = Math.max(50, Math.min(500, window.innerWidth * 0.1));  // clamp(50px, 10vw, 500px)
         
         this.renderer.setSize(size, size);
         this.camera.aspect = 1; // Square aspect
