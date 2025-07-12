@@ -251,12 +251,8 @@ export class ThreeD_component_engine {
             // Only set container dimensions for non-responsive mode
             this.container.style.width = `${this.config.width}px`;
             this.container.style.height = `${this.config.height}px`;
-        } else {
-            // Set initial size for responsive mode
-            this.container.style.width = `${size}px`;
-            this.container.style.height = `${size}px`;
-            console.log(`[3D Engine] Container size set to: ${size}px x ${size}px`);
         }
+        // For responsive mode, let the container naturally fit the canvas
         
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
@@ -1610,9 +1606,7 @@ export class ThreeD_component_engine {
         this.camera.aspect = 1; // Square aspect
         this.camera.updateProjectionMatrix();
         
-        // Also update container size for responsive mode
-        this.container.style.width = `${size}px`;
-        this.container.style.height = `${size}px`;
+        // Let container naturally fit the canvas - don't set explicit size
     }
     
     setLightPosition(lightName, axis, value) {
