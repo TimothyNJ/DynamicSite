@@ -430,7 +430,7 @@ window.initializePageComponents = function(pageName) {
     console.log('[main.js] Initializing home page');
     
     // Add build timestamp above H1 Font
-    const h1Element = document.querySelector('h1');
+    const h1Element = document.querySelector('.content-flex-container h1');
     console.log('[main.js] Found h1 element:', h1Element);
     console.log('[main.js] h1 text content:', h1Element ? h1Element.textContent : 'null');
     
