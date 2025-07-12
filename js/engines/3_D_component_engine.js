@@ -249,9 +249,14 @@ export class ThreeD_component_engine {
     }
     
     setupCamera() {
+        // For responsive mode, calculate the size the same way as in setupRenderer
+        const size = this.config.responsive ? 
+            Math.max(18, Math.min(500, window.innerWidth * 0.05)) :
+            this.config.width;
+            
         this.camera = new THREE.PerspectiveCamera(
             this.config.cameraFOV,
-            this.config.width / this.config.height,
+            1,  // Square aspect ratio for both modes
             0.1,
             100
         );
