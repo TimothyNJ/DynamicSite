@@ -207,6 +207,11 @@ export class ThreeD_component_engine {
         this.isInitialized = true;
         this.animate(0);
         
+        // Force initial resize for responsive components
+        if (this.config.responsive) {
+            this.updateResponsiveSize();
+        }
+        
         console.log('[3D Component Engine] Initialization complete');
     }
     
