@@ -630,8 +630,11 @@ export class ThreeD_component_engine {
         
         this.scene.add(this.mesh);
         
-        // Resize container to fit content
-        this.resizeContainerToFitContent();
+        // Resize container to fit content only for non-responsive components
+        // Responsive components manage their own sizing through updateResponsiveSize()
+        if (!this.config.responsive) {
+            this.resizeContainerToFitContent();
+        }
     }
     
     resizeContainerToFitContent() {
