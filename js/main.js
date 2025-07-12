@@ -431,12 +431,17 @@ window.initializePageComponents = function(pageName) {
     
     // Add build timestamp above H1 Font
     const h1Element = document.querySelector('h1');
-    if (h1Element && h1Element.textContent === 'H1 Font') {
+    console.log('[main.js] Found h1 element:', h1Element);
+    console.log('[main.js] h1 text content:', h1Element ? h1Element.textContent : 'null');
+    
+    if (h1Element) {
       const timestampElement = document.createElement('h1');
       timestampElement.textContent = DEPLOYMENT_TIMESTAMP;
       timestampElement.style.marginBottom = '10px';
       h1Element.parentNode.insertBefore(timestampElement, h1Element);
       console.log('[main.js] Build timestamp added:', DEPLOYMENT_TIMESTAMP);
+    } else {
+      console.error('[main.js] No h1 element found on home page');
     }
   } else if (pageName === 'settings') {
     // Call the settings initialization directly
