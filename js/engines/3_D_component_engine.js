@@ -1608,7 +1608,9 @@ export class ThreeD_component_engine {
         this.camera.aspect = 1; // Square aspect
         this.camera.updateProjectionMatrix();
         
-        // Let container naturally fit the canvas - don't set explicit size
+        // Set container size to match canvas for proper fit
+        this.container.style.width = `${size}px`;
+        this.container.style.height = `${size}px`;
     }
     
     setLightPosition(lightName, axis, value) {
