@@ -225,6 +225,11 @@ export class ThreeD_component_engine {
         this.renderer.setSize(size, size);
         this.container.appendChild(this.renderer.domElement);
         
+        // Ensure canvas respects container size
+        this.renderer.domElement.style.width = '100%';
+        this.renderer.domElement.style.height = '100%';
+        this.renderer.domElement.style.display = 'block';
+        
         console.log(`[3D Engine] Canvas actual size: ${this.renderer.domElement.width}x${this.renderer.domElement.height}`);
         console.log(`[3D Engine] Canvas style size: ${this.renderer.domElement.style.width}x${this.renderer.domElement.style.height}`);
         console.log(`[3D Engine] Device pixel ratio: ${window.devicePixelRatio}`);
