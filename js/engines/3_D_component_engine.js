@@ -220,8 +220,14 @@ export class ThreeD_component_engine {
             Math.max(18, Math.min(500, window.innerWidth * 0.05)) :  // clamp(18px, 5vw, 500px)
             this.config.width;
         
+        console.log(`[3D Engine] Setting up renderer - responsive: ${this.config.responsive}, calculated size: ${size}`);
+        
         this.renderer.setSize(size, size);
         this.container.appendChild(this.renderer.domElement);
+        
+        console.log(`[3D Engine] Canvas actual size: ${this.renderer.domElement.width}x${this.renderer.domElement.height}`);
+        console.log(`[3D Engine] Canvas style size: ${this.renderer.domElement.style.width}x${this.renderer.domElement.style.height}`);
+        console.log(`[3D Engine] Device pixel ratio: ${window.devicePixelRatio}`);
         
         // Set container styles for flex layout participation
         this.container.style.display = 'flex';  // Make it a flex container
@@ -239,6 +245,7 @@ export class ThreeD_component_engine {
             // Set initial size for responsive mode
             this.container.style.width = `${size}px`;
             this.container.style.height = `${size}px`;
+            console.log(`[3D Engine] Container size set to: ${size}px x ${size}px`);
         }
         
         this.container.style.position = 'relative';
