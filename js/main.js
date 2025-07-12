@@ -433,10 +433,10 @@ window.initializePageComponents = function(pageName) {
     const h1Element = document.querySelector('h1');
     if (h1Element && h1Element.textContent === 'H1 Font') {
       const timestampElement = document.createElement('h1');
-      timestampElement.textContent = BUILD_TIMESTAMP;
+      timestampElement.textContent = DEPLOYMENT_TIMESTAMP;
       timestampElement.style.marginBottom = '10px';
       h1Element.parentNode.insertBefore(timestampElement, h1Element);
-      console.log('[main.js] Build timestamp added:', BUILD_TIMESTAMP);
+      console.log('[main.js] Build timestamp added:', DEPLOYMENT_TIMESTAMP);
     }
   } else if (pageName === 'settings') {
     // Call the settings initialization directly
