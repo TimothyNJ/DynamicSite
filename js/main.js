@@ -425,7 +425,20 @@ function initializeProgressViewComponents() {
 window.initializePageComponents = function(pageName) {
   console.log(`[main.js] Initializing components for page: ${pageName}`);
   
-  if (pageName === 'settings') {
+  if (pageName === 'home') {
+    // Initialize home page with build timestamp
+    console.log('[main.js] Initializing home page');
+    
+    // Add build timestamp above H1 Font
+    const h1Element = document.querySelector('h1');
+    if (h1Element && h1Element.textContent === 'H1 Font') {
+      const timestampElement = document.createElement('h1');
+      timestampElement.textContent = BUILD_TIMESTAMP;
+      timestampElement.style.marginBottom = '10px';
+      h1Element.parentNode.insertBefore(timestampElement, h1Element);
+      console.log('[main.js] Build timestamp added:', BUILD_TIMESTAMP);
+    }
+  } else if (pageName === 'settings') {
     // Call the settings initialization directly
     console.log('[main.js] Initializing settings components');
     initializeSettingsComponents();

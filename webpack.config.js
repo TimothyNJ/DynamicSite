@@ -1,15 +1,9 @@
 const path = require('path');
 const webpack = require('webpack');
+const moment = require('moment-timezone');
 
-// Generate timestamp in YYYYMMDDHHMMSS format using local time
-const now = new Date();
-const buildTimestamp = 
-  now.getFullYear().toString() +
-  (now.getMonth() + 1).toString().padStart(2, '0') +
-  now.getDate().toString().padStart(2, '0') +
-  now.getHours().toString().padStart(2, '0') +
-  now.getMinutes().toString().padStart(2, '0') +
-  now.getSeconds().toString().padStart(2, '0');
+// Generate timestamp in YYYYMMDDHHMM format using Pacific time
+const buildTimestamp = moment().tz('America/Los_Angeles').format('YYYYMMDDHHmm');
 
 module.exports = {
   entry: './js/main.js',
