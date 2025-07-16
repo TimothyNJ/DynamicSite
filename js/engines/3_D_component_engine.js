@@ -238,6 +238,21 @@ export class ThreeD_component_engine {
         console.log(`[3D Engine] Canvas style size: ${this.renderer.domElement.style.width}x${this.renderer.domElement.style.height}`);
         console.log(`[3D Engine] Device pixel ratio: ${window.devicePixelRatio}`);
         
+        // Debug initial canvas sizing
+        setTimeout(() => {
+            const canvas = this.renderer.domElement;
+            console.log('[Initial Canvas Sizing]:', {
+                'canvas.width attr': canvas.width,
+                'canvas.height attr': canvas.height,
+                'canvas.offsetWidth': canvas.offsetWidth,
+                'canvas.offsetHeight': canvas.offsetHeight,
+                'canvas.clientWidth': canvas.clientWidth,
+                'canvas.clientHeight': canvas.clientHeight,
+                'computed width': getComputedStyle(canvas).width,
+                'computed height': getComputedStyle(canvas).height
+            });
+        }, 100);
+        
         // Set container styles for flex layout participation
         this.container.style.display = 'flex';  // Make it a flex container
         this.container.style.justifyContent = 'center';  // Center horizontally
@@ -1604,9 +1619,26 @@ export class ThreeD_component_engine {
         
         const size = Math.max(50, Math.min(500, window.innerWidth * 0.1));  // clamp(50px, 10vw, 500px)
         
+        console.log(`[updateResponsiveSize] Setting size to: ${size}`);
+        
         this.renderer.setSize(size, size);
         this.camera.aspect = 1; // Square aspect
         this.camera.updateProjectionMatrix();
+        
+        // Log what the browser sees
+        const canvas = this.renderer.domElement;
+        console.log('[Canvas Sizing Debug]:', {
+            'canvas.width attr': canvas.width,
+            'canvas.height attr': canvas.height,
+            'canvas.offsetWidth': canvas.offsetWidth,
+            'canvas.offsetHeight': canvas.offsetHeight,
+            'canvas.clientWidth': canvas.clientWidth,
+            'canvas.clientHeight': canvas.clientHeight,
+            'computed width': getComputedStyle(canvas).width,
+            'computed height': getComputedStyle(canvas).height,
+            'container.offsetWidth': this.container.offsetWidth,
+            'container.offsetHeight': this.container.offsetHeight
+        });
         
         // Let container naturally fit the canvas - don't set explicit size
         // Container is a flex container that will fit around the canvas
