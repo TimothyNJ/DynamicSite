@@ -320,6 +320,9 @@ function initializeVendorRequestComponents() {
   
   console.log('[Vendor Request] Responsive 3D component initialized:', responsive3D);
   
+  // Make it globally accessible for testing
+  window.responsive3D = responsive3D;
+  
   // Create rotation speed slider for responsive cube
   console.log('[Vendor Request] Creating responsive rotation speed slider...');
   
