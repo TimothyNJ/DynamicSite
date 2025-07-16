@@ -304,7 +304,7 @@ function initializeVendorRequestComponents() {
   
   // Create responsive 3D component demonstration
   const responsive3D = componentFactory.create3DObject('3D_Cube_Small', {
-    responsive: true,  // Re-enable responsive sizing
+    responsive: false, // Start as non-responsive to maintain 300x300 size
     width: 300,        // Start at same size as fixed
     height: 300,       // Start at same size as fixed
     geometry: 'roundedBox',
@@ -321,6 +321,11 @@ function initializeVendorRequestComponents() {
   });
   
   console.log('[Vendor Request] Responsive 3D component initialized:', responsive3D);
+  
+  // Manually enable responsiveness after initialization to preserve starting size
+  responsive3D.config.responsive = true;
+  responsive3D.resizeHandler = () => responsive3D.updateResponsiveSize();
+  window.addEventListener('resize', responsive3D.resizeHandler);
   
   // Create rotation speed slider for responsive cube
   console.log('[Vendor Request] Creating responsive rotation speed slider...');
