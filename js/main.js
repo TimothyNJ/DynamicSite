@@ -324,6 +324,9 @@ function initializeVendorRequestComponents() {
   
   // Manually enable responsiveness after initialization to preserve starting size
   responsive3D.config.responsive = true;
+  // Clear explicit container size to allow flex shrink-wrap
+  responsive3D.container.style.width = '';
+  responsive3D.container.style.height = '';
   responsive3D.resizeHandler = () => responsive3D.updateResponsiveSize();
   window.addEventListener('resize', responsive3D.resizeHandler);
   
