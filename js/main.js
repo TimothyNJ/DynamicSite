@@ -304,7 +304,7 @@ function initializeVendorRequestComponents() {
   
   // Create responsive 3D component demonstration
   const responsive3D = componentFactory.create3DObject('3D_Cube_Small', {
-    responsive: false, // Temporarily false to test equal conditions
+    responsive: true,  // Re-enable responsive sizing
     width: 300,        // Start at same size as fixed
     height: 300,       // Start at same size as fixed
     geometry: 'roundedBox',
