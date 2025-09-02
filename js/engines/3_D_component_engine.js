@@ -385,6 +385,24 @@ export class ThreeD_component_engine {
     createFogPlane() {
         // Create animated fog plane behind the object
         const fogPlaneGeometry = new THREE.PlaneGeometry(2.5, 2.5, 32, 32);
+        
+        // Log fog plane creation details
+        console.log(`[3D Engine] Creating fog plane - size: 2.5x2.5 units`);
+        console.log(`[3D Engine] Camera FOV: ${this.config.cameraFOV}`);
+        console.log(`[3D Engine] Camera position: z=${this.camera.position.z}`);
+        
+        // Calculate visible area at fog plane distance
+        const fogPlaneZ = -1.5;
+        const cameraToFogPlane = this.camera.position.z - fogPlaneZ;
+        const vFOV = (this.config.cameraFOV * Math.PI) / 180; // Convert to radians
+        const visibleHeight = 2 * Math.tan(vFOV / 2) * cameraToFogPlane;
+        const visibleWidth = visibleHeight * this.camera.aspect;
+        
+        console.log(`[3D Engine] Distance from camera to fog plane: ${cameraToFogPlane}`);
+        console.log(`[3D Engine] Visible area at fog plane: ${visibleWidth.toFixed(2)} x ${visibleHeight.toFixed(2)} units`);
+        console.log(`[3D Engine] Fog plane coverage: ${(2.5/visibleWidth*100).toFixed(1)}% x ${(2.5/visibleHeight*100).toFixed(1)}%`);
+        console.log(`[3D Engine] Responsive mode: ${this.config.responsive}`);
+        
         this.fogCanvas = document.createElement('canvas');
         this.fogCanvas.width = 512;
         this.fogCanvas.height = 512;
@@ -1578,6 +1596,16 @@ export class ThreeD_component_engine {
     
     animate(time) {
         if (!this.isInitialized) return;
+        
+        // Log viewport info on first frame only
+        if (!this.viewportLogged) {
+            const gl = this.renderer.getContext();
+            console.log(`[3D Engine] First frame render - Responsive: ${this.config.responsive}`);
+            console.log(`[3D Engine] WebGL viewport: ${gl.drawingBufferWidth} x ${gl.drawingBufferHeight}`);
+            console.log(`[3D Engine] Renderer size: ${this.renderer.getSize(new THREE.Vector2()).x} x ${this.renderer.getSize(new THREE.Vector2()).y}`);
+            console.log(`[3D Engine] Pixel ratio: ${this.renderer.getPixelRatio()}`);
+            this.viewportLogged = true;
+        }
         
         this.animationId = requestAnimationFrame(this.animate);
         
