@@ -231,8 +231,11 @@ export class ThreeD_component_engine {
         this.container.appendChild(this.renderer.domElement);
         
         // Ensure canvas respects container size
-        this.renderer.domElement.style.width = '100%';
-        this.renderer.domElement.style.height = '100%';
+        if (!this.config.responsive) {
+            // Only set 100% for fixed components
+            this.renderer.domElement.style.width = '100%';
+            this.renderer.domElement.style.height = '100%';
+        }
         this.renderer.domElement.style.display = 'block';
         
         console.log(`[3D Engine] Canvas actual size: ${this.renderer.domElement.width}x${this.renderer.domElement.height}`);
