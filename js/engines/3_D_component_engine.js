@@ -216,6 +216,11 @@ export class ThreeD_component_engine {
     }
     
     setupRenderer() {
+        // Log which THREE we're using
+        console.log(`[3D Engine] Using THREE version: ${typeof THREE !== 'undefined' ? THREE.REVISION : 'undefined'}`);
+        console.log(`[3D Engine] THREE source: ${typeof THREE !== 'undefined' ? 'global window.THREE' : 'unknown'}`);
+        console.log(`[3D Engine] Responsive: ${this.config.responsive}`);
+        
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.renderer.setClearColor(0x000000, 0); // Fully transparent
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -228,6 +233,11 @@ export class ThreeD_component_engine {
         console.log(`[3D Engine] Setting up renderer - responsive: ${this.config.responsive}, calculated size: ${size}`);
         
         this.renderer.setSize(size, size);
+        
+        // Log what happened to canvas after setSize
+        console.log(`[3D Engine] After setSize - Canvas style.width: ${this.renderer.domElement.style.width}`);
+        console.log(`[3D Engine] After setSize - Canvas style.height: ${this.renderer.domElement.style.height}`);
+        
         this.container.appendChild(this.renderer.domElement);
         
         // Ensure canvas respects container size
@@ -239,7 +249,7 @@ export class ThreeD_component_engine {
         this.renderer.domElement.style.display = 'block';
         
         console.log(`[3D Engine] Canvas actual size: ${this.renderer.domElement.width}x${this.renderer.domElement.height}`);
-        console.log(`[3D Engine] Canvas style size: ${this.renderer.domElement.style.width}x${this.renderer.domElement.style.height}`);
+        console.log(`[3D Engine] Canvas style size FINAL: ${this.renderer.domElement.style.width}x${this.renderer.domElement.style.height}`);
         console.log(`[3D Engine] Device pixel ratio: ${window.devicePixelRatio}`);
         
         // Set container styles for flex layout participation
