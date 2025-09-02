@@ -249,6 +249,8 @@ export class ThreeD_component_engine {
         this.renderer.domElement.style.display = 'block';
         
         console.log(`[3D Engine] Canvas actual size: ${this.renderer.domElement.width}x${this.renderer.domElement.height}`);
+        console.log(`[3D Engine] Canvas style.width raw: '${this.renderer.domElement.style.width}'`);
+        console.log(`[3D Engine] Canvas style.height raw: '${this.renderer.domElement.style.height}'`);
         console.log(`[3D Engine] Canvas style size FINAL: ${this.renderer.domElement.style.width}x${this.renderer.domElement.style.height}`);
         console.log(`[3D Engine] Device pixel ratio: ${window.devicePixelRatio}`);
         
