@@ -212,6 +212,15 @@ export class ThreeD_component_engine {
             this.updateResponsiveSize();
         }
         
+        // Log FINAL dimensions after everything is set up
+        setTimeout(() => {
+            console.log(`[3D Engine] FINAL DIMENSIONS after init:`);
+            console.log(`[3D Engine] Container: ${this.container.offsetWidth}x${this.container.offsetHeight}`);
+            console.log(`[3D Engine] Canvas: ${this.renderer.domElement.offsetWidth}x${this.renderer.domElement.offsetHeight}`);
+            console.log(`[3D Engine] Gap width: ${this.container.offsetWidth - this.renderer.domElement.offsetWidth}px`);
+            console.log(`[3D Engine] Gap height: ${this.container.offsetHeight - this.renderer.domElement.offsetHeight}px`);
+        }, 100);
+        
         console.log('[3D Component Engine] Initialization complete');
     }
     
@@ -254,6 +263,12 @@ export class ThreeD_component_engine {
         console.log(`[3D Engine] Canvas style size FINAL: ${this.renderer.domElement.style.width}x${this.renderer.domElement.style.height}`);
         console.log(`[3D Engine] Device pixel ratio: ${window.devicePixelRatio}`);
         
+        // Log container dimensions before and after setup
+        console.log(`[3D Engine] Container offsetWidth BEFORE flex: ${this.container.offsetWidth}`);
+        console.log(`[3D Engine] Container offsetHeight BEFORE flex: ${this.container.offsetHeight}`);
+        console.log(`[3D Engine] Container clientWidth BEFORE flex: ${this.container.clientWidth}`);
+        console.log(`[3D Engine] Container clientHeight BEFORE flex: ${this.container.clientHeight}`);
+        
         // Set container styles for flex layout participation
         this.container.style.display = 'flex';  // Make it a flex container
         this.container.style.justifyContent = 'center';  // Center horizontally
@@ -274,6 +289,25 @@ export class ThreeD_component_engine {
         this.container.style.margin = '0 auto';  // Center horizontally
         this.container.style.border = '1px solid red';  // TEMPORARY RED BORDER TO SEE CLIPPING
         // Removed display: inline-block to properly participate in flex layout
+        
+        // Log container dimensions and parent info AFTER all setup
+        console.log(`[3D Engine] Container setup complete. Responsive: ${this.config.responsive}`);
+        console.log(`[3D Engine] Container offsetWidth: ${this.container.offsetWidth}`);
+        console.log(`[3D Engine] Container offsetHeight: ${this.container.offsetHeight}`);
+        console.log(`[3D Engine] Canvas offsetWidth: ${this.renderer.domElement.offsetWidth}`);
+        console.log(`[3D Engine] Canvas offsetHeight: ${this.renderer.domElement.offsetHeight}`);
+        console.log(`[3D Engine] Parent offsetWidth: ${this.container.parentElement ? this.container.parentElement.offsetWidth : 'N/A'}`);
+        if (typeof window !== 'undefined' && window.getComputedStyle) {
+            const styles = window.getComputedStyle(this.container);
+            console.log(`[3D Engine] Container computed styles:`);
+            console.log(`[3D Engine]   - padding: ${styles.padding}`);
+            console.log(`[3D Engine]   - margin: ${styles.margin}`);
+            console.log(`[3D Engine]   - box-sizing: ${styles.boxSizing}`);
+            console.log(`[3D Engine]   - min-width: ${styles.minWidth}`);
+            console.log(`[3D Engine]   - min-height: ${styles.minHeight}`);
+            console.log(`[3D Engine]   - width: ${styles.width}`);
+            console.log(`[3D Engine]   - height: ${styles.height}`);
+        }
     }
     
     setupCamera() {
