@@ -383,24 +383,27 @@ export class ThreeD_component_engine {
     }
     
     createFogPlane() {
-        // Create animated fog plane behind the object
-        const fogPlaneGeometry = new THREE.PlaneGeometry(2.5, 2.5, 32, 32);
-        
-        // Log fog plane creation details
-        console.log(`[3D Engine] Creating fog plane - size: 2.5x2.5 units`);
-        console.log(`[3D Engine] Camera FOV: ${this.config.cameraFOV}`);
-        console.log(`[3D Engine] Camera position: z=${this.camera.position.z}`);
-        
-        // Calculate visible area at fog plane distance
+        // Calculate visible area at fog plane distance to make it fill the viewport
         const fogPlaneZ = -1.5;
         const cameraToFogPlane = this.camera.position.z - fogPlaneZ;
         const vFOV = (this.config.cameraFOV * Math.PI) / 180; // Convert to radians
         const visibleHeight = 2 * Math.tan(vFOV / 2) * cameraToFogPlane;
         const visibleWidth = visibleHeight * this.camera.aspect;
         
+        // Make fog plane slightly larger than visible area to ensure full coverage
+        const fogPlaneWidth = visibleWidth * 1.1;  // 10% larger to ensure no gaps
+        const fogPlaneHeight = visibleHeight * 1.1;
+        
+        // Create animated fog plane behind the object with dynamic size
+        const fogPlaneGeometry = new THREE.PlaneGeometry(fogPlaneWidth, fogPlaneHeight, 32, 32);
+        
+        // Log fog plane creation details
+        console.log(`[3D Engine] Creating fog plane - size: ${fogPlaneWidth.toFixed(2)}x${fogPlaneHeight.toFixed(2)} units`);
+        console.log(`[3D Engine] Camera FOV: ${this.config.cameraFOV}`);
+        console.log(`[3D Engine] Camera position: z=${this.camera.position.z}`);
         console.log(`[3D Engine] Distance from camera to fog plane: ${cameraToFogPlane}`);
         console.log(`[3D Engine] Visible area at fog plane: ${visibleWidth.toFixed(2)} x ${visibleHeight.toFixed(2)} units`);
-        console.log(`[3D Engine] Fog plane coverage: ${(2.5/visibleWidth*100).toFixed(1)}% x ${(2.5/visibleHeight*100).toFixed(1)}%`);
+        console.log(`[3D Engine] Fog plane coverage: ${(fogPlaneWidth/visibleWidth*100).toFixed(1)}% x ${(fogPlaneHeight/visibleHeight*100).toFixed(1)}%`);
         console.log(`[3D Engine] Responsive mode: ${this.config.responsive}`);
         
         this.fogCanvas = document.createElement('canvas');
