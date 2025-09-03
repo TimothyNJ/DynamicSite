@@ -703,6 +703,17 @@ export class ThreeD_component_engine {
     }
     
     resizeContainerToFitContent() {
+        // Skip resizing for responsive components - they manage their own size
+        if (this.config.responsive) {
+            // For responsive mode, just store the initial calculated size
+            const size = Math.max(50, Math.min(500, window.innerWidth * 0.1));
+            this.initialWidth = size;
+            this.initialHeight = size;
+            console.log(`[3D Engine] Responsive component - skipping resizeContainerToFitContent, using ${size}px`);
+            return;
+        }
+        
+        // Original logic only for fixed components
         // Create temporary offscreen renderer for measurement
         const tempRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         tempRenderer.setSize(1000, 1000); // Large size to avoid any clipping
