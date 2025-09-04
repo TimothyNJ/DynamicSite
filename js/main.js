@@ -120,7 +120,44 @@ function initializeSettingsComponents() {
       onChange: (values) => console.log('[Demo] Multi-select values:', values)
     });
     
-    // 6. Wheel Selector demo (casino-style wheel with numbers 1-10)
+    // 6. 3D Component demo (responsive)
+    const demo3D = componentFactory.create3DObject('demo-3d-container', {
+      responsive: true,  // Enable viewport-based sizing
+      geometry: 'roundedBox',
+      geometryParams: {
+        width: 1.0,
+        height: 1.0,
+        depth: 1.0,
+        radius: 0.15,
+        smoothness: 32
+      },
+      texture: 'animated',
+      enableInteraction: true,
+      rotationSpeed: 0  // Start with no rotation
+    });
+    
+    console.log('[Demo] 3D component initialized:', demo3D);
+    
+    // Create rotation speed slider for 3D demo
+    componentFactory.createSlider({
+      containerId: 'demo-3d-rotation-slider-container',
+      sliderClass: 'demo-3d-rotation-slider',
+      options: [
+        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+      ]
+    }, (selectedOption) => {
+      const speed = parseFloat(selectedOption.getAttribute('data-value') || selectedOption.querySelector('h3').textContent);
+      console.log('[Demo 3D Rotation Speed] Selected:', speed);
+      if (demo3D && demo3D.setRotationSpeed) {
+        demo3D.setRotationSpeed(speed);
+      }
+    });
+    
+    // 7. Wheel Selector demo (casino-style wheel with numbers 1-10)
     componentFactory.createWheelSelector('demo-wheel-selector-container', {
       id: 'demo-wheel-selector',
       options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
@@ -130,14 +167,14 @@ function initializeSettingsComponents() {
       onChange: (value) => console.log('[Demo] Wheel selected:', value)
     });
     
-    // 7. Calendar Picker demo
+    // 8. Calendar Picker demo
     componentFactory.createCalendarPicker('demo-calendar-picker-container', {
       id: 'demo-calendar-picker',
       label: 'Calendar Picker',
       onChange: (date) => console.log('[Demo] Calendar date selected:', date)
     });
     
-    // 8. Wheel Time Selector demo
+    // 9. Wheel Time Selector demo
     componentFactory.createWheelTimeSelector('demo-wheel-time-selector-container', {
       id: 'demo-wheel-time-selector',
       label: 'Time Selector',
@@ -145,7 +182,7 @@ function initializeSettingsComponents() {
       onChange: (time) => console.log('[Demo] Time selected:', time)
     });
     
-    // 9. Wheel Date Picker demo
+    // 10. Wheel Date Picker demo
     componentFactory.createWheelDatePicker('demo-wheel-date-picker-container', {
       id: 'demo-wheel-date-picker',
       label: 'Date Picker',
@@ -153,7 +190,7 @@ function initializeSettingsComponents() {
       onChange: (date) => console.log('[Demo] Date selected:', date)
     });
     
-    // 10. File Upload demo
+    // 11. File Upload demo
     componentFactory.createFileUpload('demo-file-upload-container', {
       id: 'demo-file-upload',
       label: 'File Upload',
@@ -289,57 +326,15 @@ function initializeSettingsComponents() {
 
 // Vendor Request page initialization
 function initializeVendorRequestComponents() {
-  console.log('[Vendor Request] Initializing 3D component demo...');
-  console.log('[Vendor Request] THREE available?', typeof THREE !== 'undefined');
-  
-  if (typeof THREE === 'undefined') {
-    console.error('[Vendor Request] Three.js not loaded!');
-    return;
-  }
+  console.log('[Vendor Request] Initializing vendor request components...');
   
   if (!window.componentFactory) {
     console.error('[Vendor Request] ComponentFactory not available');
     return;
   }
   
-  // Create responsive 3D component demonstration
-  const responsive3D = componentFactory.create3DObject('3D_Cube_Small', {
-    responsive: true,  // Enable viewport-based sizing
-    geometry: 'roundedBox',
-    geometryParams: {
-      width: 1.0,
-      height: 1.0,
-      depth: 1.0,
-      radius: 0.15,
-      smoothness: 32
-    },
-    texture: 'animated',
-    enableInteraction: true,
-    rotationSpeed: 0  // Start with no rotation
-  });
-  
-  console.log('[Vendor Request] Responsive 3D component initialized:', responsive3D);
-  
-  // Create rotation speed slider for responsive cube
-  console.log('[Vendor Request] Creating responsive rotation speed slider...');
-  
-  componentFactory.createSlider({
-    containerId: 'responsive-rotation-speed-slider-container',
-    sliderClass: 'responsive-rotation-speed-slider',
-    options: [
-      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
-      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
-      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
-      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
-      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
-    ]
-  }, (selectedOption) => {
-    const speed = parseFloat(selectedOption.getAttribute('data-value') || selectedOption.querySelector('h3').textContent);
-    console.log('[Responsive Rotation Speed] Selected:', speed);
-    if (responsive3D && responsive3D.setRotationSpeed) {
-      responsive3D.setRotationSpeed(speed);
-    }
-  });
+  // Vendor request form components will be initialized here
+  console.log('[Vendor Request] Page ready for vendor request form components');
 }
 
 // Data Entry page initialization
