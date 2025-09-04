@@ -383,25 +383,39 @@ export class ThreeD_component_engine {
     }
     
     createFogPlane() {
-        // Create animated fog plane behind the object
-        const fogPlaneGeometry = new THREE.PlaneGeometry(2.5, 2.5, 32, 32);
+        // Get actual renderer dimensions in pixels
+        const rendererSize = new THREE.Vector2();
+        this.renderer.getSize(rendererSize);
         
-        // Log fog plane creation details
-        console.log(`[3D Engine] Creating fog plane - size: 2.5x2.5 units`);
-        console.log(`[3D Engine] Camera FOV: ${this.config.cameraFOV}`);
-        console.log(`[3D Engine] Camera position: z=${this.camera.position.z}`);
-        
-        // Calculate visible area at fog plane distance
+        // Calculate fog plane size based on actual renderer pixels
         const fogPlaneZ = -1.5;
         const cameraToFogPlane = this.camera.position.z - fogPlaneZ;
         const vFOV = (this.config.cameraFOV * Math.PI) / 180; // Convert to radians
-        const visibleHeight = 2 * Math.tan(vFOV / 2) * cameraToFogPlane;
-        const visibleWidth = visibleHeight * this.camera.aspect;
         
+        // Calculate visible height at fog plane distance
+        const visibleHeight = 2 * Math.tan(vFOV / 2) * cameraToFogPlane;
+        
+        // Calculate aspect ratio from actual renderer size
+        const aspectRatio = rendererSize.x / rendererSize.y;
+        const visibleWidth = visibleHeight * aspectRatio;
+        
+        // Create fog plane with 5% padding to ensure full coverage
+        const fogPlaneWidth = visibleWidth * 1.05;
+        const fogPlaneHeight = visibleHeight * 1.05;
+        
+        // Log fog plane creation details
+        console.log(`[3D Engine] Creating fog plane based on renderer pixels`);
+        console.log(`[3D Engine] Renderer size: ${rendererSize.x}x${rendererSize.y}px`);
+        console.log(`[3D Engine] Aspect ratio: ${aspectRatio.toFixed(2)}`);
+        console.log(`[3D Engine] Camera FOV: ${this.config.cameraFOV}°`);
+        console.log(`[3D Engine] Camera position: z=${this.camera.position.z}`);
         console.log(`[3D Engine] Distance from camera to fog plane: ${cameraToFogPlane}`);
         console.log(`[3D Engine] Visible area at fog plane: ${visibleWidth.toFixed(2)} x ${visibleHeight.toFixed(2)} units`);
-        console.log(`[3D Engine] Fog plane coverage: ${(2.5/visibleWidth*100).toFixed(1)}% x ${(2.5/visibleHeight*100).toFixed(1)}%`);
+        console.log(`[3D Engine] Fog plane size (with 5% padding): ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} units`);
         console.log(`[3D Engine] Responsive mode: ${this.config.responsive}`);
+        
+        // Create fog plane geometry with calculated size
+        const fogPlaneGeometry = new THREE.PlaneGeometry(fogPlaneWidth, fogPlaneHeight, 32, 32);
         
         this.fogCanvas = document.createElement('canvas');
         this.fogCanvas.width = 512;
@@ -765,6 +779,9 @@ export class ThreeD_component_engine {
         // Update camera aspect ratio for the real renderer
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
+        
+        // Update fog plane size to match new renderer size
+        this.updateFogPlaneSize();
     }
     
     setupInteraction() {
@@ -1694,7 +1711,47 @@ export class ThreeD_component_engine {
         this.camera.aspect = 1; // Square aspect
         this.camera.updateProjectionMatrix();
         
+        // Update fog plane size to match new renderer size
+        this.updateFogPlaneSize();
+        
         // Let container naturally fit the canvas - don't set explicit size
+    }
+    
+    updateFogPlaneSize() {
+        if (!this.fogPlane) return;
+        
+        // Get actual renderer dimensions in pixels
+        const rendererSize = new THREE.Vector2();
+        this.renderer.getSize(rendererSize);
+        
+        // Calculate fog plane size based on actual renderer pixels
+        const fogPlaneZ = -1.5;
+        const cameraToFogPlane = this.camera.position.z - fogPlaneZ;
+        const vFOV = (this.config.cameraFOV * Math.PI) / 180;
+        
+        // Calculate visible area at fog plane distance
+        const visibleHeight = 2 * Math.tan(vFOV / 2) * cameraToFogPlane;
+        const aspectRatio = rendererSize.x / rendererSize.y;
+        const visibleWidth = visibleHeight * aspectRatio;
+        
+        // Update fog plane size with 5% padding
+        const fogPlaneWidth = visibleWidth * 1.05;
+        const fogPlaneHeight = visibleHeight * 1.05;
+        
+        // Update the geometry
+        const newGeometry = new THREE.PlaneGeometry(fogPlaneWidth, fogPlaneHeight, 32, 32);
+        this.fogPlane.geometry.dispose();
+        this.fogPlane.geometry = newGeometry;
+        
+        // Update the edge geometry for the debug border
+        if (this.fogPlane.children.length > 0) {
+            const edges = new THREE.EdgesGeometry(newGeometry);
+            const lineSegments = this.fogPlane.children[0];
+            lineSegments.geometry.dispose();
+            lineSegments.geometry = edges;
+        }
+        
+        console.log(`[3D Engine] Updated fog plane size: ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} units`);
     }
     
     setLightPosition(lightName, axis, value) {
