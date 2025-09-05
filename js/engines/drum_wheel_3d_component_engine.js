@@ -530,6 +530,8 @@ export class drum_wheel_3d_component_engine {
                     params.cylinderHeight,
                     params.cylinderRadialSegments
                 );
+                // Rotate the geometry to make cylinder horizontal (drum wheel orientation)
+                geometry.rotateZ(Math.PI/2); // Tip cylinder on its side
                 break;
                 
             default:
