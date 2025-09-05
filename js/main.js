@@ -193,7 +193,43 @@ function initializeSettingsComponents() {
       }
     });
     
-    // 8. Wheel Selector demo (casino-style wheel with numbers 1-10)
+    // 8. ThreeD Component Engine Wheel Selector (drum)
+    const demoWheelSelector3D = componentFactory.create3DObject('demo-3d-wheel-selector-container', {
+      responsive: true,  // Same responsive sizing
+      geometry: 'cylinder',  // Cylinder (drum shape) - same as cylinder above
+      geometryParams: {
+        cylinderRadiusTop: 0.5,    // Radius 0.5 = diameter 1.0
+        cylinderRadiusBottom: 0.5,  // Same top and bottom for uniform cylinder
+        cylinderHeight: 1.0,        // Height 1.0
+        cylinderRadialSegments: 32  // Smooth cylinder surface
+      },
+      texture: 'animated',  // Same animated texture
+      enableInteraction: true,  // Same interaction capabilities
+      rotationSpeed: 0  // Start with no rotation
+    });
+    
+    console.log('[Demo] ThreeD Component Engine Wheel Selector initialized:', demoWheelSelector3D);
+    
+    // Create rotation speed slider for wheel selector drum
+    componentFactory.createSlider({
+      containerId: 'demo-3d-wheel-selector-rotation-slider-container',
+      sliderClass: 'demo-3d-wheel-selector-rotation-slider',
+      options: [
+        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+      ]
+    }, (selectedOption) => {
+      const speed = parseFloat(selectedOption.getAttribute('data-value'));
+      console.log('[Demo 3D Wheel Selector Rotation Speed] Selected:', speed);
+      if (demoWheelSelector3D && demoWheelSelector3D.setRotationSpeed) {
+        demoWheelSelector3D.setRotationSpeed(speed);
+      }
+    });
+    
+    // 9. Wheel Selector demo (casino-style wheel with numbers 1-10)
     componentFactory.createWheelSelector('demo-wheel-selector-container', {
       id: 'demo-wheel-selector',
       options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
@@ -203,14 +239,14 @@ function initializeSettingsComponents() {
       onChange: (value) => console.log('[Demo] Wheel selected:', value)
     });
     
-    // 9. Calendar Picker demo
+    // 10. Calendar Picker demo
     componentFactory.createCalendarPicker('demo-calendar-picker-container', {
       id: 'demo-calendar-picker',
       label: 'Calendar Picker',
       onChange: (date) => console.log('[Demo] Calendar date selected:', date)
     });
     
-    // 10. Wheel Time Selector demo
+    // 11. Wheel Time Selector demo
     componentFactory.createWheelTimeSelector('demo-wheel-time-selector-container', {
       id: 'demo-wheel-time-selector',
       label: 'Time Selector',
@@ -218,7 +254,7 @@ function initializeSettingsComponents() {
       onChange: (time) => console.log('[Demo] Time selected:', time)
     });
     
-    // 11. Wheel Date Picker demo
+    // 12. Wheel Date Picker demo
     componentFactory.createWheelDatePicker('demo-wheel-date-picker-container', {
       id: 'demo-wheel-date-picker',
       label: 'Date Picker',
@@ -226,7 +262,7 @@ function initializeSettingsComponents() {
       onChange: (date) => console.log('[Demo] Date selected:', date)
     });
     
-    // 12. File Upload demo
+    // 13. File Upload demo
     componentFactory.createFileUpload('demo-file-upload-container', {
       id: 'demo-file-upload',
       label: 'File Upload',
