@@ -19,7 +19,6 @@ import { wheel_time_selector_component_engine } from '../engines/wheel_time_sele
 import { wheel_date_picker_component_engine } from '../engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from '../engines/calendar_picker_component_engine.js';
 import { ThreeD_component_engine } from '../engines/3_D_component_engine.js';
-import { drum_wheel_3d_component_engine } from '../engines/drum_wheel_3d_component_engine.js';
 import { wheel_selector_component_engine } from '../engines/wheel_selector_component_engine.js';
 import { custom_wheel_selector_engine } from '../engines/custom_wheel_selector_engine.js';
 import { ios_drum_wheel_engine } from '../engines/ios_drum_wheel_engine.js';
@@ -68,33 +67,6 @@ class ComponentFactory {
     threeDObject.init();
     
     return threeDObject;
-  }
-
-  /**
-   * Create a drum wheel 3D component (single-axis rotation)
-   * @param {string} containerId - ID of the container element
-   * @param {Object} config - Configuration for the drum wheel
-   * @returns {drum_wheel_3d_component_engine} The drum wheel instance
-   */
-  createDrumWheel3D(containerId, config = {}) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-      console.error(`[ComponentFactory] Container ${containerId} not found`);
-      return null;
-    }
-    
-    // Check if Three.js is loaded
-    if (typeof THREE === 'undefined') {
-      console.error('[ComponentFactory] Three.js not loaded. Add Three.js script before using 3D components.');
-      return null;
-    }
-    
-    // Create drum wheel instance
-    const drumWheel = new drum_wheel_3d_component_engine(container, config);
-    drumWheel.init();
-    
-    console.log(`[ComponentFactory] Drum wheel 3D created in ${containerId}`);
-    return drumWheel;
   }
 
   /**

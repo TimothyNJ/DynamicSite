@@ -193,8 +193,8 @@ function initializeSettingsComponents() {
       }
     });
     
-    // 8. ThreeD Component Engine Wheel Selector (drum)
-    const demoWheelSelector3D = componentFactory.createDrumWheel3D('demo-3d-wheel-selector-container', {
+    // 8. ThreeD Component Engine Wheel Selector (temporary - will be replaced with drum mode)
+    const demoWheelSelector3D = componentFactory.create3DObject('demo-3d-wheel-selector-container', {
       responsive: true,  // Same responsive sizing
       geometry: 'cylinder',  // Cylinder (drum shape)
       geometryParams: {
@@ -204,10 +204,8 @@ function initializeSettingsComponents() {
         cylinderRadialSegments: 32  // Smooth cylinder surface
       },
       texture: 'animated',  // Same animated texture
-      enableInteraction: true,  // Enable drum spinning
-      rotationSpeed: 0,  // Start with no rotation
-      sensitivity: 0.01,  // Mouse/touch sensitivity
-      friction: 0.98     // Momentum friction
+      enableInteraction: true,  // Same interaction capabilities
+      rotationSpeed: 0  // Start with no rotation
     });
     
     console.log('[Demo] ThreeD Component Engine Wheel Selector initialized:', demoWheelSelector3D);
