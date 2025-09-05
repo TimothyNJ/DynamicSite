@@ -339,8 +339,50 @@ function initializeVendorRequestComponents() {
 
 // Data Entry page initialization
 function initializeDataEntryComponents() {
-  console.log('[Data Entry] Page initialized with centered text only');
-  // No components to initialize - just centered text
+  console.log('[Data Entry] Initializing data entry components...');
+  
+  if (!window.componentFactory) {
+    console.error('[Data Entry] ComponentFactory not available');
+    return;
+  }
+  
+  // Create 3D Cylinder (matching cube dimensions exactly)
+  const cylinder3D = componentFactory.create3DObject('data-entry-3d-cylinder-container', {
+    responsive: true,  // Same responsive sizing as cube
+    geometry: 'cylinder',  // ONLY DIFFERENCE: cylinder instead of roundedBox
+    geometryParams: {
+      cylinderRadiusTop: 0.5,    // Radius 0.5 = diameter 1.0
+      cylinderRadiusBottom: 0.5,  // Same top and bottom for uniform cylinder
+      cylinderHeight: 1.0,        // Height 1.0 to match cube
+      cylinderRadialSegments: 32  // Smooth cylinder surface
+    },
+    texture: 'animated',  // Same animated texture as cube
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation like cube
+  });
+  
+  console.log('[Data Entry] 3D cylinder component initialized:', cylinder3D);
+  
+  // Create rotation speed slider (identical to cube's slider)
+  componentFactory.createSlider({
+    containerId: 'data-entry-3d-rotation-slider-container',
+    sliderClass: 'data-entry-3d-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Data Entry 3D Rotation Speed] Selected:', speed);
+    if (cylinder3D && cylinder3D.setRotationSpeed) {
+      cylinder3D.setRotationSpeed(speed);
+    }
+  });
+  
+  console.log('[Data Entry] All components initialized successfully');
 }
 
 
