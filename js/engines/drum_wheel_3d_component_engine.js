@@ -714,9 +714,9 @@ export class drum_wheel_3d_component_engine {
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         
         // Set initial rotation for drum wheel view
-        this.mesh.rotation.x = 0; // No tilt forward/back
-        this.mesh.rotation.y = 0; // No turn to show side wall
-        this.mesh.rotation.z = Math.PI/2; // Tip 90 degrees to the right
+        this.mesh.rotation.x = 0; // No tilt
+        this.mesh.rotation.y = 0; // No turn
+        this.mesh.rotation.z = 0; // No rotation - keep coordinate system aligned
         
         this.scene.add(this.mesh);
         
