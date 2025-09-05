@@ -177,7 +177,7 @@ export class drum_wheel_3d_component_engine {
             
             // Interaction settings
             enableInteraction: true,
-            restrictRotationAxis: null, // null for free rotation, 'x' for X-axis only (wheel/drum with axle),
+            rotationMode: 'drum', // Force drum mode - X-axis rotation only
             
             // Lighting settings
             lighting: 'default', // 'default', 'custom', 'none'
@@ -991,13 +991,13 @@ export class drum_wheel_3d_component_engine {
             y: event.clientY - rect.top
         };
         
-        // Check if we have axle-based rotation restriction
-        if (this.config.restrictRotationAxis === 'x') {
-            // Axle-based rotation - drum can only spin around X-axis
+        // Check if we're in drum mode
+        if (this.config.rotationMode === 'drum') {
+            // Drum mode - only spin around X-axis like a slot machine
             const deltaY = currentMousePosition.y - this.previousMousePosition.y;
             const rotationAngle = deltaY * 0.01; // Sensitivity factor
             
-            // Rotate ONLY around the local X-axis (the "axle")
+            // Rotate ONLY around the local X-axis (horizontal through drum)
             this.mesh.rotateX(rotationAngle);
             
             // Track velocity for momentum (only X component)
@@ -1040,6 +1040,9 @@ export class drum_wheel_3d_component_engine {
     }
     
     applyStickyRotation(mouseNDC) {
+        // Skip sticky rotation in drum mode
+        if (this.config.rotationMode === 'drum') return;
+        
         // Get the current world position of the grabbed point
         const currentWorldPoint = this.grabbedLocalPoint.clone();
         this.mesh.localToWorld(currentWorldPoint);
@@ -1233,6 +1236,30 @@ export class drum_wheel_3d_component_engine {
         
         this.touches = Array.from(event.touches);
         
+        // Handle drum mode with single touch
+        if (this.config.rotationMode === 'drum' && this.isDragging && this.touches.length === 1) {
+            const touch = this.touches[0];
+            const rect = this.renderer.domElement.getBoundingClientRect();
+            const currentPosition = {
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top
+            };
+            
+            // Calculate vertical movement for X-axis rotation
+            const deltaY = currentPosition.y - this.previousMousePosition.y;
+            const rotationAngle = deltaY * 0.01;
+            
+            // Apply X-axis rotation
+            this.mesh.rotateX(rotationAngle);
+            
+            // Track velocity
+            this.rotationVelocity.x = rotationAngle;
+            this.rotationVelocity.y = 0;
+            
+            this.previousMousePosition = currentPosition;
+            return; // Skip multi-touch handling
+        }
+        
         if (this.touches.length === 2) {
             // Calculate current vector between touches
             const dx = this.touches[0].clientX - this.touches[1].clientX;
@@ -1355,6 +1382,12 @@ export class drum_wheel_3d_component_engine {
     
     onGestureChange(event) {
         event.preventDefault();
+        
+        // In drum mode, ignore trackpad rotation gestures
+        if (this.config.rotationMode === 'drum') {
+            // Could potentially map to X-axis rotation, but for now just ignore
+            return;
+        }
         
         // Handle rotation - NO MOMENTUM for controlled gestures
         if (event.rotation !== undefined) {
@@ -1513,25 +1546,39 @@ export class drum_wheel_3d_component_engine {
             // Transition to swipe gesture
             this.transitionGesture('swipe');
             
-            // Two-finger swipe for controlled rotation - NO MOMENTUM
-            const sensitivity = 0.01; // Adjust for comfortable rotation speed
-            
-            // Horizontal swipe rotates around Y-axis (vertical axis through object)
-            const quaternionY = new THREE.Quaternion();
-            quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -event.deltaX * sensitivity);
-            
-            // Vertical swipe rotates around screen's horizontal axis (X-axis in screen space)
-            const cameraDirection = new THREE.Vector3();
-            this.camera.getWorldDirection(cameraDirection);
-            const screenXAxis = new THREE.Vector3();
-            screenXAxis.crossVectors(this.camera.up, cameraDirection).normalize();
-            
-            const quaternionX = new THREE.Quaternion();
-            quaternionX.setFromAxisAngle(screenXAxis, event.deltaY * sensitivity);
-            
-            // Apply rotations directly - this is controlled movement
-            this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
-            this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+            // Check if we're in drum mode
+            if (this.config.rotationMode === 'drum') {
+                // Drum mode - only X-axis rotation from vertical scrolling
+                const sensitivity = 0.01;
+                const rotationAngle = event.deltaY * sensitivity;
+                
+                // Apply rotation directly to X-axis
+                this.mesh.rotateX(rotationAngle);
+                
+                // Track velocity for momentum
+                this.rotationVelocity.x = rotationAngle * 0.5; // Some momentum from wheel
+                this.rotationVelocity.y = 0;
+            } else {
+                // Original free rotation code
+                const sensitivity = 0.01;
+                
+                // Horizontal swipe rotates around Y-axis
+                const quaternionY = new THREE.Quaternion();
+                quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -event.deltaX * sensitivity);
+                
+                // Vertical swipe rotates around screen's horizontal axis
+                const cameraDirection = new THREE.Vector3();
+                this.camera.getWorldDirection(cameraDirection);
+                const screenXAxis = new THREE.Vector3();
+                screenXAxis.crossVectors(this.camera.up, cameraDirection).normalize();
+                
+                const quaternionX = new THREE.Quaternion();
+                quaternionX.setFromAxisAngle(screenXAxis, event.deltaY * sensitivity);
+                
+                // Apply rotations
+                this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
+                this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+            }
             
             // Reset auto-rotation time since user is interacting
             this.autoRotationTime = 0;
@@ -1674,29 +1721,45 @@ export class drum_wheel_3d_component_engine {
         
         // Apply rotation only when not actively interacting
         if (!this.isDragging && !this.isGesturing && this.config.enableAnimation) {
-            // Momentum rotation using quaternions
-            if (Math.abs(this.rotationVelocity.x) > 0.0001 || Math.abs(this.rotationVelocity.y) > 0.0001) {
-                // Apply momentum as quaternion rotations
-                const quaternionY = new THREE.Quaternion();
-                quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.rotationVelocity.y);
-                
-                // Get the screen's horizontal axis (X-axis in screen space) for vertical rotation
-                const cameraDirection = new THREE.Vector3();
-                this.camera.getWorldDirection(cameraDirection);
-                const screenXAxis = new THREE.Vector3();
-                screenXAxis.crossVectors(this.camera.up, cameraDirection).normalize();
-                
-                const quaternionX = new THREE.Quaternion();
-                quaternionX.setFromAxisAngle(screenXAxis, this.rotationVelocity.x);
-                
-                // Apply momentum rotations
-                this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
-                this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
-                
-                // Dampen velocity - very slow decay like a real object in air
-                this.rotationVelocity.x *= 0.995;  // Only lose 0.5% per frame
-                this.rotationVelocity.y *= 0.995;
+            // Check for drum mode
+            if (this.config.rotationMode === 'drum') {
+                // Drum mode - only X-axis momentum
+                if (Math.abs(this.rotationVelocity.x) > 0.0001) {
+                    // Apply X-axis rotation directly
+                    this.mesh.rotateX(this.rotationVelocity.x);
+                    
+                    // Dampen velocity
+                    this.rotationVelocity.x *= 0.995;
+                } else if (this.config.rotationSpeed > 0) {
+                    // Auto-rotation around X-axis
+                    this.mesh.rotateX(0.01 * this.config.rotationSpeed);
+                }
+                // Always keep Y velocity at 0 in drum mode
+                this.rotationVelocity.y = 0;
             } else {
+                // Original free rotation momentum
+                if (Math.abs(this.rotationVelocity.x) > 0.0001 || Math.abs(this.rotationVelocity.y) > 0.0001) {
+                    // Apply momentum as quaternion rotations
+                    const quaternionY = new THREE.Quaternion();
+                    quaternionY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.rotationVelocity.y);
+                    
+                    // Get the screen's horizontal axis for vertical rotation
+                    const cameraDirection = new THREE.Vector3();
+                    this.camera.getWorldDirection(cameraDirection);
+                    const screenXAxis = new THREE.Vector3();
+                    screenXAxis.crossVectors(this.camera.up, cameraDirection).normalize();
+                    
+                    const quaternionX = new THREE.Quaternion();
+                    quaternionX.setFromAxisAngle(screenXAxis, this.rotationVelocity.x);
+                    
+                    // Apply momentum rotations
+                    this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
+                    this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+                    
+                    // Dampen velocity
+                    this.rotationVelocity.x *= 0.995;
+                    this.rotationVelocity.y *= 0.995;
+                } else {
                 // Auto rotation when momentum stops
                 this.autoRotationTime += 0.01 * this.config.rotationSpeed;
                 
@@ -1715,6 +1778,7 @@ export class drum_wheel_3d_component_engine {
                 
                 this.mesh.quaternion.multiplyQuaternions(autoQuaternionY, this.mesh.quaternion);
                 this.mesh.quaternion.multiplyQuaternions(autoQuaternionX, this.mesh.quaternion);
+                }
             }
         }
         
