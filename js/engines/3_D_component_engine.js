@@ -171,6 +171,7 @@ export class ThreeD_component_engine {
             
             // Interaction settings
             enableInteraction: true,
+            restrictRotationAxis: null, // null for free rotation, 'x' for X-axis only (wheel/drum with axle),
             
             // Lighting settings
             lighting: 'default', // 'default', 'custom', 'none'
@@ -984,6 +985,24 @@ export class ThreeD_component_engine {
             y: event.clientY - rect.top
         };
         
+        // Check if we have axle-based rotation restriction
+        if (this.config.restrictRotationAxis === 'x') {
+            // Axle-based rotation - drum can only spin around X-axis
+            const deltaY = currentMousePosition.y - this.previousMousePosition.y;
+            const rotationAngle = deltaY * 0.01; // Sensitivity factor
+            
+            // Rotate ONLY around the local X-axis (the "axle")
+            this.mesh.rotateX(rotationAngle);
+            
+            // Track velocity for momentum (only X component)
+            this.rotationVelocity.x = rotationAngle;
+            this.rotationVelocity.y = 0;
+            
+            this.previousMousePosition = currentMousePosition;
+            return; // Skip the complex sticky rotation
+        }
+        
+        // Original sticky rotation for free rotation
         // Store the quaternion before rotation
         const beforeRotation = this.mesh.quaternion.clone();
         
