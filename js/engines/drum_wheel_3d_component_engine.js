@@ -1555,8 +1555,8 @@ export class drum_wheel_3d_component_engine {
                 // Apply rotation directly to X-axis
                 this.mesh.rotateX(rotationAngle);
                 
-                // Track velocity for momentum
-                this.rotationVelocity.x = rotationAngle * 0.5; // Some momentum from wheel
+                // NO velocity tracking for wheel events - direct control only
+                this.rotationVelocity.x = 0; // Wheel scrolling should not contribute to momentum
                 this.rotationVelocity.y = 0;
             } else {
                 // Original free rotation code
