@@ -746,8 +746,9 @@ export class Drum_Selector_Engine {
         // Rotate mesh to horizontal position
         this.mesh.rotation.z = Math.PI/2;
         
-        // Fix UV coordinates to account for mesh rotation
-        this.fixUVCoordinatesForRotation();
+        // REMOVED UV coordinate fix - letting Three.js handle texture mapping naturally
+        // The UV transformation was likely overcorrecting and causing the oval distortion
+        // this.fixUVCoordinatesForRotation();
         
         // Set initial rotation for drum wheel view
         this.mesh.rotation.x = 0; // No tilt
