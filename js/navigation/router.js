@@ -5,7 +5,7 @@ const pagePathMap = {
   home: "pages/home/index.html",
   "vendor-request": "pages/vendor-request/index.html",
   "data-entry": "pages/data-entry/index.html",
-  progress: "pages/progress/index.html",
+  engines: "pages/engines/index.html",
   settings: "pages/settings/index.html",
 };
 

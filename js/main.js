@@ -452,36 +452,10 @@ function initializeDataEntryComponents() {
 }
 
 
-// Progress View page initialization
-function initializeProgressViewComponents() {
-  if (!window.componentFactory) {
-    console.error('[Progress View] ComponentFactory not available');
-    return;
-  }
-  
-  console.log('[Progress View] Initializing wheel selector test with year picker...');
-  
-  // Generate years array (100 years back from 2025)
-  const years = Array.from({length: 100}, (_, i) => 2025 - i);
-  
-  // Create wheel selector with years
-  componentFactory.createWheelSelector('wheel-selector-test-container', {
-    id: 'wheel-selector-test',
-    options: years,
-    defaultValue: 2025,
-    label: 'Select Year',
-    storageKey: 'selectedYear',
-    onChange: (value) => {
-      console.log('[Progress View] Year selected:', value);
-      // Update display if element exists
-      const displayElement = document.getElementById('selectedYear');
-      if (displayElement) {
-        displayElement.textContent = value;
-      }
-    }
-  });
-  
-  console.log('[Progress View] Year wheel selector initialized');
+// Engines View page initialization
+function initializeEnginesViewComponents() {
+  console.log('[Engines View] Page initialized with empty content area');
+  // Content area is empty - ready for component engine demonstrations
 }
 
 // Component initialization function for router
@@ -510,10 +484,10 @@ window.initializePageComponents = function(pageName) {
     // Call the settings initialization directly
     console.log('[main.js] Initializing settings components');
     initializeSettingsComponents();
-  } else if (pageName === 'progress') {
-    // Initialize progress view components
-    console.log('[main.js] Initializing progress components');
-    initializeProgressViewComponents();
+  } else if (pageName === 'engines') {
+    // Initialize engines view components
+    console.log('[main.js] Initializing engines components');
+    initializeEnginesViewComponents();
   } else if (pageName === 'data-entry') {
     // Initialize data entry components
     console.log('[main.js] Initializing data entry components');
@@ -535,7 +509,7 @@ function getCurrentPage() {
   if (hash.includes('settings')) return 'settings';
   if (hash.includes('create-vendor-request')) return 'create-vendor-request';
   if (hash.includes('data-entry-forms')) return 'data-entry-forms';
-  if (hash.includes('progress-view')) return 'progress-view';
+  if (hash.includes('engines-view')) return 'engines-view';
   return 'home';
 }
 
