@@ -465,10 +465,33 @@ export class ThreeD_component_engine {
         if (this.config.texture === 'none') return;
         
         if (this.config.texture === 'animated') {
-            // Create canvas for animated texture
+            // Calculate texture dimensions based on geometry type
+            let textureWidth, textureHeight;
+            const baseResolution = 512;
+            
+            if (this.config.geometry === 'cylinder') {
+                // Calculate correct dimensions for cylinder to prevent distortion
+                const params = this.config.geometryParams;
+                const radius = (params.cylinderRadiusTop + params.cylinderRadiusBottom) / 2;
+                const circumference = 2 * Math.PI * radius;
+                const height = params.cylinderHeight;
+                const aspectRatio = circumference / height;
+                
+                textureWidth = Math.round(baseResolution * aspectRatio);
+                textureHeight = baseResolution;
+                
+                console.log('[3D Component Engine] Cylinder texture dimensions:', textureWidth, 'x', textureHeight);
+            } else {
+                // For other geometries, use square texture for now
+                // TODO: Calculate appropriate dimensions for each geometry type
+                textureWidth = baseResolution;
+                textureHeight = baseResolution;
+            }
+            
+            // Create canvas with calculated dimensions
             this.textureCanvas = document.createElement('canvas');
-            this.textureCanvas.width = 512;
-            this.textureCanvas.height = 512;
+            this.textureCanvas.width = textureWidth;
+            this.textureCanvas.height = textureHeight;
             this.textureContext = this.textureCanvas.getContext('2d');
             
             this.texture = new THREE.CanvasTexture(this.textureCanvas);
@@ -1553,18 +1576,35 @@ export class ThreeD_component_engine {
         
         const ctx = this.textureContext;
         const params = this.config.textureParams;
+        const canvasWidth = this.textureCanvas.width;
+        const canvasHeight = this.textureCanvas.height;
         
         // Clear canvas
         ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, 512, 512);
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
-        // Create tunnel effect
+        // Calculate dot counts based on aspect ratio for even spacing
+        const aspectRatio = canvasWidth / canvasHeight;
+        const baseCount = params.tunnelCount || 6;
+        
+        let horizontalCount, verticalCount;
+        if (aspectRatio > 1) {
+            // Wider texture - scale horizontal count
+            horizontalCount = Math.round(baseCount * aspectRatio);
+            verticalCount = baseCount;
+        } else {
+            // Taller texture - scale vertical count
+            horizontalCount = baseCount;
+            verticalCount = Math.round(baseCount / aspectRatio);
+        }
+        
+        // Create tunnel effect with evenly spaced dots
         const phase = time * params.animationSpeed;
         
-        for (let i = 0; i < params.tunnelCount; i++) {
-            for (let j = 0; j < params.tunnelCount; j++) {
-                const x = (i + 0.5) * (512 / params.tunnelCount);
-                const y = (j + 0.5) * (512 / params.tunnelCount);
+        for (let i = 0; i < horizontalCount; i++) {
+            for (let j = 0; j < verticalCount; j++) {
+                const x = (i + 0.5) * (canvasWidth / horizontalCount);
+                const y = (j + 0.5) * (canvasHeight / verticalCount);
                 
                 const baseRadius = params.tunnelRadius;
                 const pulseAmount = 10;
