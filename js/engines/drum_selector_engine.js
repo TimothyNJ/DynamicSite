@@ -1034,9 +1034,9 @@ export class Drum_Selector_Engine {
             const deltaY = currentMousePosition.y - this.previousMousePosition.y;
             const rotationAngle = -deltaY * 0.01; // Negative for natural drum roll direction
             
-            // Rotate around world Y-axis to account for mesh rotation
-            // Since mesh is rotated 90° on Z, we need to use world coordinates
-            this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), rotationAngle);
+            // Rotate around world X-axis to account for mesh rotation
+            // Since mesh is rotated 90° on Z, we need to use world X-axis
+            this.mesh.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), rotationAngle);
             
             // Track velocity for momentum (only X component in world space)
             this.rotationVelocity.x = rotationAngle;
@@ -1287,8 +1287,8 @@ export class Drum_Selector_Engine {
             const deltaY = currentPosition.y - this.previousMousePosition.y;
             const rotationAngle = -deltaY * 0.01; // Negative for natural drum roll direction
             
-            // Apply world Y-axis rotation to account for mesh rotation
-            this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), rotationAngle);
+            // Apply world X-axis rotation to account for mesh rotation
+            this.mesh.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), rotationAngle);
             
             // Track velocity
             this.rotationVelocity.x = rotationAngle;
@@ -1590,8 +1590,8 @@ export class Drum_Selector_Engine {
                 const sensitivity = 0.01;
                 const rotationAngle = -event.deltaY * sensitivity; // Negative for natural drum roll direction
                 
-                // Apply rotation around world Y-axis to account for mesh rotation
-                this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), rotationAngle);
+                // Apply rotation around world X-axis to account for mesh rotation
+                this.mesh.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), rotationAngle);
                 
                 // NO velocity tracking for wheel events - direct control only
                 this.rotationVelocity.x = 0; // Wheel scrolling should not contribute to momentum
@@ -1763,14 +1763,14 @@ export class Drum_Selector_Engine {
             if (this.config.rotationMode === 'drum') {
                 // Drum mode - world Y-axis momentum
                 if (Math.abs(this.rotationVelocity.x) > 0.0001) {
-                    // Apply world Y-axis rotation to account for mesh rotation
-                    this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.rotationVelocity.x);
+                    // Apply world X-axis rotation to account for mesh rotation
+                    this.mesh.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), this.rotationVelocity.x);
                     
                     // Dampen velocity
                     this.rotationVelocity.x *= 0.995;
                 } else if (this.config.rotationSpeed > 0) {
-                    // Auto-rotation around world Y-axis
-                    this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), 0.01 * this.config.rotationSpeed);
+                    // Auto-rotation around world X-axis
+                    this.mesh.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), 0.01 * this.config.rotationSpeed);
                 }
                 // Always keep Y velocity at 0 in drum mode
                 this.rotationVelocity.y = 0;
