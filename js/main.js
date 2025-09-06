@@ -229,6 +229,42 @@ function initializeSettingsComponents() {
       }
     });
     
+    // 8.5. Drum_Selector_Engine (exact copy of drum wheel)
+    const demoDrumSelector = componentFactory.createDrumSelector('demo-drum-selector-container', {
+      responsive: true,  // Same responsive sizing
+      geometry: 'cylinder',  // Cylinder (drum shape)
+      geometryParams: {
+        cylinderRadiusTop: 0.5,    // Radius 0.5 = diameter 1.0
+        cylinderRadiusBottom: 0.5,  // Same top and bottom for uniform cylinder
+        cylinderHeight: 1.0,        // Height 1.0
+        cylinderRadialSegments: 32  // Smooth cylinder surface
+      },
+      texture: 'animated',  // Same animated texture
+      enableInteraction: true,  // Same interaction capabilities
+      rotationSpeed: 0  // Start with no rotation
+    });
+    
+    console.log('[Demo] Drum_Selector_Engine initialized:', demoDrumSelector);
+    
+    // Create rotation speed slider for drum selector
+    componentFactory.createSlider({
+      containerId: 'demo-drum-selector-rotation-slider-container',
+      sliderClass: 'demo-drum-selector-rotation-slider',
+      options: [
+        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+      ]
+    }, (selectedOption) => {
+      const speed = parseFloat(selectedOption.getAttribute('data-value'));
+      console.log('[Demo Drum Selector Rotation Speed] Selected:', speed);
+      if (demoDrumSelector && demoDrumSelector.setRotationSpeed) {
+        demoDrumSelector.setRotationSpeed(speed);
+      }
+    });
+    
     // 9. Wheel Selector demo (casino-style wheel with numbers 1-10)
     componentFactory.createWheelSelector('demo-wheel-selector-container', {
       id: 'demo-wheel-selector',
