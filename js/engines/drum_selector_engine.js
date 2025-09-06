@@ -471,10 +471,34 @@ export class Drum_Selector_Engine {
         if (this.config.texture === 'none') return;
         
         if (this.config.texture === 'animated') {
-            // Create canvas for animated texture
+            // Calculate correct texture dimensions based on cylinder geometry
+            // to prevent distortion when wrapping around the cylinder
+            const params = this.config.geometryParams;
+            
+            // Calculate the circumference and height
+            const radius = (params.cylinderRadiusTop + params.cylinderRadiusBottom) / 2;
+            const circumference = 2 * Math.PI * radius;
+            const height = params.cylinderHeight;
+            
+            // Calculate the aspect ratio of the unwrapped cylinder
+            const aspectRatio = circumference / height; // Should be ~3.14 for our cylinder
+            
+            // Set texture dimensions to match the aspect ratio
+            // Use a base resolution and scale appropriately
+            const baseResolution = 512;
+            const textureWidth = Math.round(baseResolution * aspectRatio);
+            const textureHeight = baseResolution;
+            
+            console.log('[Drum Selector Engine] Creating texture with correct aspect ratio:');
+            console.log(`  Cylinder circumference: ${circumference.toFixed(2)} units`);
+            console.log(`  Cylinder height: ${height} units`);
+            console.log(`  Aspect ratio: ${aspectRatio.toFixed(2)}:1`);
+            console.log(`  Texture dimensions: ${textureWidth}x${textureHeight}px`);
+            
+            // Create canvas with correct dimensions
             this.textureCanvas = document.createElement('canvas');
-            this.textureCanvas.width = 512;
-            this.textureCanvas.height = 512;
+            this.textureCanvas.width = textureWidth;
+            this.textureCanvas.height = textureHeight;
             this.textureContext = this.textureCanvas.getContext('2d');
             
             this.texture = new THREE.CanvasTexture(this.textureCanvas);
@@ -1645,18 +1669,20 @@ export class Drum_Selector_Engine {
         
         const ctx = this.textureContext;
         const params = this.config.textureParams;
+        const canvasWidth = this.textureCanvas.width;
+        const canvasHeight = this.textureCanvas.height;
         
         // Clear canvas
         ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, 512, 512);
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
         // Create tunnel effect
         const phase = time * params.animationSpeed;
         
         for (let i = 0; i < params.tunnelCount; i++) {
             for (let j = 0; j < params.tunnelCount; j++) {
-                const x = (i + 0.5) * (512 / params.tunnelCount);
-                const y = (j + 0.5) * (512 / params.tunnelCount);
+                const x = (i + 0.5) * (canvasWidth / params.tunnelCount);
+                const y = (j + 0.5) * (canvasHeight / params.tunnelCount);
                 
                 const baseRadius = params.tunnelRadius;
                 const pulseAmount = 10;
