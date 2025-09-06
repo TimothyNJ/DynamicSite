@@ -530,8 +530,7 @@ export class Drum_Selector_Engine {
                     params.cylinderHeight,
                     params.cylinderRadialSegments
                 );
-                // Rotate the geometry to make cylinder horizontal (drum wheel orientation)
-                geometry.rotateZ(Math.PI/2); // Tip cylinder on its side
+                // Keep cylinder vertical - no rotation
                 break;
                 
             default:
