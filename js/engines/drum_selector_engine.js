@@ -165,7 +165,7 @@ export class Drum_Selector_Engine {
                 // For animated texture
                 animationSpeed: 0.001,
                 tunnelRadius: 15,
-                tunnelCount: 6,
+                tunnelCount: 6,  // Base count for vertical dots (horizontal will scale by aspect ratio)
                 
                 // For solid texture
                 solidColor: 0xffffff
@@ -1676,13 +1676,24 @@ export class Drum_Selector_Engine {
         ctx.fillStyle = '#0a0a0a';
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
-        // Create tunnel effect
+        // Calculate aspect ratio to determine dot counts
+        const aspectRatio = canvasWidth / canvasHeight;
+        
+        // Calculate dot counts for even spacing
+        // We want dots to be evenly spaced, so scale horizontal count by aspect ratio
+        const baseCount = params.tunnelCount || 6;
+        const horizontalCount = Math.round(baseCount * aspectRatio);
+        const verticalCount = baseCount;
+        
+        console.log(`[Drum Selector] Drawing ${horizontalCount}x${verticalCount} dot grid on ${canvasWidth}x${canvasHeight}px texture`);
+        
+        // Create tunnel effect with evenly spaced dots
         const phase = time * params.animationSpeed;
         
-        for (let i = 0; i < params.tunnelCount; i++) {
-            for (let j = 0; j < params.tunnelCount; j++) {
-                const x = (i + 0.5) * (canvasWidth / params.tunnelCount);
-                const y = (j + 0.5) * (canvasHeight / params.tunnelCount);
+        for (let i = 0; i < horizontalCount; i++) {
+            for (let j = 0; j < verticalCount; j++) {
+                const x = (i + 0.5) * (canvasWidth / horizontalCount);
+                const y = (j + 0.5) * (canvasHeight / verticalCount);
                 
                 const baseRadius = params.tunnelRadius;
                 const pulseAmount = 10;
