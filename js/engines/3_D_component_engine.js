@@ -465,36 +465,20 @@ export class ThreeD_component_engine {
         if (this.config.texture === 'none') return;
         
         if (this.config.texture === 'animated') {
-            // Calculate texture dimensions based on geometry type
-            let textureWidth, textureHeight;
+            // Use square texture for all geometries to avoid cap distortion
+            // The texture will repeat on cylinders to maintain proper density
             const baseResolution = 512;
             
-            if (this.config.geometry === 'cylinder') {
-                // Calculate correct dimensions for cylinder to prevent distortion
-                const params = this.config.geometryParams;
-                const radius = (params.cylinderRadiusTop + params.cylinderRadiusBottom) / 2;
-                const circumference = 2 * Math.PI * radius;
-                const height = params.cylinderHeight;
-                const aspectRatio = circumference / height;
-                
-                textureWidth = Math.round(baseResolution * aspectRatio);
-                textureHeight = baseResolution;
-                
-                console.log('[3D Component Engine] Cylinder texture dimensions:', textureWidth, 'x', textureHeight);
-            } else {
-                // For other geometries, use square texture for now
-                // TODO: Calculate appropriate dimensions for each geometry type
-                textureWidth = baseResolution;
-                textureHeight = baseResolution;
-            }
-            
-            // Create canvas with calculated dimensions
             this.textureCanvas = document.createElement('canvas');
-            this.textureCanvas.width = textureWidth;
-            this.textureCanvas.height = textureHeight;
+            this.textureCanvas.width = baseResolution;
+            this.textureCanvas.height = baseResolution;
             this.textureContext = this.textureCanvas.getContext('2d');
             
             this.texture = new THREE.CanvasTexture(this.textureCanvas);
+            
+            // Don't use texture repeat - let Three.js handle the UV mapping
+            // This ensures caps show circular dots properly
+            console.log('[3D Component Engine] Using square texture for consistent dot appearance');
         } else if (this.config.texture === 'solid') {
             // Create solid color texture
             const canvas = document.createElement('canvas');
@@ -1583,20 +1567,13 @@ export class ThreeD_component_engine {
         ctx.fillStyle = '#0a0a0a';
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
-        // Calculate dot counts based on aspect ratio for even spacing
-        const aspectRatio = canvasWidth / canvasHeight;
+        // Draw dots in a square grid pattern
+        // Since we're using texture repeat, keep the pattern simple and tileable
         const baseCount = params.tunnelCount || 6;
         
-        let horizontalCount, verticalCount;
-        if (aspectRatio > 1) {
-            // Wider texture - scale horizontal count
-            horizontalCount = Math.round(baseCount * aspectRatio);
-            verticalCount = baseCount;
-        } else {
-            // Taller texture - scale vertical count
-            horizontalCount = baseCount;
-            verticalCount = Math.round(baseCount / aspectRatio);
-        }
+        // Use same count for both dimensions for square texture
+        const horizontalCount = baseCount;
+        const verticalCount = baseCount;
         
         // Create tunnel effect with evenly spaced dots
         const phase = time * params.animationSpeed;
