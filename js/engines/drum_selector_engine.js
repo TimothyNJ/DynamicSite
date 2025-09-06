@@ -686,6 +686,35 @@ export class Drum_Selector_Engine {
         return new RoundedBoxGeometry(width, height, depth, radius, smoothness, smoothness, smoothness);
     }
     
+    fixUVCoordinatesForRotation() {
+        // Fix UV coordinates to account for 90-degree Z-axis mesh rotation
+        // This ensures texture maps correctly on the rotated cylinder
+        
+        if (!this.geometry || !this.geometry.attributes.uv) {
+            console.warn('[Drum Selector Engine] No UV coordinates to fix');
+            return;
+        }
+        
+        const uvAttribute = this.geometry.attributes.uv;
+        const uvArray = uvAttribute.array;
+        
+        // For each UV coordinate pair (u, v)
+        for (let i = 0; i < uvArray.length; i += 2) {
+            const u = uvArray[i];     // Original U coordinate
+            const v = uvArray[i + 1]; // Original V coordinate
+            
+            // Rotate UV coordinates by 90 degrees to match mesh rotation
+            // For Z-axis rotation: new_u = v, new_v = 1 - u
+            uvArray[i] = v;       // New U = old V
+            uvArray[i + 1] = 1 - u; // New V = 1 - old U
+        }
+        
+        // Mark UV attribute as needing update
+        uvAttribute.needsUpdate = true;
+        
+        console.log('[Drum Selector Engine] UV coordinates fixed for horizontal orientation');
+    }
+    
     createMaterial() {
         const materialConfig = Object.assign({}, this.config.materialParams);
         
@@ -714,10 +743,16 @@ export class Drum_Selector_Engine {
     createMesh() {
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         
+        // Rotate mesh to horizontal position
+        this.mesh.rotation.z = Math.PI/2;
+        
+        // Fix UV coordinates to account for mesh rotation
+        this.fixUVCoordinatesForRotation();
+        
         // Set initial rotation for drum wheel view
         this.mesh.rotation.x = 0; // No tilt
         this.mesh.rotation.y = 0; // No turn
-        this.mesh.rotation.z = 0; // No rotation - keep coordinate system aligned
+        // Z rotation already set above for horizontal orientation
         
         this.scene.add(this.mesh);
         
