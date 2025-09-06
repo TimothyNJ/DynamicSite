@@ -998,7 +998,7 @@ export class drum_wheel_3d_component_engine {
         if (this.config.rotationMode === 'drum') {
             // Drum mode - only spin around X-axis like a slot machine
             const deltaY = currentMousePosition.y - this.previousMousePosition.y;
-            const rotationAngle = deltaY * 0.01; // Sensitivity factor
+            const rotationAngle = -deltaY * 0.01; // Negative for natural drum roll direction
             
             // Rotate ONLY around the local X-axis (horizontal through drum)
             this.mesh.rotateX(rotationAngle);
@@ -1250,7 +1250,7 @@ export class drum_wheel_3d_component_engine {
             
             // Calculate vertical movement for X-axis rotation
             const deltaY = currentPosition.y - this.previousMousePosition.y;
-            const rotationAngle = deltaY * 0.01;
+            const rotationAngle = -deltaY * 0.01; // Negative for natural drum roll direction
             
             // Apply X-axis rotation
             this.mesh.rotateX(rotationAngle);
@@ -1553,7 +1553,7 @@ export class drum_wheel_3d_component_engine {
             if (this.config.rotationMode === 'drum') {
                 // Drum mode - only X-axis rotation from vertical scrolling
                 const sensitivity = 0.01;
-                const rotationAngle = event.deltaY * sensitivity;
+                const rotationAngle = -event.deltaY * sensitivity; // Negative for natural drum roll direction
                 
                 // Apply rotation directly to X-axis
                 this.mesh.rotateX(rotationAngle);
