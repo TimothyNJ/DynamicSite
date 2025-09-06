@@ -50,6 +50,262 @@ window.componentFactory = componentFactory;
 // Ensure global mouse tracker is initialized
 console.log('[main.js] Global mouse tracker ready');
 
+// Component Engine Demos initialization function
+function initializeComponentEnginesDemos() {
+  if (!window.componentFactory) {
+    console.error('[Engines Page] ComponentFactory not available');
+    return;
+  }
+  
+  console.log('[Engines Page] Initializing component engine demos...');
+  
+  try {
+    // Demo Components - Base Models
+    console.log('[Engines Page] Initializing demo components...');
+  
+  // 1. Slider demo
+  componentFactory.createSlider({
+    containerId: 'demo-slider-container',
+    sliderClass: 'demo-slider',
+    options: [
+      { text: 'Option 1', value: 'option1', position: 1, active: true },
+      { text: 'Option 2', value: 'option2', position: 2 },
+      { text: 'Option 3', value: 'option3', position: 3 }
+    ]
+  }, (selectedOption) => {
+    console.log('[Demo] Slider selected:', selectedOption.querySelector('h3').textContent);
+  });
+  
+  // 2. Text Input demo
+  componentFactory.createTextInput('demo-text-input-container', {
+    id: 'demo-text-input',
+    label: 'Text Input',
+    placeholder: 'Text Input',
+    expandable: true,
+    onChange: (value) => console.log('[Demo] Text input:', value)
+  });
+  
+
+  
+  // 3. Text Button demo
+  componentFactory.createTextButton('demo-text-button-container', {
+    id: 'demo-text-button',
+    text: 'Click Me',
+    onClick: () => console.log('[Demo] Text button clicked')
+  });
+  
+  // 4. Circle Button demo
+  componentFactory.createCircleButton('demo-circle-button-container', {
+    id: 'demo-circle-button',
+    icon: '•', // Default dot
+    onClick: () => console.log('[Demo] Circle button clicked')
+  });
+  
+  // 5. Multi Select demo
+  componentFactory.createMultiSelect('demo-multi-select-container', {
+    id: 'demo-multi-select',
+    label: 'Multi Select',
+    options: [
+      { value: 'check1', text: 'Check 1' },
+      { value: 'check2', text: 'Check 2' },
+      { value: 'check3', text: 'Check 3' }
+    ],
+    defaultValues: ['check1'],
+    onChange: (values) => console.log('[Demo] Multi-select values:', values)
+  });
+  
+  // 6. 3D Component demo (responsive)
+  const demo3D = componentFactory.create3DObject('demo-3d-container', {
+    responsive: true,  // Enable viewport-based sizing
+    geometry: 'roundedBox',
+    geometryParams: {
+      width: 1.0,
+      height: 1.0,
+      depth: 1.0,
+      radius: 0.15,
+      smoothness: 32
+    },
+    texture: 'animated',
+    enableInteraction: true,
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  console.log('[Demo] 3D component initialized:', demo3D);
+  
+  // Create rotation speed slider for 3D demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-rotation-slider-container',
+    sliderClass: 'demo-3d-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value') || selectedOption.querySelector('h3').textContent);
+    console.log('[Demo 3D Rotation Speed] Selected:', speed);
+    if (demo3D && demo3D.setRotationSpeed) {
+      demo3D.setRotationSpeed(speed);
+    }
+  });
+  
+  // 7. 3D Component demo (cylinder)
+  const demoCylinder3D = componentFactory.create3DObject('demo-3d-cylinder-container', {
+    responsive: true,  // Same responsive sizing as cube
+    geometry: 'cylinder',  // Cylinder instead of roundedBox
+    geometryParams: {
+      cylinderRadiusTop: 0.5,    // Radius 0.5 = diameter 1.0
+      cylinderRadiusBottom: 0.5,  // Same top and bottom for uniform cylinder
+      cylinderHeight: 1.0,        // Height 1.0 to match cube
+      cylinderRadialSegments: 32  // Smooth cylinder surface
+    },
+    texture: 'animated',  // Same animated texture as cube
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation like cube
+  });
+  
+  console.log('[Demo] 3D cylinder component initialized:', demoCylinder3D);
+  
+  // Create rotation speed slider for cylinder demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-cylinder-rotation-slider-container',
+    sliderClass: 'demo-3d-cylinder-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo 3D Cylinder Rotation Speed] Selected:', speed);
+    if (demoCylinder3D && demoCylinder3D.setRotationSpeed) {
+      demoCylinder3D.setRotationSpeed(speed);
+    }
+  });
+  
+  // 8. drum_wheel_3d_component_engine (copy of 3D engine, will be modified for drum mode)
+  const demoWheelSelector3D = componentFactory.createDrumWheel3D('demo-3d-wheel-selector-container', {
+    responsive: true,  // Same responsive sizing
+    geometry: 'cylinder',  // Cylinder (drum shape)
+    geometryParams: {
+      cylinderRadiusTop: 0.5,    // Radius 0.5 = diameter 1.0
+      cylinderRadiusBottom: 0.5,  // Same top and bottom for uniform cylinder
+      cylinderHeight: 1.0,        // Height 1.0
+      cylinderRadialSegments: 32  // Smooth cylinder surface
+    },
+    texture: 'animated',  // Same animated texture
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  console.log('[Demo] drum_wheel_3d_component_engine initialized:', demoWheelSelector3D);
+  
+  // Create rotation speed slider for wheel selector drum
+  componentFactory.createSlider({
+    containerId: 'demo-3d-wheel-selector-rotation-slider-container',
+    sliderClass: 'demo-3d-wheel-selector-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo 3D Wheel Selector Rotation Speed] Selected:', speed);
+    if (demoWheelSelector3D && demoWheelSelector3D.setRotationSpeed) {
+      demoWheelSelector3D.setRotationSpeed(speed);
+    }
+  });
+  
+  // 8.5. Drum_Selector_Engine (exact copy of drum wheel)
+  const demoDrumSelector = componentFactory.createDrumSelector('demo-drum-selector-container', {
+    responsive: true,  // Same responsive sizing
+    geometry: 'cylinder',  // Cylinder (drum shape)
+    geometryParams: {
+      cylinderRadiusTop: 0.5,    // Radius 0.5 = diameter 1.0
+      cylinderRadiusBottom: 0.5,  // Same top and bottom for uniform cylinder
+      cylinderHeight: 1.0,        // Height 1.0
+      cylinderRadialSegments: 32  // Smooth cylinder surface
+    },
+    texture: 'animated',  // Same animated texture
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  console.log('[Demo] Drum_Selector_Engine initialized:', demoDrumSelector);
+  
+  // Create rotation speed slider for drum selector
+  componentFactory.createSlider({
+    containerId: 'demo-drum-selector-rotation-slider-container',
+    sliderClass: 'demo-drum-selector-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo Drum Selector Rotation Speed] Selected:', speed);
+    if (demoDrumSelector && demoDrumSelector.setRotationSpeed) {
+      demoDrumSelector.setRotationSpeed(speed);
+    }
+  });
+  
+  // 9. Wheel Selector demo (casino-style wheel with numbers 1-10)
+  componentFactory.createWheelSelector('demo-wheel-selector-container', {
+    id: 'demo-wheel-selector',
+    options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+    defaultValue: '1',
+    placeholder: 'Roll the wheel',
+    showOnHover: true, // Enable hover to show wheel
+    onChange: (value) => console.log('[Demo] Wheel selected:', value)
+  });
+  
+  // 10. Calendar Picker demo
+  componentFactory.createCalendarPicker('demo-calendar-picker-container', {
+    id: 'demo-calendar-picker',
+    label: 'Calendar Picker',
+    onChange: (date) => console.log('[Demo] Calendar date selected:', date)
+  });
+  
+  // 11. Wheel Time Selector demo
+  componentFactory.createWheelTimeSelector('demo-wheel-time-selector-container', {
+    id: 'demo-wheel-time-selector',
+    label: 'Time Selector',
+    defaultTime: '12:00',
+    onChange: (time) => console.log('[Demo] Time selected:', time)
+  });
+  
+  // 12. Wheel Date Picker demo
+  componentFactory.createWheelDatePicker('demo-wheel-date-picker-container', {
+    id: 'demo-wheel-date-picker',
+    label: 'Date Picker',
+    format: 'dd-mm-yyyy',
+    onChange: (date) => console.log('[Demo] Date selected:', date)
+  });
+  
+  // 13. File Upload demo
+  componentFactory.createFileUpload('demo-file-upload-container', {
+    id: 'demo-file-upload',
+    label: 'File Upload',
+    onChange: (files) => console.log('[Demo] Files selected:', files)
+  });
+  
+  console.log('[Engines Page] Demo components initialized');
+  
+} catch (error) {
+  console.error('[Engines Page] Error initializing components:', error);
+}
+}
+
 // Define settings component initialization function
 function initializeSettingsComponents() {
   if (!window.componentFactory) {
@@ -57,7 +313,7 @@ function initializeSettingsComponents() {
     return;
   }
   
-  console.log('[Settings Page] Initializing all components...');
+  console.log('[Settings Page] Initializing User Settings components...');
   
   // Apply theme BEFORE creating components so CSS selectors work correctly
   const savedTheme = localStorage.getItem('userThemePreference') || 'dark';
@@ -66,246 +322,6 @@ function initializeSettingsComponents() {
     }
     
     try {
-      // Demo Components - Base Models
-      console.log('[Settings Page] Initializing demo components...');
-    
-    // 1. Slider demo
-    componentFactory.createSlider({
-      containerId: 'demo-slider-container',
-      sliderClass: 'demo-slider',
-      options: [
-        { text: 'Option 1', value: 'option1', position: 1, active: true },
-        { text: 'Option 2', value: 'option2', position: 2 },
-        { text: 'Option 3', value: 'option3', position: 3 }
-      ]
-    }, (selectedOption) => {
-      console.log('[Demo] Slider selected:', selectedOption.querySelector('h3').textContent);
-    });
-    
-    // 2. Text Input demo
-    componentFactory.createTextInput('demo-text-input-container', {
-      id: 'demo-text-input',
-      label: 'Text Input',
-      placeholder: 'Text Input',
-      expandable: true,
-      onChange: (value) => console.log('[Demo] Text input:', value)
-    });
-    
-
-    
-    // 3. Text Button demo
-    componentFactory.createTextButton('demo-text-button-container', {
-      id: 'demo-text-button',
-      text: 'Click Me',
-      onClick: () => console.log('[Demo] Text button clicked')
-    });
-    
-    // 4. Circle Button demo
-    componentFactory.createCircleButton('demo-circle-button-container', {
-      id: 'demo-circle-button',
-      icon: '•', // Default dot
-      onClick: () => console.log('[Demo] Circle button clicked')
-    });
-    
-    // 5. Multi Select demo
-    componentFactory.createMultiSelect('demo-multi-select-container', {
-      id: 'demo-multi-select',
-      label: 'Multi Select',
-      options: [
-        { value: 'check1', text: 'Check 1' },
-        { value: 'check2', text: 'Check 2' },
-        { value: 'check3', text: 'Check 3' }
-      ],
-      defaultValues: ['check1'],
-      onChange: (values) => console.log('[Demo] Multi-select values:', values)
-    });
-    
-    // 6. 3D Component demo (responsive)
-    const demo3D = componentFactory.create3DObject('demo-3d-container', {
-      responsive: true,  // Enable viewport-based sizing
-      geometry: 'roundedBox',
-      geometryParams: {
-        width: 1.0,
-        height: 1.0,
-        depth: 1.0,
-        radius: 0.15,
-        smoothness: 32
-      },
-      texture: 'animated',
-      enableInteraction: true,
-      rotationSpeed: 0  // Start with no rotation
-    });
-    
-    console.log('[Demo] 3D component initialized:', demo3D);
-    
-    // Create rotation speed slider for 3D demo
-    componentFactory.createSlider({
-      containerId: 'demo-3d-rotation-slider-container',
-      sliderClass: 'demo-3d-rotation-slider',
-      options: [
-        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
-        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
-        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
-        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
-        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
-      ]
-    }, (selectedOption) => {
-      const speed = parseFloat(selectedOption.getAttribute('data-value') || selectedOption.querySelector('h3').textContent);
-      console.log('[Demo 3D Rotation Speed] Selected:', speed);
-      if (demo3D && demo3D.setRotationSpeed) {
-        demo3D.setRotationSpeed(speed);
-      }
-    });
-    
-    // 7. 3D Component demo (cylinder)
-    const demoCylinder3D = componentFactory.create3DObject('demo-3d-cylinder-container', {
-      responsive: true,  // Same responsive sizing as cube
-      geometry: 'cylinder',  // Cylinder instead of roundedBox
-      geometryParams: {
-        cylinderRadiusTop: 0.5,    // Radius 0.5 = diameter 1.0
-        cylinderRadiusBottom: 0.5,  // Same top and bottom for uniform cylinder
-        cylinderHeight: 1.0,        // Height 1.0 to match cube
-        cylinderRadialSegments: 32  // Smooth cylinder surface
-      },
-      texture: 'animated',  // Same animated texture as cube
-      enableInteraction: true,  // Same interaction capabilities
-      rotationSpeed: 0  // Start with no rotation like cube
-    });
-    
-    console.log('[Demo] 3D cylinder component initialized:', demoCylinder3D);
-    
-    // Create rotation speed slider for cylinder demo
-    componentFactory.createSlider({
-      containerId: 'demo-3d-cylinder-rotation-slider-container',
-      sliderClass: 'demo-3d-cylinder-rotation-slider',
-      options: [
-        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
-        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
-        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
-        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
-        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
-      ]
-    }, (selectedOption) => {
-      const speed = parseFloat(selectedOption.getAttribute('data-value'));
-      console.log('[Demo 3D Cylinder Rotation Speed] Selected:', speed);
-      if (demoCylinder3D && demoCylinder3D.setRotationSpeed) {
-        demoCylinder3D.setRotationSpeed(speed);
-      }
-    });
-    
-    // 8. drum_wheel_3d_component_engine (copy of 3D engine, will be modified for drum mode)
-    const demoWheelSelector3D = componentFactory.createDrumWheel3D('demo-3d-wheel-selector-container', {
-      responsive: true,  // Same responsive sizing
-      geometry: 'cylinder',  // Cylinder (drum shape)
-      geometryParams: {
-        cylinderRadiusTop: 0.5,    // Radius 0.5 = diameter 1.0
-        cylinderRadiusBottom: 0.5,  // Same top and bottom for uniform cylinder
-        cylinderHeight: 1.0,        // Height 1.0
-        cylinderRadialSegments: 32  // Smooth cylinder surface
-      },
-      texture: 'animated',  // Same animated texture
-      enableInteraction: true,  // Same interaction capabilities
-      rotationSpeed: 0  // Start with no rotation
-    });
-    
-    console.log('[Demo] drum_wheel_3d_component_engine initialized:', demoWheelSelector3D);
-    
-    // Create rotation speed slider for wheel selector drum
-    componentFactory.createSlider({
-      containerId: 'demo-3d-wheel-selector-rotation-slider-container',
-      sliderClass: 'demo-3d-wheel-selector-rotation-slider',
-      options: [
-        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
-        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
-        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
-        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
-        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
-      ]
-    }, (selectedOption) => {
-      const speed = parseFloat(selectedOption.getAttribute('data-value'));
-      console.log('[Demo 3D Wheel Selector Rotation Speed] Selected:', speed);
-      if (demoWheelSelector3D && demoWheelSelector3D.setRotationSpeed) {
-        demoWheelSelector3D.setRotationSpeed(speed);
-      }
-    });
-    
-    // 8.5. Drum_Selector_Engine (exact copy of drum wheel)
-    const demoDrumSelector = componentFactory.createDrumSelector('demo-drum-selector-container', {
-      responsive: true,  // Same responsive sizing
-      geometry: 'cylinder',  // Cylinder (drum shape)
-      geometryParams: {
-        cylinderRadiusTop: 0.5,    // Radius 0.5 = diameter 1.0
-        cylinderRadiusBottom: 0.5,  // Same top and bottom for uniform cylinder
-        cylinderHeight: 1.0,        // Height 1.0
-        cylinderRadialSegments: 32  // Smooth cylinder surface
-      },
-      texture: 'animated',  // Same animated texture
-      enableInteraction: true,  // Same interaction capabilities
-      rotationSpeed: 0  // Start with no rotation
-    });
-    
-    console.log('[Demo] Drum_Selector_Engine initialized:', demoDrumSelector);
-    
-    // Create rotation speed slider for drum selector
-    componentFactory.createSlider({
-      containerId: 'demo-drum-selector-rotation-slider-container',
-      sliderClass: 'demo-drum-selector-rotation-slider',
-      options: [
-        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
-        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
-        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
-        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
-        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
-      ]
-    }, (selectedOption) => {
-      const speed = parseFloat(selectedOption.getAttribute('data-value'));
-      console.log('[Demo Drum Selector Rotation Speed] Selected:', speed);
-      if (demoDrumSelector && demoDrumSelector.setRotationSpeed) {
-        demoDrumSelector.setRotationSpeed(speed);
-      }
-    });
-    
-    // 9. Wheel Selector demo (casino-style wheel with numbers 1-10)
-    componentFactory.createWheelSelector('demo-wheel-selector-container', {
-      id: 'demo-wheel-selector',
-      options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
-      defaultValue: '1',
-      placeholder: 'Roll the wheel',
-      showOnHover: true, // Enable hover to show wheel
-      onChange: (value) => console.log('[Demo] Wheel selected:', value)
-    });
-    
-    // 10. Calendar Picker demo
-    componentFactory.createCalendarPicker('demo-calendar-picker-container', {
-      id: 'demo-calendar-picker',
-      label: 'Calendar Picker',
-      onChange: (date) => console.log('[Demo] Calendar date selected:', date)
-    });
-    
-    // 11. Wheel Time Selector demo
-    componentFactory.createWheelTimeSelector('demo-wheel-time-selector-container', {
-      id: 'demo-wheel-time-selector',
-      label: 'Time Selector',
-      defaultTime: '12:00',
-      onChange: (time) => console.log('[Demo] Time selected:', time)
-    });
-    
-    // 12. Wheel Date Picker demo
-    componentFactory.createWheelDatePicker('demo-wheel-date-picker-container', {
-      id: 'demo-wheel-date-picker',
-      label: 'Date Picker',
-      format: 'dd-mm-yyyy',
-      onChange: (date) => console.log('[Demo] Date selected:', date)
-    });
-    
-    // 13. File Upload demo
-    componentFactory.createFileUpload('demo-file-upload-container', {
-      id: 'demo-file-upload',
-      label: 'File Upload',
-      onChange: (files) => console.log('[Demo] Files selected:', files)
-    });
-    
-    console.log('[Settings Page] Demo components initialized');
     
     // User Settings Components
     console.log('[Settings Page] Initializing User Settings components...');
@@ -454,8 +470,9 @@ function initializeDataEntryComponents() {
 
 // Engines View page initialization
 function initializeEnginesViewComponents() {
-  console.log('[Engines View] Page initialized with empty content area');
-  // Content area is empty - ready for component engine demonstrations
+  console.log('[Engines View] Initializing component engine demos');
+  // Call the component engines demo function
+  initializeComponentEnginesDemos();
 }
 
 // Component initialization function for router
