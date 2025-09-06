@@ -1030,14 +1030,15 @@ export class Drum_Selector_Engine {
         
         // Check if we're in drum mode
         if (this.config.rotationMode === 'drum') {
-            // Drum mode - only spin around X-axis like a slot machine
+            // Drum mode - spin around world Y-axis (since mesh is rotated)
             const deltaY = currentMousePosition.y - this.previousMousePosition.y;
             const rotationAngle = -deltaY * 0.01; // Negative for natural drum roll direction
             
-            // Rotate ONLY around the local X-axis (horizontal through drum)
-            this.mesh.rotateX(rotationAngle);
+            // Rotate around world Y-axis to account for mesh rotation
+            // Since mesh is rotated 90° on Z, we need to use world coordinates
+            this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), rotationAngle);
             
-            // Track velocity for momentum (only X component)
+            // Track velocity for momentum (only X component in world space)
             this.rotationVelocity.x = rotationAngle;
             this.rotationVelocity.y = 0;
             
@@ -1282,12 +1283,12 @@ export class Drum_Selector_Engine {
                 y: touch.clientY - rect.top
             };
             
-            // Calculate vertical movement for X-axis rotation
+            // Calculate vertical movement for world Y-axis rotation
             const deltaY = currentPosition.y - this.previousMousePosition.y;
             const rotationAngle = -deltaY * 0.01; // Negative for natural drum roll direction
             
-            // Apply X-axis rotation
-            this.mesh.rotateX(rotationAngle);
+            // Apply world Y-axis rotation to account for mesh rotation
+            this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), rotationAngle);
             
             // Track velocity
             this.rotationVelocity.x = rotationAngle;
@@ -1585,12 +1586,12 @@ export class Drum_Selector_Engine {
             
             // Check if we're in drum mode
             if (this.config.rotationMode === 'drum') {
-                // Drum mode - only X-axis rotation from vertical scrolling
+                // Drum mode - world Y-axis rotation from vertical scrolling
                 const sensitivity = 0.01;
                 const rotationAngle = -event.deltaY * sensitivity; // Negative for natural drum roll direction
                 
-                // Apply rotation directly to X-axis
-                this.mesh.rotateX(rotationAngle);
+                // Apply rotation around world Y-axis to account for mesh rotation
+                this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), rotationAngle);
                 
                 // NO velocity tracking for wheel events - direct control only
                 this.rotationVelocity.x = 0; // Wheel scrolling should not contribute to momentum
@@ -1760,16 +1761,16 @@ export class Drum_Selector_Engine {
         if (!this.isDragging && !this.isGesturing && this.config.enableAnimation) {
             // Check for drum mode
             if (this.config.rotationMode === 'drum') {
-                // Drum mode - only X-axis momentum
+                // Drum mode - world Y-axis momentum
                 if (Math.abs(this.rotationVelocity.x) > 0.0001) {
-                    // Apply X-axis rotation directly
-                    this.mesh.rotateX(this.rotationVelocity.x);
+                    // Apply world Y-axis rotation to account for mesh rotation
+                    this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), this.rotationVelocity.x);
                     
                     // Dampen velocity
                     this.rotationVelocity.x *= 0.995;
                 } else if (this.config.rotationSpeed > 0) {
-                    // Auto-rotation around X-axis
-                    this.mesh.rotateX(0.01 * this.config.rotationSpeed);
+                    // Auto-rotation around world Y-axis
+                    this.mesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), 0.01 * this.config.rotationSpeed);
                 }
                 // Always keep Y velocity at 0 in drum mode
                 this.rotationVelocity.y = 0;
