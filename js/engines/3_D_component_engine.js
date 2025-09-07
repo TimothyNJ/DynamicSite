@@ -370,10 +370,10 @@ export class ThreeD_component_engine {
             this.lights.ambient = new THREE.AmbientLight(0xffffff, 0.15);
             this.scene.add(this.lights.ambient);
             
-            // Back light for rim effect
-            this.lights.back = new THREE.PointLight(0xffffff, 9.0);
-            this.lights.back.position.set(0, 0, -2);
-            this.scene.add(this.lights.back);
+            // Back light for rim effect - TEMPORARILY DISABLED FOR TESTING
+            // this.lights.back = new THREE.PointLight(0xffffff, 9.0);
+            // this.lights.back.position.set(0, 0, -2);
+            // this.scene.add(this.lights.back);
             
             // Rim light
             this.lights.rim = new THREE.DirectionalLight(0xffffff, 1.5);
