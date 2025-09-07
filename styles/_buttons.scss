@@ -322,7 +322,7 @@ body[data-theme="dark"] .button-component {
 }
 
 // Circle mode - force circular shape with proper sizing
-.button-component.button-default-dot {
+.button-component.button-circle {
   border-radius: 50%;
   width: auto;
   height: auto;
@@ -333,9 +333,9 @@ body[data-theme="dark"] .button-component {
     padding: 2px 2px; // Minimal padding for circle
   }
   
-  // Make the dot visible (unlike circle engine which hides it)
+  // Hide the dot text (invisible like circle engine)
   .button-content h3 {
-    opacity: 1 !important; // Override any opacity: 0 rules
+    opacity: 0; // Default dot is invisible - button shape is the visual element
   }
 }
 

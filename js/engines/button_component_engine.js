@@ -104,7 +104,7 @@ class button_component_engine {
     this.element = document.createElement('div');
     const buttonClasses = ['button-component'];
     if (this.isDefaultDot) {
-      buttonClasses.push('button-default-dot');
+      buttonClasses.push('button-circle');
     } else {
       buttonClasses.push('button-text');
     }
@@ -154,9 +154,11 @@ class button_component_engine {
     // Add to container
     this.container.appendChild(this.element);
     
-    // For default dot, ensure circular shape if height > width
+    // For default dot, ensure circular shape
     if (this.isDefaultDot) {
       this.ensureCircular();
+      // Ensure the button uses circular border radius
+      this.element.style.borderRadius = '50%';
     }
     
     // Set initial state
@@ -197,6 +199,21 @@ class button_component_engine {
         this.clickHandler(this.options.value, this.options.id);
       }
     });
+    
+    // Different hover handling for circle vs text mode
+    if (this.isDefaultDot) {
+      // Circle mode: Simple hover ring activation (like circle engine)
+      this.element.addEventListener('mouseenter', () => {
+        if (!this.options.disabled) {
+          this.element.classList.add('hover-ring-active');
+        }
+      });
+      
+      this.element.addEventListener('mouseleave', () => {
+        this.element.classList.remove('hover-ring-active');
+      });
+    }
+    // Text mode uses the complex border animation system already set up
     
     // Prevent text selection on double click
     this.element.addEventListener('selectstart', (e) => {
@@ -246,13 +263,15 @@ class button_component_engine {
     
     // Update classes if type changed
     if (wasDefaultDot !== this.isDefaultDot) {
-      this.element.classList.remove('button-default-dot', 'button-text');
+      this.element.classList.remove('button-circle', 'button-text');
       if (this.isDefaultDot) {
-        this.element.classList.add('button-default-dot');
+        this.element.classList.add('button-circle');
         this.ensureCircular(); // Make circular if needed
+        this.element.style.borderRadius = '50%'; // Ensure circular border
       } else {
         this.element.classList.add('button-text');
         this.element.style.width = ''; // Remove fixed width for text buttons
+        this.element.style.borderRadius = '9999px'; // Restore pill shape
       }
     }
     
