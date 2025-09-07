@@ -31,8 +31,6 @@ import { slider_component_engine } from './engines/slider_component_engine.js';
 import { text_input_component_engine } from './engines/text_input_component_engine.js';
 
 import { button_component_engine } from './engines/button_component_engine.js';
-import { text_button_component_engine } from './engines/text_button_component_engine.js';
-import { circle_button_component_engine } from './engines/circle_button_component_engine.js';
 import { multi_select_component_engine } from './engines/multi_select_component_engine.js';
 import { file_upload_input_component_engine } from './engines/file_upload_input_component_engine.js';
 import { wheel_time_selector_component_engine } from './engines/wheel_time_selector_component_engine.js';
@@ -84,23 +82,8 @@ function initializeComponentEnginesDemos() {
     expandable: true,
     onChange: (value) => console.log('[Demo] Text input:', value)
   });
-
   
-  // 3. Text Button demo
-  componentFactory.createTextButton('demo-text-button-container', {
-    id: 'demo-text-button',
-    text: 'Click Me',
-    onClick: () => console.log('[Demo] Text button clicked')
-  });
-  
-  // 4. Circle Button demo
-  componentFactory.createCircleButton('demo-circle-button-container', {
-    id: 'demo-circle-button',
-    icon: '•', // Default dot
-    onClick: () => console.log('[Demo] Circle button clicked')
-  });
-  
-  // 4.5. Base Button Engine demos (Text Mode)
+  // 3. Base Button Engine demos (Text Mode)
   componentFactory.createButton('demo-base-button-text-container', {
     id: 'demo-base-button-text',
     text: 'Click Me',
@@ -110,7 +93,7 @@ function initializeComponentEnginesDemos() {
     }
   });
   
-  // 4.6. Base Button Engine demos (Circle Mode)
+  // 4. Base Button Engine demos (Circle Mode)
   componentFactory.createButton('demo-base-button-circle-container', {
     id: 'demo-base-button-circle',
     text: '•', // This triggers circle mode

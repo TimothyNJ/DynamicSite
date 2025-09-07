@@ -10,9 +10,7 @@
 
 import { slider_component_engine } from '../engines/slider_component_engine.js';
 import { text_input_component_engine } from '../engines/text_input_component_engine.js';
-import { text_button_component_engine } from '../engines/text_button_component_engine.js';
-import { circle_button_component_engine } from '../engines/circle_button_component_engine.js';
-import { button_component_engine } from '../engines/button_component_engine.js'; // Keep for backward compatibility
+import { button_component_engine } from '../engines/button_component_engine.js';
 import { multi_select_component_engine } from '../engines/multi_select_component_engine.js';
 import { file_upload_input_component_engine } from '../engines/file_upload_input_component_engine.js';
 import { wheel_time_selector_component_engine } from '../engines/wheel_time_selector_component_engine.js';
