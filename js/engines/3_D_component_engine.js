@@ -1836,6 +1836,9 @@ export class ThreeD_component_engine {
         if (this.config.geometry === 'cylinder' && this.sideContext && this.capContext) {
             // Update both side and cap textures for cylinders
             this.updateCylinderTextures(time);
+        } else if (this.config.geometry === 'cone' && this.sideContext && this.baseContext) {
+            // Update both side and base textures for cones
+            this.updateConeTextures(time);
         } else if (this.textureContext) {
             // Update single texture for other geometries
             this.updateSingleTexture(time, this.textureContext, this.textureCanvas, this.texture);
@@ -1850,6 +1853,12 @@ export class ThreeD_component_engine {
         
         // Update cap texture (square)
         this.updateSingleTexture(time, this.capContext, this.capCanvas, this.capTexture);
+    }
+    
+    updateConeTextures(time) {
+        // Update both side and base textures for cones
+        this.updateSingleTexture(time, this.sideContext, this.sideCanvas, this.sideTexture);
+        this.updateSingleTexture(time, this.baseContext, this.baseCanvas, this.baseTexture);
     }
     
     updateSingleTexture(time, ctx, canvas, texture) {
