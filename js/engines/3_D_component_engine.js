@@ -567,19 +567,23 @@ export class ThreeD_component_engine {
 
     createConeTextures() {
         const params = this.config.geometryParams;
-        const baseResolution = 512;
+        const dotsPerUnit = 36; // Standard texture density
         
         // Calculate cone dimensions
         const radius = params.coneRadius || 0.5;
         const height = params.coneHeight || 1.0;
         const slantHeight = Math.sqrt(height * height + radius * radius);
         
-        // SIDE TEXTURE: Circular sector (unwrapped cone side)
+        // SIDE TEXTURE: Circular sector based on base arc length
+        const baseArcLength = 2 * Math.PI * radius; // Circumference of cone base
         const sectorAngle = 2 * Math.PI * (radius / slantHeight); // Angle in radians
-        const sectorRadius = Math.round(baseResolution * (slantHeight / radius)); // Scale to fit canvas
+        
+        // Calculate texture dimensions using 36 dots/unit standard
+        const sectorWidth = Math.round(baseArcLength * dotsPerUnit); // Width = base arc × 36 dots/unit
+        const sectorHeight = Math.round(slantHeight * dotsPerUnit);   // Height = slant height × 36 dots/unit
         
         // Create square canvas large enough to contain the sector
-        const canvasSize = Math.ceil(sectorRadius * 2);
+        const canvasSize = Math.max(sectorWidth, sectorHeight);
         this.sideCanvas = document.createElement('canvas');
         this.sideCanvas.width = canvasSize;
         this.sideCanvas.height = canvasSize;
@@ -587,7 +591,10 @@ export class ThreeD_component_engine {
         
         this.sideTexture = new THREE.CanvasTexture(this.sideCanvas);
         
-        // BASE TEXTURE: Circular for cone base
+        // BASE TEXTURE: Circular for cone base using 36 dots/unit
+        const baseDiameter = radius * 2;
+        const baseResolution = Math.round(baseDiameter * dotsPerUnit);
+        
         this.baseCanvas = document.createElement('canvas');
         this.baseCanvas.width = baseResolution;
         this.baseCanvas.height = baseResolution;
@@ -595,9 +602,9 @@ export class ThreeD_component_engine {
         
         this.baseTexture = new THREE.CanvasTexture(this.baseCanvas);
         
-        console.log('[3D Component Engine] Cone textures created:');
-        console.log(`  Side texture: ${canvasSize}x${canvasSize}px (sector angle: ${(sectorAngle * 180/Math.PI).toFixed(1)}°)`);
-        console.log(`  Base texture: ${baseResolution}x${baseResolution}px (circular)`);
+        console.log('[3D Component Engine] Cone textures created (36 dots/unit):');
+        console.log(`  Side texture: ${canvasSize}x${canvasSize}px (sector: ${sectorWidth}x${sectorHeight}px, angle: ${(sectorAngle * 180/Math.PI).toFixed(1)}°)`);
+        console.log(`  Base texture: ${baseResolution}x${baseResolution}px (diameter: ${baseDiameter.toFixed(2)} units)`);
         
         // Store references for update method
         this.textureCanvas = this.sideCanvas; // Default to side for compatibility
@@ -852,8 +859,14 @@ export class ThreeD_component_engine {
             const materialConfig = Object.assign({}, this.config.materialParams);
             
             // Create materials array for cylinder (side, top cap, bottom cap)
-            const sideMaterialConfig = Object.assign({}, materialConfig, { map: this.sideTexture });
-            const capMaterialConfig = Object.assign({}, materialConfig, { map: this.capTexture });
+            const sideMaterialConfig = Object.assign({}, materialConfig, { 
+                map: this.sideTexture,
+                side: THREE.DoubleSide // Double-sided rendering
+            });
+            const capMaterialConfig = Object.assign({}, materialConfig, { 
+                map: this.capTexture,
+                side: THREE.DoubleSide // Double-sided rendering
+            });
             
             let sideMaterial, capMaterial;
             
@@ -887,8 +900,14 @@ export class ThreeD_component_engine {
             const materialConfig = Object.assign({}, this.config.materialParams);
             
             // Create materials array for cone (side, base)
-            const sideMaterialConfig = Object.assign({}, materialConfig, { map: this.sideTexture });
-            const baseMaterialConfig = Object.assign({}, materialConfig, { map: this.baseTexture });
+            const sideMaterialConfig = Object.assign({}, materialConfig, { 
+                map: this.sideTexture,
+                side: THREE.DoubleSide // Double-sided rendering
+            });
+            const baseMaterialConfig = Object.assign({}, materialConfig, { 
+                map: this.baseTexture,
+                side: THREE.DoubleSide // Double-sided rendering
+            });
             
             let sideMaterial, baseMaterial;
             
@@ -944,6 +963,7 @@ export class ThreeD_component_engine {
         } else {
             // Single material for other geometries
             const materialConfig = Object.assign({}, this.config.materialParams);
+            materialConfig.side = THREE.DoubleSide; // Double-sided rendering for all geometries
             
             if (this.texture) {
                 materialConfig.map = this.texture;
