@@ -468,6 +468,9 @@ export class ThreeD_component_engine {
             if (this.config.geometry === 'cylinder') {
                 // For cylinders, create separate textures for sides and caps
                 this.createCylinderTextures();
+            } else if (this.config.geometry === 'tube') {
+                // For tubes, create only side texture (no caps)
+                this.createTubeTextures();
             } else {
                 // For other geometries, use a single square texture
                 const baseResolution = 512;
@@ -530,6 +533,32 @@ export class ThreeD_component_engine {
         this.textureCanvas = this.sideCanvas; // Default to side for compatibility
         this.textureContext = this.sideContext;
     }
+
+    createTubeTextures() {
+        const params = this.config.geometryParams;
+        const baseResolution = 512;
+        
+        // Calculate tube dimensions (same logic as cylinder side texture)
+        const radius = params.tubeRadius || 0.25;
+        const circumference = 2 * Math.PI * radius;
+        const length = params.tubeLength || 2.0;
+        
+        // SIDE TEXTURE: Rectangular to match unwrapped tube (only texture needed)
+        const sideAspectRatio = circumference / length;
+        const sideWidth = Math.round(baseResolution * sideAspectRatio);
+        const sideHeight = baseResolution;
+        
+        this.textureCanvas = document.createElement('canvas');
+        this.textureCanvas.width = sideWidth;
+        this.textureCanvas.height = sideHeight;
+        this.textureContext = this.textureCanvas.getContext('2d');
+        
+        this.texture = new THREE.CanvasTexture(this.textureCanvas);
+        
+        console.log('[3D Component Engine] Tube texture created:');
+        console.log(`  Side texture: ${sideWidth}x${sideHeight}px (aspect ${sideAspectRatio.toFixed(2)}:1)`);
+        console.log('  No caps - tube is open-ended');
+    }
     
     createGeometry() {
         let geometry;
@@ -581,12 +610,14 @@ export class ThreeD_component_engine {
                 break;
                 
             case 'tube':
-                // Create a straight tube using CylinderGeometry with equal top/bottom radius
+                // Create a true tube (open-ended cylinder) with no caps
                 geometry = new THREE.CylinderGeometry(
                     params.tubeRadius || 0.25,
                     params.tubeRadius || 0.25,
                     params.tubeLength || 2.0,
-                    params.tubeRadialSegments || 32
+                    params.tubeRadialSegments || 32,
+                    1,    // heightSegments
+                    true  // openEnded - this makes it a tube instead of cylinder
                 );
                 break;
                 
@@ -779,6 +810,29 @@ export class ThreeD_component_engine {
             this.material = [sideMaterial, capMaterial, capMaterial];
             
             console.log('[3D Component Engine] Created multi-material array for cylinder');
+        } else if (this.config.geometry === 'tube' && this.config.texture === 'animated') {
+            // For tubes with animated textures, create single material with side texture only
+            const materialConfig = Object.assign({}, this.config.materialParams);
+            materialConfig.map = this.texture; // Tube uses single texture (side texture)
+            
+            switch (this.config.material) {
+                case 'physical':
+                    this.material = new THREE.MeshPhysicalMaterial(materialConfig);
+                    break;
+                    
+                case 'standard':
+                    this.material = new THREE.MeshStandardMaterial(materialConfig);
+                    break;
+                    
+                case 'basic':
+                    this.material = new THREE.MeshBasicMaterial(materialConfig);
+                    break;
+                    
+                default:
+                    this.material = new THREE.MeshPhysicalMaterial(materialConfig);
+            }
+            
+            console.log('[3D Component Engine] Created single material for tube (no caps)');
         } else {
             // Single material for other geometries
             const materialConfig = Object.assign({}, this.config.materialParams);

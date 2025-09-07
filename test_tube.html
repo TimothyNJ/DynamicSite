@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tube vs Cylinder Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .test-container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .object-container {
+            text-align: center;
+        }
+        .object-container h3 {
+            margin: 0 0 10px 0;
+            color: #cccccc;
+        }
+        .object-container div {
+            width: 300px;
+            height: 300px;
+            border: 1px solid #444;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <h1>Tube vs Cylinder Test</h1>
+    <p>Testing the difference between tube (no caps) and cylinder (with caps) geometries.</p>
+    
+    <div class="test-container">
+        <div class="object-container">
+            <h3>Cylinder (with caps)</h3>
+            <div id="cylinder-container"></div>
+        </div>
+        
+        <div class="object-container">
+            <h3>Tube (no caps)</h3>
+            <div id="tube-container"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { ComponentFactory } from './js/factories/component-factory.js';
+        
+        console.log('Creating test objects...');
+        
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const componentFactory = new ComponentFactory();
+            
+            // Create cylinder with caps
+            const cylinder = componentFactory.create3DObject('cylinder-container', {
+                width: 300,
+                height: 300,
+                geometry: 'cylinder',
+                geometryParams: {
+                    cylinderRadiusTop: 0.5,
+                    cylinderRadiusBottom: 0.5,
+                    cylinderHeight: 1.5,
+                    cylinderRadialSegments: 32
+                },
+                texture: 'animated',
+                enableInteraction: true,
+                rotationSpeed: 0.2
+            });
+            
+            // Create tube without caps 
+            const tube = componentFactory.create3DObject('tube-container', {
+                width: 300,
+                height: 300,
+                geometry: 'tube',
+                geometryParams: {
+                    tubeRadius: 0.5,
+                    tubeLength: 1.5,
+                    tubeRadialSegments: 32
+                },
+                texture: 'animated',
+                enableInteraction: true,
+                rotationSpeed: 0.2
+            });
+            
+            console.log('Test objects created successfully!');
+        });
+    </script>
+</body>
+</html>
