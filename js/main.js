@@ -528,9 +528,10 @@ function initializeSettingsComponents() {
     applyThemeByName(savedTheme);
     
     // Size Guides and Borders Button
-    componentFactory.createTextButton('borders-toggle-button-container', {
+    componentFactory.createButton('borders-toggle-button-container', {
       id: 'borders-toggle-button',
       text: 'Size Guides and Borders',
+      value: 'toggle-borders',
       onClick: () => {
         // Call the global toggleBorders function from script.js
         if (window.toggleBorders) {
