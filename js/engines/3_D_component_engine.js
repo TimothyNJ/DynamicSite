@@ -473,6 +473,9 @@ export class ThreeD_component_engine {
                 // For tubes, create only side texture (no caps)
                 console.log('[3D Component Engine] Calling createTubeTextures for tube geometry');
                 this.createTubeTextures();
+            } else if (this.config.geometry === 'cone') {
+                // For cones, create sector texture for side and circular texture for base
+                this.createConeTextures();
             } else {
                 // For other geometries, use a single square texture
                 const baseResolution = 512;
@@ -560,6 +563,73 @@ export class ThreeD_component_engine {
         console.log('[3D Component Engine] Tube texture created:');
         console.log(`  Side texture: ${sideWidth}x${sideHeight}px (aspect ${sideAspectRatio.toFixed(2)}:1)`);
         console.log('  No caps - tube is open-ended');
+    }
+
+    createConeTextures() {
+        const params = this.config.geometryParams;
+        const baseResolution = 512;
+        
+        // Calculate cone dimensions
+        const radius = params.coneRadius || 0.5;
+        const height = params.coneHeight || 1.0;
+        const slantHeight = Math.sqrt(height * height + radius * radius);
+        
+        // SIDE TEXTURE: Circular sector (unwrapped cone side)
+        const sectorAngle = 2 * Math.PI * (radius / slantHeight); // Angle in radians
+        const sectorRadius = Math.round(baseResolution * (slantHeight / radius)); // Scale to fit canvas
+        
+        // Create square canvas large enough to contain the sector
+        const canvasSize = Math.ceil(sectorRadius * 2);
+        this.sideCanvas = document.createElement('canvas');
+        this.sideCanvas.width = canvasSize;
+        this.sideCanvas.height = canvasSize;
+        this.sideContext = this.sideCanvas.getContext('2d');
+        
+        this.sideTexture = new THREE.CanvasTexture(this.sideCanvas);
+        
+        // BASE TEXTURE: Circular for cone base
+        this.baseCanvas = document.createElement('canvas');
+        this.baseCanvas.width = baseResolution;
+        this.baseCanvas.height = baseResolution;
+        this.baseContext = this.baseCanvas.getContext('2d');
+        
+        this.baseTexture = new THREE.CanvasTexture(this.baseCanvas);
+        
+        console.log('[3D Component Engine] Cone textures created:');
+        console.log(`  Side texture: ${canvasSize}x${canvasSize}px (sector angle: ${(sectorAngle * 180/Math.PI).toFixed(1)}°)`);
+        console.log(`  Base texture: ${baseResolution}x${baseResolution}px (circular)`);
+        
+        // Store references for update method
+        this.textureCanvas = this.sideCanvas; // Default to side for compatibility
+        this.textureContext = this.sideContext;
+    }
+
+    createTorusTextures() {
+        // TODO: Implement torus texture generation
+        // Torus has complex UV mapping with major/minor radii considerations
+        // Surface topology: donut shape with inner and outer curves
+        console.log('[3D Component Engine] Torus texture generation - not yet implemented');
+    }
+
+    createSphereTextures() {
+        // TODO: Implement sphere texture generation  
+        // Spherical UV mapping: longitude/latitude grid system
+        // Handle polar distortion and texture seams
+        console.log('[3D Component Engine] Sphere texture generation - not yet implemented');
+    }
+
+    createCustomMeshTextures() {
+        // TODO: Implement custom mesh texture generation
+        // Analyze mesh topology and generate appropriate textures
+        // Handle arbitrary geometry with adaptive texturing
+        console.log('[3D Component Engine] Custom mesh texture generation - not yet implemented');
+    }
+
+    createParametricSurfaceTextures() {
+        // TODO: Implement parametric surface texture generation
+        // Handle mathematically defined complex surfaces
+        // Generate textures based on surface parameters
+        console.log('[3D Component Engine] Parametric surface texture generation - not yet implemented');
     }
     
     createGeometry() {
@@ -812,6 +882,41 @@ export class ThreeD_component_engine {
             this.material = [sideMaterial, capMaterial, capMaterial];
             
             console.log('[3D Component Engine] Created multi-material array for cylinder');
+        } else if (this.config.geometry === 'cone' && this.config.texture === 'animated') {
+            // For cones with animated textures, create multiple materials (side, base)
+            const materialConfig = Object.assign({}, this.config.materialParams);
+            
+            // Create materials array for cone (side, base)
+            const sideMaterialConfig = Object.assign({}, materialConfig, { map: this.sideTexture });
+            const baseMaterialConfig = Object.assign({}, materialConfig, { map: this.baseTexture });
+            
+            let sideMaterial, baseMaterial;
+            
+            switch (this.config.material) {
+                case 'physical':
+                    sideMaterial = new THREE.MeshPhysicalMaterial(sideMaterialConfig);
+                    baseMaterial = new THREE.MeshPhysicalMaterial(baseMaterialConfig);
+                    break;
+                    
+                case 'standard':
+                    sideMaterial = new THREE.MeshStandardMaterial(sideMaterialConfig);
+                    baseMaterial = new THREE.MeshStandardMaterial(baseMaterialConfig);
+                    break;
+                    
+                case 'basic':
+                    sideMaterial = new THREE.MeshBasicMaterial(sideMaterialConfig);
+                    baseMaterial = new THREE.MeshBasicMaterial(baseMaterialConfig);
+                    break;
+                    
+                default:
+                    sideMaterial = new THREE.MeshPhysicalMaterial(sideMaterialConfig);
+                    baseMaterial = new THREE.MeshPhysicalMaterial(baseMaterialConfig);
+            }
+            
+            // Array of materials: [side, base]
+            this.material = [sideMaterial, baseMaterial];
+            
+            console.log('[3D Component Engine] Created multi-material array for cone');
         } else if (this.config.geometry === 'tube' && this.config.texture === 'animated') {
             // For tubes with animated textures, create single material with side texture only
             const materialConfig = Object.assign({}, this.config.materialParams);
