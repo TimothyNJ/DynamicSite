@@ -226,9 +226,9 @@ function initializeComponentEnginesDemos() {
     responsive: true,  // Same responsive sizing
     geometry: 'tube',  // Tube geometry (straight cylinder)
     geometryParams: {
-      tubeRadius: 0.25,         // Thinner than cylinder
-      tubeLength: 2.0,          // Longer than cube height
-      tubeRadialSegments: 32    // Smooth tube surface
+    tubeRadius: 0.5,          // Same radius as cylinder
+    tubeLength: 1.0,          // Same height as cylinder
+    tubeRadialSegments: 32    // Smooth tube surface
     },
     texture: 'animated',  // Same animated texture
     enableInteraction: true,  // Same interaction capabilities
