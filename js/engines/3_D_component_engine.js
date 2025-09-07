@@ -349,11 +349,11 @@ export class ThreeD_component_engine {
             this.lights.main.position.set(-1.5, 1.7, 2);
             this.scene.add(this.lights.main);
             
-            // Front fill light - TEMPORARILY DISABLED FOR TESTING
-            // this.lights.front = new THREE.DirectionalLight(0xffffff, 0.3);
-            // this.lights.front.position.set(0.5, 0.5, 3);
-            // this.lights.front.target.position.set(0, 0, 0);
-            // this.scene.add(this.lights.front);
+            // Front fill light
+            this.lights.front = new THREE.DirectionalLight(0xffffff, 0.3);
+            this.lights.front.position.set(0.5, 0.5, 3);
+            this.lights.front.target.position.set(0, 0, 0);
+            this.scene.add(this.lights.front);
             
             // Side fills
             this.lights.leftFill = new THREE.DirectionalLight(0xffffff, 0.2);
@@ -370,11 +370,7 @@ export class ThreeD_component_engine {
             this.lights.ambient = new THREE.AmbientLight(0xffffff, 0.15);
             this.scene.add(this.lights.ambient);
             
-            // Back light for rim effect - TEMPORARILY DISABLED FOR TESTING
-            // this.lights.back = new THREE.PointLight(0xffffff, 9.0);
-            // this.lights.back.position.set(0, 0, -2);
-            // this.scene.add(this.lights.back);
-            
+
             // Rim light
             this.lights.rim = new THREE.DirectionalLight(0xffffff, 1.5);
             this.lights.rim.position.set(0, -2, -2);
