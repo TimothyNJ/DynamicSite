@@ -1749,15 +1749,15 @@ export class Drum_Selector_Engine {
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
-        // Draw numbers 0-9 horizontally across the texture
+        // Draw numbers 0-9 vertically stacked along the height of the texture
         const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         const spacing = 2; // 2px gap between numbers
         const totalSpacing = spacing * (numbers.length - 1);
-        const availableWidth = canvasWidth - totalSpacing;
-        const numberWidth = availableWidth / numbers.length;
+        const availableHeight = canvasHeight - totalSpacing;
+        const numberHeight = availableHeight / numbers.length;
         
         // Calculate font size to fit properly in the texture
-        const fontSize = Math.min(canvasHeight * 0.6, numberWidth * 0.8);
+        const fontSize = Math.min(numberHeight * 0.6, canvasWidth * 0.8);
         
         // Set up text styling
         ctx.fillStyle = '#ffffff'; // White text
@@ -1765,10 +1765,10 @@ export class Drum_Selector_Engine {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Draw each number
+        // Draw each number vertically stacked
         for (let i = 0; i < numbers.length; i++) {
-            const x = (i * numberWidth) + (numberWidth / 2) + (i * spacing);
-            const y = canvasHeight / 2;
+            const x = canvasWidth / 2;
+            const y = (i * numberHeight) + (numberHeight / 2) + (i * spacing);
             
             ctx.fillText(numbers[i], x, y);
         }
