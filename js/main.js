@@ -76,6 +76,76 @@ function initializeComponentEnginesDemos() {
     console.log('[Demo] Slider selected:', selectedOption.querySelector('h3').textContent);
   });
   
+  // 7.5. 3D Component demo (cone)
+  const demoCone3D = componentFactory.create3DObject('demo-3d-cone-container', {
+    responsive: true,  // Same responsive sizing
+    geometry: 'cone',  // Cone geometry
+    geometryParams: {
+      coneRadius: 0.5,        // Base radius
+      coneHeight: 1.0,        // Height to match other shapes
+      coneRadialSegments: 32  // Smooth cone surface
+    },
+    texture: 'animated',  // Same animated texture
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  console.log('[Demo] 3D cone component initialized:', demoCone3D);
+  
+  // Create rotation speed slider for cone demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-cone-rotation-slider-container',
+    sliderClass: 'demo-3d-cone-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo 3D Cone Rotation Speed] Selected:', speed);
+    if (demoCone3D && demoCone3D.setRotationSpeed) {
+      demoCone3D.setRotationSpeed(speed);
+    }
+  });
+  
+  // 7.75. 3D Component demo (tube)
+  const demoTube3D = componentFactory.create3DObject('demo-3d-tube-container', {
+    responsive: true,  // Same responsive sizing
+    geometry: 'tube',  // Tube geometry (straight cylinder)
+    geometryParams: {
+      tubeRadius: 0.25,         // Thinner than cylinder
+      tubeLength: 2.0,          // Longer than cube height
+      tubeRadialSegments: 32    // Smooth tube surface
+    },
+    texture: 'animated',  // Same animated texture
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  console.log('[Demo] 3D tube component initialized:', demoTube3D);
+  
+  // Create rotation speed slider for tube demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-tube-rotation-slider-container',
+    sliderClass: 'demo-3d-tube-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo 3D Tube Rotation Speed] Selected:', speed);
+    if (demoTube3D && demoTube3D.setRotationSpeed) {
+      demoTube3D.setRotationSpeed(speed);
+    }
+  });
+  
   // 2. Text Input demo
   componentFactory.createTextInput('demo-text-input-container', {
     id: 'demo-text-input',
@@ -85,6 +155,75 @@ function initializeComponentEnginesDemos() {
     onChange: (value) => console.log('[Demo] Text input:', value)
   });
   
+  // 7.5. 3D Component demo (cone)
+  const demoCone3D = componentFactory.create3DObject('demo-3d-cone-container', {
+    responsive: true,  // Same responsive sizing
+    geometry: 'cone',  // Cone geometry
+    geometryParams: {
+      coneRadius: 0.5,        // Base radius
+      coneHeight: 1.0,        // Height to match other shapes
+      coneRadialSegments: 32  // Smooth cone surface
+    },
+    texture: 'animated',  // Same animated texture
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  console.log('[Demo] 3D cone component initialized:', demoCone3D);
+  
+  // Create rotation speed slider for cone demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-cone-rotation-slider-container',
+    sliderClass: 'demo-3d-cone-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo 3D Cone Rotation Speed] Selected:', speed);
+    if (demoCone3D && demoCone3D.setRotationSpeed) {
+      demoCone3D.setRotationSpeed(speed);
+    }
+  });
+  
+  // 7.75. 3D Component demo (tube)
+  const demoTube3D = componentFactory.create3DObject('demo-3d-tube-container', {
+    responsive: true,  // Same responsive sizing
+    geometry: 'tube',  // Tube geometry (straight cylinder)
+    geometryParams: {
+      tubeRadius: 0.25,         // Thinner than cylinder
+      tubeLength: 2.0,          // Longer than cube height
+      tubeRadialSegments: 32    // Smooth tube surface
+    },
+    texture: 'animated',  // Same animated texture
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  console.log('[Demo] 3D tube component initialized:', demoTube3D);
+  
+  // Create rotation speed slider for tube demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-tube-rotation-slider-container',
+    sliderClass: 'demo-3d-tube-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo 3D Tube Rotation Speed] Selected:', speed);
+    if (demoTube3D && demoTube3D.setRotationSpeed) {
+      demoTube3D.setRotationSpeed(speed);
+    }
+  });
 
   
   // 3. Text Button demo
@@ -187,6 +326,75 @@ function initializeComponentEnginesDemos() {
     }
   });
   
+  // 7.5. 3D Component demo (cone)
+  const demoCone3D = componentFactory.create3DObject('demo-3d-cone-container', {
+    responsive: true,  // Same responsive sizing
+    geometry: 'cone',  // Cone geometry
+    geometryParams: {
+      coneRadius: 0.5,        // Base radius
+      coneHeight: 1.0,        // Height to match other shapes
+      coneRadialSegments: 32  // Smooth cone surface
+    },
+    texture: 'animated',  // Same animated texture
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  console.log('[Demo] 3D cone component initialized:', demoCone3D);
+  
+  // Create rotation speed slider for cone demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-cone-rotation-slider-container',
+    sliderClass: 'demo-3d-cone-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo 3D Cone Rotation Speed] Selected:', speed);
+    if (demoCone3D && demoCone3D.setRotationSpeed) {
+      demoCone3D.setRotationSpeed(speed);
+    }
+  });
+  
+  // 7.75. 3D Component demo (tube)
+  const demoTube3D = componentFactory.create3DObject('demo-3d-tube-container', {
+    responsive: true,  // Same responsive sizing
+    geometry: 'tube',  // Tube geometry (straight cylinder)
+    geometryParams: {
+      tubeRadius: 0.25,         // Thinner than cylinder
+      tubeLength: 2.0,          // Longer than cube height
+      tubeRadialSegments: 32    // Smooth tube surface
+    },
+    texture: 'animated',  // Same animated texture
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  console.log('[Demo] 3D tube component initialized:', demoTube3D);
+  
+  // Create rotation speed slider for tube demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-tube-rotation-slider-container',
+    sliderClass: 'demo-3d-tube-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo 3D Tube Rotation Speed] Selected:', speed);
+    if (demoTube3D && demoTube3D.setRotationSpeed) {
+      demoTube3D.setRotationSpeed(speed);
+    }
+  });
 
   // 8.5. Drum_Selector_Engine (exact copy of drum wheel)
   const demoDrumSelector = componentFactory.createDrumSelector('demo-drum-selector-container', {

@@ -572,6 +572,24 @@ export class ThreeD_component_engine {
                 );
                 break;
                 
+            case 'cone':
+                geometry = new THREE.ConeGeometry(
+                    params.coneRadius || 0.5,
+                    params.coneHeight || 1.0,
+                    params.coneRadialSegments || 32
+                );
+                break;
+                
+            case 'tube':
+                // Create a straight tube using CylinderGeometry with equal top/bottom radius
+                geometry = new THREE.CylinderGeometry(
+                    params.tubeRadius || 0.25,
+                    params.tubeRadius || 0.25,
+                    params.tubeLength || 2.0,
+                    params.tubeRadialSegments || 32
+                );
+                break;
+                
             default:
                 console.warn(`[3D Component Engine] Unknown geometry type: ${this.config.geometry}`);
                 geometry = new THREE.BoxGeometry(1, 1, 1);
