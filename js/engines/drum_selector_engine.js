@@ -471,37 +471,21 @@ export class Drum_Selector_Engine {
         if (this.config.texture === 'none') return;
         
         if (this.config.texture === 'animated') {
-            // Calculate correct texture dimensions based on cylinder geometry
-            // to prevent distortion when wrapping around the cylinder
-            const params = this.config.geometryParams;
-            
-            // Calculate the circumference and height
-            const radius = (params.cylinderRadiusTop + params.cylinderRadiusBottom) / 2;
-            const circumference = 2 * Math.PI * radius;
-            const height = params.cylinderHeight;
-            
-            // Calculate the aspect ratio of the unwrapped cylinder
-            const aspectRatio = circumference / height; // Should be ~3.14 for our cylinder
-            
-            // Set texture dimensions to match the aspect ratio
-            // Use a base resolution and scale appropriately
-            const baseResolution = 512;
-            const textureWidth = Math.round(baseResolution * aspectRatio);
-            const textureHeight = baseResolution;
-            
-            console.log('[Drum Selector Engine] Creating texture with correct aspect ratio:');
-            console.log(`  Cylinder circumference: ${circumference.toFixed(2)} units`);
-            console.log(`  Cylinder height: ${height} units`);
-            console.log(`  Aspect ratio: ${aspectRatio.toFixed(2)}:1`);
-            console.log(`  Texture dimensions: ${textureWidth}x${textureHeight}px`);
-            
-            // Create canvas with correct dimensions
-            this.textureCanvas = document.createElement('canvas');
-            this.textureCanvas.width = textureWidth;
-            this.textureCanvas.height = textureHeight;
-            this.textureContext = this.textureCanvas.getContext('2d');
-            
-            this.texture = new THREE.CanvasTexture(this.textureCanvas);
+            // For cylinders, use multi-material textures to prevent distortion
+            if (this.config.geometry === 'cylinder') {
+                this.createCylinderTextures();
+            } else {
+                // For other geometries, use a single square texture
+                const baseResolution = 512;
+                
+                this.textureCanvas = document.createElement('canvas');
+                this.textureCanvas.width = baseResolution;
+                this.textureCanvas.height = baseResolution;
+                this.textureContext = this.textureCanvas.getContext('2d');
+                
+                this.texture = new THREE.CanvasTexture(this.textureCanvas);
+                console.log('[Drum Selector Engine] Using square texture for geometry:', this.config.geometry);
+            }
         } else if (this.config.texture === 'solid') {
             // Create solid color texture
             const canvas = document.createElement('canvas');
@@ -513,6 +497,44 @@ export class Drum_Selector_Engine {
             
             this.texture = new THREE.CanvasTexture(canvas);
         }
+    }
+    
+    createCylinderTextures() {
+        const params = this.config.geometryParams;
+        const baseResolution = 512;
+        
+        // Calculate cylinder dimensions
+        const radius = (params.cylinderRadiusTop + params.cylinderRadiusBottom) / 2;
+        const circumference = 2 * Math.PI * radius;
+        const height = params.cylinderHeight;
+        
+        // SIDE TEXTURE: Rectangular to match unwrapped cylinder
+        const sideAspectRatio = circumference / height;
+        const sideWidth = Math.round(baseResolution * sideAspectRatio);
+        const sideHeight = baseResolution;
+        
+        this.sideCanvas = document.createElement('canvas');
+        this.sideCanvas.width = sideWidth;
+        this.sideCanvas.height = sideHeight;
+        this.sideContext = this.sideCanvas.getContext('2d');
+        
+        this.sideTexture = new THREE.CanvasTexture(this.sideCanvas);
+        
+        // CAP TEXTURE: Square for circular caps
+        this.capCanvas = document.createElement('canvas');
+        this.capCanvas.width = baseResolution;
+        this.capCanvas.height = baseResolution;
+        this.capContext = this.capCanvas.getContext('2d');
+        
+        this.capTexture = new THREE.CanvasTexture(this.capCanvas);
+        
+        console.log('[Drum Selector Engine] Cylinder textures created:');
+        console.log(`  Side texture: ${sideWidth}x${sideHeight}px (aspect ${sideAspectRatio.toFixed(2)}:1)`);
+        console.log(`  Cap texture: ${baseResolution}x${baseResolution}px (square)`);
+        
+        // Store references for update method
+        this.textureCanvas = this.sideCanvas; // Default to side for compatibility
+        this.textureContext = this.sideContext;
     }
     
     createGeometry() {
@@ -740,27 +762,64 @@ export class Drum_Selector_Engine {
     }
     
     createMaterial() {
-        const materialConfig = Object.assign({}, this.config.materialParams);
-        
-        if (this.texture) {
-            materialConfig.map = this.texture;
-        }
-        
-        switch (this.config.material) {
-            case 'physical':
-                this.material = new THREE.MeshPhysicalMaterial(materialConfig);
-                break;
-                
-            case 'standard':
-                this.material = new THREE.MeshStandardMaterial(materialConfig);
-                break;
-                
-            case 'basic':
-                this.material = new THREE.MeshBasicMaterial(materialConfig);
-                break;
-                
-            default:
-                this.material = new THREE.MeshPhysicalMaterial(materialConfig);
+        if (this.config.geometry === 'cylinder' && this.config.texture === 'animated') {
+            // For cylinders with animated textures, create multiple materials
+            const materialConfig = Object.assign({}, this.config.materialParams);
+            
+            // Create materials array for cylinder (side, top cap, bottom cap)
+            const sideMaterialConfig = Object.assign({}, materialConfig, { map: this.sideTexture });
+            const capMaterialConfig = Object.assign({}, materialConfig, { map: this.capTexture });
+            
+            let sideMaterial, capMaterial;
+            
+            switch (this.config.material) {
+                case 'physical':
+                    sideMaterial = new THREE.MeshPhysicalMaterial(sideMaterialConfig);
+                    capMaterial = new THREE.MeshPhysicalMaterial(capMaterialConfig);
+                    break;
+                    
+                case 'standard':
+                    sideMaterial = new THREE.MeshStandardMaterial(sideMaterialConfig);
+                    capMaterial = new THREE.MeshStandardMaterial(capMaterialConfig);
+                    break;
+                    
+                case 'basic':
+                    sideMaterial = new THREE.MeshBasicMaterial(sideMaterialConfig);
+                    capMaterial = new THREE.MeshBasicMaterial(capMaterialConfig);
+                    break;
+                    
+                default:
+                    sideMaterial = new THREE.MeshPhysicalMaterial(sideMaterialConfig);
+                    capMaterial = new THREE.MeshPhysicalMaterial(capMaterialConfig);
+            }
+            
+            // Create material array [side, top cap, bottom cap]
+            this.material = [sideMaterial, capMaterial, capMaterial];
+            console.log('[Drum Selector Engine] Created multi-material array for cylinder');
+        } else {
+            // Single material for other cases
+            const materialConfig = Object.assign({}, this.config.materialParams);
+            
+            if (this.texture) {
+                materialConfig.map = this.texture;
+            }
+            
+            switch (this.config.material) {
+                case 'physical':
+                    this.material = new THREE.MeshPhysicalMaterial(materialConfig);
+                    break;
+                    
+                case 'standard':
+                    this.material = new THREE.MeshStandardMaterial(materialConfig);
+                    break;
+                    
+                case 'basic':
+                    this.material = new THREE.MeshBasicMaterial(materialConfig);
+                    break;
+                    
+                default:
+                    this.material = new THREE.MeshPhysicalMaterial(materialConfig);
+            }
         }
     }
     
@@ -1665,12 +1724,27 @@ export class Drum_Selector_Engine {
     }
     
     updateAnimatedTexture(time) {
-        if (!this.textureContext) return;
+        if (this.config.geometry === 'cylinder' && this.sideContext && this.capContext) {
+            // Update multi-material textures for cylinder
+            this.updateCylinderTextures(time);
+        } else if (this.textureContext) {
+            // Update single texture for other geometries
+            this.updateSingleTexture(time, this.textureContext, this.textureCanvas, this.texture);
+        }
+    }
+    
+    updateCylinderTextures(time) {
+        // Update side texture with proper aspect ratio
+        this.updateSingleTexture(time, this.sideContext, this.sideCanvas, this.sideTexture);
         
-        const ctx = this.textureContext;
+        // Update cap texture (square)
+        this.updateSingleTexture(time, this.capContext, this.capCanvas, this.capTexture);
+    }
+    
+    updateSingleTexture(time, ctx, canvas, texture) {
         const params = this.config.textureParams;
-        const canvasWidth = this.textureCanvas.width;
-        const canvasHeight = this.textureCanvas.height;
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
         
         // Clear canvas
         ctx.fillStyle = '#0a0a0a';
@@ -1684,8 +1758,6 @@ export class Drum_Selector_Engine {
         const baseCount = params.tunnelCount || 6;
         const horizontalCount = Math.round(baseCount * aspectRatio);
         const verticalCount = baseCount;
-        
-        console.log(`[Drum Selector] Drawing ${horizontalCount}x${verticalCount} dot grid on ${canvasWidth}x${canvasHeight}px texture`);
         
         // Create tunnel effect with evenly spaced dots
         const phase = time * params.animationSpeed;
@@ -1727,7 +1799,7 @@ export class Drum_Selector_Engine {
             }
         }
         
-        this.texture.needsUpdate = true;
+        texture.needsUpdate = true;
     }
     
     updateFogTexture(time) {
