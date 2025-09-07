@@ -68,13 +68,14 @@ class button_component_engine {
     requestAnimationFrame(() => {
       if (!this.element) return;
       
-      const computed = window.getComputedStyle(this.element);
       const height = this.element.offsetHeight;
       const width = this.element.offsetWidth;
       
-      // If height > width, set width = height to make it circular
-      if (height > width) {
-        this.element.style.width = `${height}px`;
+      // Make it circular by setting both dimensions to the larger value
+      if (height !== width) {
+        const size = Math.max(height, width);
+        this.element.style.width = `${size}px`;
+        this.element.style.height = `${size}px`;
       }
     });
   }

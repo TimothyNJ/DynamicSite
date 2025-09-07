@@ -321,12 +321,22 @@ body[data-theme="dark"] .button-component {
   min-width: auto;
 }
 
-// Circle mode - force circular shape
+// Circle mode - force circular shape with proper sizing
 .button-component.button-default-dot {
   border-radius: 50%;
   width: auto;
   height: auto;
   aspect-ratio: 1;
+  
+  // Use minimal padding like circle engine
+  .button-content {
+    padding: 2px 2px; // Minimal padding for circle
+  }
+  
+  // Make the dot visible (unlike circle engine which hides it)
+  .button-content h3 {
+    opacity: 1 !important; // Override any opacity: 0 rules
+  }
 }
 
 // Border container for text mode animations
