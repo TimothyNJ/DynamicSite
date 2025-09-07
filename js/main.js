@@ -256,6 +256,41 @@ function initializeComponentEnginesDemos() {
     }
   });
 
+  // 8. 3D Component demo (sphere)
+  const demoSphere3D = componentFactory.create3DObject('demo-3d-sphere-container', {
+    responsive: true,  // Same responsive sizing
+    geometry: 'sphere',  // Sphere geometry
+    geometryParams: {
+      sphereRadius: 0.5,          // Radius 0.5 to match cylinder diameter 1.0
+      sphereWidthSegments: 32,    // Smooth sphere surface
+      sphereHeightSegments: 16    // Good vertical resolution
+    },
+    texture: 'animated',  // Same animated texture
+    enableInteraction: true,  // Same interaction capabilities
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  console.log('[Demo] 3D sphere component initialized:', demoSphere3D);
+  
+  // Create rotation speed slider for sphere demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-sphere-rotation-slider-container',
+    sliderClass: 'demo-3d-sphere-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo 3D Sphere Rotation Speed] Selected:', speed);
+    if (demoSphere3D && demoSphere3D.setRotationSpeed) {
+      demoSphere3D.setRotationSpeed(speed);
+    }
+  });
+
   // 8.5. Drum_Selector_Engine (exact copy of drum wheel)
   const demoDrumSelector = componentFactory.createDrumSelector('demo-drum-selector-container', {
     responsive: true,  // Same responsive sizing
