@@ -567,22 +567,27 @@ export class ThreeD_component_engine {
 
     createConeTextures() {
         const params = this.config.geometryParams;
-        const baseResolution = 512; // Standard canvas resolution like other geometries
+        const baseResolution = 512; // Base resolution like cylinder
         
         // Calculate cone dimensions
         const radius = params.coneRadius || 0.5;
         const height = params.coneHeight || 1.0;
         const slantHeight = Math.sqrt(height * height + radius * radius);
         
-        // SIDE TEXTURE: Square canvas like other geometries
+        // SIDE TEXTURE: Based on unwrapped cone sector dimensions
+        const baseArcLength = 2 * Math.PI * radius; // Circumference of cone base
+        const sectorAspectRatio = baseArcLength / slantHeight; // Similar to cylinder approach
+        const sideWidth = Math.round(baseResolution * sectorAspectRatio);
+        const sideHeight = baseResolution;
+        
         this.sideCanvas = document.createElement('canvas');
-        this.sideCanvas.width = baseResolution;
-        this.sideCanvas.height = baseResolution;
+        this.sideCanvas.width = sideWidth;
+        this.sideCanvas.height = sideHeight;
         this.sideContext = this.sideCanvas.getContext('2d');
         
         this.sideTexture = new THREE.CanvasTexture(this.sideCanvas);
         
-        // BASE TEXTURE: Square canvas like other geometries
+        // BASE TEXTURE: Square for circular base (like cylinder caps)
         this.baseCanvas = document.createElement('canvas');
         this.baseCanvas.width = baseResolution;
         this.baseCanvas.height = baseResolution;
@@ -590,9 +595,9 @@ export class ThreeD_component_engine {
         
         this.baseTexture = new THREE.CanvasTexture(this.baseCanvas);
         
-        console.log('[3D Component Engine] Cone textures created (consistent with other geometries):');
-        console.log(`  Side texture: ${baseResolution}x${baseResolution}px (square canvas)`);
-        console.log(`  Base texture: ${baseResolution}x${baseResolution}px (square canvas)`);
+        console.log('[3D Component Engine] Cone textures created (sophisticated approach):');
+        console.log(`  Side texture: ${sideWidth}x${sideHeight}px (aspect ${sectorAspectRatio.toFixed(2)}:1)`);
+        console.log(`  Base texture: ${baseResolution}x${baseResolution}px (square)`);
         console.log(`  Cone dimensions: radius=${radius}, height=${height}, slantHeight=${slantHeight.toFixed(2)}`);
         
         // Store references for update method
