@@ -57,7 +57,7 @@ class button_component_engine {
     // Bound method for mouse tracking
     this.handleMousePositionUpdate = this.handleMousePositionUpdate.bind(this);
     
-    console.log(`[button_component_engine] Initialized button with ${this.isDefaultDot ? 'default dot' : 'custom text'}:`, this.options);
+    console.log(`[button_component_engine] Initialized button with ${this.isDefaultDot ? 'button_component_engine_circle' : 'button_component_engine_text'}:`, this.options);
   }
   
   /**
@@ -175,7 +175,7 @@ class button_component_engine {
     // Initialize hover animations
     this.initializeHoverAnimations();
     
-    console.log(`[button_component_engine] Rendered button:`, this.options.id);
+    console.log(`[button_component_engine] Rendered ${this.isDefaultDot ? 'button_component_engine_circle' : 'button_component_engine_text'}:`, this.options.id);
     
     return this.element;
   }
@@ -191,7 +191,7 @@ class button_component_engine {
         return;
       }
       
-      console.log(`[button_component_engine] Button clicked:`, this.options.id);
+      console.log(`[button_component_engine] ${this.isDefaultDot ? 'button_component_engine_circle' : 'button_component_engine_text'} clicked:`, this.options.id);
       
       // Toggle active state on click
       this.setActive(!this.options.active);
