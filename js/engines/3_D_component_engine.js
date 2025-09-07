@@ -349,11 +349,11 @@ export class ThreeD_component_engine {
             this.lights.main.position.set(-1.5, 1.7, 2);
             this.scene.add(this.lights.main);
             
-            // Front fill light
-            this.lights.front = new THREE.DirectionalLight(0xffffff, 0.3);
-            this.lights.front.position.set(0.5, 0.5, 3);
-            this.lights.front.target.position.set(0, 0, 0);
-            this.scene.add(this.lights.front);
+            // Front fill light - TEMPORARILY DISABLED FOR TESTING
+            // this.lights.front = new THREE.DirectionalLight(0xffffff, 0.3);
+            // this.lights.front.position.set(0.5, 0.5, 3);
+            // this.lights.front.target.position.set(0, 0, 0);
+            // this.scene.add(this.lights.front);
             
             // Side fills
             this.lights.leftFill = new THREE.DirectionalLight(0xffffff, 0.2);
