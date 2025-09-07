@@ -1750,7 +1750,7 @@ export class Drum_Selector_Engine {
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
         // Draw numbers 0-9 horizontally across the width (long way) of the texture
-        // Each number is oriented vertically (upright) so it's readable
+        // Each number is rotated 90 degrees to stand upright when wrapped around drum
         const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         const spacing = 2; // 2px gap between numbers
         const totalSpacing = spacing * (numbers.length - 1);
@@ -1766,12 +1766,25 @@ export class Drum_Selector_Engine {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Draw each number positioned horizontally but oriented vertically (upright)
+        // Draw each number positioned horizontally but rotated to stand upright
         for (let i = 0; i < numbers.length; i++) {
             const x = (i * numberWidth) + (numberWidth / 2) + (i * spacing);
             const y = canvasHeight / 2;
             
-            ctx.fillText(numbers[i], x, y);
+            // Save the current context state
+            ctx.save();
+            
+            // Move to the position where we want to draw the number
+            ctx.translate(x, y);
+            
+            // Rotate 90 degrees clockwise to make the number stand upright
+            ctx.rotate(Math.PI / 2);
+            
+            // Draw the number at the origin (0,0) since we've already translated
+            ctx.fillText(numbers[i], 0, 0);
+            
+            // Restore the context state
+            ctx.restore();
         }
         
         texture.needsUpdate = true;
