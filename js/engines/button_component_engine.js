@@ -97,7 +97,7 @@ class button_component_engine {
     }
     
     // Apply container class to existing container (matches slider approach)
-    containerEl.classList.add('text-button-container');
+    containerEl.classList.add('button-container');
     this.container = containerEl;
     
     // Create button element (matches slider structure)
@@ -560,7 +560,7 @@ class button_component_engine {
     
     // Remove the button-container class we added
     if (this.container) {
-      this.container.classList.remove('text-button-container');
+      this.container.classList.remove('button-container');
     }
     
     this.element = null;
