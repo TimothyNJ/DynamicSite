@@ -274,13 +274,207 @@
 }
 
 // ==============================================
-// Legacy Button Component (to be removed)
+// Base Button Component Engine (Unified)
 // ==============================================
-// Keeping old styles temporarily for backward compatibility
+// Styles for the unified button_component_engine that handles both text and circle modes
+
 .button-container {
-  display: none; // Hide old button containers
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: var(--component-spacing) 0;
+  border: 1px solid yellow; // Debug border - remove for production
 }
 
 .button-component {
-  display: none; // Hide old buttons
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  cursor: pointer;
+  overflow: visible;
+  transition: all 0.3s ease;
+  z-index: 0;
+  background: linear-gradient(
+    -25deg,
+    var(--light-slider-start) 0%,
+    var(--light-slider-end) 100%
+  );
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+body[data-theme="dark"] .button-component {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-slider-start) 0%,
+    var(--dark-slider-end) 100%
+  );
+}
+
+// Text mode - wider button
+.button-component.button-text {
+  height: auto;
+  min-width: auto;
+}
+
+// Circle mode - force circular shape
+.button-component.button-default-dot {
+  border-radius: 50%;
+  width: auto;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+// Border container for text mode animations
+.button-component .border-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  clip-path: inset(0 0 0 0 round 9999px);
+}
+
+// Active state
+.button-component.active {
+  background: linear-gradient(
+    145deg,
+    var(--active-button-start),
+    var(--active-button-end)
+  );
+}
+
+body[data-theme="light"] .button-component.active,
+body[data-theme="dark"] .button-component.active {
+  background: linear-gradient(
+    145deg,
+    var(--active-button-start),
+    var(--active-button-end)
+  );
+}
+
+// Disabled state
+.button-component.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-component.disabled:active {
+  transform: none;
+}
+
+// Press animation
+.button-component:active:not(.disabled) {
+  transform: scale(0.98);
+}
+
+// Button content
+.button-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--component-content-padding);
+}
+
+.button-content h3 {
+  font-size: var(--component-font-size);
+  font-weight: var(--component-font-weight);
+  font-family: var(--font-family-primary);
+  color: var(--text-color-dark);
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+  transition: color 0.3s ease;
+}
+
+.button-component.active .button-content h3 {
+  color: #ffffff;
+}
+
+// Border segments for text mode (sliding animation)
+.button-component .border-segment {
+  position: absolute;
+  background: linear-gradient(
+    to right,
+    var(--active-button-start),
+    var(--active-button-end)
+  );
+  opacity: 1;
+  transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.2, 1);
+  height: 1px;
+  width: 100px;
+}
+
+.button-component .border-top {
+  top: 0;
+}
+
+.button-component .border-bottom {
+  bottom: 0;
+}
+
+// Hover ring for circle mode (default dot)
+.button-component .hover-ring {
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background: linear-gradient(
+    145deg,
+    var(--active-button-start),
+    var(--active-button-end)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.button-component .hover-ring::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 50%;
+  background: inherit;
+}
+
+body[data-theme="light"] .button-component .hover-ring::after {
+  background: linear-gradient(
+    -25deg,
+    var(--light-slider-start) 0%,
+    var(--light-slider-end) 100%
+  );
+}
+
+body[data-theme="dark"] .button-component .hover-ring::after {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-slider-start) 0%,
+    var(--dark-slider-end) 100%
+  );
+}
+
+// Show hover ring when active
+.button-component.hover-ring-active:not(.active) .hover-ring {
+  opacity: 1;
+}
+
+// Hide hover ring for disabled buttons
+.button-component.disabled .hover-ring {
+  display: none;
+}
+
+// Hide border segments for disabled buttons
+.button-component.disabled .border-segment {
+  opacity: 0 !important;
 }
