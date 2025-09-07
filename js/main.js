@@ -100,6 +100,28 @@ function initializeComponentEnginesDemos() {
     onClick: () => console.log('[Demo] Circle button clicked')
   });
   
+  // 4.5. Base Button Engine demos (Text Mode)
+  const baseButtonText = new button_component_engine({
+    id: 'demo-base-button-text',
+    text: 'Base Engine Text',
+    active: false
+  }, (value, id) => {
+    console.log('[Demo] Base button (text mode) clicked:', value, id);
+  });
+  
+  baseButtonText.render('demo-base-button-text-container');
+  
+  // 4.6. Base Button Engine demos (Circle Mode)
+  const baseButtonCircle = new button_component_engine({
+    id: 'demo-base-button-circle',
+    text: '•', // This triggers circle mode
+    active: false
+  }, (value, id) => {
+    console.log('[Demo] Base button (circle mode) clicked:', value, id);
+  });
+  
+  baseButtonCircle.render('demo-base-button-circle-container');
+  
   // 5. Multi Select demo
   componentFactory.createMultiSelect('demo-multi-select-container', {
     id: 'demo-multi-select',
