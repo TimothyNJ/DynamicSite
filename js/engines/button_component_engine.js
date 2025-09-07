@@ -111,23 +111,25 @@ class button_component_engine {
     this.element.className = buttonClasses.join(' ');
     this.element.id = this.options.id;
     
-    // Border container for animations (matches slider)
-    const borderContainer = document.createElement('div');
-    borderContainer.className = 'border-container';
-    
-    // Border segments
-    const borderTop = document.createElement('div');
-    borderTop.className = 'border-segment border-top';
-    borderContainer.appendChild(borderTop);
-    this._borderTop = borderTop;
-    
-    const borderBottom = document.createElement('div');
-    borderBottom.className = 'border-segment border-bottom';
-    borderContainer.appendChild(borderBottom);
-    this._borderBottom = borderBottom;
-    
-    // Add border container to button
-    this.element.appendChild(borderContainer);
+    // Border container for animations (only for text mode)
+    if (!this.isDefaultDot) {
+      const borderContainer = document.createElement('div');
+      borderContainer.className = 'border-container';
+      
+      // Border segments
+      const borderTop = document.createElement('div');
+      borderTop.className = 'border-segment border-top';
+      borderContainer.appendChild(borderTop);
+      this._borderTop = borderTop;
+      
+      const borderBottom = document.createElement('div');
+      borderBottom.className = 'border-segment border-bottom';
+      borderContainer.appendChild(borderBottom);
+      this._borderBottom = borderBottom;
+      
+      // Add border container to button
+      this.element.appendChild(borderContainer);
+    }
     
     // Add hover ring element for default dot buttons
     if (this.isDefaultDot) {
@@ -294,10 +296,8 @@ class button_component_engine {
    * Initialize hover animations
    */
   initializeHoverAnimations() {
-    if (!this.element || !this._borderTop || !this._borderBottom) return;
-    
-    // Set initial border positions off-screen (only for non-circular buttons)
-    if (!this.isDefaultDot) {
+    // Set initial border positions off-screen (only for text mode)
+    if (!this.isDefaultDot && this._borderTop && this._borderBottom) {
       this.resetBorderAnimation();
     }
     

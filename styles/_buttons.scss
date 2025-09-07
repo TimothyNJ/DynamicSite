@@ -337,6 +337,15 @@ body[data-theme="dark"] .button-component {
   .button-content h3 {
     opacity: 0; // Default dot is invisible - button shape is the visual element
   }
+  
+  // Hide border container and segments for circle mode
+  .border-container {
+    display: none;
+  }
+  
+  .border-segment {
+    display: none;
+  }
 }
 
 // Border container for text mode animations
