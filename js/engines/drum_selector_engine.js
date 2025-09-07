@@ -1742,61 +1742,35 @@ export class Drum_Selector_Engine {
     }
     
     updateSingleTexture(time, ctx, canvas, texture) {
-        const params = this.config.textureParams;
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         
-        // Clear canvas
-        ctx.fillStyle = '#0a0a0a';
+        // Clear canvas with black background
+        ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
-        // Calculate aspect ratio to determine dot counts
-        const aspectRatio = canvasWidth / canvasHeight;
+        // Draw numbers 0-9 horizontally across the texture
+        const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        const spacing = 2; // 2px gap between numbers
+        const totalSpacing = spacing * (numbers.length - 1);
+        const availableWidth = canvasWidth - totalSpacing;
+        const numberWidth = availableWidth / numbers.length;
         
-        // Calculate dot counts for even spacing
-        // We want dots to be evenly spaced, so scale horizontal count by aspect ratio
-        const baseCount = params.tunnelCount || 6;
-        const horizontalCount = Math.round(baseCount * aspectRatio);
-        const verticalCount = baseCount;
+        // Calculate font size to fit properly in the texture
+        const fontSize = Math.min(canvasHeight * 0.6, numberWidth * 0.8);
         
-        // Create tunnel effect with evenly spaced dots
-        const phase = time * params.animationSpeed;
+        // Set up text styling
+        ctx.fillStyle = '#ffffff'; // White text
+        ctx.font = `${fontSize}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         
-        for (let i = 0; i < horizontalCount; i++) {
-            for (let j = 0; j < verticalCount; j++) {
-                const x = (i + 0.5) * (canvasWidth / horizontalCount);
-                const y = (j + 0.5) * (canvasHeight / verticalCount);
-                
-                const baseRadius = params.tunnelRadius;
-                const pulseAmount = 10;
-                const radius = baseRadius + Math.sin(phase + i * 0.5 + j * 0.5) * pulseAmount;
-                
-                const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-                
-                const hue = (phase * 50 + i * 30 + j * 30) % 360;
-                
-                gradient.addColorStop(0, `hsl(${hue}, 100%, 95%)`);
-                gradient.addColorStop(0.2, `hsl(${hue}, 90%, 85%)`);
-                gradient.addColorStop(0.4, `hsl(${hue}, 80%, 65%)`);
-                gradient.addColorStop(0.7, `hsl(${hue}, 70%, 45%)`);
-                gradient.addColorStop(0.9, `hsl(${hue}, 60%, 25%)`);
-                gradient.addColorStop(1, '#0a0a0a');
-                
-                ctx.beginPath();
-                ctx.arc(x, y, radius, 0, Math.PI * 2);
-                ctx.fillStyle = gradient;
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.arc(x, y, radius, 0, Math.PI * 2);
-                const rimGradient = ctx.createRadialGradient(x, y, radius * 0.8, x, y, radius);
-                rimGradient.addColorStop(0, 'transparent');
-                rimGradient.addColorStop(0.8, 'transparent');
-                rimGradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0.6)`);
-                ctx.strokeStyle = rimGradient;
-                ctx.lineWidth = 3;
-                ctx.stroke();
-            }
+        // Draw each number
+        for (let i = 0; i < numbers.length; i++) {
+            const x = (i * numberWidth) + (numberWidth / 2) + (i * spacing);
+            const y = canvasHeight / 2;
+            
+            ctx.fillText(numbers[i], x, y);
         }
         
         texture.needsUpdate = true;
