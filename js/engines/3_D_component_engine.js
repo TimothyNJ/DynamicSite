@@ -567,34 +567,22 @@ export class ThreeD_component_engine {
 
     createConeTextures() {
         const params = this.config.geometryParams;
-        const dotsPerUnit = 36; // Standard texture density
+        const baseResolution = 512; // Standard canvas resolution like other geometries
         
         // Calculate cone dimensions
         const radius = params.coneRadius || 0.5;
         const height = params.coneHeight || 1.0;
         const slantHeight = Math.sqrt(height * height + radius * radius);
         
-        // SIDE TEXTURE: Circular sector based on base arc length
-        const baseArcLength = 2 * Math.PI * radius; // Circumference of cone base
-        const sectorAngle = 2 * Math.PI * (radius / slantHeight); // Angle in radians
-        
-        // Calculate texture dimensions using 36 dots/unit standard
-        const sectorWidth = Math.round(baseArcLength * dotsPerUnit); // Width = base arc × 36 dots/unit
-        const sectorHeight = Math.round(slantHeight * dotsPerUnit);   // Height = slant height × 36 dots/unit
-        
-        // Create square canvas large enough to contain the sector
-        const canvasSize = Math.max(sectorWidth, sectorHeight);
+        // SIDE TEXTURE: Square canvas like other geometries
         this.sideCanvas = document.createElement('canvas');
-        this.sideCanvas.width = canvasSize;
-        this.sideCanvas.height = canvasSize;
+        this.sideCanvas.width = baseResolution;
+        this.sideCanvas.height = baseResolution;
         this.sideContext = this.sideCanvas.getContext('2d');
         
         this.sideTexture = new THREE.CanvasTexture(this.sideCanvas);
         
-        // BASE TEXTURE: Circular for cone base using 36 dots/unit
-        const baseDiameter = radius * 2;
-        const baseResolution = Math.round(baseDiameter * dotsPerUnit);
-        
+        // BASE TEXTURE: Square canvas like other geometries
         this.baseCanvas = document.createElement('canvas');
         this.baseCanvas.width = baseResolution;
         this.baseCanvas.height = baseResolution;
@@ -602,9 +590,10 @@ export class ThreeD_component_engine {
         
         this.baseTexture = new THREE.CanvasTexture(this.baseCanvas);
         
-        console.log('[3D Component Engine] Cone textures created (36 dots/unit):');
-        console.log(`  Side texture: ${canvasSize}x${canvasSize}px (sector: ${sectorWidth}x${sectorHeight}px, angle: ${(sectorAngle * 180/Math.PI).toFixed(1)}°)`);
-        console.log(`  Base texture: ${baseResolution}x${baseResolution}px (diameter: ${baseDiameter.toFixed(2)} units)`);
+        console.log('[3D Component Engine] Cone textures created (consistent with other geometries):');
+        console.log(`  Side texture: ${baseResolution}x${baseResolution}px (square canvas)`);
+        console.log(`  Base texture: ${baseResolution}x${baseResolution}px (square canvas)`);
+        console.log(`  Cone dimensions: radius=${radius}, height=${height}, slantHeight=${slantHeight.toFixed(2)}`);
         
         // Store references for update method
         this.textureCanvas = this.sideCanvas; // Default to side for compatibility
