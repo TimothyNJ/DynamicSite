@@ -27,8 +27,6 @@ class ComponentFactory {
     this.sliderInstances = new Map();
     this.textInputInstances = new Map();
     this.buttonInstances = new Map();
-    this.textButtonInstances = new Map();
-    this.circleButtonInstances = new Map();
     this.multiSelectInstances = new Map();
     this.fileUploadInstances = new Map();
     this.wheelTimeInstances = new Map();
@@ -552,92 +550,6 @@ class ComponentFactory {
       icon: '💾',
       active: false
     }, clickHandler);
-  }
-
-  /**
-   * Create a text button using text_button_component_engine
-   * 
-   * @param {string} containerId - Container element ID
-   * @param {Object} options - Button configuration options
-   * @param {Function} clickHandler - Click callback function
-   * @returns {Object} Text button engine instance
-   */
-  createTextButton(containerId, options = {}, clickHandler = null) {
-    console.log(`[ComponentFactory] Creating text button in container: ${containerId}`);
-    
-    if (!text_button_component_engine) {
-      console.error('[ComponentFactory] ERROR: text_button_component_engine not available');
-      return null;
-    }
-    
-    try {
-      // Extract onClick from options for backward compatibility
-      const handler = clickHandler || options.onClick || null;
-      
-      // Create clean options without onClick to maintain separation of concerns
-      const cleanOptions = { ...options };
-      delete cleanOptions.onClick;
-      
-      // Pass handler as second parameter as expected by the engine
-      const textButtonEngine = new text_button_component_engine(cleanOptions, handler);
-      const element = textButtonEngine.render(containerId);
-      
-      if (element) {
-        const key = options.id || containerId;
-        this.textButtonInstances.set(key, textButtonEngine);
-        console.log(`[ComponentFactory] Text button created successfully: ${key}`);
-        return textButtonEngine;
-      } else {
-        console.error(`[ComponentFactory] Failed to render text button in: ${containerId}`);
-        return null;
-      }
-    } catch (error) {
-      console.error('[ComponentFactory] Error creating text button:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Create a circle button using circle_button_component_engine
-   * 
-   * @param {string} containerId - Container element ID
-   * @param {Object} options - Button configuration options
-   * @param {Function} clickHandler - Click callback function
-   * @returns {Object} Circle button engine instance
-   */
-  createCircleButton(containerId, options = {}, clickHandler = null) {
-    console.log(`[ComponentFactory] Creating circle button in container: ${containerId}`);
-    
-    if (!circle_button_component_engine) {
-      console.error('[ComponentFactory] ERROR: circle_button_component_engine not available');
-      return null;
-    }
-    
-    try {
-      // Extract onClick from options for backward compatibility
-      const handler = clickHandler || options.onClick || null;
-      
-      // Create clean options without onClick to maintain separation of concerns
-      const cleanOptions = { ...options };
-      delete cleanOptions.onClick;
-      
-      // Pass handler as second parameter as expected by the engine
-      const circleButtonEngine = new circle_button_component_engine(cleanOptions, handler);
-      const element = circleButtonEngine.render(containerId);
-      
-      if (element) {
-        const key = options.id || containerId;
-        this.circleButtonInstances.set(key, circleButtonEngine);
-        console.log(`[ComponentFactory] Circle button created successfully: ${key}`);
-        return circleButtonEngine;
-      } else {
-        console.error(`[ComponentFactory] Failed to render circle button in: ${containerId}`);
-        return null;
-      }
-    } catch (error) {
-      console.error('[ComponentFactory] Error creating circle button:', error);
-      return null;
-    }
   }
 
   /**
