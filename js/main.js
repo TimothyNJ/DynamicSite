@@ -103,7 +103,7 @@ function initializeComponentEnginesDemos() {
   // 4.5. Base Button Engine demos (Text Mode)
   componentFactory.createButton('demo-base-button-text-container', {
     id: 'demo-base-button-text',
-    text: 'Base Engine Text',
+    text: 'Click Me',
     active: false,
     onClick: (value, id) => {
       console.log('[Demo] Base button (text mode) clicked:', value, id);
