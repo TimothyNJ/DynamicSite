@@ -816,6 +816,7 @@ export class ThreeD_component_engine {
             // For tubes with animated textures, create single material with side texture only
             const materialConfig = Object.assign({}, this.config.materialParams);
             materialConfig.map = this.texture; // Tube uses single texture (side texture)
+            materialConfig.side = THREE.DoubleSide; // Render texture on both inside and outside
             
             switch (this.config.material) {
                 case 'physical':
@@ -834,7 +835,7 @@ export class ThreeD_component_engine {
                     this.material = new THREE.MeshPhysicalMaterial(materialConfig);
             }
             
-            console.log('[3D Component Engine] Created single material for tube (no caps)');
+            console.log('[3D Component Engine] Created single double-sided material for tube (no caps)');
         } else {
             // Single material for other geometries
             const materialConfig = Object.assign({}, this.config.materialParams);
