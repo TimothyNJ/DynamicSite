@@ -279,7 +279,7 @@
 // Styles for the unified button_component_engine that handles both text and circle modes
 
 .button-container {
-  display: flex; // Changed back to flex from inline-flex
+  display: inline-flex; // Changed to inline-flex to fit content width
   justify-content: center;
   align-items: center;
   margin: var(--component-spacing) 0;
