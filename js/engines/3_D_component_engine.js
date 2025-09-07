@@ -465,11 +465,13 @@ export class ThreeD_component_engine {
         if (this.config.texture === 'none') return;
         
         if (this.config.texture === 'animated') {
+            console.log('[3D Component Engine] Creating animated texture for geometry:', this.config.geometry);
             if (this.config.geometry === 'cylinder') {
                 // For cylinders, create separate textures for sides and caps
                 this.createCylinderTextures();
             } else if (this.config.geometry === 'tube') {
                 // For tubes, create only side texture (no caps)
+                console.log('[3D Component Engine] Calling createTubeTextures for tube geometry');
                 this.createTubeTextures();
             } else {
                 // For other geometries, use a single square texture
