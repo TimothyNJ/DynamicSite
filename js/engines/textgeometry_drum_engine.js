@@ -2,8 +2,8 @@
  * textgeometry_drum_engine.js
  * 
  * ThreeD Component Engine TextGeometry implementation
- * Phase 1: Static 0-9 using TextGeometry objects positioned around a cylinder
- * Uses existing ThreeD engine tube geometry and interaction systems
+ * Phase 1: Static 0-9 using TextGeometry objects positioned around a cylinder shape
+ * Uses existing ThreeD engine for interaction systems ONLY - no visible cylinder
  * 
  * @class TextGeometryDrumEngine
  */
@@ -12,178 +12,137 @@ import { ThreeD_component_engine } from './3_D_component_engine.js';
 
 export class TextGeometryDrumEngine extends ThreeD_component_engine {
     constructor(container, config = {}) {
-        // Configure for cylinder/tube geometry with drum-like rotation
+        // Configure to use ThreeD engine base but NO visible geometry
         const drumConfig = Object.assign({
-            geometry: 'cylinder',
-            geometryParams: {
-                cylinderRadiusTop: 0.5,
-                cylinderRadiusBottom: 0.5,
-                cylinderHeight: 1.0,
-                cylinderRadialSegments: 32
-            },
-            // Disable texture - we'll use TextGeometry instead
+            // No geometry - we'll create our own text objects
             texture: 'none',
             enableInteraction: true,
             rotationSpeed: 0,
-            // Material for the cylinder (darker background)
-            materialParams: {
-                color: 0x1a1a1a,
-                metalness: 0.3,
-                roughness: 0.7
-            }
+            // Dark background
+            backgroundColor: 0x1a1a1a
         }, config);
         
         // Initialize parent ThreeD engine
         super(container, drumConfig);
         
         // TextGeometry specific properties
-        this.numbers = [];
-        this.font = null;
-        this.fontLoader = null;
-        this.isfontsLoaded = false;
+        this.numberMeshes = [];
+        this.numberGroup = null;
         
         console.log('[TextGeometry Drum Engine] Initialized');
     }
     
     init() {
-        // Call parent init first
+        // Initialize Three.js scene, camera, renderer from parent
         super.init();
         
         if (!this.isInitialized) {
             return;
         }
         
-        // Load font and create TextGeometry objects
-        this.loadFont();
+        // Remove the mesh that parent created - we don't want any cylinder visible
+        if (this.mesh) {
+            this.scene.remove(this.mesh);
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            if (this.mesh.material) {
+                if (Array.isArray(this.mesh.material)) {
+                    this.mesh.material.forEach(m => m.dispose());
+                } else {
+                    this.mesh.material.dispose();
+                }
+            }
+            this.mesh = null;
+        }
+        
+        // Create a group to hold all numbers - this becomes our "mesh" for rotation
+        this.numberGroup = new THREE.Group();
+        this.scene.add(this.numberGroup);
+        this.mesh = this.numberGroup; // Assign to mesh so parent's rotation logic works
+        
+        // Create the TextGeometry numbers
+        this.createTextGeometryNumbers();
     }
     
-    loadFont() {
+    createTextGeometryNumbers() {
         if (!window.THREE) {
             console.error('[TextGeometry Drum Engine] Three.js not loaded');
             return;
         }
         
-        // Dynamic import of FontLoader and TextGeometry
-        this.loadFontModules();
-    }
-    
-    async loadFontModules() {
-        try {
-            // Note: These modules need to be available through Three.js
-            // For now, we'll create text using sprites as a fallback
-            console.log('[TextGeometry Drum Engine] Loading font modules...');
-            
-            // Create number sprites as initial implementation
-            this.createNumberSprites();
-            
-        } catch (error) {
-            console.error('[TextGeometry Drum Engine] Error loading font modules:', error);
-            // Fallback to sprite-based text
-            this.createNumberSprites();
-        }
-    }
-    
-    createNumberSprites() {
-        // Create 10 numbers (0-9) as sprites positioned around the cylinder
+        // Create 10 numbers (0-9) using TextGeometry
         const numberOfValues = 10;
         const anglePerNumber = (Math.PI * 2) / numberOfValues;
-        const radius = 0.55; // Just outside cylinder surface
+        const radius = 0.5; // Position at cylinder radius
         
+        // For now, create placeholder meshes since TextGeometry requires font loading
+        // These will be replaced with actual TextGeometry once fonts are loaded
         for (let i = 0; i < numberOfValues; i++) {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 128;
-            canvas.height = 128;
-            
-            // Draw number on canvas
-            context.fillStyle = '#000000';
-            context.fillRect(0, 0, 128, 128);
-            context.font = 'Bold 96px Arial';
-            context.fillStyle = '#ffffff';
-            context.textAlign = 'center';
-            context.textBaseline = 'middle';
-            context.fillText(i.toString(), 64, 64);
-            
-            // Create texture from canvas
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.needsUpdate = true;
-            
-            // Create sprite material
-            const spriteMaterial = new THREE.SpriteMaterial({
-                map: texture,
-                transparent: true
+            // Create a simple box as placeholder for each number
+            const geometry = new THREE.BoxGeometry(0.15, 0.2, 0.02);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: 0xffffff,
+                emissive: 0x444444,
+                emissiveIntensity: 0.2
             });
             
-            // Create sprite
-            const sprite = new THREE.Sprite(spriteMaterial);
-            sprite.scale.set(0.3, 0.3, 1);
+            const mesh = new THREE.Mesh(geometry, material);
             
-            // Position around cylinder
+            // Position around where cylinder would be
             const angle = i * anglePerNumber;
-            sprite.position.x = Math.cos(angle) * radius;
-            sprite.position.z = Math.sin(angle) * radius;
-            sprite.position.y = 0;
+            mesh.position.x = Math.cos(angle) * radius;
+            mesh.position.z = Math.sin(angle) * radius;
+            mesh.position.y = 0;
             
-            // Add to scene
-            this.scene.add(sprite);
-            this.numbers.push(sprite);
+            // Face outward from center
+            mesh.rotation.y = angle + Math.PI;
             
-            console.log(`[TextGeometry Drum Engine] Created number ${i} at angle ${(angle * 180 / Math.PI).toFixed(1)}°`);
+            // Add to our number group
+            this.numberGroup.add(mesh);
+            this.numberMeshes.push(mesh);
+            
+            console.log(`[TextGeometry Drum Engine] Created placeholder for number ${i} at angle ${(angle * 180 / Math.PI).toFixed(1)}°`);
         }
         
-        console.log('[TextGeometry Drum Engine] All numbers created');
+        console.log('[TextGeometry Drum Engine] All number placeholders created - TextGeometry will replace these when fonts load');
     }
     
-    // Future implementation for actual TextGeometry
-    createTextGeometry(text, font) {
-        // This will be implemented when FontLoader and TextGeometry are properly imported
-        // For now, using sprite-based approach above
-        if (!window.THREE.TextGeometry) {
-            console.warn('[TextGeometry Drum Engine] TextGeometry not available, using sprites');
-            return null;
-        }
-        
-        const textGeometry = new THREE.TextGeometry(text, {
-            font: font,
-            size: 0.15,
-            height: 0.02,
-            curveSegments: 12,
-            bevelEnabled: false
-        });
-        
-        textGeometry.center();
-        return textGeometry;
+    // Future: Replace placeholders with actual TextGeometry
+    async loadFontAndCreateText() {
+        // This will be implemented when we can properly load fonts
+        // Will use THREE.FontLoader and THREE.TextGeometry
+        // For each number 0-9:
+        // 1. Create TextGeometry with the number
+        // 2. Replace the placeholder box with the text mesh
+        // 3. Position and orient correctly
     }
     
-    // Override rotation to constrain to single axis (drum behavior)
-    applyRotation(deltaX, deltaY) {
-        if (!this.mesh) return;
-        
-        // Only rotate around X-axis for drum behavior (horizontal cylinder)
-        const rotationSpeed = 0.01;
-        this.mesh.rotation.x += deltaY * rotationSpeed;
-        
-        // Numbers rotate with the cylinder since they're added to the scene
-        // They'll appear to rotate around the cylinder
+    // Override to ensure no texture updates
+    updateAnimatedTexture() {
+        // Do nothing - we have no textures, only geometry
     }
     
     // Get current selected value based on rotation
     getCurrentValue() {
-        if (!this.mesh) return 0;
+        if (!this.numberGroup) return 0;
         
-        const normalizedRotation = ((this.mesh.rotation.x % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
+        const normalizedRotation = ((this.numberGroup.rotation.x % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
         const anglePerNumber = (Math.PI * 2) / 10;
         return Math.round(normalizedRotation / anglePerNumber) % 10;
     }
     
     dispose() {
-        // Clean up numbers
-        this.numbers.forEach(sprite => {
-            if (sprite.material.map) sprite.material.map.dispose();
-            if (sprite.material) sprite.material.dispose();
-            this.scene.remove(sprite);
+        // Clean up number meshes
+        this.numberMeshes.forEach(mesh => {
+            if (mesh.geometry) mesh.geometry.dispose();
+            if (mesh.material) mesh.material.dispose();
+            this.numberGroup.remove(mesh);
         });
-        this.numbers = [];
+        this.numberMeshes = [];
+        
+        if (this.numberGroup) {
+            this.scene.remove(this.numberGroup);
+            this.numberGroup = null;
+        }
         
         // Call parent dispose
         super.dispose();
