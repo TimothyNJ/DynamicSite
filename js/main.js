@@ -37,6 +37,7 @@ import { wheel_time_selector_component_engine } from './engines/wheel_time_selec
 import { wheel_date_picker_component_engine } from './engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from './engines/calendar_picker_component_engine.js';
 import { wheel_selector_component_engine } from './engines/wheel_selector_component_engine.js';
+import { TextGeometryDrumEngine } from './engines/textgeometry_drum_engine.js';
 import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
 import { initializeComponents } from './loader/component-loader.js';
 import { initializeNavbar } from './navigation/navbar.js';
@@ -291,6 +292,34 @@ function initializeComponentEnginesDemos() {
     console.log('[Demo 3D Tube 2 Rotation Speed] Selected:', speed);
     if (demoTube2_3D && demoTube2_3D.setRotationSpeed) {
       demoTube2_3D.setRotationSpeed(speed);
+    }
+  });
+  
+  // 7.9. ThreeD Component Engine TextGeometry
+  const demoTextGeometry3D = new TextGeometryDrumEngine('demo-3d-textgeometry-container', {
+    responsive: true,  // Same responsive sizing
+    rotationSpeed: 0  // Start with no rotation
+  });
+  demoTextGeometry3D.init();
+  
+  console.log('[Demo] ThreeD Component Engine TextGeometry initialized:', demoTextGeometry3D);
+  
+  // Create rotation speed slider for TextGeometry demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-textgeometry-rotation-slider-container',
+    sliderClass: 'demo-3d-textgeometry-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo ThreeD TextGeometry Rotation Speed] Selected:', speed);
+    if (demoTextGeometry3D && demoTextGeometry3D.setRotationSpeed) {
+      demoTextGeometry3D.setRotationSpeed(speed);
     }
   });
   
