@@ -2,7 +2,7 @@
  * textgeometry_drum_engine.js
  * 
  * ThreeD Component Engine TextGeometry implementation
- * Phase 1: Static 0-9 using TextGeometry objects positioned around a cylinder shape
+ * Phase 1: Static 0-9 using TextGeometry objects positioned in a ring
  * Uses existing ThreeD engine for interaction systems ONLY - no visible cylinder
  * 
  * @class TextGeometryDrumEngine
@@ -69,16 +69,16 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             return;
         }
         
-        // Create 10 numbers (0-9) using TextGeometry
+        // Create 10 numbers (0-9) forming a ring/cylinder
         const numberOfValues = 10;
         const anglePerNumber = (Math.PI * 2) / numberOfValues;
-        const radius = 0.5; // Position at cylinder radius
+        const radius = 0.5; // Radius of our ring
         
         // For now, create placeholder meshes since TextGeometry requires font loading
         // These will be replaced with actual TextGeometry once fonts are loaded
         for (let i = 0; i < numberOfValues; i++) {
             // Create a simple box as placeholder for each number
-            const geometry = new THREE.BoxGeometry(0.15, 0.2, 0.02);
+            const geometry = new THREE.BoxGeometry(0.1, 0.15, 0.02);
             const material = new THREE.MeshStandardMaterial({ 
                 color: 0xffffff,
                 emissive: 0x444444,
@@ -87,14 +87,14 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             
             const mesh = new THREE.Mesh(geometry, material);
             
-            // Position around where cylinder would be
+            // Position in a ring - just set position, no rotation
             const angle = i * anglePerNumber;
             mesh.position.x = Math.cos(angle) * radius;
             mesh.position.z = Math.sin(angle) * radius;
             mesh.position.y = 0;
             
-            // Face outward from center
-            mesh.rotation.y = angle + Math.PI;
+            // NO ROTATION - let them all face the same direction
+            // This creates a ring of objects
             
             // Add to our number group
             this.numberGroup.add(mesh);
@@ -103,7 +103,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             console.log(`[TextGeometry Drum Engine] Created placeholder for number ${i} at angle ${(angle * 180 / Math.PI).toFixed(1)}°`);
         }
         
-        console.log('[TextGeometry Drum Engine] All number placeholders created - TextGeometry will replace these when fonts load');
+        console.log('[TextGeometry Drum Engine] Ring of placeholders created');
     }
     
     // Future: Replace placeholders with actual TextGeometry
@@ -113,7 +113,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         // For each number 0-9:
         // 1. Create TextGeometry with the number
         // 2. Replace the placeholder box with the text mesh
-        // 3. Position and orient correctly
+        // 3. Position in the same ring formation
     }
     
     // Override to ensure no texture updates
@@ -125,7 +125,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
     getCurrentValue() {
         if (!this.numberGroup) return 0;
         
-        const normalizedRotation = ((this.numberGroup.rotation.x % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
+        const normalizedRotation = ((this.numberGroup.rotation.y % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
         const anglePerNumber = (Math.PI * 2) / 10;
         return Math.round(normalizedRotation / anglePerNumber) % 10;
     }
