@@ -2,8 +2,8 @@
  * textgeometry_drum_engine.js
  * 
  * ThreeD Component Engine TextGeometry implementation
- * Phase 1: Static 0-9 using TextGeometry objects positioned in a ring
- * Uses existing ThreeD engine for interaction systems ONLY - no visible cylinder
+ * Uses cylinder with UV-mapped texture containing numbers 0-9
+ * Numbers curve naturally with the cylinder surface
  * 
  * @class TextGeometryDrumEngine
  */
@@ -12,24 +12,26 @@ import { ThreeD_component_engine } from './3_D_component_engine.js';
 
 export class TextGeometryDrumEngine extends ThreeD_component_engine {
     constructor(container, config = {}) {
-        // Configure to use ThreeD engine base but NO visible geometry
+        // Configure for cylinder geometry with custom number texture
         const drumConfig = Object.assign({
-            // No geometry - we'll create our own text objects
-            texture: 'none',
+            geometry: 'cylinder',
+            geometryParams: {
+                cylinderRadiusTop: 0.5,
+                cylinderRadiusBottom: 0.5,
+                cylinderHeight: 1.0,
+                cylinderRadialSegments: 32
+            },
+            // We'll create our own texture
+            texture: 'custom',
             enableInteraction: true,
             rotationSpeed: 0,
-            // Dark background
             backgroundColor: 0x1a1a1a
         }, config);
         
         // Initialize parent ThreeD engine
         super(container, drumConfig);
         
-        // TextGeometry specific properties
-        this.numberMeshes = [];
-        this.numberGroup = null;
-        
-        console.log('[TextGeometry Drum Engine] Initialized');
+        console.log('[TextGeometry Drum Engine] Initialized with cylinder UV approach');
     }
     
     init() {
@@ -40,108 +42,82 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             return;
         }
         
-        // Remove the mesh that parent created - we don't want any cylinder visible
-        if (this.mesh) {
-            this.scene.remove(this.mesh);
-            if (this.mesh.geometry) this.mesh.geometry.dispose();
-            if (this.mesh.material) {
-                if (Array.isArray(this.mesh.material)) {
-                    this.mesh.material.forEach(m => m.dispose());
-                } else {
-                    this.mesh.material.dispose();
-                }
-            }
-            this.mesh = null;
-        }
-        
-        // Create a group to hold all numbers - this becomes our "mesh" for rotation
-        this.numberGroup = new THREE.Group();
-        this.scene.add(this.numberGroup);
-        this.mesh = this.numberGroup; // Assign to mesh so parent's rotation logic works
-        
-        // Create the TextGeometry numbers
-        this.createTextGeometryNumbers();
+        // Replace the texture with our number texture
+        this.createNumberTexture();
     }
     
-    createTextGeometryNumbers() {
-        if (!window.THREE) {
-            console.error('[TextGeometry Drum Engine] Three.js not loaded');
-            return;
+    createNumberTexture() {
+        // Create canvas for texture
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        // Canvas dimensions - width needs to wrap around cylinder
+        canvas.width = 1024;  // High res for sharp text
+        canvas.height = 256;  // Height of the cylinder band
+        
+        // Clear canvas with dark background
+        context.fillStyle = '#1a1a1a';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Configure text rendering
+        context.font = 'bold 120px Arial';
+        context.fillStyle = '#ffffff';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        
+        // Draw numbers 0-9 evenly spaced across the width
+        const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        const segmentWidth = canvas.width / numbers.length;
+        
+        numbers.forEach((num, index) => {
+            const x = (index * segmentWidth) + (segmentWidth / 2);
+            const y = canvas.height / 2;
+            context.fillText(num, x, y);
+        });
+        
+        // Create texture from canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        
+        // Apply texture to the cylinder mesh
+        if (this.mesh && this.mesh.material) {
+            this.mesh.material.map = texture;
+            this.mesh.material.needsUpdate = true;
+            
+            // Make sure the material shows the texture
+            this.mesh.material.emissive = new THREE.Color(0x222222);
+            this.mesh.material.emissiveIntensity = 0.3;
         }
         
-        // Create 10 numbers (0-9) forming a ring/cylinder
-        const numberOfValues = 10;
-        const anglePerNumber = (Math.PI * 2) / numberOfValues;
-        const radius = 0.5; // Radius of our ring
-        
-        // For now, create placeholder meshes since TextGeometry requires font loading
-        // These will be replaced with actual TextGeometry once fonts are loaded
-        for (let i = 0; i < numberOfValues; i++) {
-            // Create a simple box as placeholder for each number
-            const geometry = new THREE.BoxGeometry(0.1, 0.15, 0.02);
-            const material = new THREE.MeshStandardMaterial({ 
-                color: 0xffffff,
-                emissive: 0x444444,
-                emissiveIntensity: 0.2
-            });
-            
-            const mesh = new THREE.Mesh(geometry, material);
-            
-            // Position in a ring - just set position, no rotation
-            const angle = i * anglePerNumber;
-            mesh.position.x = Math.cos(angle) * radius;
-            mesh.position.z = Math.sin(angle) * radius;
-            mesh.position.y = 0;
-            
-            // NO ROTATION - let them all face the same direction
-            // This creates a ring of objects
-            
-            // Add to our number group
-            this.numberGroup.add(mesh);
-            this.numberMeshes.push(mesh);
-            
-            console.log(`[TextGeometry Drum Engine] Created placeholder for number ${i} at angle ${(angle * 180 / Math.PI).toFixed(1)}°`);
-        }
-        
-        console.log('[TextGeometry Drum Engine] Ring of placeholders created');
+        console.log('[TextGeometry Drum Engine] Number texture created and applied');
     }
     
-    // Future: Replace placeholders with actual TextGeometry
-    async loadFontAndCreateText() {
-        // This will be implemented when we can properly load fonts
-        // Will use THREE.FontLoader and THREE.TextGeometry
-        // For each number 0-9:
-        // 1. Create TextGeometry with the number
-        // 2. Replace the placeholder box with the text mesh
-        // 3. Position in the same ring formation
-    }
-    
-    // Override to ensure no texture updates
+    // Override texture update to prevent animated texture
     updateAnimatedTexture() {
-        // Do nothing - we have no textures, only geometry
+        // Do nothing - we want our static number texture
     }
     
     // Get current selected value based on rotation
     getCurrentValue() {
-        if (!this.numberGroup) return 0;
+        if (!this.mesh) return 0;
         
-        const normalizedRotation = ((this.numberGroup.rotation.y % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
+        // Rotation around Y axis for horizontal cylinder
+        const rotation = this.mesh.rotation.y;
+        const normalizedRotation = ((rotation % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
+        
+        // Each number occupies 36 degrees (2π/10)
         const anglePerNumber = (Math.PI * 2) / 10;
-        return Math.round(normalizedRotation / anglePerNumber) % 10;
+        
+        // Calculate which number is at the front
+        const selectedIndex = Math.round(normalizedRotation / anglePerNumber) % 10;
+        
+        return selectedIndex;
     }
     
     dispose() {
-        // Clean up number meshes
-        this.numberMeshes.forEach(mesh => {
-            if (mesh.geometry) mesh.geometry.dispose();
-            if (mesh.material) mesh.material.dispose();
-            this.numberGroup.remove(mesh);
-        });
-        this.numberMeshes = [];
-        
-        if (this.numberGroup) {
-            this.scene.remove(this.numberGroup);
-            this.numberGroup = null;
+        // Dispose of texture if it exists
+        if (this.mesh && this.mesh.material && this.mesh.material.map) {
+            this.mesh.material.map.dispose();
         }
         
         // Call parent dispose
