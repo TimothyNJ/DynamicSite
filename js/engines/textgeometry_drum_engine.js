@@ -144,8 +144,9 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             mesh.position.z = Math.sin(angle) * radius;
             mesh.position.y = 0;
             
-            // Rotate to face outward
-            mesh.rotation.y = angle;
+            // Rotate to face outward and then 90 degrees for horizontal drum
+            mesh.rotation.y = angle + Math.PI / 2;  // Face outward + 90 degree rotation
+            mesh.rotation.z = Math.PI / 2;  // Rotate 90 degrees for horizontal drum
             
             // Add to group
             this.numberGroup.add(mesh);
@@ -185,8 +186,9 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             mesh.position.z = Math.sin(angle) * radius;
             mesh.position.y = 0;
             
-            // Rotate to face outward
-            mesh.rotation.y = angle;
+            // Rotate to face outward and then 90 degrees for horizontal drum
+            mesh.rotation.y = angle + Math.PI / 2;  // Face outward + 90 degree rotation
+            mesh.rotation.z = Math.PI / 2;  // Rotate 90 degrees for horizontal drum
             
             // Add to group
             this.numberGroup.add(mesh);
