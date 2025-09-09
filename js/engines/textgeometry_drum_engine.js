@@ -175,7 +175,8 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             const material = new THREE.MeshStandardMaterial({
                 color: 0xffffff,
                 emissive: 0x444444,
-                emissiveIntensity: 0.2
+                emissiveIntensity: 0.2,
+                side: THREE.FrontSide  // Single-sided - only visible from outside
             });
             
             // Create mesh
@@ -210,7 +211,8 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             const material = new THREE.MeshStandardMaterial({
                 color: 0xffffff,
                 emissive: 0x444444,
-                emissiveIntensity: 0.2
+                emissiveIntensity: 0.2,
+                side: THREE.FrontSide  // Single-sided - only visible from outside
             });
             
             const mesh = new THREE.Mesh(geometry, material);
@@ -307,7 +309,8 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         const material = new THREE.MeshStandardMaterial({
             color: 0xffffff,
             emissive: 0x444444,
-            emissiveIntensity: 0.2
+            emissiveIntensity: 0.2,
+            side: THREE.FrontSide  // Single-sided - only visible from outside
         });
         
         const mesh = new THREE.Mesh(textGeometry, material);
