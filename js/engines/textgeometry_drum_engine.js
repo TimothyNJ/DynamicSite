@@ -119,8 +119,12 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             // Read font size from CSS variables
             const cssFontSize = getComputedStyle(document.documentElement)
                 .getPropertyValue('--component-font-size');
-            // Convert from rem to Three.js units (1rem ≈ 0.1 Three.js units)
-            const fontSize = cssFontSize ? parseFloat(cssFontSize) * 0.1 : 0.15;
+            console.log('[TextGeometry] CSS font size:', cssFontSize);
+            
+            // Use a reasonable font size for Three.js
+            // The CSS value is for HTML elements, not 3D space
+            const fontSize = 0.15;  // Fixed size that works well in 3D
+            console.log('[TextGeometry] Using font size:', fontSize);
             
             // Create TextGeometry for this number
             const textGeometry = new THREE.TextGeometry(i.toString(), {
@@ -146,9 +150,10 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
                 vertex.y = positions.getY(v);
                 vertex.z = positions.getZ(v);
                 
-                // Calculate angle for this vertex - direct mapping, no scaling
+                // Calculate angle for this vertex
                 const baseAngle = i * anglePerNumber;
-                const vertexAngle = -vertex.x;  // Direct mapping preserves CSS-defined size
+                // Scale to use most of allocated angle per number
+                const vertexAngle = -(vertex.x / fontSize) * (anglePerNumber * 0.8);
                 const finalAngle = baseAngle + vertexAngle;
                 
                 // Apply cylindrical transformation
@@ -242,11 +247,8 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         if (oldMesh.geometry) oldMesh.geometry.dispose();
         if (oldMesh.material) oldMesh.material.dispose();
         
-        // Read font size from CSS variables
-        const cssFontSize = getComputedStyle(document.documentElement)
-            .getPropertyValue('--component-font-size');
-        // Convert from rem to Three.js units (1rem ≈ 0.1 Three.js units)
-        const fontSize = cssFontSize ? parseFloat(cssFontSize) * 0.1 : 0.15;
+        // Use a reasonable font size for Three.js
+        const fontSize = 0.15;  // Fixed size that works well in 3D
         
         // Create new TextGeometry with new value
         const textGeometry = new THREE.TextGeometry(newValue.toString(), {
@@ -274,9 +276,10 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             vertex.y = positions.getY(v);
             vertex.z = positions.getZ(v);
             
-            // Calculate angle for this vertex - direct mapping, no scaling
+            // Calculate angle for this vertex
             const baseAngle = index * anglePerNumber;  // position in ring
-            const vertexAngle = -vertex.x;  // Direct mapping preserves CSS-defined size
+            // Scale to use most of allocated angle per number
+            const vertexAngle = -(vertex.x / fontSize) * (anglePerNumber * 0.8);
             const finalAngle = baseAngle + vertexAngle;
             
             // Apply cylindrical transformation
