@@ -72,7 +72,19 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         numbers.forEach((num, index) => {
             const x = (index * segmentWidth) + (segmentWidth / 2);
             const y = canvas.height / 2;
-            context.fillText(num, x, y);
+            
+            // Save context state
+            context.save();
+            
+            // Translate to position and rotate 90 degrees
+            context.translate(x, y);
+            context.rotate(Math.PI / 2);  // 90 degrees rotation
+            
+            // Draw the number at origin (now rotated)
+            context.fillText(num, 0, 0);
+            
+            // Restore context state
+            context.restore();
         });
         
         // Create texture from canvas
