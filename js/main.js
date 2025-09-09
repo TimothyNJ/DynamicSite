@@ -260,41 +260,6 @@ function initializeComponentEnginesDemos() {
     }
   });
   
-  // 7.8. 3D Component demo (tube 2) - Second tube instance
-  const demoTube2_3D = componentFactory.create3DObject('demo-3d-tube-2-container', {
-    responsive: true,  // Same responsive sizing
-    geometry: 'tube',  // Tube geometry (straight cylinder)
-    geometryParams: {
-      tubeRadius: 0.5,          // Same radius as first tube
-      tubeLength: 1.0,          // Same height as first tube
-      tubeRadialSegments: 32    // Same smooth surface
-    },
-    texture: 'animated',  // Same animated texture
-    enableInteraction: true,  // Same interaction capabilities
-    rotationSpeed: 0  // Start with no rotation
-  });
-  
-  console.log('[Demo] 3D tube 2 component initialized:', demoTube2_3D);
-  
-  // Create rotation speed slider for tube 2 demo
-  componentFactory.createSlider({
-    containerId: 'demo-3d-tube-2-rotation-slider-container',
-    sliderClass: 'demo-3d-tube-2-rotation-slider',
-    options: [
-      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
-      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
-      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
-      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
-      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
-    ]
-  }, (selectedOption) => {
-    const speed = parseFloat(selectedOption.getAttribute('data-value'));
-    console.log('[Demo 3D Tube 2 Rotation Speed] Selected:', speed);
-    if (demoTube2_3D && demoTube2_3D.setRotationSpeed) {
-      demoTube2_3D.setRotationSpeed(speed);
-    }
-  });
-  
   // 7.9. ThreeD Component Engine TextGeometry
   const demoTextGeometry3D = new TextGeometryDrumEngine('demo-3d-textgeometry-container', {
     responsive: true,  // Same responsive sizing
@@ -320,6 +285,34 @@ function initializeComponentEnginesDemos() {
     console.log('[Demo ThreeD TextGeometry Rotation Speed] Selected:', speed);
     if (demoTextGeometry3D && demoTextGeometry3D.setRotationSpeed) {
       demoTextGeometry3D.setRotationSpeed(speed);
+    }
+  });
+  
+  // 7.10. ThreeD Engine TextGeometry 0-9 (duplicate of above)
+  const demoTextGeometry09_3D = new TextGeometryDrumEngine('demo-3d-textgeometry-09-container', {
+    responsive: true,  // Same responsive sizing
+    rotationSpeed: 0  // Start with no rotation
+  });
+  demoTextGeometry09_3D.init();
+  
+  console.log('[Demo] ThreeD Engine TextGeometry 0-9 initialized:', demoTextGeometry09_3D);
+  
+  // Create rotation speed slider for TextGeometry 0-9 demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-textgeometry-09-rotation-slider-container',
+    sliderClass: 'demo-3d-textgeometry-09-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo ThreeD TextGeometry 0-9 Rotation Speed] Selected:', speed);
+    if (demoTextGeometry09_3D && demoTextGeometry09_3D.setRotationSpeed) {
+      demoTextGeometry09_3D.setRotationSpeed(speed);
     }
   });
   
