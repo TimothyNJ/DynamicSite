@@ -116,15 +116,19 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         const radius = 0.5;
         
         for (let i = 0; i < numberOfValues; i++) {
-            // Read font size from CSS variables
-            const cssFontSize = getComputedStyle(document.documentElement)
-                .getPropertyValue('--component-font-size');
-            console.log('[TextGeometry] CSS font size:', cssFontSize);
+            // Get computed font size in pixels
+            const computedStyle = getComputedStyle(document.documentElement);
+            const rootFontSize = parseFloat(computedStyle.fontSize); // Base font size in px
+            const componentMultiplier = parseFloat(computedStyle.getPropertyValue('--component-font-size')) || 0.9;
+            const fontSizeInPixels = rootFontSize * componentMultiplier;
             
-            // Use a reasonable font size for Three.js
-            // The CSS value is for HTML elements, not 3D space
-            const fontSize = 0.15;  // Fixed size that works well in 3D
-            console.log('[TextGeometry] Using font size:', fontSize);
+            // Convert pixels to Three.js units based on container/camera relationship
+            // The camera typically shows about 2-3 units vertically
+            const containerHeight = this.container.clientHeight || 300;
+            const pixelsToUnits = 2.5 / containerHeight; // Camera shows ~2.5 units vertically
+            const fontSize = fontSizeInPixels * pixelsToUnits * 1.5; // 1.5 is scale factor for readability
+            
+            console.log('[TextGeometry] Computed:', fontSizeInPixels + 'px', '→', fontSize + ' units');
             
             // Create TextGeometry for this number
             const textGeometry = new THREE.TextGeometry(i.toString(), {
@@ -247,8 +251,16 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         if (oldMesh.geometry) oldMesh.geometry.dispose();
         if (oldMesh.material) oldMesh.material.dispose();
         
-        // Use a reasonable font size for Three.js
-        const fontSize = 0.15;  // Fixed size that works well in 3D
+        // Get computed font size in pixels
+        const computedStyle = getComputedStyle(document.documentElement);
+        const rootFontSize = parseFloat(computedStyle.fontSize);
+        const componentMultiplier = parseFloat(computedStyle.getPropertyValue('--component-font-size')) || 0.9;
+        const fontSizeInPixels = rootFontSize * componentMultiplier;
+        
+        // Convert to Three.js units
+        const containerHeight = this.container.clientHeight || 300;
+        const pixelsToUnits = 2.5 / containerHeight;
+        const fontSize = fontSizeInPixels * pixelsToUnits * 1.5;
         
         // Create new TextGeometry with new value
         const textGeometry = new THREE.TextGeometry(newValue.toString(), {
