@@ -142,8 +142,8 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
                 
                 // Calculate angle for this vertex
                 const baseAngle = i * anglePerNumber;
-                // Reverse the angle to face outward (negative spread)
-                const vertexAngle = -(vertex.x / 0.15) * 0.1;
+                // Use full angle per number for proper scaling
+                const vertexAngle = -(vertex.x / 0.15) * (anglePerNumber * 0.8);  // 0.8 for slight spacing
                 const finalAngle = baseAngle + vertexAngle;
                 
                 // Apply cylindrical transformation
@@ -265,7 +265,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             
             // Calculate angle for this vertex
             const baseAngle = index * anglePerNumber;  // position in ring
-            const vertexAngle = -(vertex.x / 0.15) * 0.1;  // negative for outward facing
+            const vertexAngle = -(vertex.x / 0.15) * (anglePerNumber * 0.8);  // proper scaling with spacing
             const finalAngle = baseAngle + vertexAngle;
             
             // Apply cylindrical transformation
