@@ -2,8 +2,8 @@
  * textgeometry_drum_engine.js
  * 
  * ThreeD Component Engine TextGeometry implementation
- * Uses cylinder with UV-mapped texture containing numbers 0-9
- * Numbers curve naturally with the cylinder surface
+ * Phase 1: Static 0-9 using actual TextGeometry objects
+ * Each number is a separate 3D mesh for dynamic updates
  * 
  * @class TextGeometryDrumEngine
  */
@@ -12,17 +12,10 @@ import { ThreeD_component_engine } from './3_D_component_engine.js';
 
 export class TextGeometryDrumEngine extends ThreeD_component_engine {
     constructor(container, config = {}) {
-        // Configure for cylinder geometry with custom number texture
+        // Configure to use ThreeD engine base but NO visible cylinder
         const drumConfig = Object.assign({
-            geometry: 'cylinder',
-            geometryParams: {
-                cylinderRadiusTop: 0.5,
-                cylinderRadiusBottom: 0.5,
-                cylinderHeight: 1.0,
-                cylinderRadialSegments: 32
-            },
-            // We'll create our own texture
-            texture: 'custom',
+            // No geometry - we'll create our own text objects
+            texture: 'none',
             enableInteraction: true,
             rotationSpeed: 0,
             backgroundColor: 0x1a1a1a
@@ -31,7 +24,13 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         // Initialize parent ThreeD engine
         super(container, drumConfig);
         
-        console.log('[TextGeometry Drum Engine] Initialized with cylinder UV approach');
+        // TextGeometry specific properties
+        this.numberMeshes = [];
+        this.numberGroup = null;
+        this.font = null;
+        this.isLoading = false;
+        
+        console.log('[TextGeometry Drum Engine] Initialized for dynamic TextGeometry');
     }
     
     init() {
@@ -42,95 +41,255 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             return;
         }
         
-        // Replace the texture with our number texture
-        this.createNumberTexture();
-    }
-    
-    createNumberTexture() {
-        // Create canvas for texture
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        
-        // Canvas dimensions - width needs to wrap around cylinder
-        canvas.width = 1024;  // High res for sharp text
-        canvas.height = 256;  // Height of the cylinder band
-        
-        // Clear canvas with dark background
-        context.fillStyle = '#1a1a1a';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Configure text rendering
-        context.font = 'bold 120px Arial';
-        context.fillStyle = '#ffffff';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        
-        // Draw numbers 0-9 evenly spaced across the width
-        const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-        const segmentWidth = canvas.width / numbers.length;
-        
-        numbers.forEach((num, index) => {
-            const x = (index * segmentWidth) + (segmentWidth / 2);
-            const y = canvas.height / 2;
-            
-            // Save context state
-            context.save();
-            
-            // Translate to position and rotate 90 degrees
-            context.translate(x, y);
-            context.rotate(Math.PI / 2);  // 90 degrees rotation
-            
-            // Draw the number at origin (now rotated)
-            context.fillText(num, 0, 0);
-            
-            // Restore context state
-            context.restore();
-        });
-        
-        // Create texture from canvas
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.needsUpdate = true;
-        
-        // Apply texture to the cylinder mesh
-        if (this.mesh && this.mesh.material) {
-            this.mesh.material.map = texture;
-            this.mesh.material.needsUpdate = true;
-            
-            // Make sure the material shows the texture
-            this.mesh.material.emissive = new THREE.Color(0x222222);
-            this.mesh.material.emissiveIntensity = 0.3;
+        // Remove any mesh that parent created
+        if (this.mesh) {
+            this.scene.remove(this.mesh);
+            if (this.mesh.geometry) this.mesh.geometry.dispose();
+            if (this.mesh.material) {
+                if (Array.isArray(this.mesh.material)) {
+                    this.mesh.material.forEach(m => m.dispose());
+                } else {
+                    this.mesh.material.dispose();
+                }
+            }
+            this.mesh = null;
         }
         
-        console.log('[TextGeometry Drum Engine] Number texture created and applied');
+        // Create a group to hold all numbers - this becomes our "mesh" for rotation
+        this.numberGroup = new THREE.Group();
+        this.scene.add(this.numberGroup);
+        this.mesh = this.numberGroup; // Assign to mesh so parent's rotation logic works
+        
+        // Load font and create TextGeometry
+        this.loadFontAndCreateNumbers();
     }
     
-    // Override texture update to prevent animated texture
-    updateAnimatedTexture() {
-        // Do nothing - we want our static number texture
+    loadFontAndCreateNumbers() {
+        if (!window.THREE) {
+            console.error('[TextGeometry Drum Engine] Three.js not loaded');
+            return;
+        }
+        
+        // Check if FontLoader is available
+        if (!window.THREE.FontLoader) {
+            console.warn('[TextGeometry Drum Engine] FontLoader not available, using fallback boxes');
+            this.createFallbackNumbers();
+            return;
+        }
+        
+        // Load font
+        const loader = new THREE.FontLoader();
+        this.isLoading = true;
+        
+        // Try to load helvetiker font
+        loader.load(
+            'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json',
+            (font) => {
+                console.log('[TextGeometry Drum Engine] Font loaded successfully');
+                this.font = font;
+                this.createTextGeometryNumbers();
+                this.isLoading = false;
+            },
+            (progress) => {
+                console.log('[TextGeometry Drum Engine] Loading font...', progress);
+            },
+            (error) => {
+                console.error('[TextGeometry Drum Engine] Error loading font:', error);
+                this.createFallbackNumbers();
+                this.isLoading = false;
+            }
+        );
     }
     
-    // Get current selected value based on rotation
+    createTextGeometryNumbers() {
+        if (!this.font) {
+            console.error('[TextGeometry Drum Engine] No font loaded');
+            return;
+        }
+        
+        // Clear any existing numbers
+        this.clearNumbers();
+        
+        // Create 10 TextGeometry objects for numbers 0-9
+        const numberOfValues = 10;
+        const anglePerNumber = (Math.PI * 2) / numberOfValues;
+        const radius = 0.5;
+        
+        for (let i = 0; i < numberOfValues; i++) {
+            // Create TextGeometry for this number
+            const textGeometry = new THREE.TextGeometry(i.toString(), {
+                font: this.font,
+                size: 0.15,
+                height: 0.02,
+                curveSegments: 12,
+                bevelEnabled: false
+            });
+            
+            // Center the geometry
+            textGeometry.center();
+            
+            // Create material
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                emissive: 0x444444,
+                emissiveIntensity: 0.2
+            });
+            
+            // Create mesh
+            const mesh = new THREE.Mesh(textGeometry, material);
+            
+            // Position in cylinder formation
+            const angle = i * anglePerNumber;
+            mesh.position.x = Math.cos(angle) * radius;
+            mesh.position.z = Math.sin(angle) * radius;
+            mesh.position.y = 0;
+            
+            // Rotate to face outward
+            mesh.rotation.y = angle;
+            
+            // Add to group
+            this.numberGroup.add(mesh);
+            this.numberMeshes.push(mesh);
+            
+            console.log(`[TextGeometry Drum Engine] Created TextGeometry for ${i} at angle ${(angle * 180 / Math.PI).toFixed(1)}°`);
+        }
+        
+        console.log('[TextGeometry Drum Engine] All TextGeometry numbers created');
+    }
+    
+    createFallbackNumbers() {
+        // Fallback to box placeholders if FontLoader/TextGeometry not available
+        console.log('[TextGeometry Drum Engine] Creating fallback box placeholders');
+        
+        // Clear any existing numbers
+        this.clearNumbers();
+        
+        const numberOfValues = 10;
+        const anglePerNumber = (Math.PI * 2) / numberOfValues;
+        const radius = 0.5;
+        
+        for (let i = 0; i < numberOfValues; i++) {
+            // Create a box as placeholder
+            const geometry = new THREE.BoxGeometry(0.1, 0.15, 0.02);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                emissive: 0x444444,
+                emissiveIntensity: 0.2
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            
+            // Position in cylinder formation
+            const angle = i * anglePerNumber;
+            mesh.position.x = Math.cos(angle) * radius;
+            mesh.position.z = Math.sin(angle) * radius;
+            mesh.position.y = 0;
+            
+            // Rotate to face outward
+            mesh.rotation.y = angle;
+            
+            // Add to group
+            this.numberGroup.add(mesh);
+            this.numberMeshes.push(mesh);
+        }
+        
+        console.log('[TextGeometry Drum Engine] Fallback boxes created');
+    }
+    
+    // Method to dynamically update a number
+    updateNumber(index, newValue) {
+        if (index < 0 || index >= this.numberMeshes.length) {
+            console.error('[TextGeometry Drum Engine] Invalid index for updateNumber');
+            return;
+        }
+        
+        if (!this.font) {
+            console.warn('[TextGeometry Drum Engine] Cannot update - no font loaded');
+            return;
+        }
+        
+        // Remove old mesh
+        const oldMesh = this.numberMeshes[index];
+        const position = oldMesh.position.clone();
+        const rotation = oldMesh.rotation.clone();
+        
+        this.numberGroup.remove(oldMesh);
+        if (oldMesh.geometry) oldMesh.geometry.dispose();
+        if (oldMesh.material) oldMesh.material.dispose();
+        
+        // Create new TextGeometry with new value
+        const textGeometry = new THREE.TextGeometry(newValue.toString(), {
+            font: this.font,
+            size: 0.15,
+            height: 0.02,
+            curveSegments: 12,
+            bevelEnabled: false
+        });
+        
+        textGeometry.center();
+        
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            emissive: 0x444444,
+            emissiveIntensity: 0.2
+        });
+        
+        const mesh = new THREE.Mesh(textGeometry, material);
+        mesh.position.copy(position);
+        mesh.rotation.copy(rotation);
+        
+        // Update in arrays
+        this.numberGroup.add(mesh);
+        this.numberMeshes[index] = mesh;
+        
+        console.log(`[TextGeometry Drum Engine] Updated position ${index} to value ${newValue}`);
+    }
+    
+    // Method to get all current values
+    getValues() {
+        // For now returns 0-9, but can be dynamic in the future
+        return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    }
+    
+    // Method to set all values at once
+    setValues(values) {
+        if (!Array.isArray(values) || values.length !== 10) {
+            console.error('[TextGeometry Drum Engine] setValues requires array of 10 values');
+            return;
+        }
+        
+        values.forEach((value, index) => {
+            this.updateNumber(index, value);
+        });
+    }
+    
+    clearNumbers() {
+        this.numberMeshes.forEach(mesh => {
+            if (mesh.geometry) mesh.geometry.dispose();
+            if (mesh.material) mesh.material.dispose();
+            this.numberGroup.remove(mesh);
+        });
+        this.numberMeshes = [];
+    }
+    
     getCurrentValue() {
-        if (!this.mesh) return 0;
+        if (!this.numberGroup) return 0;
         
-        // Rotation around Y axis for horizontal cylinder
-        const rotation = this.mesh.rotation.y;
-        const normalizedRotation = ((rotation % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
-        
-        // Each number occupies 36 degrees (2π/10)
+        const normalizedRotation = ((this.numberGroup.rotation.y % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
         const anglePerNumber = (Math.PI * 2) / 10;
-        
-        // Calculate which number is at the front
-        const selectedIndex = Math.round(normalizedRotation / anglePerNumber) % 10;
-        
-        return selectedIndex;
+        return Math.round(normalizedRotation / anglePerNumber) % 10;
     }
     
     dispose() {
-        // Dispose of texture if it exists
-        if (this.mesh && this.mesh.material && this.mesh.material.map) {
-            this.mesh.material.map.dispose();
+        // Clean up all numbers
+        this.clearNumbers();
+        
+        if (this.numberGroup) {
+            this.scene.remove(this.numberGroup);
+            this.numberGroup = null;
         }
+        
+        this.font = null;
         
         // Call parent dispose
         super.dispose();
