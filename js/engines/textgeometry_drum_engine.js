@@ -128,6 +128,9 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             // Center the geometry
             textGeometry.center();
             
+            // First rotate the geometry 90 degrees before transforming vertices
+            textGeometry.rotateZ(Math.PI / 2);
+            
             // Transform vertices to curve around cylinder
             const positions = textGeometry.attributes.position;
             const vertex = new THREE.Vector3();
@@ -138,12 +141,13 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
                 vertex.z = positions.getZ(v);
                 
                 // Calculate angle for this vertex
-                const baseAngle = i * anglePerNumber;  // which number (0-9)
-                const vertexAngle = (vertex.x / 0.15) * 0.1;  // spread within number width
+                const baseAngle = i * anglePerNumber;
+                // Reverse the angle to face outward (negative spread)
+                const vertexAngle = -(vertex.x / 0.15) * 0.1;
                 const finalAngle = baseAngle + vertexAngle;
                 
                 // Apply cylindrical transformation
-                const newRadius = radius - vertex.z;  // depth becomes radius offset
+                const newRadius = radius + vertex.z;  // Add depth to face outward
                 positions.setX(v, Math.cos(finalAngle) * newRadius);
                 positions.setZ(v, Math.sin(finalAngle) * newRadius);
                 // Y stays the same
@@ -163,9 +167,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             // Create mesh
             const mesh = new THREE.Mesh(textGeometry, material);
             
-            // No additional rotation needed - vertices are already positioned
-            // Just rotate for horizontal drum orientation
-            mesh.rotation.z = Math.PI / 2;  // 90 degrees for horizontal drum
+            // No rotation needed - geometry is already rotated and curved
             
             // Add to group
             this.numberGroup.add(mesh);
@@ -246,6 +248,9 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         
         textGeometry.center();
         
+        // First rotate the geometry 90 degrees before transforming vertices
+        textGeometry.rotateZ(Math.PI / 2);
+        
         // Transform vertices to curve around cylinder
         const numberOfValues = 10;
         const anglePerNumber = (Math.PI * 2) / numberOfValues;
@@ -260,11 +265,11 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             
             // Calculate angle for this vertex
             const baseAngle = index * anglePerNumber;  // position in ring
-            const vertexAngle = (vertex.x / 0.15) * 0.1;  // spread within number width
+            const vertexAngle = -(vertex.x / 0.15) * 0.1;  // negative for outward facing
             const finalAngle = baseAngle + vertexAngle;
             
             // Apply cylindrical transformation
-            const newRadius = radius - vertex.z;  // depth becomes radius offset
+            const newRadius = radius + vertex.z;  // Add depth to face outward
             positions.setX(v, Math.cos(finalAngle) * newRadius);
             positions.setZ(v, Math.sin(finalAngle) * newRadius);
             // Y stays the same
@@ -280,7 +285,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         });
         
         const mesh = new THREE.Mesh(textGeometry, material);
-        mesh.rotation.z = Math.PI / 2;  // 90 degrees for horizontal drum
+        // No rotation needed - geometry is already rotated and curved
         
         // Update in arrays
         this.numberGroup.add(mesh);
