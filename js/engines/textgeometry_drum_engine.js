@@ -328,13 +328,18 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         textGeometry.attributes.position.needsUpdate = true;
         textGeometry.computeVertexNormals();
         
-        // Create material that only renders front faces
-        const material = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            emissive: 0x444444,
-            emissiveIntensity: 0.2,
-            side: THREE.FrontSide  // Only render front-facing polygons
-        });
+        // Create material array - front faces visible, back faces transparent
+        const material = [
+            new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                emissive: 0x444444,
+                emissiveIntensity: 0.2
+            }), // Front faces
+            new THREE.MeshStandardMaterial({
+                transparent: true,
+                opacity: 0
+            }) // Back faces - invisible
+        ];
         
         const mesh = new THREE.Mesh(textGeometry, material);
         // No rotation needed - geometry is already rotated and curved
@@ -367,7 +372,13 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
     clearNumbers() {
         this.numberMeshes.forEach(mesh => {
             if (mesh.geometry) mesh.geometry.dispose();
-            if (mesh.material) mesh.material.dispose();
+            if (mesh.material) {
+                if (Array.isArray(mesh.material)) {
+                    mesh.material.forEach(m => m.dispose());
+                } else {
+                    mesh.material.dispose();
+                }
+            }
             this.numberGroup.remove(mesh);
         });
         this.numberMeshes = [];
