@@ -171,16 +171,23 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             textGeometry.attributes.position.needsUpdate = true;
             textGeometry.computeVertexNormals();  // Recalculate normals for proper lighting
             
-            // Create material
-            const material = new THREE.MeshStandardMaterial({
-                color: 0xffffff,
-                emissive: 0x444444,
-                emissiveIntensity: 0.2,
-                side: THREE.FrontSide  // Single-sided - only visible from outside
-            });
+            // Create materials array - different materials for front and back faces
+            const materials = [
+                new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
+                    emissive: 0x444444,
+                    emissiveIntensity: 0.2,
+                    side: THREE.FrontSide  // Front faces visible
+                }),
+                new THREE.MeshStandardMaterial({
+                    transparent: true,
+                    opacity: 0,
+                    side: THREE.BackSide  // Back faces invisible
+                })
+            ];
             
-            // Create mesh
-            const mesh = new THREE.Mesh(textGeometry, material);
+            // Create mesh with material array
+            const mesh = new THREE.Mesh(textGeometry, materials);
             
             // No rotation needed - geometry is already rotated and curved
             
@@ -306,14 +313,22 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         textGeometry.attributes.position.needsUpdate = true;
         textGeometry.computeVertexNormals();
         
-        const material = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            emissive: 0x444444,
-            emissiveIntensity: 0.2,
-            side: THREE.FrontSide  // Single-sided - only visible from outside
-        });
+        // Create materials array - different materials for front and back faces
+        const materials = [
+            new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                emissive: 0x444444,
+                emissiveIntensity: 0.2,
+                side: THREE.FrontSide  // Front faces visible
+            }),
+            new THREE.MeshStandardMaterial({
+                transparent: true,
+                opacity: 0,
+                side: THREE.BackSide  // Back faces invisible
+            })
+        ];
         
-        const mesh = new THREE.Mesh(textGeometry, material);
+        const mesh = new THREE.Mesh(textGeometry, materials);
         // No rotation needed - geometry is already rotated and curved
         
         // Update in arrays
