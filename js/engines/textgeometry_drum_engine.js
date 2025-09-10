@@ -134,7 +134,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             const textGeometry = new THREE.TextGeometry(i.toString(), {
                 font: this.font,
                 size: fontSize,
-                height: 0.02,
+                height: this.config.textDepth !== undefined ? this.config.textDepth : 0.02,
                 curveSegments: 12,
                 bevelEnabled: false
             });

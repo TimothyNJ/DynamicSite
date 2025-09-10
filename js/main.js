@@ -37,7 +37,7 @@ import { wheel_time_selector_component_engine } from './engines/wheel_time_selec
 import { wheel_date_picker_component_engine } from './engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from './engines/calendar_picker_component_engine.js';
 import { wheel_selector_component_engine } from './engines/wheel_selector_component_engine.js';
-// TextGeometryDrumEngine removed - now using base ThreeD_component_engine with text geometry
+import { TextGeometryDrumEngine } from './engines/textgeometry_drum_engine.js';
 import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
 import { initializeComponents } from './loader/component-loader.js';
 import { initializeNavbar } from './navigation/navbar.js';
@@ -261,16 +261,9 @@ function initializeComponentEnginesDemos() {
   });
   
   // 7.9. ThreeD Component Engine TextGeometry
-  const demoTextGeometry3D = new ThreeD_component_engine('demo-3d-textgeometry-container', {
-    geometry: 'text',
-    textContent: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-    textArrangement: 'ring',
-    textSize: 0.15,
-    textDepth: 0.02,  // Default depth
-    textFont: 'helvetiker',
+  const demoTextGeometry3D = new TextGeometryDrumEngine('demo-3d-textgeometry-container', {
     responsive: true,  // Same responsive sizing
-    rotationSpeed: 0,  // Start with no rotation
-    enableInteraction: true
+    rotationSpeed: 0  // Start with no rotation
   });
   demoTextGeometry3D.init();
   
@@ -296,16 +289,10 @@ function initializeComponentEnginesDemos() {
   });
   
   // 7.10. ThreeD Engine TextGeometry 0-9 (with flat text - depth: 0)
-  const demoTextGeometry09_3D = new ThreeD_component_engine('demo-3d-textgeometry-09-container', {
-    geometry: 'text',
-    textContent: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-    textArrangement: 'ring',
-    textSize: 0.15,
-    textDepth: 0,  // FLAT TEXT - no depth as originally requested
-    textFont: 'helvetiker',
+  const demoTextGeometry09_3D = new TextGeometryDrumEngine('demo-3d-textgeometry-09-container', {
     responsive: true,  // Same responsive sizing
     rotationSpeed: 0,  // Start with no rotation
-    enableInteraction: true
+    textDepth: 0  // FLAT TEXT - no depth as originally requested
   });
   demoTextGeometry09_3D.init();
   
