@@ -171,20 +171,35 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             textGeometry.attributes.position.needsUpdate = true;
             textGeometry.computeVertexNormals();  // Recalculate normals for proper lighting
             
-            // Create materials array - different materials for front and back faces
+            // TextGeometry by default uses one material for all faces
+            // We need to check if it has groups for front/back/sides
+            if (textGeometry.groups && textGeometry.groups.length > 0) {
+                console.log(`[TextGeometry] Groups found: ${textGeometry.groups.length}`);
+                textGeometry.groups.forEach((group, idx) => {
+                    console.log(`  Group ${idx}: start=${group.start}, count=${group.count}, materialIndex=${group.materialIndex}`);
+                });
+            } else {
+                console.log('[TextGeometry] No groups found - all faces use material index 0');
+            }
+            
+            // Create materials array - different materials for different face groups
             const materials = [
                 new THREE.MeshStandardMaterial({
                     color: 0xffffff,
                     emissive: 0x444444,
-                    emissiveIntensity: 0.2,
-                    side: THREE.FrontSide  // Front faces visible
+                    emissiveIntensity: 0.2
                 }),
                 new THREE.MeshStandardMaterial({
                     transparent: true,
-                    opacity: 0,
-                    side: THREE.BackSide  // Back faces invisible
+                    opacity: 0  // Make second material invisible
                 })
             ];
+            
+            // If TextGeometry has groups, try to make back faces use transparent material
+            // TextGeometry with bevelEnabled:false typically creates groups like:
+            // Group 0: front/back caps
+            // Group 1: sides
+            // Since both caps use the same group, we can't easily separate them
             
             // Create mesh with material array
             const mesh = new THREE.Mesh(textGeometry, materials);
@@ -313,22 +328,15 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         textGeometry.attributes.position.needsUpdate = true;
         textGeometry.computeVertexNormals();
         
-        // Create materials array - different materials for front and back faces
-        const materials = [
-            new THREE.MeshStandardMaterial({
-                color: 0xffffff,
-                emissive: 0x444444,
-                emissiveIntensity: 0.2,
-                side: THREE.FrontSide  // Front faces visible
-            }),
-            new THREE.MeshStandardMaterial({
-                transparent: true,
-                opacity: 0,
-                side: THREE.BackSide  // Back faces invisible
-            })
-        ];
+        // Create material that only renders front faces
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            emissive: 0x444444,
+            emissiveIntensity: 0.2,
+            side: THREE.FrontSide  // Only render front-facing polygons
+        });
         
-        const mesh = new THREE.Mesh(textGeometry, materials);
+        const mesh = new THREE.Mesh(textGeometry, material);
         // No rotation needed - geometry is already rotated and curved
         
         // Update in arrays
