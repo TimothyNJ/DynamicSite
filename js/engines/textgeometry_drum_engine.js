@@ -171,6 +171,13 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             textGeometry.attributes.position.needsUpdate = true;
             textGeometry.computeVertexNormals();  // Recalculate normals for proper lighting
             
+            // Check if we need to flip faces due to cylindrical transformation
+            // The transformation might have inverted the winding order
+            textGeometry.computeBoundingBox();
+            
+            // Log to help debug face orientation
+            console.log(`[TextGeometry ${i}] Bounding box:`, textGeometry.boundingBox);
+            
             // TextGeometry by default uses one material for all faces
             // We need to check if it has groups for front/back/sides
             if (textGeometry.groups && textGeometry.groups.length > 0) {
@@ -182,27 +189,45 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
                 console.log('[TextGeometry] No groups found - all faces use material index 0');
             }
             
-            // Create materials array - different materials for different face groups
-            const materials = [
+            // Clear existing groups
+            textGeometry.clearGroups();
+            
+            // Manually create groups for front and back faces
+            // In TextGeometry with no bevel, faces are organized as:
+            // - First set of triangles: front cap
+            // - Last set of triangles: back cap  
+            // - Middle triangles: sides
+            const faceCount = textGeometry.index ? textGeometry.index.count / 3 : textGeometry.attributes.position.count / 3;
+            const facesPerCap = Math.floor(faceCount * 0.4);  // Approximate
+            
+            // Group 0: Front faces (use material 0)
+            textGeometry.addGroup(0, facesPerCap * 3, 0);
+            
+            // Group 1: Back faces (use material 1) 
+            textGeometry.addGroup(faceCount * 3 - facesPerCap * 3, facesPerCap * 3, 1);
+            
+            // Group 2: Side faces (use material 0)
+            textGeometry.addGroup(facesPerCap * 3, (faceCount - 2 * facesPerCap) * 3, 0);
+            
+            console.log(`[TextGeometry ${i}] Created groups: front=${facesPerCap}, back=${facesPerCap}, sides=${faceCount - 2 * facesPerCap}`);
+            
+            // Create materials array - front visible, back invisible
+            const material = [
                 new THREE.MeshStandardMaterial({
                     color: 0xffffff,
                     emissive: 0x444444,
-                    emissiveIntensity: 0.2
+                    emissiveIntensity: 0.2,
+                    side: THREE.FrontSide  // Front faces only
                 }),
                 new THREE.MeshStandardMaterial({
                     transparent: true,
-                    opacity: 0  // Make second material invisible
+                    opacity: 0  // Back faces - completely invisible
                 })
             ];
-            
-            // If TextGeometry has groups, try to make back faces use transparent material
-            // TextGeometry with bevelEnabled:false typically creates groups like:
-            // Group 0: front/back caps
-            // Group 1: sides
-            // Since both caps use the same group, we can't easily separate them
+
             
             // Create mesh with material array
-            const mesh = new THREE.Mesh(textGeometry, materials);
+            const mesh = new THREE.Mesh(textGeometry, material);
             
             // No rotation needed - geometry is already rotated and curved
             
@@ -328,18 +353,13 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         textGeometry.attributes.position.needsUpdate = true;
         textGeometry.computeVertexNormals();
         
-        // Create material array - front faces visible, back faces transparent
-        const material = [
-            new THREE.MeshStandardMaterial({
-                color: 0xffffff,
-                emissive: 0x444444,
-                emissiveIntensity: 0.2
-            }), // Front faces
-            new THREE.MeshStandardMaterial({
-                transparent: true,
-                opacity: 0
-            }) // Back faces - invisible
-        ];
+        // Create material that only renders front faces
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            emissive: 0x444444,
+            emissiveIntensity: 0.2,
+            side: THREE.FrontSide  // Only render front-facing polygons
+        });
         
         const mesh = new THREE.Mesh(textGeometry, material);
         // No rotation needed - geometry is already rotated and curved
