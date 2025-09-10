@@ -634,6 +634,11 @@ export class ThreeD_component_engine {
         const params = this.config.geometryParams;
         
         switch (this.config.geometry) {
+            case 'text':
+                // Text geometry requires special handling - create a group instead of single geometry
+                this.createTextGeometry();
+                return; // Exit early as text creates multiple geometries
+                
             case 'roundedBox':
                 geometry = this.createRoundedBoxGeometry(
                     params.width,
@@ -843,7 +848,103 @@ export class ThreeD_component_engine {
         return new RoundedBoxGeometry(width, height, depth, radius, smoothness, smoothness, smoothness);
     }
     
+    createTextGeometry() {
+        // Text geometry creates a group of individual text meshes
+        console.log('[3D Component Engine] Creating text geometry');
+        
+        // Get text configuration
+        const textContent = this.config.textContent || ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        const textArrangement = this.config.textArrangement || 'ring';
+        const textSize = this.config.textSize || 0.15;
+        const textDepth = this.config.textDepth !== undefined ? this.config.textDepth : 0.02;
+        const textFont = this.config.textFont || 'helvetiker';
+        
+        // Create a group to hold all text meshes
+        this.textGroup = new THREE.Group();
+        
+        // Load font and create text geometries
+        const loader = new THREE.FontLoader();
+        const fontPath = `/fonts/${textFont}_regular.typeface.json`;
+        
+        loader.load(fontPath, (font) => {
+            console.log(`[3D Component Engine] Font loaded: ${textFont}`);
+            
+            // Create text geometry for each item
+            textContent.forEach((text, index) => {
+                const textGeometry = new THREE.TextGeometry(text.toString(), {
+                    font: font,
+                    size: textSize,
+                    height: textDepth,
+                    curveSegments: 12,
+                    bevelEnabled: false
+                });
+                
+                // Center the geometry
+                textGeometry.center();
+                
+                // Create material for text
+                const textMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
+                    metalness: this.config.materialParams.metalness || 0.3,
+                    roughness: this.config.materialParams.roughness || 0.4
+                });
+                
+                // Create mesh
+                const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+                
+                // Position based on arrangement
+                if (textArrangement === 'ring') {
+                    const angle = (index / textContent.length) * Math.PI * 2;
+                    const radius = 0.5;
+                    
+                    textMesh.position.x = Math.cos(angle) * radius;
+                    textMesh.position.z = Math.sin(angle) * radius;
+                    textMesh.position.y = 0;
+                    
+                    // Face outward from center
+                    textMesh.rotation.y = angle + Math.PI;
+                } else if (textArrangement === 'line') {
+                    // Linear arrangement
+                    const spacing = 0.5;
+                    textMesh.position.x = (index - textContent.length / 2) * spacing;
+                    textMesh.position.y = 0;
+                    textMesh.position.z = 0;
+                } else if (textArrangement === 'grid') {
+                    // Grid arrangement
+                    const cols = Math.ceil(Math.sqrt(textContent.length));
+                    const row = Math.floor(index / cols);
+                    const col = index % cols;
+                    const spacing = 0.5;
+                    
+                    textMesh.position.x = (col - cols / 2) * spacing;
+                    textMesh.position.y = (row - Math.ceil(textContent.length / cols) / 2) * spacing;
+                    textMesh.position.z = 0;
+                }
+                
+                // Add to group
+                this.textGroup.add(textMesh);
+            });
+            
+            // Add group to scene
+            this.scene.add(this.textGroup);
+            
+            // Store reference for interaction
+            this.mesh = this.textGroup;
+            
+            console.log(`[3D Component Engine] Created ${textContent.length} text meshes in ${textArrangement} arrangement`);
+        }, 
+        undefined,
+        (error) => {
+            console.error(`[3D Component Engine] Error loading font: ${error}`);
+        });
+    }
+    
     createMaterial() {
+        // Skip material creation for text geometry - handled in createTextGeometry
+        if (this.config.geometry === 'text') {
+            return;
+        }
+        
         if (this.config.geometry === 'cylinder' && this.config.texture === 'animated') {
             // For cylinders with animated textures, create multiple materials
             const materialConfig = Object.assign({}, this.config.materialParams);
@@ -979,6 +1080,11 @@ export class ThreeD_component_engine {
     }
     
     createMesh() {
+        // Skip mesh creation for text geometry - handled in createTextGeometry
+        if (this.config.geometry === 'text') {
+            return;
+        }
+        
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         
         // Set initial rotation for isometric-style view
