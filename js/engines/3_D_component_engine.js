@@ -85,8 +85,9 @@ class DecalGeometry extends THREE.BufferGeometry {
         const vertex = new THREE.Vector3();
         const vertices = [];
         const normals = [];
+        const projectedVertices = [];
         
-        // Get vertices
+        // Get vertices in world space
         vertex.fromBufferAttribute(positionAttribute, v1);
         mesh.localToWorld(vertex);
         vertices.push(vertex.clone());
@@ -99,7 +100,7 @@ class DecalGeometry extends THREE.BufferGeometry {
         mesh.localToWorld(vertex);
         vertices.push(vertex.clone());
         
-        // Get normals
+        // Get normals in world space
         const normal = new THREE.Vector3();
         normal.fromBufferAttribute(normalAttribute, v1);
         normal.transformDirection(mesh.matrixWorld);
@@ -113,21 +114,34 @@ class DecalGeometry extends THREE.BufferGeometry {
         normal.transformDirection(mesh.matrixWorld);
         normals.push(normal.clone());
         
-        // Check if triangle is within decal boundaries
+        // Transform vertices to projector space and check if triangle intersects the decal volume
+        let insideCount = 0;
         for (let i = 0; i < 3; i++) {
             const v = vertices[i].clone();
             v.applyMatrix4(projectorMatrixInverse);
+            projectedVertices.push(v);
             
-            // Check bounds
+            // Check if vertex is inside the decal box
             if (Math.abs(v.x) <= size.x / 2 &&
                 Math.abs(v.y) <= size.y / 2 &&
                 Math.abs(v.z) <= size.z / 2) {
-                
-                // Add vertex
+                insideCount++;
+            }
+        }
+        
+        // Only process triangles that have at least one vertex inside the decal volume
+        // or that intersect with it
+        if (insideCount > 0) {
+            // Add all three vertices of the triangle
+            for (let i = 0; i < 3; i++) {
+                // Add vertex position
                 decalVertices.push(vertices[i].x, vertices[i].y, vertices[i].z);
+                
+                // Add vertex normal
                 decalNormals.push(normals[i].x, normals[i].y, normals[i].z);
                 
-                // Calculate UV
+                // Calculate UV coordinates based on projection
+                const v = projectedVertices[i];
                 const u = 0.5 + (v.x / size.x);
                 const v_coord = 0.5 + (v.y / size.y);
                 decalUVs.push(u, v_coord);
@@ -2300,38 +2314,100 @@ export class ThreeD_component_engine {
      * @param {Object} style - Text style configuration
      * @returns {THREE.CanvasTexture} The text texture
      */
-    createTextTexture(text, style) {
+    createTextTexture(text, style = {}) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // Set canvas size
-        canvas.width = 256;
-        canvas.height = 256;
+        // Default style options
+        const defaults = {
+            fontSize: 64,
+            fontFamily: 'Arial, sans-serif',
+            color: '#ffffff',
+            backgroundColor: 'transparent',
+            padding: 10
+        };
+        
+        const config = Object.assign({}, defaults, style);
+        
+        // Set canvas size based on text metrics
+        ctx.font = `${config.fontSize}px ${config.fontFamily}`;
+        const metrics = ctx.measureText(String(text));
+        
+        // Calculate canvas size with padding
+        const width = metrics.width + config.padding * 2;
+        const height = config.fontSize + config.padding * 2;
+        
+        // Set canvas dimensions to power of 2 for better GPU performance
+        canvas.width = Math.pow(2, Math.ceil(Math.log2(width)));
+        canvas.height = Math.pow(2, Math.ceil(Math.log2(height)));
         
         // Clear canvas
-        ctx.fillStyle = style.backgroundColor || 'transparent';
-        if (style.backgroundColor !== 'transparent') {
+        if (config.backgroundColor !== 'transparent') {
+            ctx.fillStyle = config.backgroundColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
         // Set text properties
-        ctx.font = `${style.fontSize || 64}px ${style.fontFamily || 'Arial'}`;
-        ctx.fillStyle = style.color || '#ffffff';
+        ctx.font = `${config.fontSize}px ${config.fontFamily}`;
+        ctx.fillStyle = config.color;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Draw text
-        ctx.fillText(
-            text.toString(),
-            canvas.width / 2,
-            canvas.height / 2
-        );
+        // Draw text centered
+        ctx.fillText(String(text), canvas.width / 2, canvas.height / 2);
         
-        // Create texture
+        // Create and return texture
         const texture = new THREE.CanvasTexture(canvas);
         texture.needsUpdate = true;
         
+        console.log(`[3D Component Engine] Created text texture: "${text}" (${canvas.width}x${canvas.height}px)`);
+        
         return texture;
+    }
+    
+    /**
+     * Create multiple decals in a circular pattern
+     * @param {Array} texts - Array of text/numbers to display
+     * @param {Object} options - Configuration options
+     */
+    createCircularDecals(texts, options = {}) {
+        const defaults = {
+            radius: 0.55,
+            startAngle: 0,
+            textStyle: {
+                fontSize: 64,
+                fontFamily: 'Arial, sans-serif',
+                color: '#ffffff'
+            },
+            decalSize: new THREE.Vector3(0.3, 0.3, 0.1)
+        };
+        
+        const config = Object.assign({}, defaults, options);
+        const angleStep = (Math.PI * 2) / texts.length;
+        
+        texts.forEach((text, index) => {
+            const angle = config.startAngle + angleStep * index;
+            
+            // Calculate position on cylinder surface
+            const position = new THREE.Vector3(
+                Math.cos(angle) * config.radius,
+                0,
+                Math.sin(angle) * config.radius
+            );
+            
+            // Orient decal to face outward
+            const orientation = new THREE.Euler(0, angle + Math.PI / 2, 0);
+            
+            this.createDecal({
+                text: text,
+                position: position,
+                orientation: orientation,
+                size: config.decalSize,
+                textStyle: config.textStyle
+            });
+        });
+        
+        console.log(`[3D Component Engine] Created ${texts.length} circular decals`);
     }
     
     /**
