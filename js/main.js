@@ -317,6 +317,55 @@ function initializeComponentEnginesDemos() {
     }
   });
   
+  // 7.11. ThreeD Engine DecalGeometry 0-9 (simplified approach using existing drum selector)
+  // Since DecalGeometry is complex, let's use a simpler approach with the drum selector
+  // that already handles cylinder geometry well
+  const demoDecalGeometry09_3D = componentFactory.createDrumSelector('demo-3d-decalgeometry-09-container', {
+    responsive: true,  // Same responsive sizing
+    geometry: 'cylinder',  // Cylinder for the drum
+    geometryParams: {
+      cylinderRadiusTop: 0.5,
+      cylinderRadiusBottom: 0.5,
+      cylinderHeight: 1.0,
+      cylinderRadialSegments: 10  // 10 segments for 10 numbers
+    },
+    texture: 'solid',  // Start with solid color
+    textureParams: {
+      solidColor: 0x303030  // Dark gray base
+    },
+    materialParams: {
+      color: 0x303030,
+      metalness: 0.2,
+      roughness: 0.8
+    },
+    enableInteraction: true,
+    rotationSpeed: 0  // Start with no rotation
+  });
+  
+  // Note: This is a placeholder implementation. 
+  // A true DecalGeometry implementation would require projecting number textures
+  // onto the cylinder surface, which needs more complex texture mapping.
+  console.log('[Demo] ThreeD Engine DecalGeometry 0-9 initialized (using drum selector as base)');
+  
+  // Create rotation speed slider for DecalGeometry 0-9 demo
+  componentFactory.createSlider({
+    containerId: 'demo-3d-decalgeometry-09-rotation-slider-container',
+    sliderClass: 'demo-3d-decalgeometry-09-rotation-slider',
+    options: [
+      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+    ]
+  }, (selectedOption) => {
+    const speed = parseFloat(selectedOption.getAttribute('data-value'));
+    console.log('[Demo ThreeD DecalGeometry 0-9 Rotation Speed] Selected:', speed);
+    if (demoDecalGeometry09_3D && demoDecalGeometry09_3D.setRotationSpeed) {
+      demoDecalGeometry09_3D.setRotationSpeed(speed);
+    }
+  });
+  
   // 8. 3D Component demo (sphere)
   const demoSphere3D = componentFactory.create3DObject('demo-3d-sphere-container', {
     responsive: true,  // Same responsive sizing
