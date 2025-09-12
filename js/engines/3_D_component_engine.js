@@ -22,6 +22,124 @@
 
 import { LoopSubdivision } from 'three-subdivide';
 
+// DecalGeometry implementation for projecting textures onto surfaces
+class DecalGeometry extends THREE.BufferGeometry {
+    constructor(mesh, position, orientation, size) {
+        super();
+        
+        // Create helper objects
+        const plane = new THREE.Vector3();
+        const projectorMatrix = new THREE.Matrix4();
+        const projectorMatrixInverse = new THREE.Matrix4();
+        
+        // Set up projector matrix
+        projectorMatrix.makeRotationFromEuler(orientation);
+        projectorMatrix.setPosition(position);
+        projectorMatrixInverse.copy(projectorMatrix).invert();
+        
+        // Generate buffers
+        const decalVertices = [];
+        const decalNormals = [];
+        const decalUVs = [];
+        
+        const vertex = new THREE.Vector3();
+        const normal = new THREE.Vector3();
+        
+        // Get mesh geometry
+        const geometry = mesh.geometry;
+        const positionAttribute = geometry.attributes.position;
+        const normalAttribute = geometry.attributes.normal;
+        
+        // Process geometry
+        if (geometry.index !== null) {
+            // Indexed geometry
+            const index = geometry.index;
+            for (let i = 0; i < index.count; i += 3) {
+                let v1 = index.getX(i);
+                let v2 = index.getX(i + 1);
+                let v3 = index.getX(i + 2);
+                
+                this.processTriangle(v1, v2, v3, positionAttribute, normalAttribute,
+                    decalVertices, decalNormals, decalUVs,
+                    mesh, position, projectorMatrixInverse, size);
+            }
+        } else {
+            // Non-indexed geometry
+            for (let i = 0; i < positionAttribute.count; i += 3) {
+                this.processTriangle(i, i + 1, i + 2, positionAttribute, normalAttribute,
+                    decalVertices, decalNormals, decalUVs,
+                    mesh, position, projectorMatrixInverse, size);
+            }
+        }
+        
+        // Build geometry
+        const verticesArray = new Float32Array(decalVertices);
+        const normalsArray = new Float32Array(decalNormals);
+        const uvsArray = new Float32Array(decalUVs);
+        
+        this.setAttribute('position', new THREE.BufferAttribute(verticesArray, 3));
+        this.setAttribute('normal', new THREE.BufferAttribute(normalsArray, 3));
+        this.setAttribute('uv', new THREE.BufferAttribute(uvsArray, 2));
+    }
+    
+    processTriangle(v1, v2, v3, positionAttribute, normalAttribute,
+        decalVertices, decalNormals, decalUVs,
+        mesh, position, projectorMatrixInverse, size) {
+        
+        const vertex = new THREE.Vector3();
+        const vertices = [];
+        const normals = [];
+        
+        // Get vertices
+        vertex.fromBufferAttribute(positionAttribute, v1);
+        mesh.localToWorld(vertex);
+        vertices.push(vertex.clone());
+        
+        vertex.fromBufferAttribute(positionAttribute, v2);
+        mesh.localToWorld(vertex);
+        vertices.push(vertex.clone());
+        
+        vertex.fromBufferAttribute(positionAttribute, v3);
+        mesh.localToWorld(vertex);
+        vertices.push(vertex.clone());
+        
+        // Get normals
+        const normal = new THREE.Vector3();
+        normal.fromBufferAttribute(normalAttribute, v1);
+        normal.transformDirection(mesh.matrixWorld);
+        normals.push(normal.clone());
+        
+        normal.fromBufferAttribute(normalAttribute, v2);
+        normal.transformDirection(mesh.matrixWorld);
+        normals.push(normal.clone());
+        
+        normal.fromBufferAttribute(normalAttribute, v3);
+        normal.transformDirection(mesh.matrixWorld);
+        normals.push(normal.clone());
+        
+        // Check if triangle is within decal boundaries
+        for (let i = 0; i < 3; i++) {
+            const v = vertices[i].clone();
+            v.applyMatrix4(projectorMatrixInverse);
+            
+            // Check bounds
+            if (Math.abs(v.x) <= size.x / 2 &&
+                Math.abs(v.y) <= size.y / 2 &&
+                Math.abs(v.z) <= size.z / 2) {
+                
+                // Add vertex
+                decalVertices.push(vertices[i].x, vertices[i].y, vertices[i].z);
+                decalNormals.push(normals[i].x, normals[i].y, normals[i].z);
+                
+                // Calculate UV
+                const u = 0.5 + (v.x / size.x);
+                const v_coord = 0.5 + (v.y / size.y);
+                decalUVs.push(u, v_coord);
+            }
+        }
+    }
+}
+
 export class ThreeD_component_engine {
     constructor(container, config = {}) {
         this.container = typeof container === 'string' ? 
@@ -82,6 +200,10 @@ export class ThreeD_component_engine {
         this.fogTexture = null;
         this.fogCanvas = null;
         this.fogContext = null;
+        
+        // Decal system for projected textures
+        this.decals = [];
+        this.decalMaterials = new Map();
         
         // Bind methods
         this.animate = this.animate.bind(this);
@@ -2106,9 +2228,213 @@ export class ThreeD_component_engine {
         }
     }
     
+    /**
+     * Create a decal projection on the mesh surface
+     * @param {Object} options - Decal configuration
+     * @param {string|number} options.text - Text or number to display
+     * @param {THREE.Vector3} options.position - Position on mesh surface
+     * @param {THREE.Euler} options.orientation - Rotation of decal
+     * @param {THREE.Vector3} options.size - Size of decal projection box
+     * @param {Object} options.textStyle - Text rendering style
+     * @returns {THREE.Mesh} The decal mesh
+     */
+    createDecal(options = {}) {
+        if (!this.mesh) {
+            console.error('[3D Component Engine] Cannot create decal - no mesh available');
+            return null;
+        }
+        
+        const defaults = {
+            text: '0',
+            position: new THREE.Vector3(0, 0, 0.5),
+            orientation: new THREE.Euler(0, 0, 0),
+            size: new THREE.Vector3(0.3, 0.3, 0.1),
+            textStyle: {
+                fontSize: 64,
+                fontFamily: 'Arial, sans-serif',
+                color: '#ffffff',
+                backgroundColor: 'transparent',
+                padding: 10
+            }
+        };
+        
+        const config = Object.assign({}, defaults, options);
+        
+        // Create texture from text
+        const texture = this.createTextTexture(config.text, config.textStyle);
+        
+        // Create decal material
+        const material = new THREE.MeshStandardMaterial({
+            map: texture,
+            transparent: true,
+            depthTest: true,
+            depthWrite: false,
+            polygonOffset: true,
+            polygonOffsetFactor: -4,
+            side: THREE.FrontSide
+        });
+        
+        // Store material for disposal
+        this.decalMaterials.set(texture, material);
+        
+        // Create decal geometry
+        const decalGeometry = new DecalGeometry(
+            this.mesh,
+            config.position,
+            config.orientation,
+            config.size
+        );
+        
+        // Create decal mesh
+        const decalMesh = new THREE.Mesh(decalGeometry, material);
+        decalMesh.renderOrder = 1; // Render after main mesh
+        
+        // Add to scene and track
+        this.scene.add(decalMesh);
+        this.decals.push(decalMesh);
+        
+        console.log(`[3D Component Engine] Created decal: "${config.text}"`);
+        
+        return decalMesh;
+    }
+    
+    /**
+     * Create text texture for decal
+     * @param {string|number} text - Text to render
+     * @param {Object} style - Text style configuration
+     * @returns {THREE.CanvasTexture} The text texture
+     */
+    createTextTexture(text, style) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size
+        canvas.width = 256;
+        canvas.height = 256;
+        
+        // Clear canvas
+        ctx.fillStyle = style.backgroundColor || 'transparent';
+        if (style.backgroundColor !== 'transparent') {
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Set text properties
+        ctx.font = `${style.fontSize || 64}px ${style.fontFamily || 'Arial'}`;
+        ctx.fillStyle = style.color || '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Draw text
+        ctx.fillText(
+            text.toString(),
+            canvas.width / 2,
+            canvas.height / 2
+        );
+        
+        // Create texture
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        
+        return texture;
+    }
+    
+    /**
+     * Create multiple decals around a cylinder (for number displays)
+     * @param {Array} values - Array of values to display
+     * @param {Object} options - Decal options
+     */
+    createCircularDecals(values = ['0','1','2','3','4','5','6','7','8','9'], options = {}) {
+        const radius = options.radius || 0.51; // Just outside cylinder surface
+        const height = options.height || 0;
+        const startAngle = options.startAngle || 0;
+        
+        values.forEach((value, index) => {
+            const angle = startAngle + (index / values.length) * Math.PI * 2;
+            
+            // Calculate position on cylinder surface
+            const position = new THREE.Vector3(
+                Math.cos(angle) * radius,
+                height,
+                Math.sin(angle) * radius
+            );
+            
+            // Orient decal to face outward
+            const orientation = new THREE.Euler(
+                0,
+                -angle - Math.PI / 2,
+                0
+            );
+            
+            this.createDecal({
+                text: value,
+                position: position,
+                orientation: orientation,
+                size: options.size || new THREE.Vector3(0.2, 0.2, 0.1),
+                textStyle: options.textStyle || {
+                    fontSize: 96,
+                    color: '#ffffff'
+                }
+            });
+        });
+        
+        console.log(`[3D Component Engine] Created ${values.length} circular decals`);
+    }
+    
+    /**
+     * Clear all decals
+     */
+    clearDecals() {
+        this.decals.forEach(decal => {
+            if (decal.geometry) decal.geometry.dispose();
+            if (decal.material) {
+                if (decal.material.map) decal.material.map.dispose();
+                decal.material.dispose();
+            }
+            this.scene.remove(decal);
+        });
+        
+        this.decals = [];
+        this.decalMaterials.clear();
+        
+        console.log('[3D Component Engine] Cleared all decals');
+    }
+    
+    /**
+     * Update decal at index
+     * @param {number} index - Index of decal to update
+     * @param {string|number} newValue - New value to display
+     */
+    updateDecal(index, newValue) {
+        if (index < 0 || index >= this.decals.length) {
+            console.error(`[3D Component Engine] Invalid decal index: ${index}`);
+            return;
+        }
+        
+        const decal = this.decals[index];
+        const oldTexture = decal.material.map;
+        
+        // Create new texture
+        const newTexture = this.createTextTexture(newValue, {
+            fontSize: 96,
+            color: '#ffffff'
+        });
+        
+        // Update material
+        decal.material.map = newTexture;
+        decal.material.needsUpdate = true;
+        
+        // Dispose old texture
+        if (oldTexture) oldTexture.dispose();
+        
+        console.log(`[3D Component Engine] Updated decal ${index} to "${newValue}"`);
+    }
+    
     // Cleanup method
     dispose() {
         console.log('[3D Component Engine] Disposing...');
+        
+        // Clean up decals first
+        this.clearDecals();
         
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
