@@ -362,7 +362,9 @@ function initializeComponentEnginesDemos() {
           backgroundColor: '#000000',  // Black background for contrast
           padding: 15
         },
-        decalSize: new THREE.Vector3(0.2, 0.2, 0.1)  // Smaller decals for better fit
+        decalSize: (typeof THREE !== 'undefined' && THREE.Vector3) 
+          ? new THREE.Vector3(0.2, 0.2, 0.1)  // Use THREE if available
+          : { x: 0.2, y: 0.2, z: 0.1 }  // Fallback to plain object
       });
       console.log('[Demo] ThreeD Engine DecalGeometry 0-9 initialized with projected number decals');
     } else {

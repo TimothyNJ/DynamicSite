@@ -2195,6 +2195,20 @@ export class ThreeD_component_engine {
         
         const config = Object.assign({}, defaults, options);
         
+        // Ensure decalSize is a THREE.Vector3
+        if (!(config.decalSize instanceof THREE.Vector3)) {
+            // Convert plain object to Vector3 if needed
+            if (config.decalSize && typeof config.decalSize === 'object') {
+                config.decalSize = new THREE.Vector3(
+                    config.decalSize.x || 0.2,
+                    config.decalSize.y || 0.2,
+                    config.decalSize.z || 0.1
+                );
+            } else {
+                config.decalSize = new THREE.Vector3(0.2, 0.2, 0.1);
+            }
+        }
+        
         // Clear existing decals
         this.clearDecals();
         
@@ -2265,6 +2279,20 @@ export class ThreeD_component_engine {
         };
         
         const config = Object.assign({}, defaults, options);
+        
+        // Ensure size is a THREE.Vector3
+        if (!(config.size instanceof THREE.Vector3)) {
+            // Convert plain object to Vector3 if needed
+            if (config.size && typeof config.size === 'object') {
+                config.size = new THREE.Vector3(
+                    config.size.x || 0.3,
+                    config.size.y || 0.3,
+                    config.size.z || 0.1
+                );
+            } else {
+                config.size = new THREE.Vector3(0.3, 0.3, 0.1);
+            }
+        }
         
         // Create texture from text
         const texture = this.createTextTexture(config.text, config.textStyle);
