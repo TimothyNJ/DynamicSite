@@ -317,35 +317,58 @@ function initializeComponentEnginesDemos() {
     }
   });
   
-  // 7.11. ThreeD Engine DecalGeometry 0-9 (simplified approach using existing drum selector)
-  // Since DecalGeometry is complex, let's use a simpler approach with the drum selector
-  // that already handles cylinder geometry well
-  const demoDecalGeometry09_3D = componentFactory.createDrumSelector('demo-3d-decalgeometry-09-container', {
-    responsive: true,  // Same responsive sizing
-    geometry: 'cylinder',  // Cylinder for the drum
+  // 7.11. ThreeD Engine DecalGeometry 0-9 - True decal projection implementation
+  // Create a 3D cylinder with numbers projected as decals
+  const demoDecalGeometry09_3D = componentFactory.create3DObject('demo-3d-decalgeometry-09-container', {
+    responsive: true,
+    geometry: 'cylinder',
     geometryParams: {
       cylinderRadiusTop: 0.5,
       cylinderRadiusBottom: 0.5,
       cylinderHeight: 1.0,
-      cylinderRadialSegments: 10  // 10 segments for 10 numbers
+      cylinderRadialSegments: 32  // Smooth cylinder for better decal projection
     },
-    texture: 'solid',  // Start with solid color
+    texture: 'solid',
     textureParams: {
       solidColor: 0x303030  // Dark gray base
     },
     materialParams: {
-      color: 0x303030,
-      metalness: 0.2,
-      roughness: 0.8
+      color: 0x404040,
+      metalness: 0.3,
+      roughness: 0.7
     },
     enableInteraction: true,
-    rotationSpeed: 0  // Start with no rotation
+    rotationSpeed: 0
   });
   
-  // Note: This is a placeholder implementation. 
-  // A true DecalGeometry implementation would require projecting number textures
-  // onto the cylinder surface, which needs more complex texture mapping.
-  console.log('[Demo] ThreeD Engine DecalGeometry 0-9 initialized (using drum selector as base)');
+  // Wait for initialization then add decals for numbers 0-9
+  // The 3D engine needs a moment to fully initialize
+  setTimeout(() => {
+    if (demoDecalGeometry09_3D && demoDecalGeometry09_3D.isInitialized) {
+      const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      
+      // Clear any existing decals first
+      if (demoDecalGeometry09_3D.clearDecals) {
+        demoDecalGeometry09_3D.clearDecals();
+      }
+      
+      // Create circular decals for numbers 0-9
+      demoDecalGeometry09_3D.createCircularDecals(numbers, {
+        radius: 0.52,  // Slightly outside cylinder surface
+        textStyle: {
+          fontSize: 72,
+          fontFamily: 'Arial, sans-serif',
+          color: '#ffffff',
+          backgroundColor: '#000000',  // Black background for contrast
+          padding: 15
+        },
+        decalSize: new THREE.Vector3(0.2, 0.2, 0.1)  // Smaller decals for better fit
+      });
+      console.log('[Demo] ThreeD Engine DecalGeometry 0-9 initialized with projected number decals');
+    } else {
+      console.warn('[Demo] ThreeD Engine DecalGeometry 0-9 not initialized yet');
+    }
+  }, 200);  // Give it 200ms to initialize
   
   // Create rotation speed slider for DecalGeometry 0-9 demo
   componentFactory.createSlider({

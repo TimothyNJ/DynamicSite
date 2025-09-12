@@ -2239,6 +2239,131 @@ export class ThreeD_component_engine {
     }
     
     /**
+     * Create text texture for decals
+     * @param {string|number} text - Text to render
+     * @param {Object} style - Style configuration
+     * @returns {THREE.CanvasTexture} The text texture
+     */
+    createTextTexture(text, style = {}) {
+        const defaults = {
+            fontSize: 64,
+            fontFamily: 'Arial, sans-serif',
+            color: '#ffffff',
+            backgroundColor: 'transparent',
+            padding: 10,
+            bold: false
+        };
+        
+        const config = Object.assign({}, defaults, style);
+        
+        // Create canvas for text
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set font
+        const fontWeight = config.bold ? 'bold ' : '';
+        ctx.font = `${fontWeight}${config.fontSize}px ${config.fontFamily}`;
+        
+        // Measure text
+        const metrics = ctx.measureText(String(text));
+        const textWidth = metrics.width;
+        const textHeight = config.fontSize;
+        
+        // Set canvas size with padding
+        canvas.width = textWidth + (config.padding * 2);
+        canvas.height = textHeight + (config.padding * 2);
+        
+        // Clear canvas
+        if (config.backgroundColor !== 'transparent') {
+            ctx.fillStyle = config.backgroundColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Set font again after canvas resize
+        ctx.font = `${fontWeight}${config.fontSize}px ${config.fontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Draw text
+        ctx.fillStyle = config.color;
+        ctx.fillText(
+            String(text),
+            canvas.width / 2,
+            canvas.height / 2
+        );
+        
+        // Create texture
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        
+        return texture;
+    }
+    
+    /**
+     * Create circular arrangement of decals
+     * @param {Array} texts - Array of texts to display
+     * @param {Object} options - Configuration options
+     */
+    createCircularDecals(texts, options = {}) {
+        if (!this.mesh) {
+            console.error('[3D Component Engine] Cannot create decals - no mesh available');
+            return;
+        }
+        
+        const defaults = {
+            radius: 0.52,  // Distance from center
+            textStyle: {
+                fontSize: 72,
+                fontFamily: 'Arial, sans-serif',
+                color: '#ffffff',
+                backgroundColor: '#000000',
+                padding: 15
+            },
+            decalSize: new THREE.Vector3(0.2, 0.2, 0.1)
+        };
+        
+        const config = Object.assign({}, defaults, options);
+        
+        // Clear existing decals
+        this.clearDecals();
+        
+        const angleStep = (Math.PI * 2) / texts.length;
+        
+        texts.forEach((text, index) => {
+            const angle = index * angleStep;
+            
+            // Calculate position around cylinder
+            const position = new THREE.Vector3(
+                Math.cos(angle) * config.radius,
+                0,  // Center vertically
+                Math.sin(angle) * config.radius
+            );
+            
+            // Orient decal to face outward
+            const orientation = new THREE.Euler(
+                0,
+                -angle + Math.PI / 2,  // Face outward
+                0
+            );
+            
+            // Create the decal
+            const decal = this.createDecal({
+                text: text,
+                position: position,
+                orientation: orientation,
+                size: config.decalSize,
+                textStyle: config.textStyle
+            });
+            
+            if (decal) {
+                console.log(`[3D Component Engine] Created decal "${text}" at angle ${(angle * 180 / Math.PI).toFixed(1)}°`);
+            }
+        });
+        
+        console.log(`[3D Component Engine] Created ${texts.length} circular decals`);
+    }
+    
+    /**
      * Create a decal projection on the mesh surface
      * @param {Object} options - Decal configuration
      * @param {string|number} options.text - Text or number to display
