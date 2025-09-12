@@ -2118,6 +2118,10 @@ export class ThreeD_component_engine {
      * @returns {THREE.CanvasTexture} The text texture
      */
     createTextTexture(text, style = {}) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Default style options with bold support
         const defaults = {
             fontSize: 64,
             fontFamily: 'Arial, sans-serif',
@@ -2129,45 +2133,39 @@ export class ThreeD_component_engine {
         
         const config = Object.assign({}, defaults, style);
         
-        // Create canvas for text
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Set font
+        // Set font with optional bold
         const fontWeight = config.bold ? 'bold ' : '';
         ctx.font = `${fontWeight}${config.fontSize}px ${config.fontFamily}`;
         
         // Measure text
         const metrics = ctx.measureText(String(text));
-        const textWidth = metrics.width;
-        const textHeight = config.fontSize;
+        const width = metrics.width + config.padding * 2;
+        const height = config.fontSize + config.padding * 2;
         
-        // Set canvas size with padding
-        canvas.width = textWidth + (config.padding * 2);
-        canvas.height = textHeight + (config.padding * 2);
+        // Set canvas dimensions to power of 2 for better GPU performance
+        canvas.width = Math.pow(2, Math.ceil(Math.log2(width)));
+        canvas.height = Math.pow(2, Math.ceil(Math.log2(height)));
         
-        // Clear canvas
+        // Clear canvas with background color
         if (config.backgroundColor !== 'transparent') {
             ctx.fillStyle = config.backgroundColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
-        // Set font again after canvas resize
+        // Set text properties (must reset after canvas resize)
         ctx.font = `${fontWeight}${config.fontSize}px ${config.fontFamily}`;
+        ctx.fillStyle = config.color;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Draw text
-        ctx.fillStyle = config.color;
-        ctx.fillText(
-            String(text),
-            canvas.width / 2,
-            canvas.height / 2
-        );
+        // Draw text centered
+        ctx.fillText(String(text), canvas.width / 2, canvas.height / 2);
         
-        // Create texture
+        // Create and return texture
         const texture = new THREE.CanvasTexture(canvas);
         texture.needsUpdate = true;
+        
+        console.log(`[3D Component Engine] Created text texture: "${text}" (${canvas.width}x${canvas.height}px)`);
         
         return texture;
     }
@@ -2305,150 +2303,10 @@ export class ThreeD_component_engine {
         
         return decalMesh;
     }
+
+
     
-    /**
-     * Create text texture for decal
-     * @param {string|number} text - Text to render
-     * @param {Object} style - Text style configuration
-     * @returns {THREE.CanvasTexture} The text texture
-     */
-    createTextTexture(text, style = {}) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Default style options
-        const defaults = {
-            fontSize: 64,
-            fontFamily: 'Arial, sans-serif',
-            color: '#ffffff',
-            backgroundColor: 'transparent',
-            padding: 10
-        };
-        
-        const config = Object.assign({}, defaults, style);
-        
-        // Set canvas size based on text metrics
-        ctx.font = `${config.fontSize}px ${config.fontFamily}`;
-        const metrics = ctx.measureText(String(text));
-        
-        // Calculate canvas size with padding
-        const width = metrics.width + config.padding * 2;
-        const height = config.fontSize + config.padding * 2;
-        
-        // Set canvas dimensions to power of 2 for better GPU performance
-        canvas.width = Math.pow(2, Math.ceil(Math.log2(width)));
-        canvas.height = Math.pow(2, Math.ceil(Math.log2(height)));
-        
-        // Clear canvas
-        if (config.backgroundColor !== 'transparent') {
-            ctx.fillStyle = config.backgroundColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-        
-        // Set text properties
-        ctx.font = `${config.fontSize}px ${config.fontFamily}`;
-        ctx.fillStyle = config.color;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // Draw text centered
-        ctx.fillText(String(text), canvas.width / 2, canvas.height / 2);
-        
-        // Create and return texture
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.needsUpdate = true;
-        
-        console.log(`[3D Component Engine] Created text texture: "${text}" (${canvas.width}x${canvas.height}px)`);
-        
-        return texture;
-    }
-    
-    /**
-     * Create multiple decals in a circular pattern
-     * @param {Array} texts - Array of text/numbers to display
-     * @param {Object} options - Configuration options
-     */
-    createCircularDecals(texts, options = {}) {
-        const defaults = {
-            radius: 0.55,
-            startAngle: 0,
-            textStyle: {
-                fontSize: 64,
-                fontFamily: 'Arial, sans-serif',
-                color: '#ffffff'
-            },
-            decalSize: new THREE.Vector3(0.3, 0.3, 0.1)
-        };
-        
-        const config = Object.assign({}, defaults, options);
-        const angleStep = (Math.PI * 2) / texts.length;
-        
-        texts.forEach((text, index) => {
-            const angle = config.startAngle + angleStep * index;
-            
-            // Calculate position on cylinder surface
-            const position = new THREE.Vector3(
-                Math.cos(angle) * config.radius,
-                0,
-                Math.sin(angle) * config.radius
-            );
-            
-            // Orient decal to face outward
-            const orientation = new THREE.Euler(0, angle + Math.PI / 2, 0);
-            
-            this.createDecal({
-                text: text,
-                position: position,
-                orientation: orientation,
-                size: config.decalSize,
-                textStyle: config.textStyle
-            });
-        });
-        
-        console.log(`[3D Component Engine] Created ${texts.length} circular decals`);
-    }
-    
-    /**
-     * Create multiple decals around a cylinder (for number displays)
-     * @param {Array} values - Array of values to display
-     * @param {Object} options - Decal options
-     */
-    createCircularDecals(values = ['0','1','2','3','4','5','6','7','8','9'], options = {}) {
-        const radius = options.radius || 0.51; // Just outside cylinder surface
-        const height = options.height || 0;
-        const startAngle = options.startAngle || 0;
-        
-        values.forEach((value, index) => {
-            const angle = startAngle + (index / values.length) * Math.PI * 2;
-            
-            // Calculate position on cylinder surface
-            const position = new THREE.Vector3(
-                Math.cos(angle) * radius,
-                height,
-                Math.sin(angle) * radius
-            );
-            
-            // Orient decal to face outward
-            const orientation = new THREE.Euler(
-                0,
-                -angle - Math.PI / 2,
-                0
-            );
-            
-            this.createDecal({
-                text: value,
-                position: position,
-                orientation: orientation,
-                size: options.size || new THREE.Vector3(0.2, 0.2, 0.1),
-                textStyle: options.textStyle || {
-                    fontSize: 96,
-                    color: '#ffffff'
-                }
-            });
-        });
-        
-        console.log(`[3D Component Engine] Created ${values.length} circular decals`);
-    }
+
     
     /**
      * Clear all decals
