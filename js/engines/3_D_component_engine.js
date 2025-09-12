@@ -2323,11 +2323,11 @@ export class ThreeD_component_engine {
         const decalMesh = new THREE.Mesh(decalGeometry, material);
         decalMesh.renderOrder = 1; // Render after main mesh
         
-        // Add to scene and track
-        this.scene.add(decalMesh);
+        // Add to mesh (not scene) so it rotates with the cylinder
+        this.mesh.add(decalMesh);
         this.decals.push(decalMesh);
         
-        console.log(`[3D Component Engine] Created decal: "${config.text}"`);
+        console.log(`[3D Component Engine] Created decal: "${config.text}" attached to mesh`);
         
         return decalMesh;
     }
@@ -2346,7 +2346,12 @@ export class ThreeD_component_engine {
                 if (decal.material.map) decal.material.map.dispose();
                 decal.material.dispose();
             }
-            this.scene.remove(decal);
+            // Remove from mesh (not scene) since we're adding to mesh now
+            if (this.mesh) {
+                this.mesh.remove(decal);
+            } else {
+                this.scene.remove(decal); // Fallback
+            }
         });
         
         this.decals = [];
