@@ -28,7 +28,6 @@ class DecalGeometry extends THREE.BufferGeometry {
         super();
         
         // Create helper objects
-        const plane = new THREE.Vector3();
         const projectorMatrix = new THREE.Matrix4();
         const projectorMatrixInverse = new THREE.Matrix4();
         
@@ -41,9 +40,6 @@ class DecalGeometry extends THREE.BufferGeometry {
         const decalVertices = [];
         const decalNormals = [];
         const decalUVs = [];
-        
-        const vertex = new THREE.Vector3();
-        const normal = new THREE.Vector3();
         
         // Get mesh geometry
         const geometry = mesh.geometry;
