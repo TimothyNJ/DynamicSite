@@ -2228,7 +2228,7 @@ export class ThreeD_component_engine {
             const orientation = new THREE.Euler(
                 0,
                 -angle + Math.PI / 2,  // Face outward
-                0
+                Math.PI / 2  // Rotate 90 degrees for horizontal drum orientation
             );
             
             // Create the decal
