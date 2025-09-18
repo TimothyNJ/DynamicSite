@@ -263,7 +263,8 @@ function initializeComponentEnginesDemos() {
   // 7.9. ThreeD Component Engine TextGeometry
   const demoTextGeometry3D = new TextGeometryDrumEngine('demo-3d-textgeometry-container', {
     responsive: true,  // Same responsive sizing
-    rotationSpeed: 0  // Start with no rotation
+    rotationSpeed: 0,  // Start with no rotation
+    restrictRotationAxis: 'x'  // Only allow X-axis rotation (forward/backward roll)
   });
   demoTextGeometry3D.init();
   
@@ -292,7 +293,8 @@ function initializeComponentEnginesDemos() {
   const demoTextGeometry09_3D = new TextGeometryDrumEngine('demo-3d-textgeometry-09-container', {
     responsive: true,  // Same responsive sizing
     rotationSpeed: 0,  // Start with no rotation
-    textDepth: 0  // FLAT TEXT - no depth as originally requested
+    textDepth: 0,  // FLAT TEXT - no depth as originally requested
+    restrictRotationAxis: 'x'  // Only allow X-axis rotation (forward/backward roll)
   });
   demoTextGeometry09_3D.init();
   
@@ -322,7 +324,8 @@ function initializeComponentEnginesDemos() {
     responsive: true,  // Same responsive sizing
     rotationSpeed: 0,  // Start with no rotation
     textDepth: 0,  // FLAT TEXT - no depth
-    addBlockingCylinder: true  // ADD BLACK BLOCKING CYLINDER
+    addBlockingCylinder: true,  // ADD BLACK BLOCKING CYLINDER
+    restrictRotationAxis: 'x'  // Only allow X-axis rotation (forward/backward roll)
   });
   demoTextGeometry09Blocker_3D.init();
   

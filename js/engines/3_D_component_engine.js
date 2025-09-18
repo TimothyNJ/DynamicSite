@@ -1568,16 +1568,23 @@ export class ThreeD_component_engine {
                 // Apply rotation threshold to filter out noise
                 const rotationThreshold = 0.02; // radians
                 if (Math.abs(rotationDelta) > rotationThreshold) {
-                    // Apply rotation around camera's forward axis (Z-axis in view space)
-                    const cameraDirection = new THREE.Vector3();
-                    this.camera.getWorldDirection(cameraDirection);
-                    
-                    // Create rotation quaternion
-                    const quaternionZ = new THREE.Quaternion();
-                    quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta);
-                    
-                    // Apply rotation directly - this is controlled movement
-                    this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
+                    // Check if we have axle-based rotation restriction
+                    if (this.config.restrictRotationAxis === 'x') {
+                        // For X-axis only, convert twist gesture to X rotation
+                        // Use the rotation delta to spin the drum forward/backward
+                        this.mesh.rotateX(rotationDelta);
+                    } else {
+                        // Apply rotation around camera's forward axis (Z-axis in view space)
+                        const cameraDirection = new THREE.Vector3();
+                        this.camera.getWorldDirection(cameraDirection);
+                        
+                        // Create rotation quaternion
+                        const quaternionZ = new THREE.Quaternion();
+                        quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta);
+                        
+                        // Apply rotation directly - this is controlled movement
+                        this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
+                    }
                     
                     // Reset auto-rotation time
                     this.autoRotationTime = 0;
@@ -1639,15 +1646,21 @@ export class ThreeD_component_engine {
             // Apply rotation threshold
             const rotationThreshold = 0.01; // radians
             if (Math.abs(rotationDelta) > rotationThreshold) {
-                // Apply rotation around camera's forward axis (Z-axis in view space)
-                const cameraDirection = new THREE.Vector3();
-                this.camera.getWorldDirection(cameraDirection);
-                
-                const quaternionZ = new THREE.Quaternion();
-                quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta);
-                
-                // Apply rotation directly - this is controlled movement
-                this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
+                // Check if we have axle-based rotation restriction
+                if (this.config.restrictRotationAxis === 'x') {
+                    // For X-axis only, convert gesture rotation to X rotation
+                    this.mesh.rotateX(rotationDelta);
+                } else {
+                    // Apply rotation around camera's forward axis (Z-axis in view space)
+                    const cameraDirection = new THREE.Vector3();
+                    this.camera.getWorldDirection(cameraDirection);
+                    
+                    const quaternionZ = new THREE.Quaternion();
+                    quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta);
+                    
+                    // Apply rotation directly - this is controlled movement
+                    this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
+                }
                 
                 // Reset auto-rotation time
                 this.autoRotationTime = 0;
@@ -1805,8 +1818,15 @@ export class ThreeD_component_engine {
             quaternionX.setFromAxisAngle(screenXAxis, event.deltaY * sensitivity);
             
             // Apply rotations directly - this is controlled movement
-            this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
-            this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+            if (this.config.restrictRotationAxis === 'x') {
+                // Only allow X-axis rotation (use both deltaX and deltaY to control the drum)
+                // Both horizontal and vertical swipes contribute to forward/backward roll
+                const totalDelta = -event.deltaX * sensitivity + event.deltaY * sensitivity;
+                this.mesh.rotateX(totalDelta);
+            } else {
+                this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
+                this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+            }
             
             // Reset auto-rotation time since user is interacting
             this.autoRotationTime = 0;
