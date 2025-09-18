@@ -802,4 +802,19 @@ window.addEventListener("load", () => {
 // Update dimensions when a page loads
 document.addEventListener("pageLoaded", updateDimensions);
 
+// Page-specific component initialization
+window.initializePageComponents = async function(pageName) {
+  console.log(`[main.js] Initializing components for page: ${pageName}`);
+  
+  if (pageName === 'engines') {
+    try {
+      const { initializeEnginesPage } = await import('./pages/engines-init.js');
+      initializeEnginesPage();
+    } catch (error) {
+      console.error('[main.js] Error loading engines initialization:', error);
+    }
+  }
+  // Add other page initializations here as needed
+};
+
 console.log(`[main.js] Application setup complete [Deployment: ${DEPLOYMENT_TIMESTAMP}]`);
