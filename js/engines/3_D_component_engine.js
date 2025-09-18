@@ -1821,7 +1821,7 @@ export class ThreeD_component_engine {
             if (this.config.restrictRotationAxis === 'x') {
                 // Only allow X-axis rotation (use both deltaX and deltaY to control the drum)
                 // Both horizontal and vertical swipes contribute to forward/backward roll
-                const totalDelta = -event.deltaX * sensitivity + event.deltaY * sensitivity;
+                const totalDelta = -event.deltaX * sensitivity - event.deltaY * sensitivity;
                 this.mesh.rotateX(totalDelta);
             } else {
                 this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);

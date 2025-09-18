@@ -58,6 +58,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         // Create a group to hold all numbers - this becomes our "mesh" for rotation
         this.numberGroup = new THREE.Group();
         this.scene.add(this.numberGroup);
+        this.numberGroup.rotation.z = Math.PI / 2;  // Rotate 90° to make drum horizontal
         this.mesh = this.numberGroup; // Assign to mesh so parent's rotation logic works
         
         // Load font and create TextGeometry
