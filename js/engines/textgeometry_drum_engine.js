@@ -255,11 +255,14 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             32     // Segments for smooth appearance
         );
         
-        const blockingMaterial = new THREE.MeshPhongMaterial({
-            color: 0x000000,        // Black base color
-            emissive: 0x111111,     // Slight glow for depth
-            specular: 0xffffff,     // White specular highlights
-            shininess: 100,         // High shininess for glossy appearance
+        const blockingMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x404040,        // Dark gray (same as default ThreeD engine)
+            metalness: 0.0,         // No metallic properties
+            roughness: 0.0,         // Completely smooth/glossy
+            clearcoat: 1.0,         // Maximum clearcoat effect
+            clearcoatRoughness: 0.0, // Smooth clearcoat
+            reflectivity: 1.0,      // Maximum reflections
+            envMapIntensity: 1.2,   // Enhanced environment reflections
             side: THREE.DoubleSide  // Visible from both sides
         });
         
