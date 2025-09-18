@@ -132,7 +132,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             // The camera typically shows about 2-3 units vertically
             const containerHeight = this.container.clientHeight || 300;
             const pixelsToUnits = 2.5 / containerHeight; // Camera shows ~2.5 units vertically
-            const fontSize = fontSizeInPixels * pixelsToUnits * 1.5; // 1.5 is scale factor for readability
+            const fontSize = fontSizeInPixels * pixelsToUnits * 0.4; // Reduced scale factor
             
             console.log('[TextGeometry] Computed:', fontSizeInPixels + 'px', '→', fontSize + ' units');
             
@@ -348,7 +348,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         // Convert to Three.js units
         const containerHeight = this.container.clientHeight || 300;
         const pixelsToUnits = 2.5 / containerHeight;
-        const fontSize = fontSizeInPixels * pixelsToUnits * 1.5;
+        const fontSize = fontSizeInPixels * pixelsToUnits * 0.4;
         
         // Create new TextGeometry with new value
         const textGeometry = new THREE.TextGeometry(newValue.toString(), {
