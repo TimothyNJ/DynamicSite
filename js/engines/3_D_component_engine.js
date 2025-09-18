@@ -2225,12 +2225,10 @@ export class ThreeD_component_engine {
             );
             
             // Orient decal to face outward
-            // Change rotation order to apply Z rotation (for horizontal drum) before Y rotation
             const orientation = new THREE.Euler(
                 0,
                 -angle + Math.PI / 2,  // Face outward
-                Math.PI / 2,  // Rotate 90 degrees for horizontal drum orientation
-                'ZYX'  // Apply Z rotation first, then Y, then X
+                Math.PI / 2  // Rotate 90 degrees for horizontal drum orientation
             );
             
             // Create the decal
