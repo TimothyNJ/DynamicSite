@@ -298,35 +298,6 @@ function initializeComponentEnginesDemos() {
   
   console.log('[Demo] ThreeD Engine TextGeometry 0-9 initialized:', demoTextGeometry09_3D);
   
-  // 7.11. ThreeD Engine TextGeometry with Black Blocking Cylinder
-  const demoTextGeometryWithBlocker = new TextGeometryDrumEngine('demo-3d-textgeometry-blocker-container', {
-    responsive: true,  // Same responsive sizing
-    rotationSpeed: 0,  // Start with no rotation
-    addBlockingCylinder: true  // Add the black cylinder to block rear numbers
-  });
-  demoTextGeometryWithBlocker.init();
-  
-  console.log('[Demo] ThreeD Engine TextGeometry with Blocker initialized:', demoTextGeometryWithBlocker);
-  
-  // Create rotation speed slider for TextGeometry with Blocker demo
-  componentFactory.createSlider({
-    containerId: 'demo-3d-textgeometry-blocker-rotation-slider-container',
-    sliderClass: 'demo-3d-textgeometry-blocker-rotation-slider',
-    options: [
-      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
-      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
-      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
-      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
-      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
-    ]
-  }, (selectedOption) => {
-    const speed = parseFloat(selectedOption.getAttribute('data-value'));
-    console.log('[Demo ThreeD TextGeometry with Blocker Rotation Speed] Selected:', speed);
-    if (demoTextGeometryWithBlocker && demoTextGeometryWithBlocker.setRotationSpeed) {
-      demoTextGeometryWithBlocker.setRotationSpeed(speed);
-    }
-  });
-  
   // Create rotation speed slider for TextGeometry 0-9 demo
   componentFactory.createSlider({
     containerId: 'demo-3d-textgeometry-09-rotation-slider-container',
