@@ -265,8 +265,8 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         
         const blockingCylinder = new THREE.Mesh(blockingGeometry, blockingMaterial);
         
-        // Rotate to match horizontal drum orientation
-        blockingCylinder.rotation.z = Math.PI / 2;
+        // Keep cylinder vertical to match the numbers orientation
+        // No rotation needed - cylinder is vertical by default
         
         // Add to the number group so it rotates with the numbers
         this.numberGroup.add(blockingCylinder);
