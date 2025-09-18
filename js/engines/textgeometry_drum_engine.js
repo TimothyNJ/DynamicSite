@@ -256,7 +256,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         );
         
         const blockingMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0x404040,        // Dark gray (same as default ThreeD engine)
+            color: 0x000000,        // Pure black for glossy black appearance
             metalness: 0.0,         // No metallic properties
             roughness: 0.0,         // Completely smooth/glossy
             clearcoat: 1.0,         // Maximum clearcoat effect
