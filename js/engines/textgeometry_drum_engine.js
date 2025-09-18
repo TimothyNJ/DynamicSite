@@ -252,7 +252,9 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             0.48,  // 0.02 gap from text radius - bit more breathing room
             0.48,  // Same top and bottom radius
             0.4,   // Height to cover the text area
-            32     // Segments for smooth appearance
+            32,    // Segments for smooth appearance
+            1,     // Height segments
+            true   // openEnded - no caps, just like the tube!
         );
         
         const blockingMaterial = new THREE.MeshPhysicalMaterial({
