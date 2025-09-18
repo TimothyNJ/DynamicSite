@@ -249,8 +249,8 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
     createBlockingCylinder() {
         // Create a shiny black cylinder to block view of rear numbers
         const blockingGeometry = new THREE.CylinderGeometry(
-            0.5,   // Same radius as where numbers sit - testing Z-fighting!
-            0.5,   // Same top and bottom radius
+            0.49,  // Just 0.01 smaller than text radius - minimal gap
+            0.49,  // Same top and bottom radius
             0.4,   // Height to cover the text area
             32     // Segments for smooth appearance
         );
