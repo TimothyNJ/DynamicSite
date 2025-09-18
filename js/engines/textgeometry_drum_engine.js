@@ -163,7 +163,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
                 // Calculate angle for this vertex
                 const baseAngle = i * anglePerNumber;
                 // Scale to use most of allocated angle per number
-                const vertexAngle = -(vertex.x / fontSize) * (anglePerNumber * 0.8);
+                const vertexAngle = -(vertex.x * 3.0) * (anglePerNumber * 0.8);
                 const finalAngle = baseAngle + vertexAngle;
                 
                 // Apply cylindrical transformation
@@ -379,7 +379,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             // Calculate angle for this vertex
             const baseAngle = index * anglePerNumber;  // position in ring
             // Scale to use most of allocated angle per number
-            const vertexAngle = -(vertex.x / fontSize) * (anglePerNumber * 0.8);
+            const vertexAngle = -(vertex.x * 3.0) * (anglePerNumber * 0.8);
             const finalAngle = baseAngle + vertexAngle;
             
             // Apply cylindrical transformation
