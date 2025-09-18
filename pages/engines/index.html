@@ -53,6 +53,11 @@
   <div id="demo-3d-textgeometry-09-container"></div>
   <div id="demo-3d-textgeometry-09-rotation-slider-container"></div>
   
+  <!-- ThreeD Engine TextGeometry 0-9 with Black Blocker -->
+  <h3>ThreeD Engine TextGeometry 0-9 (Black Blocker)</h3>
+  <div id="demo-3d-textgeometry-09-blocker-container"></div>
+  <div id="demo-3d-textgeometry-09-blocker-rotation-slider-container"></div>
+  
   <!-- ThreeD Engine DecalGeometry 0-9 -->
   <h3>ThreeD Engine DecalGeometry 0-9</h3>
   <div id="demo-3d-decalgeometry-09-container"></div>
@@ -84,3 +89,10 @@
 <!-- File Upload Input Component Engine -->
 <h3>file_upload_input_component_engine</h3>
 <div id="demo-file-upload-container"></div>
+
+<!-- Initialize engines page components -->
+<script type="module">
+  import { initializeEnginesPage } from '/js/pages/engines-init.js';
+  // Initialize when this page loads
+  initializeEnginesPage();
+</script>

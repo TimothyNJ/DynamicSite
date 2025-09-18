@@ -110,6 +110,11 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         // Clear any existing numbers
         this.clearNumbers();
         
+        // Add blocking cylinder if configured
+        if (this.config.addBlockingCylinder) {
+            this.createBlockingCylinder();
+        }
+        
         // Create 10 TextGeometry objects for numbers 0-9
         const numberOfValues = 10;
         const anglePerNumber = (Math.PI * 2) / numberOfValues;
@@ -239,6 +244,34 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         }
         
         console.log('[TextGeometry Drum Engine] All curved TextGeometry numbers created');
+    }
+    
+    createBlockingCylinder() {
+        // Create a shiny black cylinder to block view of rear numbers
+        const blockingGeometry = new THREE.CylinderGeometry(
+            0.45,  // Slightly smaller than the 0.5 radius where numbers sit
+            0.45,  // Same top and bottom radius
+            0.4,   // Height to cover the text area
+            32     // Segments for smooth appearance
+        );
+        
+        const blockingMaterial = new THREE.MeshPhongMaterial({
+            color: 0x000000,        // Black base color
+            emissive: 0x111111,     // Slight glow for depth
+            specular: 0xffffff,     // White specular highlights
+            shininess: 100,         // High shininess for glossy appearance
+            side: THREE.DoubleSide  // Visible from both sides
+        });
+        
+        const blockingCylinder = new THREE.Mesh(blockingGeometry, blockingMaterial);
+        
+        // Rotate to match horizontal drum orientation
+        blockingCylinder.rotation.z = Math.PI / 2;
+        
+        // Add to the number group so it rotates with the numbers
+        this.numberGroup.add(blockingCylinder);
+        
+        console.log('[TextGeometry Drum Engine] Added blocking cylinder');
     }
     
     createFallbackNumbers() {
