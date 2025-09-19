@@ -110,7 +110,7 @@ class slider_component_engine {
     
     // Apply container class and debug styling
     container.classList.add('slider-container');
-    // container.style.border = '1px solid yellow';  // Debug border removed
+    container.style.border = '1px solid yellow';  // Debug border only
     
     // Debug logging to see what container we're in
     console.log(`[${this.containerId}] Parent element:`, container.parentElement);
