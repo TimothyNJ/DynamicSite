@@ -8,8 +8,10 @@
  * @class ThreeD_Drum_Selector
  */
 
-export class ThreeD_Drum_Selector {
+export class ThreeD_Drum_Selector extends EventTarget {
     constructor(container, config = {}) {
+        super(); // Call EventTarget constructor
+        
         this.container = typeof container === 'string' ? 
             document.getElementById(container) : container;
             
@@ -792,3 +794,5 @@ export class ThreeD_Drum_Selector {
         console.log('[ThreeD Drum Selector] Disposed');
     }
 }
+
+export default ThreeD_Drum_Selector;
