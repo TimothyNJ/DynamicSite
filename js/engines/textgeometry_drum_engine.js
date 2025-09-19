@@ -111,11 +111,6 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         // Clear any existing numbers
         this.clearNumbers();
         
-        // Add blocking cylinder if configured
-        if (this.config.addBlockingCylinder) {
-            this.createBlockingCylinder();
-        }
-        
         // Create 10 TextGeometry objects for numbers 0-9
         const numberOfValues = 10;
         const anglePerNumber = (Math.PI * 2) / numberOfValues;
@@ -245,6 +240,11 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         }
         
         console.log('[TextGeometry Drum Engine] All curved TextGeometry numbers created');
+        
+        // Add blocking cylinder AFTER numbers are created so we can measure them
+        if (this.config.addBlockingCylinder) {
+            this.createBlockingCylinder();
+        }
     }
     
     createBlockingCylinder() {
