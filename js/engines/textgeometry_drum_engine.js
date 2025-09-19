@@ -248,11 +248,28 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
     }
     
     createBlockingCylinder() {
+        // Measure the maximum width of all text meshes
+        let maxHeight = 0;  // Using height because drum is rotated 90°
+        
+        for (let mesh of this.numberMeshes) {
+            if (mesh) {
+                // Create bounding box for this text mesh
+                const box = new THREE.Box3().setFromObject(mesh);
+                const height = box.max.y - box.min.y;  // Y-axis because of rotation
+                maxHeight = Math.max(maxHeight, height);
+            }
+        }
+        
+        // Add minimal padding (5% to avoid clipping)
+        const drumWidth = maxHeight * 1.05;
+        
+        console.log('[TextGeometry] Auto-sized drum width:', drumWidth, 'based on max text height:', maxHeight);
+        
         // Create a shiny black cylinder to block view of rear numbers
         const blockingGeometry = new THREE.CylinderGeometry(
             0.28,  // 0.02 gap from text radius - bit more breathing room
             0.28,  // Same top and bottom radius
-            0.4,   // Height to cover the text area
+            drumWidth,   // Dynamic height based on text content
             32,    // Segments for smooth appearance
             1,     // Height segments
             true   // openEnded - no caps, just like the tube!
