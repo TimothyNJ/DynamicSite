@@ -117,52 +117,6 @@ function initializeComponentEnginesDemos() {
     onChange: (values) => console.log('[Demo] Multi-select values:', values)
   });
   
-  // 5.5. ThreeD_Drum_Selector - Production-Ready Engine
-  // Dynamically import the new ThreeD_Drum_Selector engine
-  import('./engines/ThreeD_Drum_Selector.js').then(module => {
-    const ThreeD_Drum_Selector = module.default;
-    
-    // Create the production drum selector
-    const demoThreeDDrumSelector = new ThreeD_Drum_Selector('demo-threed-drum-selector-container', {
-      responsive: true,  // Same responsive sizing
-      rotationSpeed: 0,  // Start with no rotation
-      textDepth: 0,  // FLAT TEXT - no depth
-      addBlockingCylinder: true,  // ADD BLACK BLOCKING CYLINDER
-      restrictRotationAxis: 'x'  // Only allow X-axis rotation (forward/backward roll)
-    });
-    
-    // Initialize the component
-    demoThreeDDrumSelector.init();
-    
-    console.log('[Demo] ThreeD_Drum_Selector initialized:', demoThreeDDrumSelector);
-    
-    // Add value change listener
-    demoThreeDDrumSelector.addEventListener('valueChange', (event) => {
-      console.log('ThreeD_Drum_Selector value changed to:', event.detail.value);
-    });
-    
-    // Create rotation speed slider for ThreeD_Drum_Selector demo
-    componentFactory.createSlider({
-      containerId: 'demo-threed-drum-selector-rotation-slider-container',
-      sliderClass: 'demo-threed-drum-selector-rotation-slider',
-      options: [
-        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
-        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
-        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
-        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
-        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
-      ]
-    }, (selectedOption) => {
-      const speed = parseFloat(selectedOption.getAttribute('data-value'));
-      console.log('[Demo ThreeD_Drum_Selector Rotation Speed] Selected:', speed);
-      if (demoThreeDDrumSelector && demoThreeDDrumSelector.setRotationSpeed) {
-        demoThreeDDrumSelector.setRotationSpeed(speed);
-      }
-    });
-  }).catch(error => {
-    console.error('Failed to load ThreeD_Drum_Selector:', error);
-  });
-  
   // 5.9. ThreeD Component Engine TextGeometry Drum Selector
   // Using the main engine in textgeometry mode to create a production drum selector
   const drumContainer = document.getElementById('demo-3d-textgeometry-drum-container');

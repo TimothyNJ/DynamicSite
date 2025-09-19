@@ -21,7 +21,7 @@ import { Drum_Selector_Engine } from '../engines/drum_selector_engine.js';
 import { wheel_selector_component_engine } from '../engines/wheel_selector_component_engine.js';
 import { custom_wheel_selector_engine } from '../engines/custom_wheel_selector_engine.js';
 import { ios_drum_wheel_engine } from '../engines/ios_drum_wheel_engine.js';
-import { ThreeD_Drum_Selector } from '../engines/ThreeD_Drum_Selector.js';
+
 
 class ComponentFactory {
   constructor() {
@@ -35,7 +35,7 @@ class ComponentFactory {
     this.calendarInstances = new Map();
     this.wheelSelectorInstances = new Map();
     this.customWheelInstances = new Map();
-    this.threeDDrumInstances = new Map();
+
     this.initialized = false;
     
     console.log('[ComponentFactory] Factory initialized for engine-based components');
@@ -66,37 +66,6 @@ class ComponentFactory {
     threeDObject.init();
     
     return threeDObject;
-  }
-
-  /**
-   * Create a ThreeD drum selector component
-   * Standalone engine with TextGeometry numbers and black blocking cylinder
-   * @param {string} containerId - ID of the container element
-   * @param {Object} config - Configuration for the drum selector
-   * @returns {ThreeD_Drum_Selector} The drum selector instance
-   */
-  createThreeDDrumSelector(containerId, config = {}) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-      console.error(`[ComponentFactory] Container ${containerId} not found`);
-      return null;
-    }
-    
-    // Check if Three.js is loaded
-    if (typeof THREE === 'undefined') {
-      console.error('[ComponentFactory] Three.js not loaded. Add Three.js script before using 3D components.');
-      return null;
-    }
-    
-    // Create ThreeD drum selector instance
-    const drumSelector = new ThreeD_Drum_Selector(container, config);
-    drumSelector.init();
-    
-    // Store instance
-    this.threeDDrumInstances.set(containerId, drumSelector);
-    
-    console.log(`[ComponentFactory] ThreeD drum selector created in ${containerId}`);
-    return drumSelector;
   }
 
   /**
