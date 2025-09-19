@@ -124,16 +124,11 @@ function initializeComponentEnginesDemos() {
     
     // Create the production drum selector
     const demoThreeDDrumSelector = new ThreeD_Drum_Selector('demo-threed-drum-selector-container', {
-      responsive: true,  // Same responsive sizing as TextGeometry version
+      responsive: true,  // Same responsive sizing
       rotationSpeed: 0,  // Start with no rotation
-      textDepth: 0,  // FLAT TEXT - no depth (already default in ThreeD_Drum_Selector)
-      restrictRotation: 'x',  // Only allow X-axis rotation (forward/backward roll)
-      enableInteraction: true,
-      backgroundColor: 0x1a1a1a,
-      cylinderColor: 0x000000,  // Black blocking cylinder
-      numberColor: 0xffffff,
-      selectedNumberColor: 0x00ff00,
-      unselectedNumberColor: 0x888888
+      textDepth: 0,  // FLAT TEXT - no depth
+      addBlockingCylinder: true,  // ADD BLACK BLOCKING CYLINDER
+      restrictRotationAxis: 'x'  // Only allow X-axis rotation (forward/backward roll)
     });
     
     // Initialize the component
