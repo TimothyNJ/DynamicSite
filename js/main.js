@@ -117,6 +117,53 @@ function initializeComponentEnginesDemos() {
     onChange: (values) => console.log('[Demo] Multi-select values:', values)
   });
   
+  // 5.5. ThreeD_Drum_Selector - Production-Ready Engine
+  // Dynamically import the new ThreeD_Drum_Selector engine
+  import('./engines/ThreeD_Drum_Selector.js').then(module => {
+    const ThreeD_Drum_Selector = module.default;
+    
+    // Create the production drum selector
+    const demoThreeDDrumSelector = new ThreeD_Drum_Selector('demo-threed-drum-selector-container', {
+      width: 300,
+      height: 300,
+      enableInteraction: true,
+      selectedValue: 5,
+      backgroundColor: 0x1a1a1a,
+      cylinderColor: 0x222222,
+      numberColor: 0xffffff,
+      selectedNumberColor: 0x00ff00,
+      unselectedNumberColor: 0x888888
+    });
+    
+    console.log('[Demo] ThreeD_Drum_Selector initialized:', demoThreeDDrumSelector);
+    
+    // Add value change listener
+    demoThreeDDrumSelector.addEventListener('valueChange', (event) => {
+      console.log('ThreeD_Drum_Selector value changed to:', event.detail.value);
+    });
+    
+    // Create rotation speed slider for ThreeD_Drum_Selector demo
+    componentFactory.createSlider({
+      containerId: 'demo-threed-drum-selector-rotation-slider-container',
+      sliderClass: 'demo-threed-drum-selector-rotation-slider',
+      options: [
+        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+      ]
+    }, (selectedOption) => {
+      const speed = parseFloat(selectedOption.getAttribute('data-value'));
+      console.log('[Demo ThreeD_Drum_Selector Rotation Speed] Selected:', speed);
+      if (demoThreeDDrumSelector && demoThreeDDrumSelector.setRotationSpeed) {
+        demoThreeDDrumSelector.setRotationSpeed(speed);
+      }
+    });
+  }).catch(error => {
+    console.error('Failed to load ThreeD_Drum_Selector:', error);
+  });
+  
   // 6. 3D Component demo (responsive)
   const demo3D = componentFactory.create3DObject('demo-3d-container', {
     responsive: true,  // Enable viewport-based sizing
@@ -348,53 +395,6 @@ function initializeComponentEnginesDemos() {
     if (demoTextGeometry09Blocker_3D && demoTextGeometry09Blocker_3D.setRotationSpeed) {
       demoTextGeometry09Blocker_3D.setRotationSpeed(speed);
     }
-  });
-  
-  // 7.10c. NEW: ThreeD_Drum_Selector - Production-Ready Engine
-  // Dynamically import the new ThreeD_Drum_Selector engine
-  import('./engines/ThreeD_Drum_Selector.js').then(module => {
-    const ThreeD_Drum_Selector = module.default;
-    
-    // Create the production drum selector
-    const demoThreeDDrumSelector = new ThreeD_Drum_Selector('demo-threed-drum-selector-container', {
-      width: 300,
-      height: 300,
-      enableInteraction: true,
-      selectedValue: 5,
-      backgroundColor: 0x1a1a1a,
-      cylinderColor: 0x222222,
-      numberColor: 0xffffff,
-      selectedNumberColor: 0x00ff00,
-      unselectedNumberColor: 0x888888
-    });
-    
-    console.log('[Demo] ThreeD_Drum_Selector initialized:', demoThreeDDrumSelector);
-    
-    // Add value change listener
-    demoThreeDDrumSelector.addEventListener('valueChange', (event) => {
-      console.log('ThreeD_Drum_Selector value changed to:', event.detail.value);
-    });
-    
-    // Create rotation speed slider for ThreeD_Drum_Selector demo
-    componentFactory.createSlider({
-      containerId: 'demo-threed-drum-selector-rotation-slider-container',
-      sliderClass: 'demo-threed-drum-selector-rotation-slider',
-      options: [
-        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
-        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
-        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
-        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
-        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
-      ]
-    }, (selectedOption) => {
-      const speed = parseFloat(selectedOption.getAttribute('data-value'));
-      console.log('[Demo ThreeD_Drum_Selector Rotation Speed] Selected:', speed);
-      if (demoThreeDDrumSelector && demoThreeDDrumSelector.setRotationSpeed) {
-        demoThreeDDrumSelector.setRotationSpeed(speed);
-      }
-    });
-  }).catch(error => {
-    console.error('Failed to load ThreeD_Drum_Selector:', error);
   });
   
   // 7.11. ThreeD Engine DecalGeometry 0-9 - True decal projection implementation
