@@ -41,6 +41,18 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             return;
         }
         
+        // If addBlockingCylinder is true, remove the fog plane
+        if (this.config.addBlockingCylinder && this.fogPlane) {
+            console.log('[TextGeometry Drum Engine] Removing fog plane for black blocker configuration');
+            this.scene.remove(this.fogPlane);
+            if (this.fogPlane.geometry) this.fogPlane.geometry.dispose();
+            if (this.fogPlane.material) this.fogPlane.material.dispose();
+            this.fogPlane = null;
+            this.fogTexture = null;
+            this.fogCanvas = null;
+            this.fogContext = null;
+        }
+        
         // Remove any mesh that parent created
         if (this.mesh) {
             this.scene.remove(this.mesh);
