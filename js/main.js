@@ -37,7 +37,7 @@ import { wheel_time_selector_component_engine } from './engines/wheel_time_selec
 import { wheel_date_picker_component_engine } from './engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from './engines/calendar_picker_component_engine.js';
 import { wheel_selector_component_engine } from './engines/wheel_selector_component_engine.js';
-import { TextGeometryDrumEngine } from './engines/textgeometry_drum_engine.js';
+import { ThreeD_component_engine } from './engines/3_D_component_engine.js';
 import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
 import { initializeComponents } from './loader/component-loader.js';
 import { initializeNavbar } from './navigation/navbar.js';
@@ -307,10 +307,13 @@ function initializeComponentEnginesDemos() {
   });
   
   // 7.9. ThreeD Component Engine TextGeometry
-  const demoTextGeometry3D = new TextGeometryDrumEngine('demo-3d-textgeometry-container', {
-    responsive: true,  // Same responsive sizing
-    rotationSpeed: 0,  // Start with no rotation
-    restrictRotationAxis: 'x'  // Only allow X-axis rotation (forward/backward roll)
+  const demoTextGeometry3D = new ThreeD_component_engine('demo-3d-textgeometry-container', {
+    mode: 'textgeometry',  // Use TextGeometry mode
+    responsive: true,
+    rotationSpeed: 0,
+    restrictRotationAxis: 'x',
+    texture: 'none',
+    backgroundColor: 0x1a1a1a
   });
   demoTextGeometry3D.init();
   
@@ -336,11 +339,14 @@ function initializeComponentEnginesDemos() {
   });
   
   // 7.10. ThreeD Engine TextGeometry 0-9 (with flat text - depth: 0)
-  const demoTextGeometry09_3D = new TextGeometryDrumEngine('demo-3d-textgeometry-09-container', {
-    responsive: true,  // Same responsive sizing
-    rotationSpeed: 0,  // Start with no rotation
+  const demoTextGeometry09_3D = new ThreeD_component_engine('demo-3d-textgeometry-09-container', {
+    mode: 'textgeometry',  // Use TextGeometry mode
+    responsive: true,
+    rotationSpeed: 0,
     textDepth: 0,  // FLAT TEXT - no depth as originally requested
-    restrictRotationAxis: 'x'  // Only allow X-axis rotation (forward/backward roll)
+    restrictRotationAxis: 'x',
+    texture: 'none',
+    backgroundColor: 0x1a1a1a
   });
   demoTextGeometry09_3D.init();
   
@@ -366,12 +372,15 @@ function initializeComponentEnginesDemos() {
   });
   
   // 7.10b. ThreeD Engine TextGeometry 0-9 with Black Blocker
-  const demoTextGeometry09Blocker_3D = new TextGeometryDrumEngine('demo-3d-textgeometry-09-blocker-container', {
-    responsive: true,  // Same responsive sizing
-    rotationSpeed: 0,  // Start with no rotation
+  const demoTextGeometry09Blocker_3D = new ThreeD_component_engine('demo-3d-textgeometry-09-blocker-container', {
+    mode: 'textgeometry',  // Use TextGeometry mode
+    responsive: true,
+    rotationSpeed: 0,
     textDepth: 0,  // FLAT TEXT - no depth
     addBlockingCylinder: true,  // ADD BLACK BLOCKING CYLINDER
-    restrictRotationAxis: 'x'  // Only allow X-axis rotation (forward/backward roll)
+    restrictRotationAxis: 'x',  // Only allow X-axis rotation (forward/backward roll)
+    texture: 'none',
+    backgroundColor: 0x1a1a1a
   });
   demoTextGeometry09Blocker_3D.init();
   
