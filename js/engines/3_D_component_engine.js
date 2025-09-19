@@ -236,9 +236,6 @@ export class ThreeD_component_engine {
         // Force initial resize for responsive components
         if (this.config.responsive) {
             this.updateResponsiveSize();
-        } else if (this.config.mode !== 'textgeometry') {
-            // Only resize container for standard mode non-responsive components
-            this.resizeContainerToFitContent();
         }
         
         // Log FINAL dimensions after everything is set up
