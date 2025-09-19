@@ -213,13 +213,13 @@ export class ThreeD_component_engine {
         this.setupCamera();
         this.setupScene();
         this.setupLighting();
+        this.createFogPlane();  // Always create fog plane for background
         
         // Mode-specific initialization
         if (this.config.mode === 'textgeometry') {
             this.initTextGeometryMode();
         } else {
             // Standard mode
-            this.createFogPlane();
             this.createTexture();
             this.createGeometry();
             this.createMaterial();
@@ -236,6 +236,9 @@ export class ThreeD_component_engine {
         // Force initial resize for responsive components
         if (this.config.responsive) {
             this.updateResponsiveSize();
+        } else if (this.config.mode !== 'textgeometry') {
+            // Only resize container for standard mode non-responsive components
+            this.resizeContainerToFitContent();
         }
         
         // Log FINAL dimensions after everything is set up
