@@ -165,7 +165,11 @@ function initializeComponentEnginesDemos() {
   
   // 5.9. ThreeD Component Engine TextGeometry Drum Selector
   // Using the main engine in textgeometry mode to create a production drum selector
-  const demoThreeDTextGeometryDrum = new ThreeD_component_engine('demo-3d-textgeometry-drum-container', {
+  const drumContainer = document.getElementById('demo-3d-textgeometry-drum-container');
+  if (!drumContainer) {
+    console.error('[Demo] Container demo-3d-textgeometry-drum-container not found');
+  } else {
+    const demoThreeDTextGeometryDrum = new ThreeD_component_engine(drumContainer, {
     mode: 'textgeometry',  // Use TextGeometry mode
     responsive: true,      // Same responsive sizing
     rotationSpeed: 0,      // Start with no rotation
@@ -175,34 +179,35 @@ function initializeComponentEnginesDemos() {
     texture: 'none',
     backgroundColor: 0x1a1a1a,
     enableInteraction: true
-  });
-  demoThreeDTextGeometryDrum.init();
-  
-  console.log('[Demo] ThreeD Component Engine TextGeometry Drum initialized:', demoThreeDTextGeometryDrum);
-  
-  // Listen for value changes
-  demoThreeDTextGeometryDrum.container.addEventListener('valueChanged', (event) => {
-    console.log('ThreeD TextGeometry Drum value changed to:', event.detail.value);
-  });
-  
-  // Create rotation speed slider for TextGeometry Drum demo
-  componentFactory.createSlider({
-    containerId: 'demo-3d-textgeometry-drum-rotation-slider-container',
-    sliderClass: 'demo-3d-textgeometry-drum-rotation-slider',
-    options: [
-      { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
-      { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
-      { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
-      { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
-      { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
-    ]
-  }, (selectedOption) => {
-    const speed = parseFloat(selectedOption.getAttribute('data-value'));
-    console.log('[Demo ThreeD TextGeometry Drum Rotation Speed] Selected:', speed);
-    if (demoThreeDTextGeometryDrum && demoThreeDTextGeometryDrum.setRotationSpeed) {
-      demoThreeDTextGeometryDrum.setRotationSpeed(speed);
-    }
-  });
+    });
+    demoThreeDTextGeometryDrum.init();
+    
+    console.log('[Demo] ThreeD Component Engine TextGeometry Drum initialized:', demoThreeDTextGeometryDrum);
+    
+    // Listen for value changes
+    demoThreeDTextGeometryDrum.container.addEventListener('valueChanged', (event) => {
+      console.log('ThreeD TextGeometry Drum value changed to:', event.detail.value);
+    });
+    
+    // Create rotation speed slider for TextGeometry Drum demo
+    componentFactory.createSlider({
+      containerId: 'demo-3d-textgeometry-drum-rotation-slider-container',
+      sliderClass: 'demo-3d-textgeometry-drum-rotation-slider',
+      options: [
+        { text: 'Still', value: '0', position: 1, active: true, dataAttributes: 'data-value="0"' },
+        { text: 'Slow', value: '0.25', position: 2, dataAttributes: 'data-value="0.25"' },
+        { text: 'Normal', value: '0.5', position: 3, dataAttributes: 'data-value="0.5"' },
+        { text: 'Fast', value: '0.75', position: 4, dataAttributes: 'data-value="0.75"' },
+        { text: 'Wild!', value: '1', position: 5, dataAttributes: 'data-value="1"' }
+      ]
+    }, (selectedOption) => {
+      const speed = parseFloat(selectedOption.getAttribute('data-value'));
+      console.log('[Demo ThreeD TextGeometry Drum Rotation Speed] Selected:', speed);
+      if (demoThreeDTextGeometryDrum && demoThreeDTextGeometryDrum.setRotationSpeed) {
+        demoThreeDTextGeometryDrum.setRotationSpeed(speed);
+      }
+    });
+  }
   
   // 6. 3D Component demo (responsive)
   const demo3D = componentFactory.create3DObject('demo-3d-container', {
