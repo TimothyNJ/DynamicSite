@@ -1,9 +1,11 @@
 /**
- * threed_drum_selector.js
+ * ThreeD_Drum_Selector.js
  * 
- * Standalone drum selector engine with 3D TextGeometry numbers.
+ * Standalone drum selector engine combining ThreeD_component_engine and TextGeometryDrumEngine.
  * Creates a horizontal drum with numbers 0-9 that can be rotated to select values.
  * Features glossy black cylinder backdrop and animated fog background.
+ * 
+ * This is a self-contained version that doesn't extend other engines.
  * 
  * @class ThreeD_Drum_Selector
  */
@@ -20,91 +22,60 @@ export class ThreeD_Drum_Selector extends EventTarget {
             return;
         }
         
-        // Merge configuration with defaults
-        this.config = this.mergeConfig(config);
+        // Merge configuration
+        this.config = Object.assign({
+            // Size settings
+            responsive: true,
+            width: 100,
+            height: 100,
+            
+            // Background
+            backgroundColor: 0x1a1a1a,
+            
+            // Text settings
+            textDepth: 0, // Flat text
+            
+            // Blocking cylinder
+            addBlockingCylinder: true,
+            
+            // Interaction settings
+            enableInteraction: true,
+            restrictRotationAxis: 'x', // X-axis only rotation
+            rotationSpeed: 0,
+            
+            // Camera settings
+            cameraPosition: { x: 0, y: 0, z: 1.9 },
+            cameraFOV: 50
+        }, config);
         
         // Three.js core objects
         this.renderer = null;
         this.scene = null;
         this.camera = null;
-        this.raycaster = new THREE.Raycaster();
         
-        // Component groups and meshes
-        this.numberGroup = null;
+        // TextGeometry specific properties
         this.numberMeshes = [];
-        this.blockingCylinder = null;
-        this.fogPlane = null;
-        
-        // Font and text
+        this.numberGroup = null;
         this.font = null;
         this.isLoading = false;
         
-        // Fog animation
-        this.fogCanvas = null;
-        this.fogContext = null;
-        this.fogTexture = null;
+        // For parent compatibility
+        this.mesh = null; // Will be assigned to numberGroup
         
-        // Lights
-        this.lights = {};
-        
-        // Interaction state
-        this.isDragging = false;
-        this.previousMousePosition = { x: 0, y: 0 };
-        this.rotationVelocity = 0;
+        // Animation and interaction
         this.animationId = null;
         this.isInitialized = false;
-        
-        // Value tracking
-        this.currentValue = 0;
+        this.isDragging = false;
+        this.previousMousePosition = { x: 0, y: 0 };
+        this.rotationVelocity = { x: 0, y: 0 };
         
         // Bind methods
         this.animate = this.animate.bind(this);
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
-        this.onWheel = this.onWheel.bind(this);
         
-        console.log('[ThreeD Drum Selector] Initialized with config:', this.config);
-    }
-    
-    mergeConfig(config) {
-        return Object.assign({
-            // Visual settings
-            textColor: 0xffffff,
-            textEmissive: 0x444444,
-            textEmissiveIntensity: 0.2,
-            cylinderColor: 0x000000,
-            backgroundColor: 0x1a1a1a,
-            
-            // Geometry settings
-            textRadius: 0.3,
-            cylinderRadius: 0.28,
-            fontSize: 'auto',
-            textDepth: 0, // Flat text
-            
-            // Size settings
-            width: 300,
-            height: 300,
-            responsive: true, // Use viewport-based sizing
-            
-            // Interaction settings
-            enableInteraction: true,
-            enableZoom: true,
-            enableMomentum: true,
-            restrictRotation: 'x', // X-axis only
-            momentumDamping: 0.95,
-            
-            // Animation settings
-            rotationSpeed: 0, // Auto-rotation speed (0-1)
-            enableFog: true,
-            enableSnap: false,
-            snapStrength: 0.5,
-            
-            // Value settings
-            values: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-            defaultValue: '0',
-            onChange: null // Callback function
-        }, config);
+        console.log('[ThreeD Drum Selector] Initialized for dynamic TextGeometry');
     }
     
     init() {
@@ -113,37 +84,31 @@ export class ThreeD_Drum_Selector extends EventTarget {
             return;
         }
         
-        console.log('[ThreeD Drum Selector] Starting initialization...');
+        console.log('[ThreeD Drum Selector] Initializing with config:', this.config);
         
         this.setupRenderer();
         this.setupCamera();
         this.setupScene();
-        this.setupLighting();
+        this.setupLights();
         
-        if (this.config.enableFog) {
-            this.createFogPlane();
-        }
-        
-        // Create number group that will hold all elements
+        // Create a group to hold all numbers - this becomes our "mesh" for rotation
         this.numberGroup = new THREE.Group();
-        this.numberGroup.rotation.z = -Math.PI / 2; // Rotate 90° for horizontal drum
         this.scene.add(this.numberGroup);
+        this.numberGroup.rotation.z = -Math.PI / 2;  // Rotate 90° clockwise to make drum horizontal
+        this.mesh = this.numberGroup; // Assign to mesh so rotation logic works
         
-        // Load font and create components
-        this.loadFont();
+        // Load font and create TextGeometry
+        this.loadFontAndCreateNumbers();
         
+        // Setup event handlers
         if (this.config.enableInteraction) {
-            this.setupInteraction();
+            this.setupEventHandlers();
         }
+        
+        // Start animation loop
+        this.animate();
         
         this.isInitialized = true;
-        this.animate(0);
-        
-        // Set initial value
-        if (this.config.defaultValue) {
-            this.setValue(this.config.defaultValue);
-        }
-        
         console.log('[ThreeD Drum Selector] Initialization complete');
     }
     
@@ -152,169 +117,124 @@ export class ThreeD_Drum_Selector extends EventTarget {
             antialias: true, 
             alpha: true 
         });
-        this.renderer.setClearColor(0x000000, 0); // Transparent background
         this.renderer.setPixelRatio(window.devicePixelRatio);
         
-        // Calculate size based on responsive flag
-        const size = this.config.responsive ? 
-            Math.max(50, Math.min(500, window.innerWidth * 0.15)) : 
-            this.config.width;
+        // Set initial size
+        this.updateSize();
         
-        this.renderer.setSize(size, size);
+        // Configure renderer
+        this.renderer.setClearColor(this.config.backgroundColor, 1);
+        this.renderer.shadowMap.enabled = false;
+        
+        // Add to container
         this.container.appendChild(this.renderer.domElement);
-        
-        // Set container styles
-        this.container.style.display = 'flex';
-        this.container.style.justifyContent = 'center';
-        this.container.style.alignItems = 'center';
-        this.container.style.position = 'relative';
-        this.container.style.overflow = 'hidden';
-        
-        if (!this.config.responsive) {
-            this.container.style.width = `${this.config.width}px`;
-            this.container.style.height = `${this.config.height}px`;
-        }
+        this.renderer.domElement.style.display = 'block';
         
         console.log('[ThreeD Drum Selector] Renderer setup complete');
     }
     
     setupCamera() {
-        const size = this.config.responsive ? 
-            Math.max(50, Math.min(500, window.innerWidth * 0.15)) : 
-            this.config.width;
-            
+        const aspect = this.container.clientWidth / this.container.clientHeight;
         this.camera = new THREE.PerspectiveCamera(
-            50, // FOV
-            1,  // Aspect ratio (square)
+            this.config.cameraFOV,
+            aspect,
             0.1,
-            100
+            1000
         );
-        this.camera.position.set(0, 0, 1.9);
+        
+        // Position camera
+        this.camera.position.set(
+            this.config.cameraPosition.x,
+            this.config.cameraPosition.y,
+            this.config.cameraPosition.z
+        );
         this.camera.lookAt(0, 0, 0);
+        
+        console.log('[ThreeD Drum Selector] Camera setup complete');
     }
     
     setupScene() {
         this.scene = new THREE.Scene();
-        // Don't set background - keep transparent
-        
-        // Setup environment for reflections
-        const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
-        this.scene.environment = pmremGenerator.fromScene(this.createEnvironment()).texture;
+        console.log('[ThreeD Drum Selector] Scene setup complete');
     }
     
-    createEnvironment() {
-        const envScene = new THREE.Scene();
-        
-        const envLight1 = new THREE.DirectionalLight(0xffffff, 2);
-        envLight1.position.set(1, 1, 1);
-        envScene.add(envLight1);
-        
-        const envLight2 = new THREE.DirectionalLight(0xffffff, 1);
-        envLight2.position.set(-1, 1, -1);
-        envScene.add(envLight2);
-        
-        const envAmbient = new THREE.AmbientLight(0xffffff, 1);
-        envScene.add(envAmbient);
-        
-        return envScene;
-    }
-    
-    setupLighting() {
-        // Primary point light - Apple-style 30° elevation, 30° to left
-        this.lights.main = new THREE.PointLight(0xffffff, 2.5);
-        this.lights.main.position.set(-1.5, 1.7, 2);
-        this.scene.add(this.lights.main);
-        
-        // Front fill light
-        this.lights.front = new THREE.DirectionalLight(0xffffff, 0.3);
-        this.lights.front.position.set(0.5, 0.5, 3);
-        this.lights.front.target.position.set(0, 0, 0);
-        this.scene.add(this.lights.front);
-        
-        // Side fills
-        this.lights.leftFill = new THREE.DirectionalLight(0xffffff, 0.2);
-        this.lights.leftFill.position.set(-3, 0, 1);
-        this.lights.leftFill.target.position.set(0, 0, 0);
-        this.scene.add(this.lights.leftFill);
-        
-        this.lights.rightFill = new THREE.DirectionalLight(0xffffff, 0.15);
-        this.lights.rightFill.position.set(3, -0.5, 1);
-        this.lights.rightFill.target.position.set(0, 0, 0);
-        this.scene.add(this.lights.rightFill);
-        
+    setupLights() {
         // Ambient light
-        this.lights.ambient = new THREE.AmbientLight(0xffffff, 0.15);
-        this.scene.add(this.lights.ambient);
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        this.scene.add(ambientLight);
         
-        // Rim light
-        this.lights.rim = new THREE.DirectionalLight(0xffffff, 1.5);
-        this.lights.rim.position.set(0, -2, -2);
-        this.lights.rim.target.position.set(0, 0, 0);
-        this.scene.add(this.lights.rim);
+        // Main directional light
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        this.scene.add(directionalLight);
         
-        console.log('[ThreeD Drum Selector] Lighting setup complete');
+        // Fill light
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        fillLight.position.set(-5, 0, -5);
+        this.scene.add(fillLight);
+        
+        console.log('[ThreeD Drum Selector] Lights setup complete');
     }
     
-    createFogPlane() {
-        // Calculate fog plane size
-        const fogPlaneZ = -1.5;
-        const cameraToFogPlane = this.camera.position.z - fogPlaneZ;
-        const vFOV = (50 * Math.PI) / 180;
-        const visibleHeight = 2 * Math.tan(vFOV / 2) * cameraToFogPlane;
-        const visibleWidth = visibleHeight; // Square aspect
+    setupEventHandlers() {
+        const element = this.renderer.domElement;
         
-        // Create fog plane with padding
-        const fogPlaneWidth = visibleWidth * 1.05;
-        const fogPlaneHeight = visibleHeight * 1.05;
+        // Pointer events
+        element.addEventListener('pointerdown', this.onPointerDown);
+        element.addEventListener('pointermove', this.onPointerMove);
+        element.addEventListener('pointerup', this.onPointerUp);
+        element.addEventListener('pointercancel', this.onPointerUp);
+        element.addEventListener('pointerleave', this.onPointerUp);
         
-        const fogPlaneGeometry = new THREE.PlaneGeometry(fogPlaneWidth, fogPlaneHeight, 32, 32);
-        
-        // Create fog texture canvas
-        this.fogCanvas = document.createElement('canvas');
-        this.fogCanvas.width = 512;
-        this.fogCanvas.height = 512;
-        this.fogContext = this.fogCanvas.getContext('2d');
-        
-        this.fogTexture = new THREE.CanvasTexture(this.fogCanvas);
-        
-        const fogPlaneMaterial = new THREE.MeshBasicMaterial({
-            map: this.fogTexture,
-            transparent: true,
-            opacity: 0.8,
-            side: THREE.DoubleSide,
-            blending: THREE.AdditiveBlending
-        });
-        
-        this.fogPlane = new THREE.Mesh(fogPlaneGeometry, fogPlaneMaterial);
-        this.fogPlane.position.set(0, 0, fogPlaneZ);
-        this.scene.add(this.fogPlane);
-        
-        // Add debug border in development
-        const edges = new THREE.EdgesGeometry(fogPlaneGeometry);
-        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
-        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
-        this.fogPlane.add(lineSegments);
-        
-        console.log('[ThreeD Drum Selector] Fog plane created');
+        console.log('[ThreeD Drum Selector] Event handlers setup complete');
     }
     
-    loadFont() {
-        if (!window.THREE || !window.THREE.FontLoader) {
-            console.warn('[ThreeD Drum Selector] FontLoader not available, using fallback');
+    updateSize() {
+        if (this.config.responsive) {
+            // Use CSS variable for responsive sizing
+            const computedStyle = getComputedStyle(document.documentElement);
+            const baseSize = parseFloat(computedStyle.getPropertyValue('--3d-component-size')) || 100;
+            const viewportScale = Math.min(window.innerWidth, window.innerHeight) / 1000;
+            const scaledSize = Math.floor(baseSize * viewportScale);
+            
+            this.config.width = scaledSize;
+            this.config.height = scaledSize;
+        }
+        
+        this.renderer.setSize(this.config.width, this.config.height);
+        
+        if (this.camera) {
+            this.camera.aspect = this.config.width / this.config.height;
+            this.camera.updateProjectionMatrix();
+        }
+        
+        console.log('[ThreeD Drum Selector] Size updated:', this.config.width, 'x', this.config.height);
+    }
+    
+    loadFontAndCreateNumbers() {
+        if (!window.THREE) {
+            console.error('[ThreeD Drum Selector] Three.js not loaded');
+            return;
+        }
+        
+        // Check if FontLoader is available
+        if (!window.THREE.FontLoader) {
+            console.warn('[ThreeD Drum Selector] FontLoader not available, using fallback boxes');
             this.createFallbackNumbers();
             return;
         }
         
+        // Load font
         const loader = new THREE.FontLoader();
         this.isLoading = true;
         
+        // Try to load helvetiker font
         loader.load(
             'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json',
             (font) => {
                 console.log('[ThreeD Drum Selector] Font loaded successfully');
                 this.font = font;
-                this.createTextNumbers();
-                this.createBlockingCylinder();
+                this.createTextGeometryNumbers();
                 this.isLoading = false;
             },
             (progress) => {
@@ -323,13 +243,12 @@ export class ThreeD_Drum_Selector extends EventTarget {
             (error) => {
                 console.error('[ThreeD Drum Selector] Error loading font:', error);
                 this.createFallbackNumbers();
-                this.createBlockingCylinder();
                 this.isLoading = false;
             }
         );
     }
     
-    createTextNumbers() {
+    createTextGeometryNumbers() {
         if (!this.font) {
             console.error('[ThreeD Drum Selector] No font loaded');
             return;
@@ -338,30 +257,30 @@ export class ThreeD_Drum_Selector extends EventTarget {
         // Clear any existing numbers
         this.clearNumbers();
         
-        const numberOfValues = this.config.values.length;
+        // Create 10 TextGeometry objects for numbers 0-9
+        const numberOfValues = 10;
         const anglePerNumber = (Math.PI * 2) / numberOfValues;
-        const radius = this.config.textRadius;
+        const radius = 0.3;
         
         for (let i = 0; i < numberOfValues; i++) {
-            // Calculate font size
-            let fontSize;
-            if (this.config.fontSize === 'auto') {
-                const computedStyle = getComputedStyle(document.documentElement);
-                const rootFontSize = parseFloat(computedStyle.fontSize);
-                const componentMultiplier = parseFloat(computedStyle.getPropertyValue('--component-font-size')) || 0.9;
-                const fontSizeInPixels = rootFontSize * componentMultiplier;
-                const containerHeight = this.container.clientHeight || 300;
-                const pixelsToUnits = 2.5 / containerHeight;
-                fontSize = fontSizeInPixels * pixelsToUnits * 0.4;
-            } else {
-                fontSize = this.config.fontSize;
-            }
+            // Get computed font size in pixels
+            const computedStyle = getComputedStyle(document.documentElement);
+            const rootFontSize = parseFloat(computedStyle.fontSize); // Base font size in px
+            const componentMultiplier = parseFloat(computedStyle.getPropertyValue('--component-font-size')) || 0.9;
+            const fontSizeInPixels = rootFontSize * componentMultiplier;
             
-            // Create TextGeometry
-            const textGeometry = new THREE.TextGeometry(this.config.values[i], {
+            // Convert pixels to Three.js units based on container/camera relationship
+            const containerHeight = this.container.clientHeight || 300;
+            const pixelsToUnits = 2.5 / containerHeight; // Camera shows ~2.5 units vertically
+            const fontSize = fontSizeInPixels * pixelsToUnits * 0.4; // Reduced scale factor
+            
+            console.log('[ThreeD Drum Selector] Computed:', fontSizeInPixels + 'px', '→', fontSize + ' units');
+            
+            // Create TextGeometry for this number
+            const textGeometry = new THREE.TextGeometry(i.toString(), {
                 font: this.font,
                 size: fontSize,
-                height: this.config.textDepth,
+                height: this.config.textDepth !== undefined ? this.config.textDepth : 0.02,
                 curveSegments: 12,
                 bevelEnabled: false
             });
@@ -369,7 +288,7 @@ export class ThreeD_Drum_Selector extends EventTarget {
             // Center the geometry
             textGeometry.center();
             
-            // Rotate geometry 90 degrees for horizontal orientation
+            // First rotate the geometry 90 degrees before transforming vertices
             textGeometry.rotateZ(Math.PI / 2);
             
             // Transform vertices to curve around cylinder
@@ -383,102 +302,135 @@ export class ThreeD_Drum_Selector extends EventTarget {
                 
                 // Calculate angle for this vertex
                 const baseAngle = i * anglePerNumber;
+                // Scale to use most of allocated angle per number
                 const vertexAngle = -(vertex.x * 5.0) * (anglePerNumber * 0.8);
                 const finalAngle = baseAngle + vertexAngle;
                 
                 // Apply cylindrical transformation
-                const newRadius = radius + vertex.z;
+                const newRadius = radius + vertex.z;  // Add depth to face outward
                 positions.setX(v, Math.cos(finalAngle) * newRadius);
                 positions.setZ(v, Math.sin(finalAngle) * newRadius);
                 // Y stays the same
             }
             
-            // Update geometry
-            positions.needsUpdate = true;
-            textGeometry.computeVertexNormals();
+            // Mark geometry as needing update
+            textGeometry.attributes.position.needsUpdate = true;
+            textGeometry.computeVertexNormals();  // Recalculate normals for proper lighting
             
-            // Create material
-            const material = new THREE.MeshStandardMaterial({
-                color: this.config.textColor,
-                emissive: this.config.textEmissive,
-                emissiveIntensity: this.config.textEmissiveIntensity,
-                side: THREE.FrontSide
-            });
+            // Clear existing groups
+            textGeometry.clearGroups();
             
-            // Create mesh
+            // Manually create groups for front and back faces
+            const faceCount = textGeometry.index ? textGeometry.index.count / 3 : textGeometry.attributes.position.count / 3;
+            const facesPerCap = Math.floor(faceCount * 0.4);  // Approximate
+            
+            // Group 0: Front faces (use material 0)
+            textGeometry.addGroup(0, facesPerCap * 3, 0);
+            
+            // Group 1: Back faces (use material 1) 
+            textGeometry.addGroup(faceCount * 3 - facesPerCap * 3, facesPerCap * 3, 1);
+            
+            // Group 2: Side faces (use material 0)
+            textGeometry.addGroup(facesPerCap * 3, (faceCount - 2 * facesPerCap) * 3, 0);
+            
+            // Create materials array - front visible, back invisible
+            const material = [
+                new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
+                    emissive: 0x444444,
+                    emissiveIntensity: 0.2,
+                    side: THREE.FrontSide  // Front faces only
+                }),
+                new THREE.MeshStandardMaterial({
+                    transparent: true,
+                    opacity: 0  // Back faces - completely invisible
+                })
+            ];
+            
+            // Create mesh with material array
             const mesh = new THREE.Mesh(textGeometry, material);
             
             // Add to group
             this.numberGroup.add(mesh);
             this.numberMeshes.push(mesh);
+            
+            console.log(`[ThreeD Drum Selector] Created curved TextGeometry for ${i}`);
         }
         
-        console.log('[ThreeD Drum Selector] Created', numberOfValues, 'text numbers');
+        console.log('[ThreeD Drum Selector] All curved TextGeometry numbers created');
+        
+        // Add blocking cylinder AFTER numbers are created so we can measure them
+        if (this.config.addBlockingCylinder) {
+            this.createBlockingCylinder();
+        }
     }
     
     createBlockingCylinder() {
-        // Measure text bounds to determine cylinder width
-        let maxHeight = 0;
+        // Measure the maximum width of all text meshes
+        let maxHeight = 0;  // Using height because drum is rotated 90°
         
         for (let mesh of this.numberMeshes) {
             if (mesh) {
+                // Create bounding box for this text mesh
                 const box = new THREE.Box3().setFromObject(mesh);
-                const height = box.max.y - box.min.y;
+                const height = box.max.y - box.min.y;  // Y-axis because of rotation
                 maxHeight = Math.max(maxHeight, height);
             }
         }
         
-        // Add padding
+        // Add minimal padding (5% to avoid clipping)
         const drumWidth = maxHeight * 1.05;
         
-        console.log('[ThreeD Drum Selector] Creating blocking cylinder with width:', drumWidth);
+        console.log('[ThreeD Drum Selector] Auto-sized drum width:', drumWidth, 'based on max text height:', maxHeight);
         
-        // Create glossy black cylinder
+        // Create a shiny black cylinder to block view of rear numbers
         const blockingGeometry = new THREE.CylinderGeometry(
-            this.config.cylinderRadius,
-            this.config.cylinderRadius,
-            drumWidth,
-            32,
-            1,
-            true // Open-ended
+            0.28,  // 0.02 gap from text radius - bit more breathing room
+            0.28,  // Same top and bottom radius
+            drumWidth,   // Dynamic height based on text content
+            32,    // Segments for smooth appearance
+            1,     // Height segments
+            true   // openEnded - no caps, just like the tube!
         );
         
         const blockingMaterial = new THREE.MeshPhysicalMaterial({
-            color: this.config.cylinderColor,
-            metalness: 0.0,
-            roughness: 0.0,
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.0,
-            reflectivity: 1.0,
-            envMapIntensity: 1.2,
-            side: THREE.DoubleSide
+            color: 0x000000,        // Pure black for glossy black appearance
+            metalness: 0.0,         // No metallic properties
+            roughness: 0.0,         // Completely smooth/glossy
+            clearcoat: 1.0,         // Maximum clearcoat effect
+            clearcoatRoughness: 0.0, // Smooth clearcoat
+            reflectivity: 1.0,      // Maximum reflections
+            envMapIntensity: 1.2,   // Enhanced environment reflections
+            side: THREE.DoubleSide  // Visible from both sides
         });
         
-        this.blockingCylinder = new THREE.Mesh(blockingGeometry, blockingMaterial);
+        const blockingCylinder = new THREE.Mesh(blockingGeometry, blockingMaterial);
         
-        // Add to number group so it rotates with numbers
-        this.numberGroup.add(this.blockingCylinder);
+        // Add to the number group so it rotates with the numbers
+        this.numberGroup.add(blockingCylinder);
         
-        console.log('[ThreeD Drum Selector] Blocking cylinder created');
+        console.log('[ThreeD Drum Selector] Added blocking cylinder');
     }
     
     createFallbackNumbers() {
+        // Fallback to box placeholders if FontLoader/TextGeometry not available
         console.log('[ThreeD Drum Selector] Creating fallback box placeholders');
         
+        // Clear any existing numbers
         this.clearNumbers();
         
-        const numberOfValues = this.config.values.length;
+        const numberOfValues = 10;
         const anglePerNumber = (Math.PI * 2) / numberOfValues;
-        const radius = this.config.textRadius;
+        const radius = 0.3;
         
         for (let i = 0; i < numberOfValues; i++) {
-            // Create box as placeholder
+            // Create a box as placeholder
             const geometry = new THREE.BoxGeometry(0.1, 0.15, 0.02);
             const material = new THREE.MeshStandardMaterial({
-                color: this.config.textColor,
-                emissive: this.config.textEmissive,
-                emissiveIntensity: this.config.textEmissiveIntensity,
-                side: THREE.FrontSide
+                color: 0xffffff,
+                emissive: 0x444444,
+                emissiveIntensity: 0.2,
+                side: THREE.FrontSide  // Single-sided - only visible from outside
             });
             
             const mesh = new THREE.Mesh(geometry, material);
@@ -489,9 +441,9 @@ export class ThreeD_Drum_Selector extends EventTarget {
             mesh.position.z = Math.sin(angle) * radius;
             mesh.position.y = 0;
             
-            // Rotate to face outward
-            mesh.rotation.y = angle + Math.PI / 2;
-            mesh.rotation.z = Math.PI / 2;
+            // Rotate to face outward and then 90 degrees for horizontal drum
+            mesh.rotation.y = angle + Math.PI / 2;  // Face outward + 90 degree rotation
+            mesh.rotation.z = Math.PI / 2;  // Rotate 90 degrees for horizontal drum
             
             // Add to group
             this.numberGroup.add(mesh);
@@ -516,280 +468,117 @@ export class ThreeD_Drum_Selector extends EventTarget {
         this.numberMeshes = [];
     }
     
-    setupInteraction() {
-        const canvas = this.renderer.domElement;
-        
-        canvas.style.cursor = 'grab';
-        
-        // Mouse events
-        canvas.addEventListener('pointerdown', this.onPointerDown);
-        canvas.addEventListener('pointermove', this.onPointerMove);
-        canvas.addEventListener('pointerup', this.onPointerUp);
-        canvas.addEventListener('pointercancel', this.onPointerUp);
-        canvas.addEventListener('pointerleave', this.onPointerUp);
-        
-        // Wheel event for zoom
-        if (this.config.enableZoom) {
-            canvas.addEventListener('wheel', this.onWheel, { passive: false });
-        }
-        
-        console.log('[ThreeD Drum Selector] Interaction setup complete');
-    }
-    
     onPointerDown(event) {
-        if (!this.config.enableInteraction) return;
-        
         this.isDragging = true;
-        this.renderer.domElement.style.cursor = 'grabbing';
-        
-        const rect = this.renderer.domElement.getBoundingClientRect();
         this.previousMousePosition = {
-            x: event.clientX - rect.left,
-            y: event.clientY - rect.top
+            x: event.clientX,
+            y: event.clientY
         };
-        
-        // Reset velocity when starting new drag
-        this.rotationVelocity = 0;
-        
-        event.preventDefault();
     }
     
     onPointerMove(event) {
-        if (!this.isDragging || !this.config.enableInteraction) return;
+        if (!this.isDragging || !this.mesh) return;
         
-        const rect = this.renderer.domElement.getBoundingClientRect();
-        const currentPosition = {
-            x: event.clientX - rect.left,
-            y: event.clientY - rect.top
+        const deltaX = event.clientX - this.previousMousePosition.x;
+        const deltaY = event.clientY - this.previousMousePosition.y;
+        
+        // Apply rotation based on config
+        if (this.config.restrictRotationAxis === 'x' || this.config.restrictRotation === 'x') {
+            // Only allow X-axis rotation (vertical swipes)
+            this.mesh.rotation.x -= deltaY * 0.01;
+        } else {
+            // Free rotation
+            this.mesh.rotation.x -= deltaY * 0.01;
+            this.mesh.rotation.y += deltaX * 0.01;
+        }
+        
+        // Store velocity for momentum
+        this.rotationVelocity.x = -deltaY * 0.01;
+        this.rotationVelocity.y = deltaX * 0.01;
+        
+        this.previousMousePosition = {
+            x: event.clientX,
+            y: event.clientY
         };
-        
-        // Calculate rotation based on horizontal movement
-        const deltaX = currentPosition.x - this.previousMousePosition.x;
-        const rotationSpeed = deltaX * 0.01;
-        
-        // Apply rotation only to X-axis (drum rotation)
-        if (this.config.restrictRotation === 'x') {
-            this.numberGroup.rotation.x -= rotationSpeed;
-        }
-        
-        // Track velocity for momentum
-        if (this.config.enableMomentum) {
-            this.rotationVelocity = -rotationSpeed;
-        }
-        
-        this.previousMousePosition = currentPosition;
-        
-        // Trigger onChange callback if value changed
-        const newValue = this.getCurrentValue();
-        if (newValue !== this.currentValue) {
-            this.currentValue = newValue;
-            if (this.config.onChange) {
-                this.config.onChange(this.config.values[newValue]);
-            }
-        }
     }
     
-    onPointerUp(event) {
+    onPointerUp() {
         this.isDragging = false;
-        this.renderer.domElement.style.cursor = 'grab';
     }
     
-    onWheel(event) {
-        if (!this.config.enableZoom) return;
-        
-        // Check if cursor is within component bounds
-        const rect = this.renderer.domElement.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        
-        if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
-            return; // Outside component, let page scroll
-        }
-        
-        event.preventDefault();
-        
-        // Zoom camera
-        const zoomSpeed = 0.1;
-        const delta = event.deltaY > 0 ? 1 + zoomSpeed : 1 - zoomSpeed;
-        
-        this.camera.position.z = Math.max(1, Math.min(3, this.camera.position.z * delta));
-    }
-    
-    updateFogTexture(time) {
-        if (!this.fogContext || !this.fogTexture) return;
-        
-        const ctx = this.fogContext;
-        const width = ctx.canvas.width;
-        const height = ctx.canvas.height;
-        
-        // Clear canvas
-        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
-        ctx.fillRect(0, 0, width, height);
-        
-        // Create animated tunnel effect
-        const centerX = width / 2;
-        const centerY = height / 2;
-        const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-        
-        // Draw concentric circles
-        const tunnelCount = 6;
-        for (let i = 0; i < tunnelCount; i++) {
-            const phase = (time * 0.001 + i * 0.5) % 1;
-            const radius = phase * maxRadius;
-            
-            const gradient = ctx.createRadialGradient(
-                centerX, centerY, Math.max(0, radius - 15),
-                centerX, centerY, radius + 15
-            );
-            
-            const opacity = (1 - phase) * 0.3;
-            gradient.addColorStop(0, `rgba(100, 100, 255, 0)`);
-            gradient.addColorStop(0.5, `rgba(100, 100, 255, ${opacity})`);
-            gradient.addColorStop(1, `rgba(100, 100, 255, 0)`);
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, width, height);
-        }
-        
-        this.fogTexture.needsUpdate = true;
-    }
-    
-    animate(time) {
+    animate() {
         this.animationId = requestAnimationFrame(this.animate);
         
-        // Update fog texture
-        if (this.config.enableFog && this.fogTexture) {
-            this.updateFogTexture(time);
-        }
-        
         // Apply momentum when not dragging
-        if (!this.isDragging && this.config.enableMomentum && Math.abs(this.rotationVelocity) > 0.0001) {
-            this.numberGroup.rotation.x += this.rotationVelocity;
-            this.rotationVelocity *= this.config.momentumDamping;
-            
-            // Check for value change during momentum
-            const newValue = this.getCurrentValue();
-            if (newValue !== this.currentValue) {
-                this.currentValue = newValue;
-                if (this.config.onChange) {
-                    this.config.onChange(this.config.values[newValue]);
-                }
+        if (!this.isDragging && this.mesh) {
+            if (this.config.restrictRotationAxis === 'x' || this.config.restrictRotation === 'x') {
+                // Only apply X-axis momentum
+                this.mesh.rotation.x += this.rotationVelocity.x;
+                this.rotationVelocity.x *= 0.95; // Damping
+            } else {
+                // Free rotation momentum
+                this.mesh.rotation.x += this.rotationVelocity.x;
+                this.mesh.rotation.y += this.rotationVelocity.y;
+                this.rotationVelocity.x *= 0.95;
+                this.rotationVelocity.y *= 0.95;
             }
         }
         
-        // Apply auto-rotation if configured
-        if (this.config.rotationSpeed > 0 && !this.isDragging) {
-            this.numberGroup.rotation.x += this.config.rotationSpeed * 0.01;
+        // Apply auto-rotation
+        if (this.config.rotationSpeed && this.mesh && !this.isDragging) {
+            this.mesh.rotation.x += this.config.rotationSpeed * 0.01;
         }
         
-        // Optional snap-to-value behavior
-        if (this.config.enableSnap && !this.isDragging && Math.abs(this.rotationVelocity) < 0.001) {
-            this.snapToNearestValue();
+        // Render
+        if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
         }
-        
-        this.renderer.render(this.scene, this.camera);
+    }
+    
+    setRotationSpeed(speed) {
+        this.config.rotationSpeed = speed;
+        console.log('[ThreeD Drum Selector] Rotation speed set to:', speed);
     }
     
     getCurrentValue() {
         if (!this.numberGroup) return 0;
         
-        // Normalize rotation to 0-2π range
-        const rotation = this.numberGroup.rotation.x;
-        const normalized = ((rotation % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
-        
-        // Calculate which number is at the front
-        const anglePerNumber = (Math.PI * 2) / this.config.values.length;
-        const index = Math.round(normalized / anglePerNumber) % this.config.values.length;
-        
-        return index;
-    }
-    
-    setValue(value) {
-        const index = this.config.values.indexOf(value.toString());
-        if (index === -1) {
-            console.warn('[ThreeD Drum Selector] Value not found:', value);
-            return;
-        }
-        
-        const anglePerNumber = (Math.PI * 2) / this.config.values.length;
-        this.numberGroup.rotation.x = index * anglePerNumber;
-        
-        this.currentValue = index;
-        if (this.config.onChange) {
-            this.config.onChange(value);
-        }
-    }
-    
-    snapToNearestValue() {
-        const currentRotation = this.numberGroup.rotation.x;
-        const anglePerNumber = (Math.PI * 2) / this.config.values.length;
-        const targetRotation = Math.round(currentRotation / anglePerNumber) * anglePerNumber;
-        
-        // Smooth animation to snap position
-        const diff = targetRotation - currentRotation;
-        if (Math.abs(diff) > 0.001) {
-            this.numberGroup.rotation.x += diff * this.config.snapStrength * 0.1;
-        }
-    }
-    
-    setRotationSpeed(speed) {
-        this.config.rotationSpeed = Math.max(0, Math.min(1, speed));
+        const normalizedRotation = ((this.numberGroup.rotation.x % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
+        const anglePerNumber = (Math.PI * 2) / 10;
+        return Math.round(normalizedRotation / anglePerNumber) % 10;
     }
     
     dispose() {
         // Stop animation
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
+            this.animationId = null;
         }
         
-        // Remove event listeners
-        const canvas = this.renderer.domElement;
-        canvas.removeEventListener('pointerdown', this.onPointerDown);
-        canvas.removeEventListener('pointermove', this.onPointerMove);
-        canvas.removeEventListener('pointerup', this.onPointerUp);
-        canvas.removeEventListener('pointercancel', this.onPointerUp);
-        canvas.removeEventListener('pointerleave', this.onPointerUp);
-        canvas.removeEventListener('wheel', this.onWheel);
-        
-        // Clear numbers
+        // Clean up all numbers
         this.clearNumbers();
         
-        // Dispose blocking cylinder
-        if (this.blockingCylinder) {
-            if (this.blockingCylinder.geometry) this.blockingCylinder.geometry.dispose();
-            if (this.blockingCylinder.material) this.blockingCylinder.material.dispose();
-            this.numberGroup.remove(this.blockingCylinder);
-        }
-        
-        // Dispose fog plane
-        if (this.fogPlane) {
-            if (this.fogPlane.geometry) this.fogPlane.geometry.dispose();
-            if (this.fogPlane.material) this.fogPlane.material.dispose();
-            this.scene.remove(this.fogPlane);
-        }
-        
-        // Dispose textures
-        if (this.fogTexture) this.fogTexture.dispose();
-        
-        // Remove number group
         if (this.numberGroup) {
             this.scene.remove(this.numberGroup);
+            this.numberGroup = null;
         }
         
-        // Dispose renderer
+        // Clean up Three.js objects
         if (this.renderer) {
             this.renderer.dispose();
             this.container.removeChild(this.renderer.domElement);
         }
         
-        // Clear references
-        this.renderer = null;
-        this.scene = null;
-        this.camera = null;
-        this.numberGroup = null;
-        this.blockingCylinder = null;
-        this.fogPlane = null;
+        // Clean up event listeners
+        if (this.renderer && this.renderer.domElement) {
+            const element = this.renderer.domElement;
+            element.removeEventListener('pointerdown', this.onPointerDown);
+            element.removeEventListener('pointermove', this.onPointerMove);
+            element.removeEventListener('pointerup', this.onPointerUp);
+        }
+        
         this.font = null;
+        this.isInitialized = false;
         
         console.log('[ThreeD Drum Selector] Disposed');
     }
