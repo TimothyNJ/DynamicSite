@@ -21,7 +21,7 @@ import { Drum_Selector_Engine } from '../engines/drum_selector_engine.js';
 import { wheel_selector_component_engine } from '../engines/wheel_selector_component_engine.js';
 import { custom_wheel_selector_engine } from '../engines/custom_wheel_selector_engine.js';
 import { ios_drum_wheel_engine } from '../engines/ios_drum_wheel_engine.js';
-import { ThreeD_Drum_Selector } from '../engines/threed_drum_selector.js';
+import { ThreeD_Drum_Selector } from '../engines/ThreeD_Drum_Selector.js';
 
 class ComponentFactory {
   constructor() {
