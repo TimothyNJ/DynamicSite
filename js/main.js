@@ -307,17 +307,26 @@ function initializeComponentEnginesDemos() {
   });
   
   // 7.9. ThreeD Component Engine TextGeometry
+  // Ring of numbers 0-9 that can be rotated in any direction
   const demoTextGeometry3D = new ThreeD_component_engine('demo-3d-textgeometry-container', {
     mode: 'textgeometry',  // Use TextGeometry mode
     responsive: true,
     rotationSpeed: 0,
-    restrictRotationAxis: 'x',
+    textDepth: 0,          // FLAT TEXT - no depth
+    // No restrictRotationAxis - allows rotation in all directions
+    // No addBlockingCylinder - visible from all angles
     texture: 'none',
-    backgroundColor: 0x1a1a1a
+    backgroundColor: 0x1a1a1a,
+    enableInteraction: true
   });
   demoTextGeometry3D.init();
   
   console.log('[Demo] ThreeD Component Engine TextGeometry initialized:', demoTextGeometry3D);
+  
+  // Listen for value changes (for when rotation stops near a number)
+  demoTextGeometry3D.container.addEventListener('valueChanged', (event) => {
+    console.log('ThreeD TextGeometry value changed to:', event.detail.value);
+  });
   
   // Create rotation speed slider for TextGeometry demo
   componentFactory.createSlider({
