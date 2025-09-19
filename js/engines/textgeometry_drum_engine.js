@@ -119,7 +119,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         // Create 10 TextGeometry objects for numbers 0-9
         const numberOfValues = 10;
         const anglePerNumber = (Math.PI * 2) / numberOfValues;
-        const radius = 0.5;
+        const radius = 0.3;
         
         for (let i = 0; i < numberOfValues; i++) {
             // Get computed font size in pixels
@@ -163,7 +163,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
                 // Calculate angle for this vertex
                 const baseAngle = i * anglePerNumber;
                 // Scale to use most of allocated angle per number
-                const vertexAngle = -(vertex.x * 3.0) * (anglePerNumber * 0.8);
+                const vertexAngle = -(vertex.x * 5.0) * (anglePerNumber * 0.8);
                 const finalAngle = baseAngle + vertexAngle;
                 
                 // Apply cylindrical transformation
@@ -250,8 +250,8 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
     createBlockingCylinder() {
         // Create a shiny black cylinder to block view of rear numbers
         const blockingGeometry = new THREE.CylinderGeometry(
-            0.48,  // 0.02 gap from text radius - bit more breathing room
-            0.48,  // Same top and bottom radius
+            0.28,  // 0.02 gap from text radius - bit more breathing room
+            0.28,  // Same top and bottom radius
             0.4,   // Height to cover the text area
             32,    // Segments for smooth appearance
             1,     // Height segments
@@ -289,7 +289,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         
         const numberOfValues = 10;
         const anglePerNumber = (Math.PI * 2) / numberOfValues;
-        const radius = 0.5;
+        const radius = 0.3;
         
         for (let i = 0; i < numberOfValues; i++) {
             // Create a box as placeholder
@@ -367,7 +367,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
         // Transform vertices to curve around cylinder
         const numberOfValues = 10;
         const anglePerNumber = (Math.PI * 2) / numberOfValues;
-        const radius = 0.5;
+        const radius = 0.3;
         const positions = textGeometry.attributes.position;
         const vertex = new THREE.Vector3();
         
@@ -379,7 +379,7 @@ export class TextGeometryDrumEngine extends ThreeD_component_engine {
             // Calculate angle for this vertex
             const baseAngle = index * anglePerNumber;  // position in ring
             // Scale to use most of allocated angle per number
-            const vertexAngle = -(vertex.x * 3.0) * (anglePerNumber * 0.8);
+            const vertexAngle = -(vertex.x * 5.0) * (anglePerNumber * 0.8);
             const finalAngle = baseAngle + vertexAngle;
             
             // Apply cylindrical transformation
