@@ -135,6 +135,9 @@ function initializeComponentEnginesDemos() {
       unselectedNumberColor: 0x888888
     });
     
+    // Initialize the component
+    demoThreeDDrumSelector.init();
+    
     console.log('[Demo] ThreeD_Drum_Selector initialized:', demoThreeDDrumSelector);
     
     // Add value change listener
