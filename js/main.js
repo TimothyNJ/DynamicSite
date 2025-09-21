@@ -37,7 +37,7 @@ import { wheel_time_selector_component_engine } from './engines/wheel_time_selec
 import { wheel_date_picker_component_engine } from './engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from './engines/calendar_picker_component_engine.js';
 import { wheel_selector_component_engine } from './engines/wheel_selector_component_engine.js';
-import { ThreeD_component_engine } from './engines/3D_component_engine.js';
+import { ThreeD_component_engine } from './engines/3_D_component_engine.js';
 import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
 import { initializeComponents } from './loader/component-loader.js';
 import { initializeNavbar } from './navigation/navbar.js';

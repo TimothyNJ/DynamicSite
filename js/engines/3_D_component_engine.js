@@ -1,5 +1,5 @@
 /**
- * 3D_component_engine.js
+ * 3_D_component_engine.js
  * 
  * A reusable component engine for creating interactive 3D objects using Three.js.
  * Supports various geometries, textures, animations, and interactions.
@@ -17,7 +17,7 @@
  *   - Trackpad: Safari only (uses WebKit gesture events)
  * - Pinch gesture: Scales the component
  * 
- * @class 3D_component_engine
+ * @class 3_D_component_engine
  */
 
 import { LoopSubdivision } from 'three-subdivide';

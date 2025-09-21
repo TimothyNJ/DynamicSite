@@ -16,7 +16,7 @@ import { file_upload_input_component_engine } from '../engines/file_upload_input
 import { wheel_time_selector_component_engine } from '../engines/wheel_time_selector_component_engine.js';
 import { wheel_date_picker_component_engine } from '../engines/wheel_date_picker_component_engine.js';
 import { calendar_picker_component_engine } from '../engines/calendar_picker_component_engine.js';
-import { ThreeD_component_engine } from '../engines/3D_component_engine.js';
+import { ThreeD_component_engine } from '../engines/3_D_component_engine.js';
 
 import { wheel_selector_component_engine } from '../engines/wheel_selector_component_engine.js';
 import { custom_wheel_selector_engine } from '../engines/custom_wheel_selector_engine.js';
@@ -45,7 +45,7 @@ class ComponentFactory {
    * Create a 3D object component
    * @param {string} containerId - ID of the container element
    * @param {Object} config - Configuration for the 3D object
-   * @returns {ThreeD_component_engine} The 3D component instance
+   * @returns {3_D_component_engine} The 3D component instance
    */
   create3DObject(containerId, config = {}) {
     const container = document.getElementById(containerId);
