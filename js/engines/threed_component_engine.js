@@ -128,6 +128,7 @@ export class ThreeD_component_engine {
             
             // Fog plane configuration
             fogPlanePadding: 1.05,     // 5% padding by default (1.0 = no padding, 1.5 = 50% padding)
+            // EDIT-FOG-PROJECTION: Consider adjusting default padding after projection math is implemented
             fogPlaneEnabled: true,     // Allow disabling fog plane entirely
             fogPlaneDynamic: true,     // Enable dynamic resizing based on content
             fogPlaneUpdateDelay: 100,  // Debounce delay for performance (ms)
@@ -2099,6 +2100,7 @@ export class ThreeD_component_engine {
     }
     
     // Dynamic content-based fog plane sizing
+    // EDIT-FOG-PROJECTION: Update to use perspective projection of content bounds
     updateFogPlaneSizeDynamic() {
         if (!this.fogPlane) return;
         
@@ -2132,6 +2134,8 @@ export class ThreeD_component_engine {
         // Get the size of actual content
         const size = box.getSize(new THREE.Vector3());
         
+        // EDIT-FOG-PROJECTION: Add center calculation for projection math
+        
         // Handle empty scene case
         if (size.x === 0 || size.y === 0 || !isFinite(size.x) || !isFinite(size.y)) {
             console.warn('[3D Engine] No content to size fog plane against, using legacy method');
@@ -2139,10 +2143,12 @@ export class ThreeD_component_engine {
             return;
         }
         
+        // EDIT-FOG-PROJECTION: Replace simple padding with perspective projection calculation
         // Calculate fog plane size based on content + dynamic padding
         const paddingFactor = this.config.fogPlanePadding || 1.05; // 5% default padding
         const fogPlaneWidth = size.x * paddingFactor;
         const fogPlaneHeight = size.y * paddingFactor;
+        // EDIT-FOG-PROJECTION: End of section to replace
         
         // Dispose old geometry properly
         if (this.fogPlane.geometry) {
@@ -2178,6 +2184,7 @@ export class ThreeD_component_engine {
             lineSegments.geometry = edges;
         }
         
+        // EDIT-FOG-PROJECTION: Update console message to mention perspective projection
         console.log(`[3D Engine] Dynamic fog plane resized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} based on content bounds`);
     }
     
