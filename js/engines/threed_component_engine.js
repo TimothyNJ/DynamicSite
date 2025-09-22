@@ -94,6 +94,7 @@ export class ThreeD_component_engine {
         this.font = null;
         this.isLoading = false;
         
+        // EDIT-FOG-DYNAMIC: Add debounced fog plane update properties and method binding
         // Bind methods
         this.animate = this.animate.bind(this);
         this.onPointerDown = this.onPointerDown.bind(this);
@@ -104,6 +105,9 @@ export class ThreeD_component_engine {
         this.onGestureEnd = this.onGestureEnd.bind(this);
     }
     
+    // EDIT-FOG-DYNAMIC: Add debouncedUpdateFogPlane method here
+    
+    // EDIT-FOG-DYNAMIC: Add fog plane configuration options (fogPlanePadding, fogPlaneEnabled, fogPlaneDynamic, fogPlaneUpdateDelay)
     mergeConfig(config) {
         return Object.assign({
             // Engine mode
@@ -377,6 +381,7 @@ export class ThreeD_component_engine {
         }
     }
     
+    // EDIT-FOG-DYNAMIC: Modify initial fog plane creation to support dynamic sizing
     createFogPlane() {
         // Get actual renderer dimensions in pixels
         const rendererSize = new THREE.Vector2();
@@ -989,6 +994,8 @@ export class ThreeD_component_engine {
         
         // Resize container to fit content
         this.resizeContainerToFitContent();
+        
+        // EDIT-FOG-DYNAMIC: Update fog plane after mesh creation if dynamic mode
     }
     
     resizeContainerToFitContent() {
@@ -1693,6 +1700,7 @@ export class ThreeD_component_engine {
             // Transition to pinch gesture
             this.transitionGesture('pinch');
             
+            // EDIT-FOG-DYNAMIC: Add fog plane update after pinch gestures
             // Pinch to zoom behavior - NO MOMENTUM
             // Calculate scale based on deltaY magnitude for smooth scaling
             const sensitivity = 0.0035;  // Middle ground between 0.002 and fixed 5%
@@ -2015,9 +2023,11 @@ export class ThreeD_component_engine {
         // Update fog plane size to match new renderer size
         this.updateFogPlaneSize();
         
+        // EDIT-FOG-DYNAMIC: Also update based on content if dynamic mode
         // Let container naturally fit the canvas - don't set explicit size
     }
     
+    // EDIT-FOG-DYNAMIC: Complete rewrite to use content-based sizing instead of camera-based
     updateFogPlaneSize() {
         if (!this.fogPlane) return;
         
@@ -2382,6 +2392,7 @@ export class ThreeD_component_engine {
             this.container.removeChild(this.renderer.domElement);
         }
         
+        // EDIT-FOG-DYNAMIC: Clear fog plane update timeout in dispose
         // Clear timeouts
         if (this.wheelGestureTimeout) {
             clearTimeout(this.wheelGestureTimeout);
@@ -2581,6 +2592,8 @@ export class ThreeD_component_engine {
         
         console.log('[3D Component Engine TextGeometry] All curved TextGeometry numbers created');
         
+        // EDIT-FOG-DYNAMIC: Update fog plane after all numbers created
+        
         // Add blocking cylinder AFTER numbers are created so we can measure them
         if (this.config.addBlockingCylinder) {
             this.createBlockingCylinder();
@@ -2673,6 +2686,8 @@ export class ThreeD_component_engine {
         }
         
         console.log('[3D Component Engine TextGeometry] Fallback boxes created');
+        
+        // EDIT-FOG-DYNAMIC: Update fog plane after fallback boxes created
     }
     
     clearNumbers() {
