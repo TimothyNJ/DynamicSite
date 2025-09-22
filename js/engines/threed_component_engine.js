@@ -2132,6 +2132,7 @@ export class ThreeD_component_engine {
         // Get the size of actual content
         const size = box.getSize(new THREE.Vector3());
         
+        // EDIT-BOUNDING-SPHERE: Replace box size with bounding sphere for rotation-invariant coverage
         // Get the center of content bounds for projection math
         const center = box.getCenter(new THREE.Vector3());
         
@@ -2158,6 +2159,7 @@ export class ThreeD_component_engine {
             perspectiveScale = cameraToFogPlane / cameraToContent;
         }
         
+        // EDIT-BOUNDING-SPHERE: Use sphere diameter instead of box dimensions
         // Apply perspective scaling to content bounds
         const projectedWidth = size.x * perspectiveScale;
         const projectedHeight = size.y * perspectiveScale;
