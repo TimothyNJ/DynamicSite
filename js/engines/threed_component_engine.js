@@ -2148,23 +2148,18 @@ export class ThreeD_component_engine {
         
         // Calculate perspective projection of content bounds to fog plane position
         const fogPlaneZ = -1.5;  // Fog plane's Z position
+        const contentZ = center.z;  // Average Z position of content
         const cameraZ = this.camera.position.z;  // Camera is typically at z=1.9
         
-        // Use the closest point of the sphere to camera for accurate projection
-        // The sphere extends from center - radius to center + radius
-        const closestContentZ = center.z + sphere.radius;  // Closest point to camera
-        const furthestContentZ = center.z - sphere.radius;  // Furthest point from camera
-        
         // Calculate distances for perspective scaling
-        // Use closest point to ensure everything is covered
-        const cameraToClosestContent = Math.abs(cameraZ - closestContentZ);
+        const cameraToContent = Math.abs(cameraZ - contentZ);
         const cameraToFogPlane = Math.abs(cameraZ - fogPlaneZ);
         
         // Calculate perspective scale factor
         // Objects further from camera need larger fog plane coverage
         let perspectiveScale = 1;
-        if (cameraToClosestContent > 0.01) {  // Avoid division by zero
-            perspectiveScale = cameraToFogPlane / cameraToClosestContent;
+        if (cameraToContent > 0.01) {  // Avoid division by zero
+            perspectiveScale = cameraToFogPlane / cameraToContent;
         }
         
         // Use sphere diameter for both width and height (rotation-invariant)
