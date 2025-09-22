@@ -2103,49 +2103,65 @@ export class ThreeD_component_engine {
     updateFogPlaneSizeDynamic() {
         if (!this.fogPlane) return;
         
-        // Calculate actual content bounds
-        const box = new THREE.Box3();
+        // Find the largest bounding sphere among all objects (no double-counting)
+        let largestSphere = null;
+        let largestRadius = 0;
         
-        // Include the main mesh
+        // Check main mesh
         if (this.mesh) {
-            box.expandByObject(this.mesh);
+            const meshBox = new THREE.Box3().setFromObject(this.mesh);
+            const meshSphere = meshBox.getBoundingSphere(new THREE.Sphere());
+            if (meshSphere.radius > largestRadius) {
+                largestSphere = meshSphere;
+                largestRadius = meshSphere.radius;
+            }
         }
         
-        // Include text meshes if in textgeometry mode
-        if (this.numberMeshes && this.numberMeshes.length > 0) {
+        // Check number group (contains numbers AND blocking cylinder)
+        if (this.numberGroup) {
+            const groupBox = new THREE.Box3().setFromObject(this.numberGroup);
+            const groupSphere = groupBox.getBoundingSphere(new THREE.Sphere());
+            if (groupSphere.radius > largestRadius) {
+                largestSphere = groupSphere;
+                largestRadius = groupSphere.radius;
+            }
+        }
+        
+        // Only check individual number meshes if they're NOT in a group (to avoid double-counting)
+        if (!this.numberGroup && this.numberMeshes && this.numberMeshes.length > 0) {
             this.numberMeshes.forEach(mesh => {
-                box.expandByObject(mesh);
+                const meshBox = new THREE.Box3().setFromObject(mesh);
+                const meshSphere = meshBox.getBoundingSphere(new THREE.Sphere());
+                if (meshSphere.radius > largestRadius) {
+                    largestSphere = meshSphere;
+                    largestRadius = meshSphere.radius;
+                }
             });
         }
         
-        // Include number group if exists
-        if (this.numberGroup) {
-            box.expandByObject(this.numberGroup);
-        }
-        
-        // Include any decals
+        // Check decals
         if (this.decals && this.decals.length > 0) {
             this.decals.forEach(decal => {
-                box.expandByObject(decal);
+                const decalBox = new THREE.Box3().setFromObject(decal);
+                const decalSphere = decalBox.getBoundingSphere(new THREE.Sphere());
+                if (decalSphere.radius > largestRadius) {
+                    largestSphere = decalSphere;
+                    largestRadius = decalSphere.radius;
+                }
             });
         }
         
-        // Get the size of actual content
-        const size = box.getSize(new THREE.Vector3());
-        
-        // Get bounding sphere for rotation-invariant coverage
-        const sphere = box.getBoundingSphere(new THREE.Sphere());
-        const sphereDiameter = sphere.radius * 2;
-        
-        // Get the center of content bounds for projection math
-        const center = sphere.center;  // Use sphere center which is same as box center
-        
         // Handle empty scene case
-        if (sphereDiameter === 0 || !isFinite(sphereDiameter)) {
+        if (!largestSphere || largestRadius === 0 || !isFinite(largestRadius)) {
             console.warn('[3D Engine] No content to size fog plane against, using legacy method');
             this.updateFogPlaneSizeLegacy();
             return;
         }
+        
+        // Use the largest sphere for sizing
+        const sphere = largestSphere;
+        const sphereDiameter = largestRadius * 2;
+        const center = sphere.center;
         
         // Calculate perspective projection of content bounds to fog plane position
         const fogPlaneZ = this.fogPlane.position.z;  // Use actual fog plane Z position from instance
@@ -2207,7 +2223,7 @@ export class ThreeD_component_engine {
             lineSegments.geometry = edges;
         }
         
-        console.log(`[3D Engine] Fog plane sized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} (sphere: ${sphereDiameter.toFixed(2)}, perspective: ${perspectiveScale.toFixed(2)}x)`);
+        console.log(`[3D Engine] Fog plane sized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} (largest sphere: ${sphereDiameter.toFixed(2)}, perspective: ${perspectiveScale.toFixed(2)}x)`);
     }
     
     setLightPosition(lightName, axis, value) {
