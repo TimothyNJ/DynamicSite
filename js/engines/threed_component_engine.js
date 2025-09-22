@@ -114,8 +114,8 @@ export class ThreeD_component_engine {
             height: 100,
             
             // Responsive mode flag
-            // EDIT-FIXED: Change default to true
-            responsive: false,  // If true, uses CSS variable for sizing
+            // Responsive mode flag (always true now)
+            responsive: true,  // Uses CSS variable for sizing
             
             // Geometry settings
             geometry: 'roundedBox', // 'roundedBox', 'sphere', 'torus', 'cylinder'
@@ -234,13 +234,8 @@ export class ThreeD_component_engine {
         this.isInitialized = true;
         this.animate(0);
         
-        // Force initial resize for responsive components
-        // REMOVE-FIXED: START - Conditional resize check
-        if (this.config.responsive) {
-            this.updateResponsiveSize();
-        }
-        // REMOVE-FIXED: END
-        // KEEP-RESPONSIVE: Always call updateResponsiveSize()
+        // Force initial resize
+        this.updateResponsiveSize();
         
         // Log FINAL dimensions after everything is set up
         setTimeout(() => {
@@ -264,13 +259,8 @@ export class ThreeD_component_engine {
         this.renderer.setClearColor(0x000000, 0); // Fully transparent
         this.renderer.setPixelRatio(window.devicePixelRatio);
         
-        // For responsive mode, calculate size based on viewport
-        // REMOVE-FIXED: START - Conditional size calculation
-        const size = this.config.responsive ? 
-            Math.max(50, Math.min(500, window.innerWidth * 0.15)) :  // clamp(50px, 15vw, 500px)
-            this.config.width;
-        // REMOVE-FIXED: END
-        // KEEP-RESPONSIVE: Always use dynamic calculation: const size = Math.max(50, Math.min(500, window.innerWidth * 0.15));
+        // Calculate size based on viewport
+        const size = Math.max(50, Math.min(500, window.innerWidth * 0.15));  // clamp(50px, 15vw, 500px)
         
         console.log(`[3D Engine] Setting up renderer - responsive: ${this.config.responsive}, calculated size: ${size}`);
         
@@ -281,15 +271,6 @@ export class ThreeD_component_engine {
         console.log(`[3D Engine] After setSize - Canvas style.height: ${this.renderer.domElement.style.height}`);
         
         this.container.appendChild(this.renderer.domElement);
-        
-        // Ensure canvas respects container size
-        // REMOVE-FIXED: START - Conditional canvas styling
-        if (!this.config.responsive) {
-            // Only set 100% for fixed components
-            this.renderer.domElement.style.width = '100%';
-            this.renderer.domElement.style.height = '100%';
-        }
-        // REMOVE-FIXED: END
         this.renderer.domElement.style.display = 'block';
         
         console.log(`[3D Engine] Canvas actual size: ${this.renderer.domElement.width}x${this.renderer.domElement.height}`);
@@ -310,15 +291,6 @@ export class ThreeD_component_engine {
         this.container.style.alignItems = 'center';  // Center vertically
         this.container.style.flex = '0 1 auto';  // No grow, CAN shrink, auto basis
         this.container.style.maxWidth = '100%';
-        
-        // Add conditional container styling based on responsive flag
-        // REMOVE-FIXED: START - Fixed container dimensions
-        if (!this.config.responsive) {
-            // Only set container dimensions for non-responsive mode
-            this.container.style.width = `${this.config.width}px`;
-            this.container.style.height = `${this.config.height}px`;
-        }
-        // REMOVE-FIXED: END
         // For responsive mode, let the container naturally fit the canvas
         
         this.container.style.position = 'relative';
@@ -348,13 +320,8 @@ export class ThreeD_component_engine {
     }
     
     setupCamera() {
-        // For responsive mode, calculate the size the same way as in setupRenderer
-        // REMOVE-FIXED: START - Conditional size for camera
-        const size = this.config.responsive ? 
-            Math.max(50, Math.min(500, window.innerWidth * 0.15)) :
-            this.config.width;
-        // REMOVE-FIXED: END
-        // KEEP-RESPONSIVE: Always use dynamic size
+        // Calculate the size the same way as in setupRenderer
+        const size = Math.max(50, Math.min(500, window.innerWidth * 0.15));
             
         this.camera = new THREE.PerspectiveCamera(
             this.config.cameraFOV,
@@ -1033,76 +1000,12 @@ export class ThreeD_component_engine {
     }
     
     resizeContainerToFitContent() {
-        // Skip resizing for responsive components - they manage their own size
-        // REMOVE-FIXED: START - Early return for responsive mode
-        if (this.config.responsive) {
-            // For responsive mode, just store the initial calculated size
-            const size = Math.max(50, Math.min(500, window.innerWidth * 0.15));
-            this.initialWidth = size;
-            this.initialHeight = size;
-            console.log(`[3D Engine] Responsive component - skipping resizeContainerToFitContent, using ${size}px`);
-            return;
-        }
-        // REMOVE-FIXED: END
-        // KEEP-RESPONSIVE: Just set initial size and return
-        
-        // REMOVE-FIXED: START - Entire fixed-mode measurement logic (60+ lines)
-        // Original logic only for fixed components
-        // Create temporary offscreen renderer for measurement
-        const tempRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        tempRenderer.setSize(1000, 1000); // Large size to avoid any clipping
-        
-        // Create temporary camera with same settings but square aspect
-        const tempCamera = new THREE.PerspectiveCamera(
-            this.config.cameraFOV,
-            1, // Square aspect ratio for consistent measurement
-            0.1,
-            100
-        );
-        tempCamera.position.copy(this.camera.position);
-        tempCamera.lookAt(0, 0, 0);
-        
-        // Render once to ensure geometry is properly calculated
-        tempRenderer.render(this.scene, tempCamera);
-        
-        // Calculate bounding box of the entire scene (includes fog plane)
-        const box = new THREE.Box3().setFromObject(this.scene);
-        const size = box.getSize(new THREE.Vector3());
-        
-        // Project 3D size to screen pixels using the temporary setup
-        const distance = tempCamera.position.z;
-        const vFov = (tempCamera.fov * Math.PI) / 180;
-        const visibleHeight = 2 * Math.tan(vFov / 2) * distance;
-        
-        // Calculate pixel dimensions - no extra padding as fog plane provides it
-        const scale = 1000 / visibleHeight; // Based on temp renderer size
-        const width = Math.ceil(size.x * scale);
-        const height = Math.ceil(size.y * scale);
-        
-        // Dispose of temporary renderer
-        tempRenderer.dispose();
-        
-        // Now update the real container and renderer with calculated size
-        this.config.width = width;
-        this.config.height = height;
-        // Removed - let container naturally fit the canvas
-        // this.container.style.width = `${width}px`;
-        // this.container.style.height = `${height}px`;
-        
-        // Store initial dimensions for constraint calculations
-        this.initialWidth = width;
-        this.initialHeight = height;
-        
-        // Update the real renderer
-        this.renderer.setSize(width, height);
-        
-        // Update camera aspect ratio for the real renderer
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
-        
-        // Update fog plane size to match new renderer size
-        this.updateFogPlaneSize();
-        // REMOVE-FIXED: END
+        // Just set initial size and return
+        const size = Math.max(50, Math.min(500, window.innerWidth * 0.15));
+        this.initialWidth = size;
+        this.initialHeight = size;
+        console.log(`[3D Engine] Component - using ${size}px`);
+        return;
     }
     
     setupInteraction() {
@@ -1156,14 +1059,9 @@ export class ThreeD_component_engine {
         // Wheel gesture timeout
         this.wheelGestureTimeout = null;
         
-        // Add viewport resize listener for responsive mode
-        // REMOVE-FIXED: START - Conditional resize listener
-        if (this.config.responsive) {
-            this.resizeHandler = () => this.updateResponsiveSize();
-            window.addEventListener('resize', this.resizeHandler);
-        }
-        // REMOVE-FIXED: END
-        // KEEP-RESPONSIVE: Always add resize listener
+        // Add viewport resize listener
+        this.resizeHandler = () => this.updateResponsiveSize();
+        window.addEventListener('resize', this.resizeHandler);
     }
     
     // Gesture state management
@@ -2115,9 +2013,6 @@ export class ThreeD_component_engine {
     }
     
     updateResponsiveSize() {
-        // REMOVE-FIXED: START - Guard clause
-        if (!this.config.responsive) return;
-        // REMOVE-FIXED: END
         
         const size = Math.max(50, Math.min(500, window.innerWidth * 0.15));  // clamp(50px, 15vw, 500px)
         
@@ -2487,12 +2382,9 @@ export class ThreeD_component_engine {
             this.renderer.domElement.removeEventListener('wheel', this.onWheel);
             
             // Clean up resize listener
-            // REMOVE-FIXED: START - Conditional cleanup
-            if (this.config.responsive && this.resizeHandler) {
+            if (this.resizeHandler) {
                 window.removeEventListener('resize', this.resizeHandler);
             }
-            // REMOVE-FIXED: END
-            // KEEP-RESPONSIVE: Always remove listener
             
             this.renderer.dispose();
             this.container.removeChild(this.renderer.domElement);
