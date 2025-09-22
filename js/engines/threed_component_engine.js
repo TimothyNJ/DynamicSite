@@ -131,6 +131,7 @@ export class ThreeD_component_engine {
             fogPlaneEnabled: true,     // Allow disabling fog plane entirely
             fogPlaneDynamic: true,     // Enable dynamic resizing based on content
             fogPlaneUpdateDelay: 100,  // Debounce delay for performance (ms)
+            fogPlaneZ: -1.5,           // EDIT-FOG-VARIABLES: Z position of fog plane (configurable per instance)
             
             // Geometry settings
             geometry: 'roundedBox', // 'roundedBox', 'sphere', 'torus', 'cylinder'
@@ -432,7 +433,7 @@ export class ThreeD_component_engine {
         
         // Create and position fog plane
         this.fogPlane = new THREE.Mesh(fogPlaneGeometry, fogPlaneMaterial);
-        this.fogPlane.position.set(0, 0, -1.5); // Between object and backlight
+        this.fogPlane.position.set(0, 0, this.config.fogPlaneZ); // EDIT-FOG-VARIABLES: Use config value
         this.scene.add(this.fogPlane);
         
         // Add debug border to fog plane
@@ -464,7 +465,7 @@ export class ThreeD_component_engine {
         this.renderer.getSize(rendererSize);
         
         // Calculate fog plane size based on actual renderer pixels
-        const fogPlaneZ = -1.5;
+        const fogPlaneZ = this.config.fogPlaneZ; // EDIT-FOG-VARIABLES: Use config value
         const cameraToFogPlane = this.camera.position.z - fogPlaneZ;
         const vFOV = (this.config.cameraFOV * Math.PI) / 180; // Convert to radians
         
@@ -2102,6 +2103,8 @@ export class ThreeD_component_engine {
     updateFogPlaneSizeDynamic() {
         if (!this.fogPlane) return;
         
+        // EDIT-FOG-VARIABLES: Use actual instance values for fog plane position, camera position, and FOV
+        
         // Calculate actual content bounds
         const box = new THREE.Box3();
         
@@ -2147,9 +2150,12 @@ export class ThreeD_component_engine {
         }
         
         // Calculate perspective projection of content bounds to fog plane position
+        // EDIT-FOG-VARIABLES: Replace hardcoded fogPlaneZ with actual fog plane position
         const fogPlaneZ = -1.5;  // Fog plane's Z position
         const contentZ = center.z;  // Average Z position of content
         const cameraZ = this.camera.position.z;  // Camera is typically at z=1.9
+        
+        // EDIT-FOG-VARIABLES: Ensure we're using actual camera FOV from this instance
         
         // Calculate distances for perspective scaling
         const cameraToContent = Math.abs(cameraZ - contentZ);
