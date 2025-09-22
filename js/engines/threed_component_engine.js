@@ -84,6 +84,9 @@ export class ThreeD_component_engine {
         this.fogCanvas = null;
         this.fogContext = null;
         
+        // Yellow border DOM element for component bounds
+        this.yellowBorderElement = null;
+        
         // Decal system for projected textures
         this.decals = [];
         this.decalMaterials = new Map();
@@ -230,6 +233,7 @@ export class ThreeD_component_engine {
         this.setupScene();
         this.setupLighting();
         this.createFogPlane();  // Always create fog plane for background
+        this.createYellowBorder();  // Create yellow component border
         
         // Mode-specific initialization
         if (this.config.mode === 'textgeometry') {
@@ -241,6 +245,9 @@ export class ThreeD_component_engine {
             this.createMaterial();
             this.createMesh();
         }
+        
+        // Update yellow border after geometry is created
+        this.updateYellowBorderSize();
         
         if (this.config.enableInteraction) {
             this.setupInteraction();
@@ -448,6 +455,44 @@ export class ThreeD_component_engine {
         }, 0);
         
         console.log('[3D Engine] Fog plane created');
+    }
+    
+    createYellowBorder() {
+        // Create yellow border DOM element
+        this.yellowBorderElement = document.createElement('div');
+        this.yellowBorderElement.className = 'threed-component-yellow-border';
+        
+        // Set initial styles
+        this.yellowBorderElement.style.cssText = `
+            position: absolute;
+            border: 1px solid yellow;
+            pointer-events: none;
+            z-index: 10;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-sizing: border-box;
+        `;
+        
+        // Add to container
+        this.container.appendChild(this.yellowBorderElement);
+        
+        console.log('[3D Engine] Yellow component border created');
+    }
+    
+    updateYellowBorderSize() {
+        if (!this.yellowBorderElement) return;
+        
+        // Placeholder for Pass 2 implementation
+        // Will calculate size based on:
+        // - Bounding sphere (default)
+        // - Actual bounds (if restrictRotationAxis)
+        
+        // Temporary: Set a fixed size for visibility
+        this.yellowBorderElement.style.width = '200px';
+        this.yellowBorderElement.style.height = '200px';
+        
+        console.log('[3D Engine] Yellow border size updated');
     }
     
     createEnvironment() {
