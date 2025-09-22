@@ -129,7 +129,7 @@ export class ThreeD_component_engine {
             // Fog plane configuration
             fogPlanePadding: 1.0,      // No padding by default (1.0 = no padding, 1.5 = 50% padding)
             fogPlaneEnabled: true,     // Allow disabling fog plane entirely
-            fogPlaneDynamic: true,     // Enable dynamic resizing based on content
+            fogPlaneDynamic: true,     // REMOVE-LEGACY: No longer needed, always use dynamic sizing
             fogPlaneUpdateDelay: 100,  // Debounce delay for performance (ms)
             fogPlaneZ: -1.5,           // Z position of fog plane (configurable per instance)
             
@@ -443,19 +443,20 @@ export class ThreeD_component_engine {
         this.fogPlane.add(lineSegments);
         
         // Set proper initial size based on mode
-        if (this.config.fogPlaneDynamic) {
+        if (this.config.fogPlaneDynamic) { // REMOVE-LEGACY: This condition will be removed
             // Delay to ensure geometry is created
             setTimeout(() => {
                 this.updateFogPlaneSize();
             }, 0);
-        } else {
+        } else { // REMOVE-LEGACY: This entire else block will be removed
             // Use old camera-based sizing for backwards compatibility
             this.updateFogPlaneSizeLegacy();
         }
         
-        console.log('[3D Engine] Fog plane created in ' + (this.config.fogPlaneDynamic ? 'dynamic' : 'legacy') + ' mode');
+        console.log('[3D Engine] Fog plane created in ' + (this.config.fogPlaneDynamic ? 'dynamic' : 'legacy') + ' mode'); // REMOVE-LEGACY: Simplify this message
     }
     
+    // REMOVE-LEGACY: This entire method will be removed
     // Legacy camera-based fog plane sizing (for backwards compatibility)
     updateFogPlaneSizeLegacy() {
         if (!this.fogPlane) return;
@@ -1051,7 +1052,7 @@ export class ThreeD_component_engine {
         this.resizeContainerToFitContent();
         
         // Update fog plane to match new geometry if dynamic mode
-        if (this.config.fogPlaneDynamic && this.fogPlane) {
+        if (this.config.fogPlaneDynamic && this.fogPlane) { // REMOVE-LEGACY: Remove condition, always update
             this.updateFogPlaneSize();
         }
     }
@@ -2081,20 +2082,21 @@ export class ThreeD_component_engine {
         this.updateFogPlaneSize();
         
         // Also update based on content if dynamic mode
-        if (this.config.fogPlaneDynamic) {
+        if (this.config.fogPlaneDynamic) { // REMOVE-LEGACY: Remove condition, always call
             this.debouncedUpdateFogPlane();
         }
         
         // Let container naturally fit the canvas - don't set explicit size
     }
     
+    // REMOVE-LEGACY: Simplify this method to just call dynamic sizing
     updateFogPlaneSize() {
         if (!this.fogPlane) return;
         
         // Use appropriate sizing method based on configuration
-        if (this.config.fogPlaneDynamic) {
+        if (this.config.fogPlaneDynamic) { // REMOVE-LEGACY: Remove this condition
             this.updateFogPlaneSizeDynamic();
-        } else {
+        } else { // REMOVE-LEGACY: Remove this else block
             this.updateFogPlaneSizeLegacy();
         }
     }
@@ -2189,7 +2191,8 @@ export class ThreeD_component_engine {
         
         // Handle empty scene case
         if (!largestSphere || largestRadius === 0 || !isFinite(largestRadius)) {
-            console.warn('[3D Engine] No content to size fog plane against, using legacy method');
+            console.warn('[3D Engine] No content to size fog plane against'); // REMOVE-LEGACY: Remove fallback to legacy
+            // REMOVE-LEGACY: Remove this fallback call
             this.updateFogPlaneSizeLegacy();
             return;
         }
@@ -2808,7 +2811,7 @@ export class ThreeD_component_engine {
         }
         
         // Update fog plane after all geometry (including cylinder) is created
-        if (this.config.fogPlaneDynamic && this.fogPlane) {
+        if (this.config.fogPlaneDynamic && this.fogPlane) { // REMOVE-LEGACY: Remove condition, always update
             this.updateFogPlaneSize();
         }
     }
@@ -2901,7 +2904,7 @@ export class ThreeD_component_engine {
         console.log('[3D Component Engine TextGeometry] Fallback boxes created');
         
         // Update fog plane after fallback boxes created
-        if (this.config.fogPlaneDynamic && this.fogPlane) {
+        if (this.config.fogPlaneDynamic && this.fogPlane) { // REMOVE-LEGACY: Remove condition, always update
             this.updateFogPlaneSize();
         }
     }
