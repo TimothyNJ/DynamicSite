@@ -591,15 +591,22 @@ export class ThreeD_component_engine {
     
     projectBoundsToScreen(bounds) {
         // Project 3D bounds to screen pixels considering perspective
-        const cameraZ = this.camera.position.z;
-        const objectZ = bounds.center.z;
-        const distance = Math.abs(cameraZ - objectZ);
+        // Using same approach as fog plane for consistency
+        const cameraZ = this.camera.position.z;  // Use actual camera Z from instance
+        const center = bounds.center;
+        
+        // For bounds, use the front face (closest to camera)
+        // Assuming bounds.depth gives us the Z extent
+        const closestContentZ = center.z + (bounds.depth / 2);  // Front face of bounding box
+        
+        // Calculate distance from camera to closest point of content
+        const distance = Math.abs(cameraZ - closestContentZ);
         
         // Get viewport dimensions
         const rendererSize = new THREE.Vector2();
         this.renderer.getSize(rendererSize);
         
-        // Calculate FOV-based projection
+        // Calculate FOV-based projection using actual camera FOV
         const vFOV = (this.camera.fov * Math.PI) / 180;
         const visibleHeight = 2 * Math.tan(vFOV / 2) * distance;
         const visibleWidth = visibleHeight * this.camera.aspect;
@@ -608,31 +615,47 @@ export class ThreeD_component_engine {
         const pixelsPerUnitX = rendererSize.x / visibleWidth;
         const pixelsPerUnitY = rendererSize.y / visibleHeight;
         
+        const projectedWidth = bounds.width * pixelsPerUnitX;
+        const projectedHeight = bounds.height * pixelsPerUnitY;
+        
+        console.log(`[3D Engine] Yellow border bounds projection: w=${bounds.width.toFixed(3)}, h=${bounds.height.toFixed(3)}, closestZ=${closestContentZ.toFixed(3)}, pixels=${projectedWidth.toFixed(0)}x${projectedHeight.toFixed(0)}`);
+        
         return {
-            width: bounds.width * pixelsPerUnitX,
-            height: bounds.height * pixelsPerUnitY
+            width: projectedWidth,
+            height: projectedHeight
         };
     }
     
     projectSphereToScreen(sphere) {
-        // Project sphere diameter to screen pixels
-        const cameraZ = this.camera.position.z;
-        const sphereZ = sphere.center.z;
-        const distance = Math.abs(cameraZ - sphereZ);
+        // Project sphere diameter to screen pixels using same logic as fog plane
+        const cameraZ = this.camera.position.z;  // Use actual camera Z from instance
+        const center = sphere.center;
+        const radius = sphere.radius;
+        
+        // Use the closest point of the rotational envelope to camera
+        // The envelope extends from center - radius to center + radius
+        const closestContentZ = center.z + radius;  // Closest point to camera
+        
+        // Calculate distance from camera to closest point of content
+        const distance = Math.abs(cameraZ - closestContentZ);
         
         // Get viewport dimensions
         const rendererSize = new THREE.Vector2();
         this.renderer.getSize(rendererSize);
         
-        // Calculate FOV-based projection
+        // Calculate FOV-based projection using actual camera FOV
         const vFOV = (this.camera.fov * Math.PI) / 180;
         const visibleHeight = 2 * Math.tan(vFOV / 2) * distance;
         
         // Scale factor from world units to pixels
         const pixelsPerUnit = rendererSize.y / visibleHeight;
         
-        // Return diameter in pixels
-        return sphere.radius * 2 * pixelsPerUnit;
+        // Return diameter in pixels (radius * 2)
+        const projectedDiameter = sphere.radius * 2 * pixelsPerUnit;
+        
+        console.log(`[3D Engine] Yellow border sphere projection: radius=${radius.toFixed(3)}, closestZ=${closestContentZ.toFixed(3)}, distance=${distance.toFixed(3)}, pixels=${projectedDiameter.toFixed(0)}`);
+        
+        return projectedDiameter;
     }
     
     createEnvironment() {
