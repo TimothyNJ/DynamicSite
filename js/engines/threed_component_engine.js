@@ -2201,11 +2201,14 @@ export class ThreeD_component_engine {
         
         // Calculate perspective projection of content bounds to fog plane position
         const fogPlaneZ = this.fogPlane.position.z;  // Use actual fog plane Z position from instance
-        const contentZ = center.z;  // Average Z position of content
         const cameraZ = this.camera.position.z;  // Use actual camera Z from this instance
         
+        // Use the closest point of the rotational envelope to camera
+        // The envelope extends from center - radius to center + radius
+        const closestContentZ = center.z + largestRadius;  // Closest point to camera
+        
         // Calculate distances for perspective scaling
-        const cameraToContent = Math.abs(cameraZ - contentZ);
+        const cameraToContent = Math.abs(cameraZ - closestContentZ);
         const cameraToFogPlane = Math.abs(cameraZ - fogPlaneZ);
         
         // Account for camera FOV in perspective calculation
