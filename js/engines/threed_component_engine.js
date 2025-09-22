@@ -2040,52 +2040,6 @@ export class ThreeD_component_engine {
     
     updateFogPlaneSize() {
         if (!this.fogPlane) return;
-        this.updateFogPlaneSizeDynamic();
-    }
-    
-    // Calculate the rotational envelope - maximum radius from center for free rotation
-    calculateRotationalEnvelope(object) {
-        // Get the bounding box to find the center
-        const box = new THREE.Box3().setFromObject(object);
-        const center = box.getCenter(new THREE.Vector3());
-        
-        // Find maximum distance from center to any vertex in the object
-        let maxDistance = 0;
-        
-        // Traverse the object and all its children
-        object.traverse((child) => {
-            if (child.geometry) {
-                // Get world matrix for this child
-                child.updateMatrixWorld(true);
-                
-                // Check if it's a BufferGeometry
-                if (child.geometry.attributes && child.geometry.attributes.position) {
-                    const positions = child.geometry.attributes.position;
-                    const vertex = new THREE.Vector3();
-                    
-                    // Check each vertex
-                    for (let i = 0; i < positions.count; i++) {
-                        // Get vertex position
-                        vertex.fromBufferAttribute(positions, i);
-                        
-                        // Transform to world space
-                        vertex.applyMatrix4(child.matrixWorld);
-                        
-                        // Calculate distance from center
-                        const distance = vertex.distanceTo(center);
-                        maxDistance = Math.max(maxDistance, distance);
-                    }
-                }
-            }
-        });
-        
-        // Create sphere with the rotational envelope radius
-        return new THREE.Sphere(center, maxDistance);
-    }
-    
-    // Dynamic content-based fog plane sizing with perspective projection
-    updateFogPlaneSizeDynamic() {
-        if (!this.fogPlane) return;
         
         // Find the largest rotational envelope among all objects
         let largestSphere = null;
@@ -2211,6 +2165,46 @@ export class ThreeD_component_engine {
         }
         
         console.log(`[3D Engine] Fog plane sized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} (rotational envelope: ${sphereDiameter.toFixed(2)}, perspective: ${perspectiveScale.toFixed(2)}x)`);
+    }
+    
+    // Calculate the rotational envelope - maximum radius from center for free rotation
+    calculateRotationalEnvelope(object) {
+        // Get the bounding box to find the center
+        const box = new THREE.Box3().setFromObject(object);
+        const center = box.getCenter(new THREE.Vector3());
+        
+        // Find maximum distance from center to any vertex in the object
+        let maxDistance = 0;
+        
+        // Traverse the object and all its children
+        object.traverse((child) => {
+            if (child.geometry) {
+                // Get world matrix for this child
+                child.updateMatrixWorld(true);
+                
+                // Check if it's a BufferGeometry
+                if (child.geometry.attributes && child.geometry.attributes.position) {
+                    const positions = child.geometry.attributes.position;
+                    const vertex = new THREE.Vector3();
+                    
+                    // Check each vertex
+                    for (let i = 0; i < positions.count; i++) {
+                        // Get vertex position
+                        vertex.fromBufferAttribute(positions, i);
+                        
+                        // Transform to world space
+                        vertex.applyMatrix4(child.matrixWorld);
+                        
+                        // Calculate distance from center
+                        const distance = vertex.distanceTo(center);
+                        maxDistance = Math.max(maxDistance, distance);
+                    }
+                }
+            }
+        });
+        
+        // Create sphere with the rotational envelope radius
+        return new THREE.Sphere(center, maxDistance);
     }
     
     setLightPosition(lightName, axis, value) {
