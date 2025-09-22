@@ -127,7 +127,7 @@ export class ThreeD_component_engine {
             mode: 'standard', // 'standard' for normal geometry, 'textgeometry' for text drum
             
             // Fog plane configuration
-            fogPlanePadding: 1.05,     // 5% padding by default (1.0 = no padding, 1.5 = 50% padding)
+            fogPlanePadding: 1.0,      // No padding by default (1.0 = no padding, 1.5 = 50% padding)
             fogPlaneEnabled: true,     // Allow disabling fog plane entirely
             fogPlaneDynamic: true,     // Enable dynamic resizing based on content
             fogPlaneUpdateDelay: 100,  // Debounce delay for performance (ms)
@@ -2168,7 +2168,7 @@ export class ThreeD_component_engine {
         const projectedHeight = projectedDiameter;
         
         // Apply padding on top of projected size
-        const paddingFactor = this.config.fogPlanePadding || 1.05; // 5% default padding
+        const paddingFactor = this.config.fogPlanePadding || 1.0; // No padding by default
         const fogPlaneWidth = projectedWidth * paddingFactor;
         const fogPlaneHeight = projectedHeight * paddingFactor;
         
