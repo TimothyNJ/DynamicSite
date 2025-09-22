@@ -483,16 +483,155 @@ export class ThreeD_component_engine {
     updateYellowBorderSize() {
         if (!this.yellowBorderElement) return;
         
-        // Placeholder for Pass 2 implementation
-        // Will calculate size based on:
-        // - Bounding sphere (default)
-        // - Actual bounds (if restrictRotationAxis)
+        let width, height;
         
-        // Temporary: Set a fixed size for visibility
-        this.yellowBorderElement.style.width = '200px';
-        this.yellowBorderElement.style.height = '200px';
+        // Determine sizing method based on rotation constraints
+        if (this.config.restrictRotationAxis) {
+            // EXCEPTION: Restricted rotation - use actual object bounds
+            const bounds = this.getActualObjectBounds();
+            if (bounds) {
+                // Apply perspective projection
+                const projectedBounds = this.projectBoundsToScreen(bounds);
+                width = projectedBounds.width + 2;  // Add 1px padding on each side
+                height = projectedBounds.height + 2;
+            } else {
+                // No bounds available yet
+                return;
+            }
+        } else {
+            // DEFAULT: Free rotation - use bounding sphere
+            const sphere = this.getComponentBoundingSphere();
+            if (sphere) {
+                // Apply perspective projection for sphere
+                const projectedDiameter = this.projectSphereToScreen(sphere);
+                width = projectedDiameter + 2;  // Add 1px padding on each side
+                height = projectedDiameter + 2;  // Square for sphere
+            } else {
+                // No sphere available yet
+                return;
+            }
+        }
         
-        console.log('[3D Engine] Yellow border size updated');
+        // Apply size to yellow border element
+        this.yellowBorderElement.style.width = width + 'px';
+        this.yellowBorderElement.style.height = height + 'px';
+        
+        console.log(`[3D Engine] Yellow border sized to ${width}x${height}px (restricted: ${!!this.config.restrictRotationAxis})`);
+    }
+    
+    getActualObjectBounds() {
+        // Get the actual bounding box of the object (not rotational envelope)
+        // Check all possible geometry sources
+        let box = null;
+        
+        if (this.mesh) {
+            box = new THREE.Box3().setFromObject(this.mesh);
+        } else if (this.numberGroup) {
+            box = new THREE.Box3().setFromObject(this.numberGroup);
+        } else if (this.numberMeshes && this.numberMeshes.length > 0) {
+            box = new THREE.Box3();
+            this.numberMeshes.forEach(mesh => {
+                box.expandByObject(mesh);
+            });
+        }
+        
+        if (!box || box.isEmpty()) {
+            return null;
+        }
+        
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        
+        return {
+            width: size.x,
+            height: size.y,
+            depth: size.z,
+            center: center
+        };
+    }
+    
+    getComponentBoundingSphere() {
+        // Get the bounding sphere using rotational envelope
+        // This reuses our existing calculateRotationalEnvelope method
+        let largestSphere = null;
+        let largestRadius = 0;
+        
+        // Check main mesh
+        if (this.mesh) {
+            const meshSphere = this.calculateRotationalEnvelope(this.mesh);
+            if (meshSphere.radius > largestRadius) {
+                largestSphere = meshSphere;
+                largestRadius = meshSphere.radius;
+            }
+        }
+        
+        // Check number group (contains numbers AND blocking cylinder)
+        if (this.numberGroup) {
+            const groupSphere = this.calculateRotationalEnvelope(this.numberGroup);
+            if (groupSphere.radius > largestRadius) {
+                largestSphere = groupSphere;
+                largestRadius = groupSphere.radius;
+            }
+        }
+        
+        // Only check individual number meshes if they're NOT in a group
+        if (!this.numberGroup && this.numberMeshes && this.numberMeshes.length > 0) {
+            this.numberMeshes.forEach(mesh => {
+                const meshSphere = this.calculateRotationalEnvelope(mesh);
+                if (meshSphere.radius > largestRadius) {
+                    largestSphere = meshSphere;
+                    largestRadius = meshSphere.radius;
+                }
+            });
+        }
+        
+        return largestSphere;
+    }
+    
+    projectBoundsToScreen(bounds) {
+        // Project 3D bounds to screen pixels considering perspective
+        const cameraZ = this.camera.position.z;
+        const objectZ = bounds.center.z;
+        const distance = Math.abs(cameraZ - objectZ);
+        
+        // Get viewport dimensions
+        const rendererSize = new THREE.Vector2();
+        this.renderer.getSize(rendererSize);
+        
+        // Calculate FOV-based projection
+        const vFOV = (this.camera.fov * Math.PI) / 180;
+        const visibleHeight = 2 * Math.tan(vFOV / 2) * distance;
+        const visibleWidth = visibleHeight * this.camera.aspect;
+        
+        // Scale factor from world units to pixels
+        const pixelsPerUnitX = rendererSize.x / visibleWidth;
+        const pixelsPerUnitY = rendererSize.y / visibleHeight;
+        
+        return {
+            width: bounds.width * pixelsPerUnitX,
+            height: bounds.height * pixelsPerUnitY
+        };
+    }
+    
+    projectSphereToScreen(sphere) {
+        // Project sphere diameter to screen pixels
+        const cameraZ = this.camera.position.z;
+        const sphereZ = sphere.center.z;
+        const distance = Math.abs(cameraZ - sphereZ);
+        
+        // Get viewport dimensions
+        const rendererSize = new THREE.Vector2();
+        this.renderer.getSize(rendererSize);
+        
+        // Calculate FOV-based projection
+        const vFOV = (this.camera.fov * Math.PI) / 180;
+        const visibleHeight = 2 * Math.tan(vFOV / 2) * distance;
+        
+        // Scale factor from world units to pixels
+        const pixelsPerUnit = rendererSize.y / visibleHeight;
+        
+        // Return diameter in pixels
+        return sphere.radius * 2 * pixelsPerUnit;
     }
     
     createEnvironment() {
@@ -2793,6 +2932,9 @@ export class ThreeD_component_engine {
         if (this.fogPlane) {
             this.updateFogPlaneSize();
         }
+        
+        // Update yellow border after all geometry is created
+        this.updateYellowBorderSize();
     }
     
     createBlockingCylinder() {
@@ -2886,6 +3028,9 @@ export class ThreeD_component_engine {
         if (this.fogPlane) {
             this.updateFogPlaneSize();
         }
+        
+        // Update yellow border after fallback geometry
+        this.updateYellowBorderSize();
     }
     
     clearNumbers() {
