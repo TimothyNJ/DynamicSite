@@ -94,7 +94,9 @@ export class ThreeD_component_engine {
         this.font = null;
         this.isLoading = false;
         
-        // EDIT-FOG-DYNAMIC: Add debounced fog plane update properties and method binding
+        // Fog plane dynamic update properties
+        this.fogPlaneUpdateTimeout = null;
+        
         // Bind methods
         this.animate = this.animate.bind(this);
         this.onPointerDown = this.onPointerDown.bind(this);
@@ -105,13 +107,30 @@ export class ThreeD_component_engine {
         this.onGestureEnd = this.onGestureEnd.bind(this);
     }
     
-    // EDIT-FOG-DYNAMIC: Add debouncedUpdateFogPlane method here
+    // Debounced fog plane update for performance
+    debouncedUpdateFogPlane() {
+        // Clear existing timeout
+        if (this.fogPlaneUpdateTimeout) {
+            clearTimeout(this.fogPlaneUpdateTimeout);
+        }
+        
+        // Set new timeout
+        this.fogPlaneUpdateTimeout = setTimeout(() => {
+            this.updateFogPlaneSize();
+            this.fogPlaneUpdateTimeout = null;
+        }, this.config.fogPlaneUpdateDelay || 100);
+    }
     
-    // EDIT-FOG-DYNAMIC: Add fog plane configuration options (fogPlanePadding, fogPlaneEnabled, fogPlaneDynamic, fogPlaneUpdateDelay)
     mergeConfig(config) {
         return Object.assign({
             // Engine mode
             mode: 'standard', // 'standard' for normal geometry, 'textgeometry' for text drum
+            
+            // Fog plane configuration
+            fogPlanePadding: 1.05,     // 5% padding by default (1.0 = no padding, 1.5 = 50% padding)
+            fogPlaneEnabled: true,     // Allow disabling fog plane entirely
+            fogPlaneDynamic: true,     // Enable dynamic resizing based on content
+            fogPlaneUpdateDelay: 100,  // Debounce delay for performance (ms)
             
             // Geometry settings
             geometry: 'roundedBox', // 'roundedBox', 'sphere', 'torus', 'cylinder'
@@ -381,8 +400,65 @@ export class ThreeD_component_engine {
         }
     }
     
-    // EDIT-FOG-DYNAMIC: Modify initial fog plane creation to support dynamic sizing
     createFogPlane() {
+        // Check if fog plane is disabled
+        if (!this.config.fogPlaneEnabled) {
+            console.log('[3D Engine] Fog plane disabled by configuration');
+            return;
+        }
+        
+        // Start with unit plane - will be resized immediately if dynamic mode
+        const fogPlaneGeometry = new THREE.PlaneGeometry(1, 1, 32, 32);
+        
+        // Create canvas for fog texture (start small, will resize)
+        this.fogCanvas = document.createElement('canvas');
+        this.fogCanvas.width = 512;   // Initial size
+        this.fogCanvas.height = 512;  // Initial size
+        this.fogContext = this.fogCanvas.getContext('2d');
+        
+        // Create texture from canvas
+        this.fogTexture = new THREE.CanvasTexture(this.fogCanvas);
+        this.fogTexture.minFilter = THREE.LinearFilter;
+        this.fogTexture.magFilter = THREE.LinearFilter;
+        
+        // Create fog material
+        const fogPlaneMaterial = new THREE.MeshBasicMaterial({
+            map: this.fogTexture,
+            transparent: true,
+            opacity: 0.8,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending
+        });
+        
+        // Create and position fog plane
+        this.fogPlane = new THREE.Mesh(fogPlaneGeometry, fogPlaneMaterial);
+        this.fogPlane.position.set(0, 0, -1.5); // Between object and backlight
+        this.scene.add(this.fogPlane);
+        
+        // Add debug border to fog plane
+        const edges = new THREE.EdgesGeometry(fogPlaneGeometry);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 }); // Green debug border
+        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
+        this.fogPlane.add(lineSegments);
+        
+        // Set proper initial size based on mode
+        if (this.config.fogPlaneDynamic) {
+            // Delay to ensure geometry is created
+            setTimeout(() => {
+                this.updateFogPlaneSize();
+            }, 0);
+        } else {
+            // Use old camera-based sizing for backwards compatibility
+            this.updateFogPlaneSizeLegacy();
+        }
+        
+        console.log('[3D Engine] Fog plane created in ' + (this.config.fogPlaneDynamic ? 'dynamic' : 'legacy') + ' mode');
+    }
+    
+    // Legacy camera-based fog plane sizing (for backwards compatibility)
+    updateFogPlaneSizeLegacy() {
+        if (!this.fogPlane) return;
+        
         // Get actual renderer dimensions in pixels
         const rendererSize = new THREE.Vector2();
         this.renderer.getSize(rendererSize);
@@ -403,44 +479,22 @@ export class ThreeD_component_engine {
         const fogPlaneWidth = visibleWidth * 1.05;
         const fogPlaneHeight = visibleHeight * 1.05;
         
-        // Log fog plane creation details
-        console.log(`[3D Engine] Creating fog plane based on renderer pixels`);
-        console.log(`[3D Engine] Renderer size: ${rendererSize.x}x${rendererSize.y}px`);
-        console.log(`[3D Engine] Aspect ratio: ${aspectRatio.toFixed(2)}`);
-        console.log(`[3D Engine] Camera FOV: ${this.config.cameraFOV}°`);
-        console.log(`[3D Engine] Camera position: z=${this.camera.position.z}`);
-        console.log(`[3D Engine] Distance from camera to fog plane: ${cameraToFogPlane}`);
-        console.log(`[3D Engine] Visible area at fog plane: ${visibleWidth.toFixed(2)} x ${visibleHeight.toFixed(2)} units`);
-        console.log(`[3D Engine] Fog plane size (with 5% padding): ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} units`);
-        console.log(`[3D Engine] Dynamic sizing mode`);
+        // Update the geometry
+        const newGeometry = new THREE.PlaneGeometry(fogPlaneWidth, fogPlaneHeight, 32, 32);
+        if (this.fogPlane.geometry) {
+            this.fogPlane.geometry.dispose();
+        }
+        this.fogPlane.geometry = newGeometry;
         
-        // Create fog plane geometry with calculated size
-        const fogPlaneGeometry = new THREE.PlaneGeometry(fogPlaneWidth, fogPlaneHeight, 32, 32);
+        // Update the edge geometry for the debug border
+        if (this.fogPlane.children.length > 0) {
+            const edges = new THREE.EdgesGeometry(newGeometry);
+            const lineSegments = this.fogPlane.children[0];
+            lineSegments.geometry.dispose();
+            lineSegments.geometry = edges;
+        }
         
-        this.fogCanvas = document.createElement('canvas');
-        this.fogCanvas.width = 512;
-        this.fogCanvas.height = 512;
-        this.fogContext = this.fogCanvas.getContext('2d');
-        
-        this.fogTexture = new THREE.CanvasTexture(this.fogCanvas);
-        
-        const fogPlaneMaterial = new THREE.MeshBasicMaterial({
-            map: this.fogTexture,
-            transparent: true,
-            opacity: 0.8,
-            side: THREE.DoubleSide,
-            blending: THREE.AdditiveBlending
-        });
-        
-        this.fogPlane = new THREE.Mesh(fogPlaneGeometry, fogPlaneMaterial);
-        this.fogPlane.position.set(0, 0, -1.5); // Between object and backlight
-        this.scene.add(this.fogPlane);
-        
-        // Add debug border to fog plane
-        const edges = new THREE.EdgesGeometry(fogPlaneGeometry);
-        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 }); // Green debug border
-        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
-        this.fogPlane.add(lineSegments);
+        console.log(`[3D Engine] Legacy fog plane sized: ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} units`);
     }
     
     createEnvironment() {
@@ -995,7 +1049,10 @@ export class ThreeD_component_engine {
         // Resize container to fit content
         this.resizeContainerToFitContent();
         
-        // EDIT-FOG-DYNAMIC: Update fog plane after mesh creation if dynamic mode
+        // Update fog plane to match new geometry if dynamic mode
+        if (this.config.fogPlaneDynamic && this.fogPlane) {
+            this.updateFogPlaneSize();
+        }
     }
     
     resizeContainerToFitContent() {
@@ -1700,7 +1757,6 @@ export class ThreeD_component_engine {
             // Transition to pinch gesture
             this.transitionGesture('pinch');
             
-            // EDIT-FOG-DYNAMIC: Add fog plane update after pinch gestures
             // Pinch to zoom behavior - NO MOMENTUM
             // Calculate scale based on deltaY magnitude for smooth scaling
             const sensitivity = 0.0035;  // Middle ground between 0.002 and fixed 5%
@@ -2023,46 +2079,106 @@ export class ThreeD_component_engine {
         // Update fog plane size to match new renderer size
         this.updateFogPlaneSize();
         
-        // EDIT-FOG-DYNAMIC: Also update based on content if dynamic mode
+        // Also update based on content if dynamic mode
+        if (this.config.fogPlaneDynamic) {
+            this.debouncedUpdateFogPlane();
+        }
+        
         // Let container naturally fit the canvas - don't set explicit size
     }
     
-    // EDIT-FOG-DYNAMIC: Complete rewrite to use content-based sizing instead of camera-based
     updateFogPlaneSize() {
         if (!this.fogPlane) return;
         
-        // Get actual renderer dimensions in pixels
-        const rendererSize = new THREE.Vector2();
-        this.renderer.getSize(rendererSize);
+        // Use appropriate sizing method based on configuration
+        if (this.config.fogPlaneDynamic) {
+            this.updateFogPlaneSizeDynamic();
+        } else {
+            this.updateFogPlaneSizeLegacy();
+        }
+    }
+    
+    // Dynamic content-based fog plane sizing
+    updateFogPlaneSizeDynamic() {
+        if (!this.fogPlane) return;
         
-        // Calculate fog plane size based on actual renderer pixels
-        const fogPlaneZ = -1.5;
-        const cameraToFogPlane = this.camera.position.z - fogPlaneZ;
-        const vFOV = (this.config.cameraFOV * Math.PI) / 180;
+        // Calculate actual content bounds
+        const box = new THREE.Box3();
         
-        // Calculate visible area at fog plane distance
-        const visibleHeight = 2 * Math.tan(vFOV / 2) * cameraToFogPlane;
-        const aspectRatio = rendererSize.x / rendererSize.y;
-        const visibleWidth = visibleHeight * aspectRatio;
+        // Include the main mesh
+        if (this.mesh) {
+            box.expandByObject(this.mesh);
+        }
         
-        // Update fog plane size with 5% padding
-        const fogPlaneWidth = visibleWidth * 1.05;
-        const fogPlaneHeight = visibleHeight * 1.05;
+        // Include text meshes if in textgeometry mode
+        if (this.numberMeshes && this.numberMeshes.length > 0) {
+            this.numberMeshes.forEach(mesh => {
+                box.expandByObject(mesh);
+            });
+        }
         
-        // Update the geometry
-        const newGeometry = new THREE.PlaneGeometry(fogPlaneWidth, fogPlaneHeight, 32, 32);
-        this.fogPlane.geometry.dispose();
-        this.fogPlane.geometry = newGeometry;
+        // Include number group if exists
+        if (this.numberGroup) {
+            box.expandByObject(this.numberGroup);
+        }
+        
+        // Include any decals
+        if (this.decals && this.decals.length > 0) {
+            this.decals.forEach(decal => {
+                box.expandByObject(decal);
+            });
+        }
+        
+        // Get the size of actual content
+        const size = box.getSize(new THREE.Vector3());
+        
+        // Handle empty scene case
+        if (size.x === 0 || size.y === 0 || !isFinite(size.x) || !isFinite(size.y)) {
+            console.warn('[3D Engine] No content to size fog plane against, using legacy method');
+            this.updateFogPlaneSizeLegacy();
+            return;
+        }
+        
+        // Calculate fog plane size based on content + dynamic padding
+        const paddingFactor = this.config.fogPlanePadding || 1.05; // 5% default padding
+        const fogPlaneWidth = size.x * paddingFactor;
+        const fogPlaneHeight = size.y * paddingFactor;
+        
+        // Dispose old geometry properly
+        if (this.fogPlane.geometry) {
+            this.fogPlane.geometry.dispose();
+        }
+        
+        // Create new geometry
+        this.fogPlane.geometry = new THREE.PlaneGeometry(fogPlaneWidth, fogPlaneHeight, 32, 32);
+        
+        // Update fog texture canvas to match new size if needed
+        const pixelRatio = window.devicePixelRatio || 1;
+        const newWidth = Math.round(fogPlaneWidth * 100 * pixelRatio);
+        const newHeight = Math.round(fogPlaneHeight * 100 * pixelRatio);
+        
+        // Only recreate if size changed significantly
+        if (Math.abs(this.fogCanvas.width - newWidth) > 10 || 
+            Math.abs(this.fogCanvas.height - newHeight) > 10) {
+            
+            this.fogCanvas.width = newWidth;
+            this.fogCanvas.height = newHeight;
+            
+            // Recreate the fog pattern at new size (if method exists)
+            if (this.createFogTexture) {
+                this.createFogTexture();
+            }
+        }
         
         // Update the edge geometry for the debug border
         if (this.fogPlane.children.length > 0) {
-            const edges = new THREE.EdgesGeometry(newGeometry);
+            const edges = new THREE.EdgesGeometry(this.fogPlane.geometry);
             const lineSegments = this.fogPlane.children[0];
             lineSegments.geometry.dispose();
             lineSegments.geometry = edges;
         }
         
-        console.log(`[3D Engine] Updated fog plane size: ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} units`);
+        console.log(`[3D Engine] Dynamic fog plane resized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} based on content bounds`);
     }
     
     setLightPosition(lightName, axis, value) {
@@ -2392,8 +2508,13 @@ export class ThreeD_component_engine {
             this.container.removeChild(this.renderer.domElement);
         }
         
-        // EDIT-FOG-DYNAMIC: Clear fog plane update timeout in dispose
-        // Clear timeouts
+        // Clear fog plane update timeout
+        if (this.fogPlaneUpdateTimeout) {
+            clearTimeout(this.fogPlaneUpdateTimeout);
+            this.fogPlaneUpdateTimeout = null;
+        }
+        
+        // Clear other timeouts
         if (this.wheelGestureTimeout) {
             clearTimeout(this.wheelGestureTimeout);
         }
@@ -2592,7 +2713,10 @@ export class ThreeD_component_engine {
         
         console.log('[3D Component Engine TextGeometry] All curved TextGeometry numbers created');
         
-        // EDIT-FOG-DYNAMIC: Update fog plane after all numbers created
+        // Update fog plane after all numbers created
+        if (this.config.fogPlaneDynamic && this.fogPlane) {
+            this.updateFogPlaneSize();
+        }
         
         // Add blocking cylinder AFTER numbers are created so we can measure them
         if (this.config.addBlockingCylinder) {
@@ -2687,7 +2811,10 @@ export class ThreeD_component_engine {
         
         console.log('[3D Component Engine TextGeometry] Fallback boxes created');
         
-        // EDIT-FOG-DYNAMIC: Update fog plane after fallback boxes created
+        // Update fog plane after fallback boxes created
+        if (this.config.fogPlaneDynamic && this.fogPlane) {
+            this.updateFogPlaneSize();
+        }
     }
     
     clearNumbers() {
