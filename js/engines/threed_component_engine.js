@@ -2132,12 +2132,15 @@ export class ThreeD_component_engine {
         // Get the size of actual content
         const size = box.getSize(new THREE.Vector3());
         
-        // EDIT-BOUNDING-SPHERE: Replace box size with bounding sphere for rotation-invariant coverage
+        // Get bounding sphere for rotation-invariant coverage
+        const sphere = box.getBoundingSphere(new THREE.Sphere());
+        const sphereDiameter = sphere.radius * 2;
+        
         // Get the center of content bounds for projection math
-        const center = box.getCenter(new THREE.Vector3());
+        const center = sphere.center;  // Use sphere center which is same as box center
         
         // Handle empty scene case
-        if (size.x === 0 || size.y === 0 || !isFinite(size.x) || !isFinite(size.y)) {
+        if (sphereDiameter === 0 || !isFinite(sphereDiameter)) {
             console.warn('[3D Engine] No content to size fog plane against, using legacy method');
             this.updateFogPlaneSizeLegacy();
             return;
@@ -2159,10 +2162,10 @@ export class ThreeD_component_engine {
             perspectiveScale = cameraToFogPlane / cameraToContent;
         }
         
-        // EDIT-BOUNDING-SPHERE: Use sphere diameter instead of box dimensions
-        // Apply perspective scaling to content bounds
-        const projectedWidth = size.x * perspectiveScale;
-        const projectedHeight = size.y * perspectiveScale;
+        // Use sphere diameter for both width and height (rotation-invariant)
+        const projectedDiameter = sphereDiameter * perspectiveScale;
+        const projectedWidth = projectedDiameter;
+        const projectedHeight = projectedDiameter;
         
         // Apply padding on top of projected size
         const paddingFactor = this.config.fogPlanePadding || 1.05; // 5% default padding
@@ -2203,7 +2206,7 @@ export class ThreeD_component_engine {
             lineSegments.geometry = edges;
         }
         
-        console.log(`[3D Engine] Dynamic fog plane resized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} (perspective scale: ${perspectiveScale.toFixed(2)}x)`);
+        console.log(`[3D Engine] Fog plane sized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} (sphere: ${sphereDiameter.toFixed(2)}, perspective: ${perspectiveScale.toFixed(2)}x)`);
     }
     
     setLightPosition(lightName, axis, value) {
