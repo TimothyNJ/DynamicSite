@@ -2741,14 +2741,14 @@ export class ThreeD_component_engine {
         
         console.log('[3D Component Engine TextGeometry] All curved TextGeometry numbers created');
         
-        // Update fog plane after all numbers created
-        if (this.config.fogPlaneDynamic && this.fogPlane) {
-            this.updateFogPlaneSize();
-        }
-        
-        // Add blocking cylinder AFTER numbers are created so we can measure them
+        // Add blocking cylinder BEFORE updating fog plane so it's included in bounds calculation
         if (this.config.addBlockingCylinder) {
             this.createBlockingCylinder();
+        }
+        
+        // Update fog plane after all geometry (including cylinder) is created
+        if (this.config.fogPlaneDynamic && this.fogPlane) {
+            this.updateFogPlaneSize();
         }
     }
     
