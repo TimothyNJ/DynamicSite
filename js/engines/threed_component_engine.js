@@ -128,7 +128,6 @@ export class ThreeD_component_engine {
             
             // Fog plane configuration
             fogPlanePadding: 1.05,     // 5% padding by default (1.0 = no padding, 1.5 = 50% padding)
-            // EDIT-FOG-PROJECTION: Consider adjusting default padding after projection math is implemented
             fogPlaneEnabled: true,     // Allow disabling fog plane entirely
             fogPlaneDynamic: true,     // Enable dynamic resizing based on content
             fogPlaneUpdateDelay: 100,  // Debounce delay for performance (ms)
@@ -2099,8 +2098,7 @@ export class ThreeD_component_engine {
         }
     }
     
-    // Dynamic content-based fog plane sizing
-    // EDIT-FOG-PROJECTION: Update to use perspective projection of content bounds
+    // Dynamic content-based fog plane sizing with perspective projection
     updateFogPlaneSizeDynamic() {
         if (!this.fogPlane) return;
         
@@ -2134,7 +2132,8 @@ export class ThreeD_component_engine {
         // Get the size of actual content
         const size = box.getSize(new THREE.Vector3());
         
-        // EDIT-FOG-PROJECTION: Add center calculation for projection math
+        // Get the center of content bounds for projection math
+        const center = box.getCenter(new THREE.Vector3());
         
         // Handle empty scene case
         if (size.x === 0 || size.y === 0 || !isFinite(size.x) || !isFinite(size.y)) {
@@ -2143,12 +2142,30 @@ export class ThreeD_component_engine {
             return;
         }
         
-        // EDIT-FOG-PROJECTION: Replace simple padding with perspective projection calculation
-        // Calculate fog plane size based on content + dynamic padding
+        // Calculate perspective projection of content bounds to fog plane position
+        const fogPlaneZ = -1.5;  // Fog plane's Z position
+        const contentZ = center.z;  // Average Z position of content
+        const cameraZ = this.camera.position.z;  // Camera is typically at z=1.9
+        
+        // Calculate distances for perspective scaling
+        const cameraToContent = Math.abs(cameraZ - contentZ);
+        const cameraToFogPlane = Math.abs(cameraZ - fogPlaneZ);
+        
+        // Calculate perspective scale factor
+        // Objects further from camera need larger fog plane coverage
+        let perspectiveScale = 1;
+        if (cameraToContent > 0.01) {  // Avoid division by zero
+            perspectiveScale = cameraToFogPlane / cameraToContent;
+        }
+        
+        // Apply perspective scaling to content bounds
+        const projectedWidth = size.x * perspectiveScale;
+        const projectedHeight = size.y * perspectiveScale;
+        
+        // Apply padding on top of projected size
         const paddingFactor = this.config.fogPlanePadding || 1.05; // 5% default padding
-        const fogPlaneWidth = size.x * paddingFactor;
-        const fogPlaneHeight = size.y * paddingFactor;
-        // EDIT-FOG-PROJECTION: End of section to replace
+        const fogPlaneWidth = projectedWidth * paddingFactor;
+        const fogPlaneHeight = projectedHeight * paddingFactor;
         
         // Dispose old geometry properly
         if (this.fogPlane.geometry) {
@@ -2184,8 +2201,7 @@ export class ThreeD_component_engine {
             lineSegments.geometry = edges;
         }
         
-        // EDIT-FOG-PROJECTION: Update console message to mention perspective projection
-        console.log(`[3D Engine] Dynamic fog plane resized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} based on content bounds`);
+        console.log(`[3D Engine] Dynamic fog plane resized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} (perspective scale: ${perspectiveScale.toFixed(2)}x)`);
     }
     
     setLightPosition(lightName, axis, value) {
