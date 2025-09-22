@@ -2208,6 +2208,11 @@ export class ThreeD_component_engine {
         const cameraToContent = Math.abs(cameraZ - contentZ);
         const cameraToFogPlane = Math.abs(cameraZ - fogPlaneZ);
         
+        // Account for camera FOV in perspective calculation
+        // The FOV affects how much the view expands with distance
+        // We don't need to apply FOV factor here because we're projecting
+        // from one distance to another, maintaining the same angular size
+        
         // Calculate perspective scale factor
         // Objects further from camera need larger fog plane coverage
         let perspectiveScale = 1;
