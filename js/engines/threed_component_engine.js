@@ -113,10 +113,6 @@ export class ThreeD_component_engine {
             width: 100,
             height: 100,
             
-            // Responsive mode flag
-            // Responsive mode flag (always true now)
-            responsive: true,  // Uses CSS variable for sizing
-            
             // Geometry settings
             geometry: 'roundedBox', // 'roundedBox', 'sphere', 'torus', 'cylinder'
             geometryParams: {
@@ -235,7 +231,7 @@ export class ThreeD_component_engine {
         this.animate(0);
         
         // Force initial resize
-        this.updateResponsiveSize();
+        this.updateSize();
         
         // Log FINAL dimensions after everything is set up
         setTimeout(() => {
@@ -253,7 +249,7 @@ export class ThreeD_component_engine {
         // Log which THREE we're using
         console.log(`[3D Engine] Using THREE version: ${typeof THREE !== 'undefined' ? THREE.REVISION : 'undefined'}`);
         console.log(`[3D Engine] THREE source: ${typeof THREE !== 'undefined' ? 'global window.THREE' : 'unknown'}`);
-        console.log(`[3D Engine] Responsive: ${this.config.responsive}`);
+        console.log(`[3D Engine] Responsive: true`);
         
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.renderer.setClearColor(0x000000, 0); // Fully transparent
@@ -262,7 +258,7 @@ export class ThreeD_component_engine {
         // Calculate size based on viewport
         const size = Math.max(50, Math.min(500, window.innerWidth * 0.15));  // clamp(50px, 15vw, 500px)
         
-        console.log(`[3D Engine] Setting up renderer - responsive: ${this.config.responsive}, calculated size: ${size}`);
+        console.log(`[3D Engine] Setting up renderer - calculated size: ${size}`);
         
         this.renderer.setSize(size, size);
         
@@ -300,7 +296,7 @@ export class ThreeD_component_engine {
         // Removed display: inline-block to properly participate in flex layout
         
         // Log container dimensions and parent info AFTER all setup
-        console.log(`[3D Engine] Container setup complete. Responsive: ${this.config.responsive}`);
+        console.log(`[3D Engine] Container setup complete.`);
         console.log(`[3D Engine] Container offsetWidth: ${this.container.offsetWidth}`);
         console.log(`[3D Engine] Container offsetHeight: ${this.container.offsetHeight}`);
         console.log(`[3D Engine] Canvas offsetWidth: ${this.renderer.domElement.offsetWidth}`);
@@ -415,7 +411,7 @@ export class ThreeD_component_engine {
         console.log(`[3D Engine] Distance from camera to fog plane: ${cameraToFogPlane}`);
         console.log(`[3D Engine] Visible area at fog plane: ${visibleWidth.toFixed(2)} x ${visibleHeight.toFixed(2)} units`);
         console.log(`[3D Engine] Fog plane size (with 5% padding): ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} units`);
-        console.log(`[3D Engine] Responsive mode: ${this.config.responsive}`);
+        console.log(`[3D Engine] Responsive mode: true`);
         
         // Create fog plane geometry with calculated size
         const fogPlaneGeometry = new THREE.PlaneGeometry(fogPlaneWidth, fogPlaneHeight, 32, 32);
@@ -1060,7 +1056,7 @@ export class ThreeD_component_engine {
         this.wheelGestureTimeout = null;
         
         // Add viewport resize listener
-        this.resizeHandler = () => this.updateResponsiveSize();
+        this.resizeHandler = () => this.updateSize();
         window.addEventListener('resize', this.resizeHandler);
     }
     
@@ -1938,7 +1934,7 @@ export class ThreeD_component_engine {
         // Log viewport info on first frame only
         if (!this.viewportLogged) {
             const gl = this.renderer.getContext();
-            console.log(`[3D Engine] First frame render - Responsive: ${this.config.responsive}`);
+            console.log(`[3D Engine] First frame render`);
             console.log(`[3D Engine] WebGL viewport: ${gl.drawingBufferWidth} x ${gl.drawingBufferHeight}`);
             console.log(`[3D Engine] Renderer size: ${this.renderer.getSize(new THREE.Vector2()).x} x ${this.renderer.getSize(new THREE.Vector2()).y}`);
             console.log(`[3D Engine] Pixel ratio: ${this.renderer.getPixelRatio()}`);
@@ -2012,7 +2008,7 @@ export class ThreeD_component_engine {
         console.log('[3D Component Engine] Rotation speed set to:', speed);
     }
     
-    updateResponsiveSize() {
+    updateSize() {
         
         const size = Math.max(50, Math.min(500, window.innerWidth * 0.15));  // clamp(50px, 15vw, 500px)
         
