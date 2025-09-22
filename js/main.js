@@ -125,7 +125,6 @@ function initializeComponentEnginesDemos() {
   } else {
     const demoThreeDTextGeometryDrum = new ThreeD_component_engine(drumContainer, {
     mode: 'textgeometry',  // Use TextGeometry mode
-    responsive: true,      // Same responsive sizing
     rotationSpeed: 0,      // Start with no rotation
     textDepth: 0,          // FLAT TEXT - no depth
     addBlockingCylinder: true,  // ADD BLACK BLOCKING CYLINDER
@@ -165,7 +164,6 @@ function initializeComponentEnginesDemos() {
   
   // 6. 3D Component demo (responsive)
   const demo3D = componentFactory.create3DObject('demo-3d-container', {
-    responsive: true,  // Enable viewport-based sizing
     geometry: 'roundedBox',
     geometryParams: {
       width: 1.0,
@@ -202,7 +200,6 @@ function initializeComponentEnginesDemos() {
   
   // 7. 3D Component demo (cylinder)
   const demoCylinder3D = componentFactory.create3DObject('demo-3d-cylinder-container', {
-    responsive: true,  // Same responsive sizing as cube
     geometry: 'cylinder',  // Cylinder instead of roundedBox
     geometryParams: {
       cylinderRadiusTop: 0.5,    // Radius 0.5 = diameter 1.0
@@ -238,7 +235,6 @@ function initializeComponentEnginesDemos() {
   
   // 7.5. 3D Component demo (cone)
   const demoCone3D = componentFactory.create3DObject('demo-3d-cone-container', {
-    responsive: true,  // Same responsive sizing
     geometry: 'cone',  // Cone geometry
     geometryParams: {
       coneRadius: 0.5,        // Base radius
@@ -273,7 +269,6 @@ function initializeComponentEnginesDemos() {
   
   // 7.75. 3D Component demo (tube)
   const demoTube3D = componentFactory.create3DObject('demo-3d-tube-container', {
-    responsive: true,  // Same responsive sizing
     geometry: 'tube',  // Tube geometry (straight cylinder)
     geometryParams: {
     tubeRadius: 0.5,          // Same radius as cylinder
@@ -310,7 +305,6 @@ function initializeComponentEnginesDemos() {
   // Ring of numbers 0-9 that can be rotated in any direction
   const demoTextGeometry3D = new ThreeD_component_engine('demo-3d-textgeometry-container', {
     mode: 'textgeometry',  // Use TextGeometry mode
-    responsive: true,
     rotationSpeed: 0,
     textDepth: 0,          // FLAT TEXT - no depth
     // No restrictRotationAxis - allows rotation in all directions
@@ -349,7 +343,6 @@ function initializeComponentEnginesDemos() {
   
   // 8. 3D Component demo (sphere)
   const demoSphere3D = componentFactory.create3DObject('demo-3d-sphere-container', {
-    responsive: true,  // Same responsive sizing
     geometry: 'sphere',  // Sphere geometry
     geometryParams: {
       sphereRadius: 0.5,          // Radius 0.5 to match cylinder diameter 1.0

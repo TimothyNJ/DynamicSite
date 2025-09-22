@@ -109,10 +109,6 @@ export class ThreeD_component_engine {
             // Engine mode
             mode: 'standard', // 'standard' for normal geometry, 'textgeometry' for text drum
             
-            // Initial container dimensions (temporary, will resize to content)
-            width: 100,
-            height: 100,
-            
             // Geometry settings
             geometry: 'roundedBox', // 'roundedBox', 'sphere', 'torus', 'cylinder'
             geometryParams: {
@@ -249,7 +245,7 @@ export class ThreeD_component_engine {
         // Log which THREE we're using
         console.log(`[3D Engine] Using THREE version: ${typeof THREE !== 'undefined' ? THREE.REVISION : 'undefined'}`);
         console.log(`[3D Engine] THREE source: ${typeof THREE !== 'undefined' ? 'global window.THREE' : 'unknown'}`);
-        console.log(`[3D Engine] Responsive: true`);
+        console.log(`[3D Engine] Dynamic sizing enabled`);
         
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.renderer.setClearColor(0x000000, 0); // Fully transparent
@@ -287,7 +283,7 @@ export class ThreeD_component_engine {
         this.container.style.alignItems = 'center';  // Center vertically
         this.container.style.flex = '0 1 auto';  // No grow, CAN shrink, auto basis
         this.container.style.maxWidth = '100%';
-        // For responsive mode, let the container naturally fit the canvas
+        // Let the container naturally fit the canvas
         
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
@@ -411,7 +407,7 @@ export class ThreeD_component_engine {
         console.log(`[3D Engine] Distance from camera to fog plane: ${cameraToFogPlane}`);
         console.log(`[3D Engine] Visible area at fog plane: ${visibleWidth.toFixed(2)} x ${visibleHeight.toFixed(2)} units`);
         console.log(`[3D Engine] Fog plane size (with 5% padding): ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} units`);
-        console.log(`[3D Engine] Responsive mode: true`);
+        console.log(`[3D Engine] Dynamic sizing mode`);
         
         // Create fog plane geometry with calculated size
         const fogPlaneGeometry = new THREE.PlaneGeometry(fogPlaneWidth, fogPlaneHeight, 32, 32);
