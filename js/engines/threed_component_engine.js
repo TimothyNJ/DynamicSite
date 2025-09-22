@@ -120,6 +120,7 @@ export class ThreeD_component_engine {
         // Set new timeout
         this.fogPlaneUpdateTimeout = setTimeout(() => {
             this.updateFogPlaneSize();
+            this.updateYellowBorderSize();  // Also update yellow border
             this.fogPlaneUpdateTimeout = null;
         }, this.config.fogPlaneUpdateDelay || 100);
     }
@@ -1190,6 +1191,9 @@ export class ThreeD_component_engine {
         if (this.fogPlane) {
             this.updateFogPlaneSize();
         }
+        
+        // Update yellow border to match new geometry
+        this.updateYellowBorderSize();
     }
     
     resizeContainerToFitContent() {
@@ -2205,6 +2209,37 @@ export class ThreeD_component_engine {
         console.log('[3D Component Engine] Rotation speed set to:', speed);
     }
     
+    destroy() {
+        // Stop animation
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        
+        // Remove event listeners
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+        }
+        
+        // Remove yellow border element
+        if (this.yellowBorderElement && this.yellowBorderElement.parentNode) {
+            this.yellowBorderElement.parentNode.removeChild(this.yellowBorderElement);
+            this.yellowBorderElement = null;
+        }
+        
+        // Dispose Three.js resources
+        if (this.renderer) {
+            this.renderer.dispose();
+        }
+        
+        // Clear timeout
+        if (this.fogPlaneUpdateTimeout) {
+            clearTimeout(this.fogPlaneUpdateTimeout);
+        }
+        
+        console.log('[3D Component Engine] Destroyed');
+    }
+    
     updateSize() {
         
         const size = Math.max(50, Math.min(500, window.innerWidth * 0.15));  // clamp(50px, 15vw, 500px)
@@ -2218,6 +2253,9 @@ export class ThreeD_component_engine {
         
         // Also update based on content
         this.debouncedUpdateFogPlane();
+        
+        // Update yellow border for new size
+        this.updateYellowBorderSize();
         
         // Let container naturally fit the canvas - don't set explicit size
     }
