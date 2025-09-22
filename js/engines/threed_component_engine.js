@@ -2099,18 +2099,57 @@ export class ThreeD_component_engine {
         }
     }
     
+    // Calculate the rotational envelope - maximum radius from center for free rotation
+    calculateRotationalEnvelope(object) {
+        // Get the bounding box to find the center
+        const box = new THREE.Box3().setFromObject(object);
+        const center = box.getCenter(new THREE.Vector3());
+        
+        // Find maximum distance from center to any vertex in the object
+        let maxDistance = 0;
+        
+        // Traverse the object and all its children
+        object.traverse((child) => {
+            if (child.geometry) {
+                // Get world matrix for this child
+                child.updateMatrixWorld(true);
+                
+                // Check if it's a BufferGeometry
+                if (child.geometry.attributes && child.geometry.attributes.position) {
+                    const positions = child.geometry.attributes.position;
+                    const vertex = new THREE.Vector3();
+                    
+                    // Check each vertex
+                    for (let i = 0; i < positions.count; i++) {
+                        // Get vertex position
+                        vertex.fromBufferAttribute(positions, i);
+                        
+                        // Transform to world space
+                        vertex.applyMatrix4(child.matrixWorld);
+                        
+                        // Calculate distance from center
+                        const distance = vertex.distanceTo(center);
+                        maxDistance = Math.max(maxDistance, distance);
+                    }
+                }
+            }
+        });
+        
+        // Create sphere with the rotational envelope radius
+        return new THREE.Sphere(center, maxDistance);
+    }
+    
     // Dynamic content-based fog plane sizing with perspective projection
     updateFogPlaneSizeDynamic() {
         if (!this.fogPlane) return;
         
-        // Find the largest bounding sphere among all objects (no double-counting)
+        // Find the largest rotational envelope among all objects
         let largestSphere = null;
         let largestRadius = 0;
         
         // Check main mesh
         if (this.mesh) {
-            const meshBox = new THREE.Box3().setFromObject(this.mesh);
-            const meshSphere = meshBox.getBoundingSphere(new THREE.Sphere());
+            const meshSphere = this.calculateRotationalEnvelope(this.mesh);
             if (meshSphere.radius > largestRadius) {
                 largestSphere = meshSphere;
                 largestRadius = meshSphere.radius;
@@ -2119,8 +2158,7 @@ export class ThreeD_component_engine {
         
         // Check number group (contains numbers AND blocking cylinder)
         if (this.numberGroup) {
-            const groupBox = new THREE.Box3().setFromObject(this.numberGroup);
-            const groupSphere = groupBox.getBoundingSphere(new THREE.Sphere());
+            const groupSphere = this.calculateRotationalEnvelope(this.numberGroup);
             if (groupSphere.radius > largestRadius) {
                 largestSphere = groupSphere;
                 largestRadius = groupSphere.radius;
@@ -2130,8 +2168,7 @@ export class ThreeD_component_engine {
         // Only check individual number meshes if they're NOT in a group (to avoid double-counting)
         if (!this.numberGroup && this.numberMeshes && this.numberMeshes.length > 0) {
             this.numberMeshes.forEach(mesh => {
-                const meshBox = new THREE.Box3().setFromObject(mesh);
-                const meshSphere = meshBox.getBoundingSphere(new THREE.Sphere());
+                const meshSphere = this.calculateRotationalEnvelope(mesh);
                 if (meshSphere.radius > largestRadius) {
                     largestSphere = meshSphere;
                     largestRadius = meshSphere.radius;
@@ -2142,8 +2179,7 @@ export class ThreeD_component_engine {
         // Check decals
         if (this.decals && this.decals.length > 0) {
             this.decals.forEach(decal => {
-                const decalBox = new THREE.Box3().setFromObject(decal);
-                const decalSphere = decalBox.getBoundingSphere(new THREE.Sphere());
+                const decalSphere = this.calculateRotationalEnvelope(decal);
                 if (decalSphere.radius > largestRadius) {
                     largestSphere = decalSphere;
                     largestRadius = decalSphere.radius;
@@ -2223,7 +2259,7 @@ export class ThreeD_component_engine {
             lineSegments.geometry = edges;
         }
         
-        console.log(`[3D Engine] Fog plane sized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} (largest sphere: ${sphereDiameter.toFixed(2)}, perspective: ${perspectiveScale.toFixed(2)}x)`);
+        console.log(`[3D Engine] Fog plane sized to ${fogPlaneWidth.toFixed(2)} x ${fogPlaneHeight.toFixed(2)} (rotational envelope: ${sphereDiameter.toFixed(2)}, perspective: ${perspectiveScale.toFixed(2)}x)`);
     }
     
     setLightPosition(lightName, axis, value) {
