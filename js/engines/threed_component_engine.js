@@ -87,6 +87,9 @@ export class ThreeD_component_engine {
         // Yellow border DOM element for component bounds
         this.yellowBorderElement = null;
         
+        // EDIT-PASS1: Add rotation group property
+        // this.rotationGroup = null;
+        
         // Decal system for projected textures
         this.decals = [];
         this.decalMaterials = new Map();
@@ -233,6 +236,11 @@ export class ThreeD_component_engine {
         this.setupCamera();
         this.setupScene();
         this.setupLighting();
+        
+        // EDIT-PASS1: Create rotation group here (before fog plane)
+        // this.rotationGroup = new THREE.Group();
+        // this.scene.add(this.rotationGroup);
+        
         this.createFogPlane();  // Always create fog plane for background
         this.createYellowBorder();  // Create yellow component border
         
@@ -557,9 +565,10 @@ export class ThreeD_component_engine {
         let largestSphere = null;
         let largestRadius = 0;
         
+        // EDIT-PASS1: After rotationGroup is implemented, check rotationGroup.children instead
         // Check main mesh
-        if (this.mesh) {
-            const meshSphere = this.calculateRotationalEnvelope(this.mesh);
+        if (this.mesh) {  // EDIT-PASS1: Change condition to check rotationGroup
+            const meshSphere = this.calculateRotationalEnvelope(this.mesh);  // EDIT-PASS1: Use rotationGroup
             if (meshSphere.radius > largestRadius) {
                 largestSphere = meshSphere;
                 largestRadius = meshSphere.radius;
@@ -567,7 +576,7 @@ export class ThreeD_component_engine {
         }
         
         // Check number group (contains numbers AND blocking cylinder)
-        if (this.numberGroup) {
+        if (this.numberGroup) {  // EDIT-PASS1: This check becomes unnecessary with rotationGroup
             const groupSphere = this.calculateRotationalEnvelope(this.numberGroup);
             if (groupSphere.radius > largestRadius) {
                 largestSphere = groupSphere;
@@ -1205,7 +1214,8 @@ export class ThreeD_component_engine {
         this.mesh.rotation.x = 0.349; // Tilt down ~20 degrees
         this.mesh.rotation.y = -0.55; // Turn right ~31 degrees
         
-        this.scene.add(this.mesh);
+        // EDIT-PASS1: Change from scene.add to rotationGroup.add
+        this.scene.add(this.mesh);  // EDIT-PASS1: Should be this.rotationGroup.add(this.mesh)
         
         // Resize container to fit content
         this.resizeContainerToFitContent();
@@ -1377,19 +1387,19 @@ export class ThreeD_component_engine {
         this.isDragging = true;
         
         // Raycast to find the initial grabbed point on the object
-        const intersects = this.raycaster.intersectObject(this.mesh);
+        const intersects = this.raycaster.intersectObject(this.mesh);  // EDIT-PASS1: Change to intersectObjects(this.rotationGroup.children, true)
         
         if (intersects.length > 0) {
             // Store the grabbed point in local space
             this.grabbedPoint = intersects[0].point.clone();
             const localPoint = this.grabbedPoint.clone();
-            this.mesh.worldToLocal(localPoint);
+            this.mesh.worldToLocal(localPoint);  // EDIT-PASS1: Change to this.rotationGroup
             this.grabbedLocalPoint = localPoint;
         } else {
             // If not clicking on object, create a virtual grabbed point
             // Project a point on the object closest to the ray
             const center = new THREE.Vector3();
-            this.mesh.getWorldPosition(center);
+            this.mesh.getWorldPosition(center);  // EDIT-PASS1: Change to this.rotationGroup
             const ray = this.raycaster.ray;
             
             // Find closest point on ray to object center
@@ -1400,11 +1410,11 @@ export class ThreeD_component_engine {
             
             // Use the direction from center to closest point to find a point on object surface
             const direction = closestPoint.clone().sub(center).normalize();
-            const radius = this.mesh.geometry.boundingSphere.radius * this.mesh.scale.x;
+            const radius = this.mesh.geometry.boundingSphere.radius * this.mesh.scale.x;  // EDIT-PASS1: Need to handle differently
             this.grabbedPoint = center.clone().add(direction.clone().multiplyScalar(radius));
             
             const localPoint = this.grabbedPoint.clone();
-            this.mesh.worldToLocal(localPoint);
+            this.mesh.worldToLocal(localPoint);  // EDIT-PASS1: Change to this.rotationGroup
             this.grabbedLocalPoint = localPoint;
         }
         
@@ -1413,7 +1423,7 @@ export class ThreeD_component_engine {
         this.renderer.domElement.style.cursor = 'grabbing';
         
         // Initialize rotation tracking
-        this.previousQuaternion = this.mesh.quaternion.clone();
+        this.previousQuaternion = this.mesh.quaternion.clone();  // EDIT-PASS1: Change to this.rotationGroup
         this.rotationHistory = [];
     }
     
@@ -1445,7 +1455,7 @@ export class ThreeD_component_engine {
         
         // Original sticky rotation for free rotation
         // Store the quaternion before rotation
-        const beforeRotation = this.mesh.quaternion.clone();
+        const beforeRotation = this.mesh.quaternion.clone();  // EDIT-PASS1: Change to this.rotationGroup
         
         // Convert to normalized device coordinates
         const mouse = new THREE.Vector2();
@@ -1457,7 +1467,7 @@ export class ThreeD_component_engine {
         
         // Track actual rotation that occurred
         const rotationDelta = new THREE.Quaternion();
-        rotationDelta.multiplyQuaternions(this.mesh.quaternion, beforeRotation.conjugate());
+        rotationDelta.multiplyQuaternions(this.mesh.quaternion, beforeRotation.conjugate());  // EDIT-PASS1: Change to this.rotationGroup
         
         this.rotationHistory.push({
             quaternion: rotationDelta,
@@ -1477,7 +1487,7 @@ export class ThreeD_component_engine {
     applyStickyRotation(mouseNDC) {
         // Get the current world position of the grabbed point
         const currentWorldPoint = this.grabbedLocalPoint.clone();
-        this.mesh.localToWorld(currentWorldPoint);
+        this.mesh.localToWorld(currentWorldPoint);  // EDIT-PASS1: Change to this.rotationGroup
         
         // Create a ray from the camera through the mouse position
         this.raycaster.setFromCamera(mouseNDC, this.camera);
@@ -1485,7 +1495,7 @@ export class ThreeD_component_engine {
         
         // Get the center of the object in world space
         const center = new THREE.Vector3();
-        this.mesh.getWorldPosition(center);
+        this.mesh.getWorldPosition(center);  // EDIT-PASS1: Change to this.rotationGroup
         
         // Calculate vectors from center to current grabbed point and from center to camera
         const centerToGrabbed = currentWorldPoint.clone().sub(center);
@@ -1549,7 +1559,7 @@ export class ThreeD_component_engine {
                     rotationAxis.normalize();
                     const rotationQuaternion = new THREE.Quaternion();
                     rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle);
-                    this.mesh.quaternion.multiplyQuaternions(rotationQuaternion, this.mesh.quaternion);
+                    this.mesh.quaternion.multiplyQuaternions(rotationQuaternion, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
                 }
             }
         }
@@ -1982,10 +1992,10 @@ export class ThreeD_component_engine {
                 // Only allow X-axis rotation (use both deltaX and deltaY to control the drum)
                 // Both horizontal and vertical swipes contribute to forward/backward roll
                 const totalDelta = -event.deltaX * sensitivity - event.deltaY * sensitivity;
-                this.mesh.rotateY(totalDelta);
+                this.mesh.rotateY(totalDelta);  // EDIT-PASS1: Change to this.rotationGroup
             } else {
-                this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
-                this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+                this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
+                this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
             }
             
             // Reset auto-rotation time since user is interacting
@@ -2195,8 +2205,8 @@ export class ThreeD_component_engine {
                 quaternionX.setFromAxisAngle(screenXAxis, this.rotationVelocity.x);
                 
                 // Apply momentum rotations
-                this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);
-                this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);
+                this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
+                this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
                 
                 // Dampen velocity - very slow decay like a real object in air
                 this.rotationVelocity.x *= 0.995;  // Only lose 0.5% per frame
@@ -2218,8 +2228,8 @@ export class ThreeD_component_engine {
                     Math.sin(this.autoRotationTime * 0.1) * 0.002 * this.config.rotationSpeed
                 );
                 
-                this.mesh.quaternion.multiplyQuaternions(autoQuaternionY, this.mesh.quaternion);
-                this.mesh.quaternion.multiplyQuaternions(autoQuaternionX, this.mesh.quaternion);
+                this.mesh.quaternion.multiplyQuaternions(autoQuaternionY, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
+                this.mesh.quaternion.multiplyQuaternions(autoQuaternionX, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
             }
         }
         
@@ -2828,9 +2838,10 @@ export class ThreeD_component_engine {
         
         // Create a group to hold all numbers - this becomes our "mesh" for rotation
         this.numberGroup = new THREE.Group();
-        this.scene.add(this.numberGroup);
+        // EDIT-PASS1: Change from scene.add to rotationGroup.add
+        this.scene.add(this.numberGroup);  // EDIT-PASS1: Should be this.rotationGroup.add(this.numberGroup)
         this.numberGroup.rotation.z = -Math.PI / 2;  // Rotate 90° clockwise to make drum horizontal
-        this.mesh = this.numberGroup; // Assign to mesh so parent's rotation logic works
+        this.mesh = this.numberGroup; // Assign to mesh so parent's rotation logic works  // EDIT-PASS1: Remove this aliasing
         
         // Load font and create TextGeometry
         this.loadFontAndCreateNumbers();
