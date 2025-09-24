@@ -1398,7 +1398,7 @@ export class ThreeD_component_engine {
         if (this.config.mode === 'textgeometry' && !this.config.restrictRotationAxis) {
             // Create a temporary invisible sphere that encompasses all numbers
             // This gives us consistent sphere-like interaction matching swipe behavior
-            const tempGeometry = new THREE.SphereGeometry(1.0, 32, 32);
+            const tempGeometry = new THREE.SphereGeometry(0.3, 32, 32);
             const tempMesh = new THREE.Mesh(tempGeometry, new THREE.MeshBasicMaterial({visible: false}));
             
             // Add to rotationGroup temporarily so it's in the same coordinate space
