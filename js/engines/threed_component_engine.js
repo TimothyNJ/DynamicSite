@@ -88,7 +88,7 @@ export class ThreeD_component_engine {
         this.yellowBorderElement = null;
         
         // EDIT-PASS1: Add rotation group property
-        // this.rotationGroup = null;
+        this.rotationGroup = null;
         
         // Decal system for projected textures
         this.decals = [];
@@ -238,8 +238,8 @@ export class ThreeD_component_engine {
         this.setupLighting();
         
         // EDIT-PASS1: Create rotation group here (before fog plane)
-        // this.rotationGroup = new THREE.Group();
-        // this.scene.add(this.rotationGroup);
+        this.rotationGroup = new THREE.Group();
+        this.scene.add(this.rotationGroup);
         
         this.createFogPlane();  // Always create fog plane for background
         this.createYellowBorder();  // Create yellow component border
@@ -1215,7 +1215,7 @@ export class ThreeD_component_engine {
         this.mesh.rotation.y = -0.55; // Turn right ~31 degrees
         
         // EDIT-PASS1: Change from scene.add to rotationGroup.add
-        this.scene.add(this.mesh);  // EDIT-PASS1: Should be this.rotationGroup.add(this.mesh)
+        this.rotationGroup.add(this.mesh);  // Changed from this.scene.add(this.mesh)
         
         // Resize container to fit content
         this.resizeContainerToFitContent();
@@ -2839,9 +2839,9 @@ export class ThreeD_component_engine {
         // Create a group to hold all numbers - this becomes our "mesh" for rotation
         this.numberGroup = new THREE.Group();
         // EDIT-PASS1: Change from scene.add to rotationGroup.add
-        this.scene.add(this.numberGroup);  // EDIT-PASS1: Should be this.rotationGroup.add(this.numberGroup)
+        this.rotationGroup.add(this.numberGroup);  // Changed from this.scene.add(this.numberGroup)
         this.numberGroup.rotation.z = -Math.PI / 2;  // Rotate 90° clockwise to make drum horizontal
-        this.mesh = this.numberGroup; // Assign to mesh so parent's rotation logic works  // EDIT-PASS1: Remove this aliasing
+        // EDIT-PASS1: Remove this aliasing - no longer needed with rotationGroup
         
         // Load font and create TextGeometry
         this.loadFontAndCreateNumbers();
