@@ -1467,12 +1467,47 @@ export class ThreeD_component_engine {
         mouse.x = (currentMousePosition.x / rect.width) * 2 - 1;
         mouse.y = -(currentMousePosition.y / rect.height) * 2 + 1;
         
-        // Apply sticky point rotation (direct control, no velocity tracking)
+        // Store the previous rotation for velocity calculation
+        const previousRotation = this.rotationGroup.quaternion.clone();
+        
+        // Apply sticky point rotation
         this.applyStickyRotation(mouse);
         
-        // NO MOMENTUM - matching trackpad swipe behavior
-        // Drag is for precise control, just like trackpad swipe
-        this.rotationVelocity = { x: 0, y: 0 };
+        // Calculate rotation delta for momentum
+        // This is the key insight from the trackpad swipe behavior
+        const currentRotation = this.rotationGroup.quaternion.clone();
+        const deltaQuaternion = currentRotation.clone().multiply(previousRotation.conjugate());
+        
+        // Convert delta quaternion to axis-angle
+        const axis = new THREE.Vector3();
+        let angle = 0;
+        
+        // Extract axis and angle from quaternion
+        const w = deltaQuaternion.w;
+        if (Math.abs(w) < 1) {
+            angle = 2 * Math.acos(w);
+            const s = Math.sqrt(1 - w * w);
+            if (s > 0.001) {
+                axis.x = deltaQuaternion.x / s;
+                axis.y = deltaQuaternion.y / s;
+                axis.z = deltaQuaternion.z / s;
+            } else {
+                axis.x = deltaQuaternion.x;
+                axis.y = deltaQuaternion.y;
+                axis.z = deltaQuaternion.z;
+            }
+        }
+        
+        // Set velocity based on the rotation rate
+        // This matches the trackpad swipe behavior - simple and effective
+        const sensitivity = 0.8;  // Adjust for desired momentum feel
+        this.rotationVelocity.x = axis.x * angle * sensitivity;
+        this.rotationVelocity.y = axis.y * angle * sensitivity;
+        
+        // Cap velocities to prevent excessive spinning
+        const maxVel = 0.02;
+        this.rotationVelocity.x = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.x));
+        this.rotationVelocity.y = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.y));
         
         this.previousMousePosition = currentMousePosition;
     }
@@ -1662,6 +1697,8 @@ export class ThreeD_component_engine {
         this.renderer.domElement.style.cursor = 'grab';
         this.grabbedPoint = null;
         this.grabbedLocalPoint = null;
+        // Velocity has already been set during dragging
+        // The animate() loop will continue applying it with 0.995 damping
     }
     
     onTouchStart(event) {
