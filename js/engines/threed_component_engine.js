@@ -1993,7 +1993,12 @@ export class ThreeD_component_engine {
                 // Only allow X-axis rotation (use both deltaX and deltaY to control the drum)
                 // Both horizontal and vertical swipes contribute to forward/backward roll
                 const totalDelta = -event.deltaX * sensitivity - event.deltaY * sensitivity;
-                this.rotationGroup.rotateY(totalDelta);  // Changed to this.rotationGroup
+                // For TextGeometry mode, we need to rotate the numberGroup which has the 90° rotation
+                if (this.numberGroup) {
+                    this.numberGroup.rotateY(totalDelta);  // Rotate numberGroup directly for drum
+                } else {
+                    this.rotationGroup.rotateY(totalDelta);  // Standard mode
+                }
             } else {
                 this.rotationGroup.quaternion.multiplyQuaternions(quaternionY, this.rotationGroup.quaternion);  // Changed both to this.rotationGroup
                 this.rotationGroup.quaternion.multiplyQuaternions(quaternionX, this.rotationGroup.quaternion);  // Changed both to this.rotationGroup
