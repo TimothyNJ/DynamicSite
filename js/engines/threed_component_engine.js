@@ -1451,10 +1451,6 @@ export class ThreeD_component_engine {
         
         // Mouse position was already initialized at the beginning of this function
         // No need to reinitialize it here
-        
-        // Initialize rotation tracking (keeping for potential future use)
-        this.previousQuaternion = this.rotationGroup.quaternion.clone();
-        this.rotationHistory = [];
     }
     
     onPointerMove(event) {
@@ -1466,38 +1462,17 @@ export class ThreeD_component_engine {
             y: event.clientY - rect.top
         };
         
-        // Store the quaternion before rotation
-        const beforeRotation = this.rotationGroup.quaternion.clone();
-        
         // Convert to normalized device coordinates
         const mouse = new THREE.Vector2();
         mouse.x = (currentMousePosition.x / rect.width) * 2 - 1;
         mouse.y = -(currentMousePosition.y / rect.height) * 2 + 1;
         
-        // Apply sticky point rotation
+        // Apply sticky point rotation (direct control, no velocity tracking)
         this.applyStickyRotation(mouse);
         
-        // Track actual rotation that occurred
-        const rotationDelta = new THREE.Quaternion();
-        rotationDelta.multiplyQuaternions(this.rotationGroup.quaternion, beforeRotation.conjugate());
-        
-        // Store rotation history for velocity calculation
-        if (!this.rotationHistory) {
-            this.rotationHistory = [];
-        }
-        
-        this.rotationHistory.push({
-            quaternion: rotationDelta,
-            time: Date.now()
-        });
-        
-        const maxHistoryLength = 5;
-        if (this.rotationHistory.length > maxHistoryLength) {
-            this.rotationHistory.shift();
-        }
-        
-        // Calculate velocity from actual rotation changes
-        this.calculateVelocityFromRotation();
+        // NO MOMENTUM - matching trackpad swipe behavior
+        // Drag is for precise control, just like trackpad swipe
+        this.rotationVelocity = { x: 0, y: 0 };
         
         this.previousMousePosition = currentMousePosition;
     }
@@ -1681,53 +1656,6 @@ export class ThreeD_component_engine {
         }
     }
     
-    
-    calculateVelocityFromRotation() {
-        if (!this.rotationHistory || this.rotationHistory.length < 2) {
-            this.rotationVelocity = { x: 0, y: 0 };
-            return;
-        }
-        
-        // Get recent rotation history (use last 3 frames for smoothing)
-        const recent = this.rotationHistory.slice(-3);
-        if (recent.length < 2) return;
-        
-        // Calculate time delta
-        const deltaTime = (recent[recent.length - 1].time - recent[0].time) / 1000;
-        if (deltaTime <= 0) {
-            this.rotationVelocity = { x: 0, y: 0 };
-            return;
-        }
-        
-        // Accumulate rotations over the time period
-        let totalRotation = new THREE.Quaternion();
-        for (let i = 0; i < recent.length; i++) {
-            totalRotation.multiply(recent[i].quaternion);
-        }
-        
-        // Convert quaternion to euler angles for velocity
-        const euler = new THREE.Euler();
-        euler.setFromQuaternion(totalRotation, 'YXZ');
-        
-        // Calculate angular velocity (radians per second)
-        // Scale it WAY down - the raw values are too large
-        const velocityX = (euler.x / deltaTime) * 0.02;  // Scale down by 50x
-        const velocityY = (euler.y / deltaTime) * 0.02;  // Scale down by 50x
-        
-        // Apply smoothing to prevent jitter
-        const smoothing = 0.3;
-        this.rotationVelocity.x = this.rotationVelocity.x * (1 - smoothing) + velocityX * smoothing;
-        this.rotationVelocity.y = this.rotationVelocity.y * (1 - smoothing) + velocityY * smoothing;
-        
-        // Clamp maximum velocity to prevent runaway spinning
-        const MAX_VELOCITY = 0.1;  // Maximum radians per frame
-        this.rotationVelocity.x = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, this.rotationVelocity.x));
-        this.rotationVelocity.y = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, this.rotationVelocity.y));
-        
-        // Clamp very small velocities to zero to prevent drift
-        if (Math.abs(this.rotationVelocity.x) < 0.001) this.rotationVelocity.x = 0;
-        if (Math.abs(this.rotationVelocity.y) < 0.001) this.rotationVelocity.y = 0;
-    }
     
     onPointerUp() {
         this.isDragging = false;
