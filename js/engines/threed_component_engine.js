@@ -1444,7 +1444,14 @@ export class ThreeD_component_engine {
             const rotationAngle = deltaY * 0.01; // Sensitivity factor
             
             // Rotate ONLY around the local X-axis (the "axle")
-            this.mesh.rotateX(rotationAngle);
+            // For TextGeometry mode with numberGroup, rotate that directly
+            if (this.numberGroup) {
+                this.numberGroup.rotateX(rotationAngle);  // Rotate numberGroup for drum
+            } else if (this.mesh) {
+                this.mesh.rotateX(rotationAngle);  // Standard restricted mode
+            } else {
+                this.rotationGroup.rotateX(rotationAngle);  // Fallback
+            }
             
             // Track velocity for momentum (only X component)
             this.rotationVelocity.x = rotationAngle;
