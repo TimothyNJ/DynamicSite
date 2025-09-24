@@ -1472,15 +1472,26 @@ export class ThreeD_component_engine {
             const deltaY = currentMousePosition.y - this.previousMousePosition.y;
             const deltaTime = 0.016; // Assume 60fps for now
             
-            // Convert pixel movement to rotation velocity
-            // These values represent the user's intended motion, not corrections
-            const rawVelocityX = (deltaY / rect.height) * 5.0; // Vertical mouse = X rotation
-            const rawVelocityY = (deltaX / rect.width) * 5.0;  // Horizontal mouse = Y rotation
+            // Dead zone: If mouse movement is tiny, treat it as stopped
+            // This prevents phantom momentum when user stops moving but hasn't released
+            const DEAD_ZONE_THRESHOLD = 0.5; // pixels
             
-            // Smooth the velocity using exponential moving average
-            const smoothing = 0.3; // Higher = more responsive, lower = smoother
-            this.rotationVelocity.x = this.rotationVelocity.x * (1 - smoothing) + rawVelocityX * smoothing;
-            this.rotationVelocity.y = this.rotationVelocity.y * (1 - smoothing) + rawVelocityY * smoothing;
+            if (Math.abs(deltaX) < DEAD_ZONE_THRESHOLD && Math.abs(deltaY) < DEAD_ZONE_THRESHOLD) {
+                // Mouse effectively stopped - zero out velocity
+                this.rotationVelocity.x = 0;
+                this.rotationVelocity.y = 0;
+            } else {
+                // Mouse is actually moving - calculate velocity
+                // Convert pixel movement to rotation velocity
+                // These values represent the user's intended motion, not corrections
+                const rawVelocityX = (deltaY / rect.height) * 5.0; // Vertical mouse = X rotation
+                const rawVelocityY = (deltaX / rect.width) * 5.0;  // Horizontal mouse = Y rotation
+                
+                // Smooth the velocity using exponential moving average
+                const smoothing = 0.3; // Higher = more responsive, lower = smoother
+                this.rotationVelocity.x = this.rotationVelocity.x * (1 - smoothing) + rawVelocityX * smoothing;
+                this.rotationVelocity.y = this.rotationVelocity.y * (1 - smoothing) + rawVelocityY * smoothing;
+            }
         }
         
         // Convert to normalized device coordinates
