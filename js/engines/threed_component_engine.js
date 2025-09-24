@@ -1449,12 +1449,8 @@ export class ThreeD_component_engine {
         this.autoRotationTime = 0;
         this.renderer.domElement.style.cursor = 'grabbing';
         
-        // Initialize mouse tracking for velocity
-        const rect = this.renderer.domElement.getBoundingClientRect();
-        this.previousMousePosition = {
-            x: event.clientX - rect.left,
-            y: event.clientY - rect.top
-        };
+        // Mouse position was already initialized at the beginning of this function
+        // No need to reinitialize it here
         
         // Initialize rotation tracking (keeping for potential future use)
         this.previousQuaternion = this.rotationGroup.quaternion.clone();
