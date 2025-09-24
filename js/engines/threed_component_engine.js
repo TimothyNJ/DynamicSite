@@ -1466,44 +1466,38 @@ export class ThreeD_component_engine {
             y: event.clientY - rect.top
         };
         
-        // Track raw mouse movement for velocity (before any corrections)
-        if (this.previousMousePosition) {
-            const deltaX = currentMousePosition.x - this.previousMousePosition.x;
-            const deltaY = currentMousePosition.y - this.previousMousePosition.y;
-            const deltaTime = 0.016; // Assume 60fps for now
-            
-            // Dead zone: If mouse movement is tiny, treat it as stopped
-            // This prevents phantom momentum when user stops moving but hasn't released
-            const DEAD_ZONE_THRESHOLD = 0.5; // pixels
-            
-            if (Math.abs(deltaX) < DEAD_ZONE_THRESHOLD && Math.abs(deltaY) < DEAD_ZONE_THRESHOLD) {
-                // Mouse effectively stopped - zero out velocity
-                this.rotationVelocity.x = 0;
-                this.rotationVelocity.y = 0;
-            } else {
-                // Mouse is actually moving - calculate velocity
-                // Convert pixel movement to rotation velocity
-                // These values represent the user's intended motion, not corrections
-                const rawVelocityX = (deltaY / rect.height) * 5.0; // Vertical mouse = X rotation
-                const rawVelocityY = (deltaX / rect.width) * 5.0;  // Horizontal mouse = Y rotation
-                
-                // Smooth the velocity using exponential moving average
-                const smoothing = 0.3; // Higher = more responsive, lower = smoother
-                this.rotationVelocity.x = this.rotationVelocity.x * (1 - smoothing) + rawVelocityX * smoothing;
-                this.rotationVelocity.y = this.rotationVelocity.y * (1 - smoothing) + rawVelocityY * smoothing;
-            }
-        }
+        // Store the quaternion before rotation
+        const beforeRotation = this.rotationGroup.quaternion.clone();
         
         // Convert to normalized device coordinates
         const mouse = new THREE.Vector2();
         mouse.x = (currentMousePosition.x / rect.width) * 2 - 1;
         mouse.y = -(currentMousePosition.y / rect.height) * 2 + 1;
         
-        // Apply sticky point rotation (this may include corrections)
+        // Apply sticky point rotation
         this.applyStickyRotation(mouse);
         
-        // No longer calculate velocity from quaternion changes
-        // We're using raw mouse movement instead
+        // Track actual rotation that occurred
+        const rotationDelta = new THREE.Quaternion();
+        rotationDelta.multiplyQuaternions(this.rotationGroup.quaternion, beforeRotation.conjugate());
+        
+        // Store rotation history for velocity calculation
+        if (!this.rotationHistory) {
+            this.rotationHistory = [];
+        }
+        
+        this.rotationHistory.push({
+            quaternion: rotationDelta,
+            time: Date.now()
+        });
+        
+        const maxHistoryLength = 5;
+        if (this.rotationHistory.length > maxHistoryLength) {
+            this.rotationHistory.shift();
+        }
+        
+        // Calculate velocity from actual rotation changes
+        this.calculateVelocityFromRotation();
         
         this.previousMousePosition = currentMousePosition;
     }
@@ -1685,6 +1679,48 @@ export class ThreeD_component_engine {
         } else {
             this.rotationVelocity = { x: 0, y: 0 };
         }
+    }
+    
+    
+    calculateVelocityFromRotation() {
+        if (!this.rotationHistory || this.rotationHistory.length < 2) {
+            this.rotationVelocity = { x: 0, y: 0 };
+            return;
+        }
+        
+        // Get recent rotation history (use last 3 frames for smoothing)
+        const recent = this.rotationHistory.slice(-3);
+        if (recent.length < 2) return;
+        
+        // Calculate time delta
+        const deltaTime = (recent[recent.length - 1].time - recent[0].time) / 1000;
+        if (deltaTime <= 0) {
+            this.rotationVelocity = { x: 0, y: 0 };
+            return;
+        }
+        
+        // Accumulate rotations over the time period
+        let totalRotation = new THREE.Quaternion();
+        for (let i = 0; i < recent.length; i++) {
+            totalRotation.multiply(recent[i].quaternion);
+        }
+        
+        // Convert quaternion to euler angles for velocity
+        const euler = new THREE.Euler();
+        euler.setFromQuaternion(totalRotation, 'YXZ');
+        
+        // Calculate angular velocity (radians per second)
+        const velocityX = euler.x / deltaTime;
+        const velocityY = euler.y / deltaTime;
+        
+        // Apply smoothing to prevent jitter
+        const smoothing = 0.3;
+        this.rotationVelocity.x = this.rotationVelocity.x * (1 - smoothing) + velocityX * smoothing;
+        this.rotationVelocity.y = this.rotationVelocity.y * (1 - smoothing) + velocityY * smoothing;
+        
+        // Clamp very small velocities to zero to prevent drift
+        if (Math.abs(this.rotationVelocity.x) < 0.001) this.rotationVelocity.x = 0;
+        if (Math.abs(this.rotationVelocity.y) < 0.001) this.rotationVelocity.y = 0;
     }
     
     onPointerUp() {
