@@ -1387,19 +1387,19 @@ export class ThreeD_component_engine {
         this.isDragging = true;
         
         // Raycast to find the initial grabbed point on the object
-        const intersects = this.raycaster.intersectObject(this.mesh);  // EDIT-PASS1: Change to intersectObjects(this.rotationGroup.children, true)
+        const intersects = this.raycaster.intersectObjects(this.rotationGroup.children, true);  // Changed to intersectObjects with recursive flag
         
         if (intersects.length > 0) {
             // Store the grabbed point in local space
             this.grabbedPoint = intersects[0].point.clone();
             const localPoint = this.grabbedPoint.clone();
-            this.mesh.worldToLocal(localPoint);  // EDIT-PASS1: Change to this.rotationGroup
+            this.rotationGroup.worldToLocal(localPoint);  // Changed to this.rotationGroup
             this.grabbedLocalPoint = localPoint;
         } else {
             // If not clicking on object, create a virtual grabbed point
             // Project a point on the object closest to the ray
             const center = new THREE.Vector3();
-            this.mesh.getWorldPosition(center);  // EDIT-PASS1: Change to this.rotationGroup
+            this.rotationGroup.getWorldPosition(center);  // Changed to this.rotationGroup
             const ray = this.raycaster.ray;
             
             // Find closest point on ray to object center
@@ -1410,11 +1410,12 @@ export class ThreeD_component_engine {
             
             // Use the direction from center to closest point to find a point on object surface
             const direction = closestPoint.clone().sub(center).normalize();
-            const radius = this.mesh.geometry.boundingSphere.radius * this.mesh.scale.x;  // EDIT-PASS1: Need to handle differently
+            // Use a default radius since rotationGroup doesn't have geometry.boundingSphere
+            const radius = 1.0; // Default radius for virtual grab point
             this.grabbedPoint = center.clone().add(direction.clone().multiplyScalar(radius));
             
             const localPoint = this.grabbedPoint.clone();
-            this.mesh.worldToLocal(localPoint);  // EDIT-PASS1: Change to this.rotationGroup
+            this.rotationGroup.worldToLocal(localPoint);  // Changed to this.rotationGroup
             this.grabbedLocalPoint = localPoint;
         }
         
@@ -1423,7 +1424,7 @@ export class ThreeD_component_engine {
         this.renderer.domElement.style.cursor = 'grabbing';
         
         // Initialize rotation tracking
-        this.previousQuaternion = this.mesh.quaternion.clone();  // EDIT-PASS1: Change to this.rotationGroup
+        this.previousQuaternion = this.rotationGroup.quaternion.clone();  // Changed to this.rotationGroup
         this.rotationHistory = [];
     }
     
@@ -1455,7 +1456,7 @@ export class ThreeD_component_engine {
         
         // Original sticky rotation for free rotation
         // Store the quaternion before rotation
-        const beforeRotation = this.mesh.quaternion.clone();  // EDIT-PASS1: Change to this.rotationGroup
+        const beforeRotation = this.rotationGroup.quaternion.clone();  // Changed to this.rotationGroup
         
         // Convert to normalized device coordinates
         const mouse = new THREE.Vector2();
@@ -1467,7 +1468,7 @@ export class ThreeD_component_engine {
         
         // Track actual rotation that occurred
         const rotationDelta = new THREE.Quaternion();
-        rotationDelta.multiplyQuaternions(this.mesh.quaternion, beforeRotation.conjugate());  // EDIT-PASS1: Change to this.rotationGroup
+        rotationDelta.multiplyQuaternions(this.rotationGroup.quaternion, beforeRotation.conjugate());  // Changed to this.rotationGroup
         
         this.rotationHistory.push({
             quaternion: rotationDelta,
@@ -1487,7 +1488,7 @@ export class ThreeD_component_engine {
     applyStickyRotation(mouseNDC) {
         // Get the current world position of the grabbed point
         const currentWorldPoint = this.grabbedLocalPoint.clone();
-        this.mesh.localToWorld(currentWorldPoint);  // EDIT-PASS1: Change to this.rotationGroup
+        this.rotationGroup.localToWorld(currentWorldPoint);  // Changed to this.rotationGroup
         
         // Create a ray from the camera through the mouse position
         this.raycaster.setFromCamera(mouseNDC, this.camera);
@@ -1495,7 +1496,7 @@ export class ThreeD_component_engine {
         
         // Get the center of the object in world space
         const center = new THREE.Vector3();
-        this.mesh.getWorldPosition(center);  // EDIT-PASS1: Change to this.rotationGroup
+        this.rotationGroup.getWorldPosition(center);  // Changed to this.rotationGroup
         
         // Calculate vectors from center to current grabbed point and from center to camera
         const centerToGrabbed = currentWorldPoint.clone().sub(center);
@@ -1559,7 +1560,7 @@ export class ThreeD_component_engine {
                     rotationAxis.normalize();
                     const rotationQuaternion = new THREE.Quaternion();
                     rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle);
-                    this.mesh.quaternion.multiplyQuaternions(rotationQuaternion, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
+                    this.rotationGroup.quaternion.multiplyQuaternions(rotationQuaternion, this.rotationGroup.quaternion);  // Changed both to this.rotationGroup
                 }
             }
         }
@@ -1992,10 +1993,10 @@ export class ThreeD_component_engine {
                 // Only allow X-axis rotation (use both deltaX and deltaY to control the drum)
                 // Both horizontal and vertical swipes contribute to forward/backward roll
                 const totalDelta = -event.deltaX * sensitivity - event.deltaY * sensitivity;
-                this.mesh.rotateY(totalDelta);  // EDIT-PASS1: Change to this.rotationGroup
+                this.rotationGroup.rotateY(totalDelta);  // Changed to this.rotationGroup
             } else {
-                this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
-                this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
+                this.rotationGroup.quaternion.multiplyQuaternions(quaternionY, this.rotationGroup.quaternion);  // Changed both to this.rotationGroup
+                this.rotationGroup.quaternion.multiplyQuaternions(quaternionX, this.rotationGroup.quaternion);  // Changed both to this.rotationGroup
             }
             
             // Reset auto-rotation time since user is interacting
@@ -2205,8 +2206,8 @@ export class ThreeD_component_engine {
                 quaternionX.setFromAxisAngle(screenXAxis, this.rotationVelocity.x);
                 
                 // Apply momentum rotations
-                this.mesh.quaternion.multiplyQuaternions(quaternionY, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
-                this.mesh.quaternion.multiplyQuaternions(quaternionX, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
+                this.rotationGroup.quaternion.multiplyQuaternions(quaternionY, this.rotationGroup.quaternion);  // Changed both to this.rotationGroup
+                this.rotationGroup.quaternion.multiplyQuaternions(quaternionX, this.rotationGroup.quaternion);  // Changed both to this.rotationGroup
                 
                 // Dampen velocity - very slow decay like a real object in air
                 this.rotationVelocity.x *= 0.995;  // Only lose 0.5% per frame
@@ -2228,8 +2229,8 @@ export class ThreeD_component_engine {
                     Math.sin(this.autoRotationTime * 0.1) * 0.002 * this.config.rotationSpeed
                 );
                 
-                this.mesh.quaternion.multiplyQuaternions(autoQuaternionY, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
-                this.mesh.quaternion.multiplyQuaternions(autoQuaternionX, this.mesh.quaternion);  // EDIT-PASS1: Change both to this.rotationGroup
+                this.rotationGroup.quaternion.multiplyQuaternions(autoQuaternionY, this.rotationGroup.quaternion);  // Changed both to this.rotationGroup
+                this.rotationGroup.quaternion.multiplyQuaternions(autoQuaternionX, this.rotationGroup.quaternion);  // Changed both to this.rotationGroup
             }
         }
         
