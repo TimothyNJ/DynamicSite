@@ -1396,14 +1396,13 @@ export class ThreeD_component_engine {
         // For TextGeometry mode (non-restricted), we need a different approach
         // to avoid hitting individual number meshes which causes poor leverage
         if (this.config.mode === 'textgeometry' && !this.config.restrictRotationAxis) {
-            // Create a temporary invisible cylinder that encompasses all numbers
-            // This gives us a consistent surface to grab with good leverage
-            const tempGeometry = new THREE.CylinderGeometry(1.5, 1.5, 0.5, 32);
+            // Create a temporary invisible sphere that encompasses all numbers
+            // This gives us consistent sphere-like interaction matching swipe behavior
+            const tempGeometry = new THREE.SphereGeometry(1.5, 32, 32);
             const tempMesh = new THREE.Mesh(tempGeometry, new THREE.MeshBasicMaterial({visible: false}));
-            tempMesh.rotation.z = Math.PI / 2; // Rotate to match number orientation
             tempMesh.position.copy(this.rotationGroup.position);
             
-            // Raycast against the temporary cylinder
+            // Raycast against the temporary sphere
             intersects = this.raycaster.intersectObject(tempMesh);
             
             // Clean up
