@@ -1386,15 +1386,9 @@ export class ThreeD_component_engine {
         // If we're here, click is within fog plane, proceed with drag
         this.isDragging = true;
         
-        // Early detection for restricted axis mode
-        if (this.config.restrictRotationAxis) {
-            // For restricted rotation, we don't need grab points
-            // Just reset velocities and return early
-            this.rotationVelocity = { x: 0, y: 0 };
-            this.autoRotationTime = 0;
-            this.renderer.domElement.style.cursor = 'grabbing';
-            return; // Skip all grab point calculation
-        }
+        // Reset velocities for all drag modes
+        this.rotationVelocity = { x: 0, y: 0 };
+        this.autoRotationTime = 0;
         
         // Raycast to find the initial grabbed point on the object
         const intersects = this.raycaster.intersectObjects(this.rotationGroup.children, true);
@@ -1439,11 +1433,7 @@ export class ThreeD_component_engine {
     }
     
     onPointerMove(event) {
-        if (!this.isDragging) return;  // Exit if not dragging
-        
-        // For restricted mode, grabbedLocalPoint won't be set (we returned early in onPointerDown)
-        // For free rotation, we need grabbedLocalPoint
-        if (!this.config.restrictRotationAxis && !this.grabbedLocalPoint) return;
+        if (!this.isDragging || !this.grabbedLocalPoint) return;
         
         const rect = this.renderer.domElement.getBoundingClientRect();
         const currentMousePosition = {
@@ -1451,26 +1441,8 @@ export class ThreeD_component_engine {
             y: event.clientY - rect.top
         };
         
-        // Check if we have axle-based rotation restriction
-        if (this.config.restrictRotationAxis === 'x') {
-            // Axle-based rotation - drum can only spin around X-axis
-            const deltaY = currentMousePosition.y - this.previousMousePosition.y;
-            const rotationAngle = deltaY * 0.01; // Sensitivity factor
-            
-            // Rotate the entire rotation group around X-axis
-            this.rotationGroup.rotateX(rotationAngle);
-            
-            // Track velocity for momentum (only X component)
-            this.rotationVelocity.x = rotationAngle;
-            this.rotationVelocity.y = 0;
-            
-            this.previousMousePosition = currentMousePosition;
-            return; // Skip the complex sticky rotation
-        }
-        
-        // Original sticky rotation for free rotation
         // Store the quaternion before rotation
-        const beforeRotation = this.rotationGroup.quaternion.clone();  // Changed to this.rotationGroup
+        const beforeRotation = this.rotationGroup.quaternion.clone();
         
         // Convert to normalized device coordinates
         const mouse = new THREE.Vector2();
@@ -1549,7 +1521,21 @@ export class ThreeD_component_engine {
                 rotationAxis.normalize();
                 const rotationQuaternion = new THREE.Quaternion();
                 rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle);
-                this.mesh.quaternion.multiplyQuaternions(rotationQuaternion, this.mesh.quaternion);
+                
+                // Apply axis restriction if needed
+                if (this.config.restrictRotationAxis === 'x') {
+                    // Extract only the X-axis component of the rotation
+                    // Convert to Euler angles, keep only X rotation, convert back
+                    const tempQuaternion = this.rotationGroup.quaternion.clone();
+                    tempQuaternion.multiplyQuaternions(rotationQuaternion, tempQuaternion);
+                    const euler = new THREE.Euler().setFromQuaternion(tempQuaternion, 'XYZ');
+                    euler.y = 0;  // Remove Y rotation
+                    euler.z = 0;  // Remove Z rotation
+                    this.rotationGroup.quaternion.setFromEuler(euler);
+                } else {
+                    // Normal free rotation
+                    this.rotationGroup.quaternion.multiplyQuaternions(rotationQuaternion, this.rotationGroup.quaternion);
+                }
             }
         } else {
             // Ray intersects the sphere
@@ -1574,7 +1560,21 @@ export class ThreeD_component_engine {
                     rotationAxis.normalize();
                     const rotationQuaternion = new THREE.Quaternion();
                     rotationQuaternion.setFromAxisAngle(rotationAxis, rotationAngle);
-                    this.rotationGroup.quaternion.multiplyQuaternions(rotationQuaternion, this.rotationGroup.quaternion);  // Changed both to this.rotationGroup
+                    
+                    // Apply axis restriction if needed
+                    if (this.config.restrictRotationAxis === 'x') {
+                        // Extract only the X-axis component of the rotation
+                        // Convert to Euler angles, keep only X rotation, convert back
+                        const tempQuaternion = this.rotationGroup.quaternion.clone();
+                        tempQuaternion.multiplyQuaternions(rotationQuaternion, tempQuaternion);
+                        const euler = new THREE.Euler().setFromQuaternion(tempQuaternion, 'XYZ');
+                        euler.y = 0;  // Remove Y rotation
+                        euler.z = 0;  // Remove Z rotation
+                        this.rotationGroup.quaternion.setFromEuler(euler);
+                    } else {
+                        // Normal free rotation
+                        this.rotationGroup.quaternion.multiplyQuaternions(rotationQuaternion, this.rotationGroup.quaternion);
+                    }
                 }
             }
         }
@@ -1768,7 +1768,7 @@ export class ThreeD_component_engine {
                         quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta);
                         
                         // Apply rotation directly - this is controlled movement
-                        this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
+                        this.rotationGroup.quaternion.multiplyQuaternions(quaternionZ, this.rotationGroup.quaternion);
                     }
                     
                     // Reset auto-rotation time
@@ -1844,7 +1844,7 @@ export class ThreeD_component_engine {
                     quaternionZ.setFromAxisAngle(cameraDirection, rotationDelta);
                     
                     // Apply rotation directly - this is controlled movement
-                    this.mesh.quaternion.multiplyQuaternions(quaternionZ, this.mesh.quaternion);
+                    this.rotationGroup.quaternion.multiplyQuaternions(quaternionZ, this.rotationGroup.quaternion);
                 }
                 
                 // Reset auto-rotation time
