@@ -100,6 +100,12 @@ export class ThreeD_component_engine {
         this.font = null;
         this.isLoading = false;
         
+        // Sticky rotation tracking for momentum
+        this.grabbedPoint = null;
+        this.grabbedLocalPoint = null;
+        this.lastMovementTime = 0;
+        this.isLoading = false;
+        
         // Fog plane dynamic update properties
         this.fogPlaneUpdateTimeout = null;
         
@@ -1370,20 +1376,19 @@ export class ThreeD_component_engine {
         };
         this.previousMousePosition = currentMousePosition;
         
+        // Convert to normalized device coordinates
+        const mouseNDC = new THREE.Vector2(
+            (currentMousePosition.x / rect.width) * 2 - 1,
+            -(currentMousePosition.y / rect.height) * 2 + 1
+        );
+        
         // Check if click is within fog plane boundaries
         if (this.fogPlane) {
-            // Convert mouse to normalized device coordinates
-            const mouseNDC = new THREE.Vector2(
-                (currentMousePosition.x / rect.width) * 2 - 1,
-                -(currentMousePosition.y / rect.height) * 2 + 1
-            );
-            
             // Create a ray from camera through mouse position
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(mouseNDC, this.camera);
+            this.raycaster.setFromCamera(mouseNDC, this.camera);
             
             // Check intersection with fog plane
-            const intersects = raycaster.intersectObject(this.fogPlane);
+            const intersects = this.raycaster.intersectObject(this.fogPlane);
             
             if (intersects.length === 0) {
                 // Click is outside fog plane, don't start drag
@@ -1394,14 +1399,47 @@ export class ThreeD_component_engine {
         // If we're here, click is within fog plane, proceed with drag
         this.isDragging = true;
         
-        // Reset velocities for drag start
+        // Find the grabbed point for sticky rotation
+        this.raycaster.setFromCamera(mouseNDC, this.camera);
+        const intersects = this.raycaster.intersectObjects(this.rotationGroup.children, true);
+        
+        if (intersects.length > 0) {
+            // Store the grabbed point in local space
+            this.grabbedPoint = intersects[0].point.clone();
+            const localPoint = this.grabbedPoint.clone();
+            this.rotationGroup.worldToLocal(localPoint);
+            this.grabbedLocalPoint = localPoint;
+        } else {
+            // Create a virtual grabbed point if not clicking directly on object
+            const center = new THREE.Vector3();
+            this.rotationGroup.getWorldPosition(center);
+            const ray = this.raycaster.ray;
+            
+            // Find closest point on ray to object center
+            const toCenter = center.clone().sub(ray.origin);
+            const closestPoint = ray.origin.clone().add(
+                ray.direction.clone().multiplyScalar(toCenter.dot(ray.direction))
+            );
+            
+            // Use the direction from center to closest point to find a point on object surface
+            const direction = closestPoint.clone().sub(center).normalize();
+            const radius = 1.0; // Default radius for virtual grab point
+            this.grabbedPoint = center.clone().add(direction.clone().multiplyScalar(radius));
+            
+            const localPoint = this.grabbedPoint.clone();
+            this.rotationGroup.worldToLocal(localPoint);
+            this.grabbedLocalPoint = localPoint;
+        }
+        
+        // Reset velocities and tracking for drag start
         this.rotationVelocity = { x: 0, y: 0 };
         this.autoRotationTime = 0;
+        this.lastMovementTime = Date.now();
         this.renderer.domElement.style.cursor = 'grabbing';
     }
     
     onPointerMove(event) {
-        if (!this.isDragging) return;
+        if (!this.isDragging || !this.grabbedLocalPoint) return;
         
         const rect = this.renderer.domElement.getBoundingClientRect();
         const currentMousePosition = {
@@ -1409,35 +1447,56 @@ export class ThreeD_component_engine {
             y: event.clientY - rect.top
         };
         
-        // Calculate deltas from previous position
-        const deltaX = currentMousePosition.x - this.previousMousePosition.x;
-        const deltaY = currentMousePosition.y - this.previousMousePosition.y;
+        // Convert to normalized device coordinates
+        const mouseNDC = new THREE.Vector2(
+            (currentMousePosition.x / rect.width) * 2 - 1,
+            -(currentMousePosition.y / rect.height) * 2 + 1
+        );
         
-        // Sensitivity for rotation
-        const sensitivity = 0.005;
+        // Store quaternion before rotation for velocity calculation
+        const beforeRotation = this.rotationGroup.quaternion.clone();
         
-        // Apply rotation directly - just like the old simple approach
-        // Horizontal drag rotates around Y-axis
-        this.rotationGroup.rotateY(-deltaX * sensitivity);
+        // Apply sticky rotation for precise control
+        this.applyStickyRotation(mouseNDC);
         
-        // Vertical drag rotates around screen's horizontal axis
-        const quaternionX = new THREE.Quaternion();
-        const cameraDirection = new THREE.Vector3();
-        this.camera.getWorldDirection(cameraDirection);
-        const screenXAxis = new THREE.Vector3();
-        screenXAxis.crossVectors(this.camera.up, cameraDirection).normalize();
-        quaternionX.setFromAxisAngle(screenXAxis, deltaY * sensitivity);
-        this.rotationGroup.quaternion.multiplyQuaternions(quaternionX, this.rotationGroup.quaternion);
+        // Calculate actual rotation delta
+        const afterRotation = this.rotationGroup.quaternion.clone();
+        const deltaQuaternion = new THREE.Quaternion();
+        deltaQuaternion.multiplyQuaternions(afterRotation, beforeRotation.conjugate());
         
-        // Set velocity to match the rotation rate - THE KEY INSIGHT!
-        // This is exactly how trackpad swipes get their momentum
-        this.rotationVelocity.x = deltaY * sensitivity;
-        this.rotationVelocity.y = -deltaX * sensitivity;
+        // Convert delta quaternion to axis-angle for velocity
+        const axis = new THREE.Vector3();
+        let angle = 0;
+        
+        // Extract axis and angle from quaternion
+        const w = deltaQuaternion.w;
+        if (Math.abs(w) < 1) {
+            angle = 2 * Math.acos(Math.max(-1, Math.min(1, w)));
+            const s = Math.sqrt(1 - w * w);
+            if (s > 0.001) {
+                axis.x = deltaQuaternion.x / s;
+                axis.y = deltaQuaternion.y / s;
+                axis.z = deltaQuaternion.z / s;
+            } else {
+                axis.x = deltaQuaternion.x;
+                axis.y = deltaQuaternion.y;
+                axis.z = deltaQuaternion.z;
+            }
+        }
+        
+        // Set velocity based on actual rotation rate
+        // This matches the trackpad swipe behavior - velocity equals rotation rate
+        const sensitivity = 0.7;  // Tuned for natural momentum feel
+        this.rotationVelocity.x = axis.x * angle * sensitivity;
+        this.rotationVelocity.y = axis.y * angle * sensitivity;
         
         // Cap velocities to prevent excessive spinning
         const maxVel = 0.02;
         this.rotationVelocity.x = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.x));
         this.rotationVelocity.y = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.y));
+        
+        // Track when movement last occurred
+        this.lastMovementTime = Date.now();
         
         this.previousMousePosition = currentMousePosition;
     }
@@ -1625,8 +1684,20 @@ export class ThreeD_component_engine {
     onPointerUp() {
         this.isDragging = false;
         this.renderer.domElement.style.cursor = 'grab';
-        // Velocity has already been set during dragging
-        // The animate() loop will continue applying it with 0.995 damping
+        
+        // Check if movement had stopped before release
+        const timeSinceLastMove = Date.now() - this.lastMovementTime;
+        
+        if (timeSinceLastMove > 100) {
+            // Movement stopped before release - no momentum
+            this.rotationVelocity = { x: 0, y: 0 };
+        }
+        // Otherwise, keep the velocity that was set during drag
+        // The animate() loop will apply it with 0.995 damping
+        
+        // Clean up grabbed point references
+        this.grabbedPoint = null;
+        this.grabbedLocalPoint = null;
     }
     
     onTouchStart(event) {
