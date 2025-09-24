@@ -1449,8 +1449,15 @@ export class ThreeD_component_engine {
         this.autoRotationTime = 0;
         this.renderer.domElement.style.cursor = 'grabbing';
         
-        // Initialize rotation tracking
-        this.previousQuaternion = this.rotationGroup.quaternion.clone();  // Changed to this.rotationGroup
+        // Initialize mouse tracking for velocity
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        this.previousMousePosition = {
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top
+        };
+        
+        // Initialize rotation tracking (keeping for potential future use)
+        this.previousQuaternion = this.rotationGroup.quaternion.clone();
         this.rotationHistory = [];
     }
     
@@ -1463,32 +1470,33 @@ export class ThreeD_component_engine {
             y: event.clientY - rect.top
         };
         
-        // Store the quaternion before rotation
-        const beforeRotation = this.rotationGroup.quaternion.clone();
+        // Track raw mouse movement for velocity (before any corrections)
+        if (this.previousMousePosition) {
+            const deltaX = currentMousePosition.x - this.previousMousePosition.x;
+            const deltaY = currentMousePosition.y - this.previousMousePosition.y;
+            const deltaTime = 0.016; // Assume 60fps for now
+            
+            // Convert pixel movement to rotation velocity
+            // These values represent the user's intended motion, not corrections
+            const rawVelocityX = (deltaY / rect.height) * 5.0; // Vertical mouse = X rotation
+            const rawVelocityY = (deltaX / rect.width) * 5.0;  // Horizontal mouse = Y rotation
+            
+            // Smooth the velocity using exponential moving average
+            const smoothing = 0.3; // Higher = more responsive, lower = smoother
+            this.rotationVelocity.x = this.rotationVelocity.x * (1 - smoothing) + rawVelocityX * smoothing;
+            this.rotationVelocity.y = this.rotationVelocity.y * (1 - smoothing) + rawVelocityY * smoothing;
+        }
         
         // Convert to normalized device coordinates
         const mouse = new THREE.Vector2();
         mouse.x = (currentMousePosition.x / rect.width) * 2 - 1;
         mouse.y = -(currentMousePosition.y / rect.height) * 2 + 1;
         
-        // Apply sticky point rotation
+        // Apply sticky point rotation (this may include corrections)
         this.applyStickyRotation(mouse);
         
-        // Track actual rotation that occurred
-        const rotationDelta = new THREE.Quaternion();
-        rotationDelta.multiplyQuaternions(this.rotationGroup.quaternion, beforeRotation.conjugate());  // Changed to this.rotationGroup
-        
-        this.rotationHistory.push({
-            quaternion: rotationDelta,
-            time: Date.now()
-        });
-        
-        if (this.rotationHistory.length > this.maxHistoryLength) {
-            this.rotationHistory.shift();
-        }
-        
-        // Calculate velocity from actual rotation
-        this.calculateVelocityFromRotation();
+        // No longer calculate velocity from quaternion changes
+        // We're using raw mouse movement instead
         
         this.previousMousePosition = currentMousePosition;
     }
