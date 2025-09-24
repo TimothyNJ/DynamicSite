@@ -1362,99 +1362,46 @@ export class ThreeD_component_engine {
     }
     
     onPointerDown(event) {
+        // Initialize mouse position for drag tracking
         const rect = this.renderer.domElement.getBoundingClientRect();
-        this.previousMousePosition = {
+        const currentMousePosition = {
             x: event.clientX - rect.left,
             y: event.clientY - rect.top
         };
+        this.previousMousePosition = currentMousePosition;
         
-        // Convert to normalized device coordinates (-1 to +1)
-        const mouse = new THREE.Vector2();
-        mouse.x = (this.previousMousePosition.x / rect.width) * 2 - 1;
-        mouse.y = -(this.previousMousePosition.y / rect.height) * 2 + 1;
-        
-        // First check if we're clicking within the fog plane bounds
-        this.raycaster.setFromCamera(mouse, this.camera);
-        const fogIntersects = this.raycaster.intersectObject(this.fogPlane);
-        
-        // Only allow drag if clicking within fog plane (green border)
-        if (fogIntersects.length === 0) {
-            // Click is outside fog plane, ignore drag
-            return;
+        // Check if click is within fog plane boundaries
+        if (this.fogPlane) {
+            // Convert mouse to normalized device coordinates
+            const mouseNDC = new THREE.Vector2(
+                (currentMousePosition.x / rect.width) * 2 - 1,
+                -(currentMousePosition.y / rect.height) * 2 + 1
+            );
+            
+            // Create a ray from camera through mouse position
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouseNDC, this.camera);
+            
+            // Check intersection with fog plane
+            const intersects = raycaster.intersectObject(this.fogPlane);
+            
+            if (intersects.length === 0) {
+                // Click is outside fog plane, don't start drag
+                return;
+            }
         }
         
         // If we're here, click is within fog plane, proceed with drag
         this.isDragging = true;
         
-        // Reset velocities for all drag modes
-        this.rotationVelocity = { x: 0, y: 0 };
-        this.autoRotationTime = 0;
-        
-        // Raycast to find the initial grabbed point on the object
-        let intersects;
-        
-        // For TextGeometry mode (non-restricted), we need a different approach
-        // to avoid hitting individual number meshes which causes poor leverage
-        if (this.config.mode === 'textgeometry' && !this.config.restrictRotationAxis) {
-            // Create a temporary invisible sphere that encompasses all numbers
-            // This gives us consistent sphere-like interaction matching swipe behavior
-            const tempGeometry = new THREE.SphereGeometry(0.3, 32, 32);
-            const tempMesh = new THREE.Mesh(tempGeometry, new THREE.MeshBasicMaterial({visible: false}));
-            
-            // Add to rotationGroup temporarily so it's in the same coordinate space
-            this.rotationGroup.add(tempMesh);
-            
-            // Raycast against the temporary sphere
-            intersects = this.raycaster.intersectObject(tempMesh);
-            
-            // Remove from group and clean up
-            this.rotationGroup.remove(tempMesh);
-            tempGeometry.dispose();
-        } else {
-            // Standard raycasting for all other modes
-            intersects = this.raycaster.intersectObjects(this.rotationGroup.children, true);
-        }
-        
-        if (intersects.length > 0) {
-            // Store the grabbed point in local space
-            this.grabbedPoint = intersects[0].point.clone();
-            const localPoint = this.grabbedPoint.clone();
-            this.rotationGroup.worldToLocal(localPoint);  // Changed to this.rotationGroup
-            this.grabbedLocalPoint = localPoint;
-        } else {
-            // If not clicking on object, create a virtual grabbed point
-            // Project a point on the object closest to the ray
-            const center = new THREE.Vector3();
-            this.rotationGroup.getWorldPosition(center);  // Changed to this.rotationGroup
-            const ray = this.raycaster.ray;
-            
-            // Find closest point on ray to object center
-            const toCenter = center.clone().sub(ray.origin);
-            const closestPoint = ray.origin.clone().add(
-                ray.direction.clone().multiplyScalar(toCenter.dot(ray.direction))
-            );
-            
-            // Use the direction from center to closest point to find a point on object surface
-            const direction = closestPoint.clone().sub(center).normalize();
-            // Use a default radius since rotationGroup doesn't have geometry.boundingSphere
-            const radius = 1.0; // Default radius for virtual grab point
-            this.grabbedPoint = center.clone().add(direction.clone().multiplyScalar(radius));
-            
-            const localPoint = this.grabbedPoint.clone();
-            this.rotationGroup.worldToLocal(localPoint);  // Changed to this.rotationGroup
-            this.grabbedLocalPoint = localPoint;
-        }
-        
+        // Reset velocities for drag start
         this.rotationVelocity = { x: 0, y: 0 };
         this.autoRotationTime = 0;
         this.renderer.domElement.style.cursor = 'grabbing';
-        
-        // Mouse position was already initialized at the beginning of this function
-        // No need to reinitialize it here
     }
     
     onPointerMove(event) {
-        if (!this.isDragging || !this.grabbedLocalPoint) return;
+        if (!this.isDragging) return;
         
         const rect = this.renderer.domElement.getBoundingClientRect();
         const currentMousePosition = {
@@ -1462,47 +1409,30 @@ export class ThreeD_component_engine {
             y: event.clientY - rect.top
         };
         
-        // Convert to normalized device coordinates
-        const mouse = new THREE.Vector2();
-        mouse.x = (currentMousePosition.x / rect.width) * 2 - 1;
-        mouse.y = -(currentMousePosition.y / rect.height) * 2 + 1;
+        // Calculate deltas from previous position
+        const deltaX = currentMousePosition.x - this.previousMousePosition.x;
+        const deltaY = currentMousePosition.y - this.previousMousePosition.y;
         
-        // Store the previous rotation for velocity calculation
-        const previousRotation = this.rotationGroup.quaternion.clone();
+        // Sensitivity for rotation
+        const sensitivity = 0.005;
         
-        // Apply sticky point rotation
-        this.applyStickyRotation(mouse);
+        // Apply rotation directly - just like the old simple approach
+        // Horizontal drag rotates around Y-axis
+        this.rotationGroup.rotateY(-deltaX * sensitivity);
         
-        // Calculate rotation delta for momentum
-        // This is the key insight from the trackpad swipe behavior
-        const currentRotation = this.rotationGroup.quaternion.clone();
-        const deltaQuaternion = currentRotation.clone().multiply(previousRotation.conjugate());
+        // Vertical drag rotates around screen's horizontal axis
+        const quaternionX = new THREE.Quaternion();
+        const cameraDirection = new THREE.Vector3();
+        this.camera.getWorldDirection(cameraDirection);
+        const screenXAxis = new THREE.Vector3();
+        screenXAxis.crossVectors(this.camera.up, cameraDirection).normalize();
+        quaternionX.setFromAxisAngle(screenXAxis, deltaY * sensitivity);
+        this.rotationGroup.quaternion.multiplyQuaternions(quaternionX, this.rotationGroup.quaternion);
         
-        // Convert delta quaternion to axis-angle
-        const axis = new THREE.Vector3();
-        let angle = 0;
-        
-        // Extract axis and angle from quaternion
-        const w = deltaQuaternion.w;
-        if (Math.abs(w) < 1) {
-            angle = 2 * Math.acos(w);
-            const s = Math.sqrt(1 - w * w);
-            if (s > 0.001) {
-                axis.x = deltaQuaternion.x / s;
-                axis.y = deltaQuaternion.y / s;
-                axis.z = deltaQuaternion.z / s;
-            } else {
-                axis.x = deltaQuaternion.x;
-                axis.y = deltaQuaternion.y;
-                axis.z = deltaQuaternion.z;
-            }
-        }
-        
-        // Set velocity based on the rotation rate
-        // This matches the trackpad swipe behavior - simple and effective
-        const sensitivity = 0.8;  // Adjust for desired momentum feel
-        this.rotationVelocity.x = axis.x * angle * sensitivity;
-        this.rotationVelocity.y = axis.y * angle * sensitivity;
+        // Set velocity to match the rotation rate - THE KEY INSIGHT!
+        // This is exactly how trackpad swipes get their momentum
+        this.rotationVelocity.x = deltaY * sensitivity;
+        this.rotationVelocity.y = -deltaX * sensitivity;
         
         // Cap velocities to prevent excessive spinning
         const maxVel = 0.02;
@@ -1695,8 +1625,6 @@ export class ThreeD_component_engine {
     onPointerUp() {
         this.isDragging = false;
         this.renderer.domElement.style.cursor = 'grab';
-        this.grabbedPoint = null;
-        this.grabbedLocalPoint = null;
         // Velocity has already been set during dragging
         // The animate() loop will continue applying it with 0.995 damping
     }
