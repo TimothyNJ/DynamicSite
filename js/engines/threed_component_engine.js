@@ -1387,19 +1387,13 @@ export class ThreeD_component_engine {
         this.isDragging = true;
         
         // Early detection for restricted axis mode
-        if (this.config.restrictRotationAxis === 'x') {
-            // For drum selector, we need to know the initial Y position on the drum
-            // to maintain that point under the cursor
+        if (this.config.restrictRotationAxis) {
+            // For restricted rotation, we don't need grab points
+            // Just reset velocities and return early
             this.rotationVelocity = { x: 0, y: 0 };
             this.autoRotationTime = 0;
             this.renderer.domElement.style.cursor = 'grabbing';
-            
-            // Store the initial rotation and mouse Y for drum tracking
-            this.drumInitialRotation = this.rotationGroup.rotation.x;
-            const rect = this.renderer.domElement.getBoundingClientRect();
-            this.drumInitialMouseY = (event.clientY - rect.top) / rect.height;
-            
-            return; // Skip the complex grab point calculation
+            return; // Skip all grab point calculation
         }
         
         // Raycast to find the initial grabbed point on the object
@@ -1459,28 +1453,15 @@ export class ThreeD_component_engine {
         
         // Check if we have axle-based rotation restriction
         if (this.config.restrictRotationAxis === 'x') {
-            // For drum selector, calculate rotation to keep grabbed point under cursor
-            const rect = this.renderer.domElement.getBoundingClientRect();
-            const currentMouseY = (event.clientY - rect.top) / rect.height;
+            // Axle-based rotation - drum can only spin around X-axis
+            const deltaY = currentMousePosition.y - this.previousMousePosition.y;
+            const rotationAngle = deltaY * 0.01; // Sensitivity factor
             
-            // Calculate how far the mouse has moved from initial position
-            const mouseDelta = currentMouseY - this.drumInitialMouseY;
+            // Rotate the entire rotation group around X-axis
+            this.rotationGroup.rotateX(rotationAngle);
             
-            // Convert mouse movement to rotation angle
-            // The drum should rotate proportionally to vertical mouse movement
-            // Full screen height = full rotation (2π radians)
-            const targetRotation = this.drumInitialRotation - (mouseDelta * Math.PI * 2);
-            
-            // Calculate the rotation change for velocity tracking
-            const currentRotation = this.rotationGroup.rotation.x;
-            const rotationDelta = targetRotation - currentRotation;
-            
-            // Apply the rotation
-            this.rotationGroup.rotation.x = targetRotation;
-            
-            // Track velocity for momentum
-            const deltaTime = 0.016; // Assume 60fps for velocity calculation
-            this.rotationVelocity.x = rotationDelta / deltaTime * 0.1; // Scale down for momentum
+            // Track velocity for momentum (only X component)
+            this.rotationVelocity.x = rotationAngle;
             this.rotationVelocity.y = 0;
             
             this.previousMousePosition = currentMousePosition;
