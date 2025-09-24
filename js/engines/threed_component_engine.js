@@ -1386,19 +1386,18 @@ export class ThreeD_component_engine {
         // If we're here, click is within fog plane, proceed with drag
         this.isDragging = true;
         
-        // Raycast to find the initial grabbed point on the object
-        // For TextGeometry mode, we want to treat the whole group as one object
-        let intersects;
-        if (this.config.mode === 'textgeometry' && this.numberGroup) {
-            // Create an invisible sphere for consistent grab points in TextGeometry mode
-            const tempGeometry = new THREE.SphereGeometry(1.5, 8, 8);
-            const tempMesh = new THREE.Mesh(tempGeometry, new THREE.MeshBasicMaterial({visible: false}));
-            tempMesh.position.copy(this.rotationGroup.position);
-            intersects = this.raycaster.intersectObject(tempMesh);
-            tempGeometry.dispose();
-        } else {
-            intersects = this.raycaster.intersectObjects(this.rotationGroup.children, true);
+        // Early detection for restricted axis mode
+        if (this.config.restrictRotationAxis) {
+            // For restricted rotation, we don't need grab points
+            // Just reset velocities and return early
+            this.rotationVelocity = { x: 0, y: 0 };
+            this.autoRotationTime = 0;
+            this.renderer.domElement.style.cursor = 'grabbing';
+            return; // Skip all grab point calculation
         }
+        
+        // Raycast to find the initial grabbed point on the object
+        const intersects = this.raycaster.intersectObjects(this.rotationGroup.children, true);
         
         if (intersects.length > 0) {
             // Store the grabbed point in local space
@@ -1440,7 +1439,11 @@ export class ThreeD_component_engine {
     }
     
     onPointerMove(event) {
-        if (!this.isDragging || !this.grabbedLocalPoint) return;
+        if (!this.isDragging) return;  // Exit if not dragging
+        
+        // For restricted mode, grabbedLocalPoint won't be set (we returned early in onPointerDown)
+        // For free rotation, we need grabbedLocalPoint
+        if (!this.config.restrictRotationAxis && !this.grabbedLocalPoint) return;
         
         const rect = this.renderer.domElement.getBoundingClientRect();
         const currentMousePosition = {
@@ -1454,15 +1457,8 @@ export class ThreeD_component_engine {
             const deltaY = currentMousePosition.y - this.previousMousePosition.y;
             const rotationAngle = deltaY * 0.01; // Sensitivity factor
             
-            // Rotate ONLY around the local X-axis (the "axle")
-            // For TextGeometry mode with numberGroup, rotate that directly
-            if (this.numberGroup) {
-                this.numberGroup.rotateX(rotationAngle);  // Rotate numberGroup for drum
-            } else if (this.mesh) {
-                this.mesh.rotateX(rotationAngle);  // Standard restricted mode
-            } else {
-                this.rotationGroup.rotateX(rotationAngle);  // Fallback
-            }
+            // Rotate the entire rotation group around X-axis
+            this.rotationGroup.rotateX(rotationAngle);
             
             // Track velocity for momentum (only X component)
             this.rotationVelocity.x = rotationAngle;
