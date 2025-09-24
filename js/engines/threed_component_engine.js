@@ -1398,14 +1398,17 @@ export class ThreeD_component_engine {
         if (this.config.mode === 'textgeometry' && !this.config.restrictRotationAxis) {
             // Create a temporary invisible sphere that encompasses all numbers
             // This gives us consistent sphere-like interaction matching swipe behavior
-            const tempGeometry = new THREE.SphereGeometry(1.5, 32, 32);
+            const tempGeometry = new THREE.SphereGeometry(1.0, 32, 32);
             const tempMesh = new THREE.Mesh(tempGeometry, new THREE.MeshBasicMaterial({visible: false}));
-            tempMesh.position.copy(this.rotationGroup.position);
+            
+            // Add to rotationGroup temporarily so it's in the same coordinate space
+            this.rotationGroup.add(tempMesh);
             
             // Raycast against the temporary sphere
             intersects = this.raycaster.intersectObject(tempMesh);
             
-            // Clean up
+            // Remove from group and clean up
+            this.rotationGroup.remove(tempMesh);
             tempGeometry.dispose();
         } else {
             // Standard raycasting for all other modes
