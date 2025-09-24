@@ -1391,7 +1391,27 @@ export class ThreeD_component_engine {
         this.autoRotationTime = 0;
         
         // Raycast to find the initial grabbed point on the object
-        const intersects = this.raycaster.intersectObjects(this.rotationGroup.children, true);
+        let intersects;
+        
+        // For TextGeometry mode (non-restricted), we need a different approach
+        // to avoid hitting individual number meshes which causes poor leverage
+        if (this.config.mode === 'textgeometry' && !this.config.restrictRotationAxis) {
+            // Create a temporary invisible cylinder that encompasses all numbers
+            // This gives us a consistent surface to grab with good leverage
+            const tempGeometry = new THREE.CylinderGeometry(1.5, 1.5, 0.5, 32);
+            const tempMesh = new THREE.Mesh(tempGeometry, new THREE.MeshBasicMaterial({visible: false}));
+            tempMesh.rotation.z = Math.PI / 2; // Rotate to match number orientation
+            tempMesh.position.copy(this.rotationGroup.position);
+            
+            // Raycast against the temporary cylinder
+            intersects = this.raycaster.intersectObject(tempMesh);
+            
+            // Clean up
+            tempGeometry.dispose();
+        } else {
+            // Standard raycasting for all other modes
+            intersects = this.raycaster.intersectObjects(this.rotationGroup.children, true);
+        }
         
         if (intersects.length > 0) {
             // Store the grabbed point in local space
