@@ -1387,7 +1387,18 @@ export class ThreeD_component_engine {
         this.isDragging = true;
         
         // Raycast to find the initial grabbed point on the object
-        const intersects = this.raycaster.intersectObjects(this.rotationGroup.children, true);  // Changed to intersectObjects with recursive flag
+        // For TextGeometry mode, we want to treat the whole group as one object
+        let intersects;
+        if (this.config.mode === 'textgeometry' && this.numberGroup) {
+            // Create an invisible sphere for consistent grab points in TextGeometry mode
+            const tempGeometry = new THREE.SphereGeometry(1.5, 8, 8);
+            const tempMesh = new THREE.Mesh(tempGeometry, new THREE.MeshBasicMaterial({visible: false}));
+            tempMesh.position.copy(this.rotationGroup.position);
+            intersects = this.raycaster.intersectObject(tempMesh);
+            tempGeometry.dispose();
+        } else {
+            intersects = this.raycaster.intersectObjects(this.rotationGroup.children, true);
+        }
         
         if (intersects.length > 0) {
             // Store the grabbed point in local space
