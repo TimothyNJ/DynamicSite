@@ -1710,13 +1710,19 @@ export class ThreeD_component_engine {
         euler.setFromQuaternion(totalRotation, 'YXZ');
         
         // Calculate angular velocity (radians per second)
-        const velocityX = euler.x / deltaTime;
-        const velocityY = euler.y / deltaTime;
+        // Scale it WAY down - the raw values are too large
+        const velocityX = (euler.x / deltaTime) * 0.02;  // Scale down by 50x
+        const velocityY = (euler.y / deltaTime) * 0.02;  // Scale down by 50x
         
         // Apply smoothing to prevent jitter
         const smoothing = 0.3;
         this.rotationVelocity.x = this.rotationVelocity.x * (1 - smoothing) + velocityX * smoothing;
         this.rotationVelocity.y = this.rotationVelocity.y * (1 - smoothing) + velocityY * smoothing;
+        
+        // Clamp maximum velocity to prevent runaway spinning
+        const MAX_VELOCITY = 0.1;  // Maximum radians per frame
+        this.rotationVelocity.x = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, this.rotationVelocity.x));
+        this.rotationVelocity.y = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, this.rotationVelocity.y));
         
         // Clamp very small velocities to zero to prevent drift
         if (Math.abs(this.rotationVelocity.x) < 0.001) this.rotationVelocity.x = 0;
