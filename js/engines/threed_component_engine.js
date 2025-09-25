@@ -1487,6 +1487,7 @@ export class ThreeD_component_engine {
         // Set velocity based on actual rotation rate
         // This matches the trackpad swipe behavior - velocity equals rotation rate
         const sensitivity = 0.7;  // Tuned for natural momentum feel
+        const oldVelocity = { x: this.rotationVelocity.x, y: this.rotationVelocity.y };
         this.rotationVelocity.x = axis.x * angle * sensitivity;
         this.rotationVelocity.y = axis.y * angle * sensitivity;
         
@@ -1494,6 +1495,18 @@ export class ThreeD_component_engine {
         const maxVel = 0.02;
         this.rotationVelocity.x = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.x));
         this.rotationVelocity.y = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.y));
+        
+        // DEBUG: Log velocity changes
+        if (Math.abs(this.rotationVelocity.x - oldVelocity.x) > 0.001 || 
+            Math.abs(this.rotationVelocity.y - oldVelocity.y) > 0.001) {
+            console.log('Velocity changed:', {
+                old: oldVelocity,
+                new: { x: this.rotationVelocity.x, y: this.rotationVelocity.y },
+                angle: angle,
+                axis: { x: axis.x, y: axis.y, z: axis.z },
+                deltaMs: Date.now() - this.lastMovementTime
+            });
+        }
         
         // Track when movement last occurred
         this.lastMovementTime = Date.now();
@@ -1688,9 +1701,18 @@ export class ThreeD_component_engine {
         // Check if movement had stopped before release
         const timeSinceLastMove = Date.now() - this.lastMovementTime;
         
+        console.log('PointerUp:', {
+            timeSinceLastMove: timeSinceLastMove,
+            velocity: { x: this.rotationVelocity.x, y: this.rotationVelocity.y },
+            willClearVelocity: timeSinceLastMove > 100
+        });
+        
         if (timeSinceLastMove > 100) {
             // Movement stopped before release - no momentum
+            console.log('Clearing velocity - movement had stopped');
             this.rotationVelocity = { x: 0, y: 0 };
+        } else {
+            console.log('Keeping velocity for momentum');
         }
         // Otherwise, keep the velocity that was set during drag
         // The animate() loop will apply it with 0.995 damping
@@ -2252,7 +2274,48 @@ export class ThreeD_component_engine {
         
         // Apply rotation only when not actively interacting
         if (!this.isDragging && !this.isGesturing && this.config.enableAnimation) {
-            // Momentum rotation using quaternions
+            // DEBUG: Check which velocity system is active
+            if (this.currentVelocity) {
+                console.log('Using currentVelocity (quaternion):', this.currentVelocity);
+            }
+            if (this.rotationVelocity && (this.rotationVelocity.x || this.rotationVelocity.y)) {
+                console.log('Using rotationVelocity (x,y):', this.rotationVelocity);
+            }
+            
+            // Apply currentVelocity if it exists (new quaternion-based system)
+            if (this.currentVelocity) {
+                const deltaTime = 0.016; // Assume ~60fps
+                
+                // Debug: Log momentum application
+                console.log('Applying momentum:', {
+                    velocity: this.currentVelocity,
+                    quaternion: [this.currentVelocity.x, this.currentVelocity.y, this.currentVelocity.z, this.currentVelocity.w]
+                });
+                
+                // Apply velocity to rotation
+                this.rotationGroup.quaternion.multiply(this.currentVelocity);
+                
+                // Damping
+                const beforeDamp = this.currentVelocity.clone();
+                this.currentVelocity.slerp(new THREE.Quaternion(), 1 - Math.pow(0.995, deltaTime * 60));
+                console.log('After damping:', {
+                    before: [beforeDamp.x, beforeDamp.y, beforeDamp.z, beforeDamp.w],
+                    after: [this.currentVelocity.x, this.currentVelocity.y, this.currentVelocity.z, this.currentVelocity.w]
+                });
+                
+                // Stop momentum when it gets very small
+                if (Math.abs(this.currentVelocity.x) < 0.0001 && 
+                    Math.abs(this.currentVelocity.y) < 0.0001 && 
+                    Math.abs(this.currentVelocity.z) < 0.0001) {
+                    console.log('Momentum stopped - velocity too small');
+                    this.currentVelocity = null;
+                }
+                
+                // Skip the old velocity system if we're using the new one
+                return;
+            }
+            
+            // OLD Momentum rotation using x,y coordinates
             if (Math.abs(this.rotationVelocity.x) > 0.0001 || Math.abs(this.rotationVelocity.y) > 0.0001) {
                 // Apply momentum as quaternion rotations
                 const quaternionY = new THREE.Quaternion();
