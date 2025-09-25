@@ -1484,29 +1484,19 @@ export class ThreeD_component_engine {
             }
         }
         
-        // Set velocity based on actual rotation rate
-        // This matches the trackpad swipe behavior - velocity equals rotation rate
-        const sensitivity = 0.7;  // Tuned for natural momentum feel
+        // SIMPLIFIED: Don't set velocity during drag at all
+        // This ensures no momentum accumulation and no fighting between systems
+        // Uncomment the code below to restore momentum-based drag
+        /*
+        const sensitivity = 0.7;
         const oldVelocity = { x: this.rotationVelocity.x, y: this.rotationVelocity.y };
         this.rotationVelocity.x = axis.x * angle * sensitivity;
         this.rotationVelocity.y = axis.y * angle * sensitivity;
         
-        // Cap velocities to prevent excessive spinning
         const maxVel = 0.02;
         this.rotationVelocity.x = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.x));
         this.rotationVelocity.y = Math.max(-maxVel, Math.min(maxVel, this.rotationVelocity.y));
-        
-        // DEBUG: Log velocity changes
-        if (Math.abs(this.rotationVelocity.x - oldVelocity.x) > 0.001 ||
-        Math.abs(this.rotationVelocity.y - oldVelocity.y) > 0.001) {
-        console.log('Velocity changed:', {
-        old: oldVelocity,
-        new: { x: this.rotationVelocity.x, y: this.rotationVelocity.y },
-        angle: angle,
-        axis: { x: axis.x, y: axis.y, z: axis.z },
-            deltaMs: Date.now() - this.lastMovementTime
-            });
-        }
+        */
         
         // Track when movement last occurred
         this.lastMovementTime = Date.now();
@@ -1698,24 +1688,10 @@ export class ThreeD_component_engine {
         this.isDragging = false;
         this.renderer.domElement.style.cursor = 'grab';
         
-        // Check if movement had stopped before release
-        const timeSinceLastMove = Date.now() - this.lastMovementTime;
-        
-        console.log('PointerUp:', {
-            timeSinceLastMove: timeSinceLastMove,
-            velocity: { x: this.rotationVelocity.x, y: this.rotationVelocity.y },
-            willClearVelocity: timeSinceLastMove > 100
-        });
-        
-        if (timeSinceLastMove > 100) {
-            // Movement stopped before release - no momentum
-            console.log('Clearing velocity - movement had stopped');
-            this.rotationVelocity = { x: 0, y: 0 };
-        } else {
-            console.log('Keeping velocity for momentum');
-        }
-        // Otherwise, keep the velocity that was set during drag
-        // The animate() loop will apply it with 0.995 damping
+        // SIMPLIFIED: Just stop all momentum on release
+        // This eliminates bounce-back at the cost of natural momentum
+        console.log('PointerUp: Clearing all velocity (no momentum mode)');
+        this.rotationVelocity = { x: 0, y: 0 };
         
         // Clean up grabbed point references
         this.grabbedPoint = null;
