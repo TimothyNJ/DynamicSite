@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 # dist/  # Commented out to allow bundle deployment
+dist/bundle.js
 
 # OS files
 .DS_Store
