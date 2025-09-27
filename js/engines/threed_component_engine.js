@@ -80,6 +80,7 @@ export class ThreeD_component_engine {
         
         // Fog plane for background effect
         this.fogPlane = null;
+        this.fogPlaneEdges = null;  // Store reference to green border edges
         this.fogTexture = null;
         this.fogCanvas = null;
         this.fogContext = null;
@@ -236,6 +237,12 @@ export class ThreeD_component_engine {
             return;
         }
         
+        // Store instance globally for border toggle access
+        if (!window.threedComponents) {
+            window.threedComponents = [];
+        }
+        window.threedComponents.push(this);
+        
         console.log('[3D Component Engine] Initializing with config:', this.config);
         
         this.setupRenderer();
@@ -333,8 +340,16 @@ export class ThreeD_component_engine {
         this.container.style.position = 'relative';
         this.container.style.overflow = 'hidden';
         this.container.style.margin = '0 auto';  // Center horizontally
-        this.container.style.border = '1px solid red';  // TEMPORARY RED BORDER TO SEE CLIPPING
+        this.container.style.border = 'none';  // Start with no border
         // Removed display: inline-block to properly participate in flex layout
+        
+        // Check initial border state for red border
+        setTimeout(() => {
+            const siteContainer = document.querySelector('.site-container');
+            if (siteContainer && !siteContainer.classList.contains('borders-hidden')) {
+                this.container.style.border = '1px solid red';
+            }
+        }, 100);
         
         // Log container dimensions and parent info AFTER all setup
         console.log(`[3D Engine] Container setup complete.`);
@@ -460,9 +475,18 @@ export class ThreeD_component_engine {
         // Add debug border to fog plane
         const edges = new THREE.EdgesGeometry(fogPlaneGeometry);
         const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 }); // Green debug border
-        const lineSegments = new THREE.LineSegments(edges, lineMaterial);
-        this.fogPlane.add(lineSegments);
+        this.fogPlaneEdges = new THREE.LineSegments(edges, lineMaterial);
+        this.fogPlane.add(this.fogPlaneEdges);
         
+        // Start hidden, check actual state after DOM ready
+        this.fogPlaneEdges.visible = false;
+        
+        setTimeout(() => {
+            const siteContainer = document.querySelector('.site-container');
+            if (siteContainer && !siteContainer.classList.contains('borders-hidden')) {
+                this.fogPlaneEdges.visible = true;
+            }
+        }, 100);
         // Set proper initial size
         // Delay to ensure geometry is created
         setTimeout(() => {
@@ -491,6 +515,14 @@ export class ThreeD_component_engine {
         
         // Add to container
         this.container.appendChild(this.yellowBorderElement);
+        
+        // Check initial border state
+        setTimeout(() => {
+            const siteContainer = document.querySelector('.site-container');
+            if (siteContainer && siteContainer.classList.contains('borders-hidden')) {
+                this.yellowBorderElement.style.display = 'none';
+            }
+        }, 100);
         
         console.log('[3D Engine] Yellow component border created');
     }
@@ -2308,7 +2340,33 @@ export class ThreeD_component_engine {
         console.log('[3D Component Engine] Rotation speed set to:', speed);
     }
     
+    // Toggle debug borders visibility
+    toggleDebugBorders(show) {
+        // Yellow border (DOM element)
+        if (this.yellowBorderElement) {
+            this.yellowBorderElement.style.display = show ? 'block' : 'none';
+        }
+        
+        // Green fog plane border (Three.js object)
+        if (this.fogPlaneEdges) {
+            this.fogPlaneEdges.visible = show;
+        }
+        
+        // Red container border (CSS)
+        if (this.container) {
+            this.container.style.border = show ? '1px solid red' : 'none';
+        }
+    }
+    
     destroy() {
+        // Remove from global registry to prevent memory leaks
+        if (window.threedComponents) {
+            const index = window.threedComponents.indexOf(this);
+            if (index > -1) {
+                window.threedComponents.splice(index, 1);
+            }
+        }
+        
         // Stop animation
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);

@@ -33,6 +33,15 @@ function toggleBorders() {
   siteContainer.classList.toggle("borders-hidden");
 
   const isHidden = siteContainer.classList.contains("borders-hidden");
+  
+  // Toggle borders on all 3D components
+  if (window.threedComponents) {
+    window.threedComponents.forEach(component => {
+      if (component.toggleDebugBorders) {
+        component.toggleDebugBorders(!isHidden);
+      }
+    });
+  }
 
   // Select all dimension elements throughout the document
   document.querySelectorAll('[id$="-dimensions"]').forEach((el) => {
