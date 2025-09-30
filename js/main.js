@@ -16,11 +16,22 @@ console.log(`[main.js] Starting application initialization [Deployment: ${DEPLOY
 // Import styles - Single source of truth (SCSS)
 import '../styles/styles.scss';
 
-// MARK-LOGIN-3-ADD: Add authentication helper functions here
-// MARK-LOGIN-3-ADD: Add isUserAuthenticated() function
-// MARK-LOGIN-3-ADD: Add setAuthenticationState(isAuthenticated) function
-// MARK-LOGIN-3-ADD: Add logout() function
-// MARK-LOGIN-3-ADD: Add window.logout = logout for global access
+// Authentication helper functions
+function isUserAuthenticated() {
+  return localStorage.getItem('isAuthenticated') === 'true';
+}
+
+function setAuthenticationState(isAuthenticated) {
+  localStorage.setItem('isAuthenticated', isAuthenticated ? 'true' : 'false');
+}
+
+function logout() {
+  setAuthenticationState(false);
+  window.location.reload(); // Refresh to show logged-out state
+}
+
+// Make logout available globally for Settings page
+window.logout = logout;
 
 // Import Three.js subdivision library for better cube symmetry
 import { LoopSubdivision } from 'three-subdivide';
