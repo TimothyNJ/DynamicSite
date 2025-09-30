@@ -16,9 +16,6 @@ console.log(`[main.js] Starting application initialization [Deployment: ${DEPLOY
 // Import styles - Single source of truth (SCSS)
 import '../styles/styles.scss';
 
-// Import auth service FIRST - before anything else
-import { authService } from './services/auth.js';
-
 // Import Three.js subdivision library for better cube symmetry
 import { LoopSubdivision } from 'three-subdivide';
 
@@ -651,23 +648,8 @@ function getCurrentPage() {
 }
 
 // Initialize components when DOM is ready
-async function initializeApp() {
-  console.log('[main.js] DOM ready, checking authentication...');
-  
-  // Check if user is authenticated
-  const isAuthenticated = await authService.isAuthenticated();
-  
-  if (!isAuthenticated) {
-    console.log('[main.js] User not authenticated, redirecting to login...');
-    authService.login();
-    return; // Stop here - will redirect to Zitadel
-  }
-  
-  // User is authenticated, continue with app initialization
-  const user = await authService.getUser();
-  console.log('[main.js] User authenticated:', user.profile.email || user.profile.sub);
-  
-  console.log('[main.js] Initializing application');
+function initializeApp() {
+  console.log('[main.js] DOM ready, initializing application');
   
   // Initialize layout first (this was missing!)
   console.log('[main.js] Initializing layout system');

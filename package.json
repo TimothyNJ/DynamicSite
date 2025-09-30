@@ -32,9 +32,7 @@
     "@better-scroll/mouse-wheel": "^2.5.1",
     "@better-scroll/pull-down": "^2.5.1",
     "@better-scroll/wheel": "^2.5.1",
-    "jwt-decode": "^4.0.0",
     "moment-timezone": "^0.6.0",
-    "oidc-client-ts": "^3.3.0",
     "three-subdivide": "^1.1.5"
   }
 }
