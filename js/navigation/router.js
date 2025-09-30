@@ -45,11 +45,21 @@ function getPageFromURL() {
 
 // Navigate to a specific page
 export async function navigateToPage(pageName, pushState = true) {
-  // MARK-LOGIN-5-ADD: Add route guard at start of function
-  // MARK-LOGIN-5-ADD: Check if page is in protectedPages array
-  // MARK-LOGIN-5-ADD: Check if user is authenticated
-  // MARK-LOGIN-5-ADD: If protected and not authenticated, redirect to home
-  // MARK-LOGIN-5-ADD: Protected pages: settings, data-entry, engines, vendor-request
+  // Route guard: Block access to protected pages when not authenticated
+  const protectedPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
+  
+  if (protectedPages.includes(pageName)) {
+    // Check if user is authenticated (use window function if available)
+    const isAuthenticated = typeof window.isUserAuthenticated === 'function' 
+      ? window.isUserAuthenticated() 
+      : localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (!isAuthenticated) {
+      console.log(`[Router] Blocked access to protected page: ${pageName}`);
+      navigateToPage('home'); // Redirect to home
+      return;
+    }
+  }
   
   if (!pageName || pageName === activePage) {
     return; // Already on this page

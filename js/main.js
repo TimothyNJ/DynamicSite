@@ -30,7 +30,8 @@ function logout() {
   window.location.reload(); // Refresh to show logged-out state
 }
 
-// Make logout available globally for Settings page
+// Make auth functions available globally
+window.isUserAuthenticated = isUserAuthenticated;
 window.logout = logout;
 
 // Import Three.js subdivision library for better cube symmetry
