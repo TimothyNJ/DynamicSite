@@ -16,6 +16,12 @@ console.log(`[main.js] Starting application initialization [Deployment: ${DEPLOY
 // Import styles - Single source of truth (SCSS)
 import '../styles/styles.scss';
 
+// MARK-LOGIN-3-ADD: Add authentication helper functions here
+// MARK-LOGIN-3-ADD: Add isUserAuthenticated() function
+// MARK-LOGIN-3-ADD: Add setAuthenticationState(isAuthenticated) function
+// MARK-LOGIN-3-ADD: Add logout() function
+// MARK-LOGIN-3-ADD: Add window.logout = logout for global access
+
 // Import Three.js subdivision library for better cube symmetry
 import { LoopSubdivision } from 'three-subdivide';
 
@@ -647,9 +653,18 @@ function getCurrentPage() {
   return 'home';
 }
 
+// MARK-LOGIN-4-ADD: Add updateNavigationForAuthState() function here
+// MARK-LOGIN-4-ADD: Function should loop through all nav buttons
+// MARK-LOGIN-4-ADD: Hide/show based on authentication state
+// MARK-LOGIN-4-ADD: Protected pages: settings, data-entry, engines, vendor-request
+// MARK-LOGIN-4-ADD: Hide login button when authenticated
+// MARK-LOGIN-4-ADD: Show login button when not authenticated
+
 // Initialize components when DOM is ready
 function initializeApp() {
   console.log('[main.js] DOM ready, initializing application');
+  
+  // MARK-LOGIN-4-MODIFY: Add call to updateNavigationForAuthState() here
   
   // Initialize layout first (this was missing!)
   console.log('[main.js] Initializing layout system');
@@ -698,6 +713,14 @@ function initializeApp() {
   document.body.style.visibility = 'visible';
   document.body.style.opacity = '1';
 }
+
+// MARK-LOGIN-6-ADD: Add initializeLoginForm() function definition here
+// MARK-LOGIN-6-ADD: Function checks if login form exists
+// MARK-LOGIN-6-ADD: Adds submit event listener to form
+// MARK-LOGIN-6-ADD: Prevents default form submission
+// MARK-LOGIN-6-ADD: Gets email and password values
+// MARK-LOGIN-6-ADD: Sets authentication state to true
+// MARK-LOGIN-6-ADD: Reloads page to show authenticated state
 
 // Set up initialization
 if (document.readyState === 'loading') {

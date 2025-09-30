@@ -7,6 +7,8 @@ const pagePathMap = {
   "data-entry": "pages/data-entry/index.html",
   engines: "pages/engines/index.html",
   settings: "pages/settings/index.html",
+  // MARK-LOGIN-1-ADD: Add login page path here
+  // login: "pages/login/index.html",
 };
 
 // Store the active page to avoid reloading the same page
@@ -44,6 +46,12 @@ function getPageFromURL() {
 
 // Navigate to a specific page
 export async function navigateToPage(pageName, pushState = true) {
+  // MARK-LOGIN-5-ADD: Add route guard at start of function
+  // MARK-LOGIN-5-ADD: Check if page is in protectedPages array
+  // MARK-LOGIN-5-ADD: Check if user is authenticated
+  // MARK-LOGIN-5-ADD: If protected and not authenticated, redirect to home
+  // MARK-LOGIN-5-ADD: Protected pages: settings, data-entry, engines, vendor-request
+  
   if (!pageName || pageName === activePage) {
     return; // Already on this page
   }
@@ -99,6 +107,9 @@ export async function navigateToPage(pageName, pushState = true) {
     if (typeof window.initializePageComponents === 'function') {
       window.initializePageComponents(pageName);
     }
+    
+    // MARK-LOGIN-6-ADD: Call initializeLoginForm() after page content loaded
+    // MARK-LOGIN-6-ADD: Add check: if (pageName === 'login') { initializeLoginForm(); }
 
     // Update collapsed navbar menu
     if (typeof window.updateMenuContent === "function") {

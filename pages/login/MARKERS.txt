@@ -1,0 +1,7 @@
+<!-- MARK-LOGIN-1-ADD: Create new file /pages/login/index.html -->
+<!-- MARK-LOGIN-1-ADD: Add login container div with class "login-container" -->
+<!-- MARK-LOGIN-1-ADD: Add h1 heading "Log In" -->
+<!-- MARK-LOGIN-1-ADD: Add form element with id "login-form" and class "login-form" -->
+<!-- MARK-LOGIN-1-ADD: Add email input field with label "Email" -->
+<!-- MARK-LOGIN-1-ADD: Add password input field with label "Password" -->
+<!-- MARK-LOGIN-1-ADD: Add submit button with text "Log In" -->
