@@ -760,13 +760,31 @@ function initializeApp() {
   document.body.style.opacity = '1';
 }
 
-// MARK-LOGIN-6-ADD: Add initializeLoginForm() function definition here
-// MARK-LOGIN-6-ADD: Function checks if login form exists
-// MARK-LOGIN-6-ADD: Adds submit event listener to form
-// MARK-LOGIN-6-ADD: Prevents default form submission
-// MARK-LOGIN-6-ADD: Gets email and password values
-// MARK-LOGIN-6-ADD: Sets authentication state to true
-// MARK-LOGIN-6-ADD: Reloads page to show authenticated state
+// Initialize login form when login page is loaded
+function initializeLoginForm() {
+  const loginForm = document.getElementById('login-form');
+  if (!loginForm) return;
+  
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Get form values
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    console.log(`[Auth] Login attempt for: ${email}`);
+    
+    // For now, just set authenticated state (real Zitadel integration later)
+    if (email && password) {
+      setAuthenticationState(true);
+      console.log('[Auth] Authentication state set to true');
+      window.location.reload(); // Refresh to show authenticated state
+    }
+  });
+}
+
+// Make initializeLoginForm available globally for router
+window.initializeLoginForm = initializeLoginForm;
 
 // Set up initialization
 if (document.readyState === 'loading') {

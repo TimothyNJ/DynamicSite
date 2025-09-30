@@ -107,8 +107,10 @@ export async function navigateToPage(pageName, pushState = true) {
       window.initializePageComponents(pageName);
     }
     
-    // MARK-LOGIN-6-ADD: Call initializeLoginForm() after page content loaded
-    // MARK-LOGIN-6-ADD: Add check: if (pageName === 'login') { initializeLoginForm(); }
+    // Initialize login form if on login page
+    if (pageName === 'login' && typeof window.initializeLoginForm === 'function') {
+      window.initializeLoginForm();
+    }
 
     // Update collapsed navbar menu
     if (typeof window.updateMenuContent === "function") {
