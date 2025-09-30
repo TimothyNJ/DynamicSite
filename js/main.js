@@ -456,6 +456,17 @@ function initializeSettingsComponents() {
     
     try {
     
+    // Logout Button
+    componentFactory.createButton({
+      containerId: 'logout-button-container',
+      text: 'Log Out',
+      onClick: () => {
+        if (typeof window.logout === 'function') {
+          window.logout();
+        }
+      }
+    });
+    
     // User Settings Components
     console.log('[Settings Page] Initializing User Settings components...');
     
