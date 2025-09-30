@@ -103,7 +103,8 @@ export function updateMenuContent() {
   );
 
   allButtons.forEach((button) => {
-    if (!button.classList.contains("active")) {
+    // Skip active page AND auth-hidden buttons
+    if (!button.classList.contains("active") && !button.classList.contains("auth-hidden")) {
       const buttonText = button.querySelector("h3").textContent;
       const pageName = button.getAttribute("data-page");
 

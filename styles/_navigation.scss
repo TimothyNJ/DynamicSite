@@ -181,3 +181,12 @@
     display: none !important;
   }
 }
+
+// ==============================================
+// Authentication-based Visibility
+// ==============================================
+// Hide buttons based on authentication state
+// This works with navbar.js to prevent duplication in dropdown menu
+button.auth-hidden {
+  display: none !important;
+}

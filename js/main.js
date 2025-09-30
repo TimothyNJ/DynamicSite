@@ -664,18 +664,53 @@ function getCurrentPage() {
   return 'home';
 }
 
-// MARK-LOGIN-4-ADD: Add updateNavigationForAuthState() function here
-// MARK-LOGIN-4-ADD: Function should loop through all nav buttons
-// MARK-LOGIN-4-ADD: Hide/show based on authentication state
-// MARK-LOGIN-4-ADD: Protected pages: settings, data-entry, engines, vendor-request
-// MARK-LOGIN-4-ADD: Hide login button when authenticated
-// MARK-LOGIN-4-ADD: Show login button when not authenticated
+// Update navigation button visibility based on authentication state
+// Uses CSS class 'auth-hidden' instead of inline styles to work with navbar system
+function updateNavigationForAuthState() {
+  const isAuthenticated = isUserAuthenticated();
+  const navButtons = document.querySelectorAll('.nav-container button[data-page]');
+  
+  const protectedPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
+  
+  navButtons.forEach(button => {
+    const pageName = button.getAttribute('data-page');
+    
+    // Handle Login button visibility
+    if (pageName === 'login') {
+      if (isAuthenticated) {
+        button.classList.add('auth-hidden');
+      } else {
+        button.classList.remove('auth-hidden');
+      }
+      return;
+    }
+    
+    // Handle protected pages visibility
+    if (protectedPages.includes(pageName)) {
+      if (isAuthenticated) {
+        button.classList.remove('auth-hidden');
+      } else {
+        button.classList.add('auth-hidden');
+      }
+      return;
+    }
+    
+    // Home and other public pages always visible
+    button.classList.remove('auth-hidden');
+  });
+  
+  // Refresh the dropdown menu to respect auth-hidden class
+  if (typeof window.updateMenuContent === 'function') {
+    window.updateMenuContent();
+  }
+}
 
 // Initialize components when DOM is ready
 function initializeApp() {
   console.log('[main.js] DOM ready, initializing application');
   
-  // MARK-LOGIN-4-MODIFY: Add call to updateNavigationForAuthState() here
+  // Update navigation based on authentication state
+  updateNavigationForAuthState();
   
   // Initialize layout first (this was missing!)
   console.log('[main.js] Initializing layout system');
