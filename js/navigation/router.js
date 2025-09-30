@@ -7,8 +7,7 @@ const pagePathMap = {
   "data-entry": "pages/data-entry/index.html",
   engines: "pages/engines/index.html",
   settings: "pages/settings/index.html",
-  // MARK-LOGIN-1-ADD: Add login page path here
-  // login: "pages/login/index.html",
+  login: "pages/login/index.html",
 };
 
 // Store the active page to avoid reloading the same page
