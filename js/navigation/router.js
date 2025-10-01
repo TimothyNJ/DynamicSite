@@ -1,5 +1,8 @@
 // js/navigation/router.js
 
+// Track cleanup function for current page
+let currentPageCleanup = null;
+
 // Map page names to their file paths
 const pagePathMap = {
   home: "pages/home/index.html",
@@ -45,6 +48,13 @@ function getPageFromURL() {
 
 // Navigate to a specific page
 export async function navigateToPage(pageName, pushState = true) {
+  // Cleanup previous page components
+  if (currentPageCleanup) {
+    console.log(`[Router] Cleaning up previous page components`);
+    currentPageCleanup();
+    currentPageCleanup = null;
+  }
+  
   // Route guard: Block access to protected pages when not authenticated
   const protectedPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
   
@@ -132,4 +142,9 @@ export async function navigateToPage(pageName, pushState = true) {
   } catch (error) {
     console.error("Error loading page:", error);
   }
+}
+
+// Register cleanup function for current page
+export function registerPageCleanup(cleanupFn) {
+  currentPageCleanup = cleanupFn;
 }
