@@ -59,10 +59,11 @@ import { ThreeD_component_engine } from './engines/threed_component_engine.js';
 import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
 import { initializeComponents } from './loader/component-loader.js';
 import { initializeNavbar } from './navigation/navbar.js';
-import { initRouter } from './navigation/router.js';
+import { initRouter, registerPageCleanup } from './navigation/router.js';
 
-// Make factory available for pages that need it
+// Make factory and cleanup registration available for pages that need it
 window.componentFactory = componentFactory;
+window.registerPageCleanup = registerPageCleanup;
 
 // Ensure global mouse tracker is initialized
 console.log('[main.js] Global mouse tracker ready');
@@ -590,6 +591,18 @@ function initializeSettingsComponents() {
     
   } catch (error) {
     console.error('[Settings Page] Error initializing components:', error);
+  }
+  
+  // Register cleanup for Settings page
+  if (typeof window.registerPageCleanup === 'function') {
+    window.registerPageCleanup(() => {
+      // Cleanup time update interval
+      if (timeUpdateInterval) {
+        clearInterval(timeUpdateInterval);
+        timeUpdateInterval = null;
+        console.log('[Settings Cleanup] Time update interval cleared');
+      }
+    });
   }
 }
 
