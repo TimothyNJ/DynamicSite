@@ -2384,9 +2384,46 @@ export class ThreeD_component_engine {
             this.yellowBorderElement = null;
         }
         
-        // Dispose Three.js resources
+        // Dispose Three.js resources completely
+        
+        // 1. Dispose all geometries and materials in the scene
+        if (this.scene) {
+            this.scene.traverse((object) => {
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(material => material.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+            });
+        }
+        
+        // 2. Dispose textures
+        if (this.canvasTexture) {
+            this.canvasTexture.dispose();
+        }
+        
+        // 3. Dispose renderer
         if (this.renderer) {
             this.renderer.dispose();
+            
+            // 4. Force WebGL context loss
+            const gl = this.renderer.getContext();
+            if (gl) {
+                const loseContext = gl.getExtension('WEBGL_lose_context');
+                if (loseContext) {
+                    loseContext.loseContext();
+                }
+            }
+            
+            // 5. Remove canvas from DOM
+            if (this.renderer.domElement && this.renderer.domElement.parentNode) {
+                this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+            }
         }
         
         // Clear timeout

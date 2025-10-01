@@ -138,11 +138,12 @@ function initializeComponentEnginesDemos() {
   
   // 5.9. ThreeD Component Engine TextGeometry Drum Selector
   // Using the main engine in textgeometry mode to create a production drum selector
+  let demoThreeDTextGeometryDrum = null;  // Declare at function scope
   const drumContainer = document.getElementById('demo-3d-textgeometry-drum-container');
   if (!drumContainer) {
     console.error('[Demo] Container demo-3d-textgeometry-drum-container not found');
   } else {
-    const demoThreeDTextGeometryDrum = new ThreeD_component_engine(drumContainer, {
+    demoThreeDTextGeometryDrum = new ThreeD_component_engine(drumContainer, {
     mode: 'textgeometry',  // Use TextGeometry mode
     rotationSpeed: 0,      // Start with no rotation
     textDepth: 0,          // FLAT TEXT - no depth
@@ -467,8 +468,7 @@ function initializeSettingsComponents() {
     try {
     
     // Logout Button
-    componentFactory.createButton({
-      containerId: 'logout-button-container',
+    componentFactory.createButton('logout-button-container', {
       text: 'Log Out',
       onClick: () => {
         if (typeof window.logout === 'function') {
