@@ -101,11 +101,21 @@ window.timeFormatSlider = (function () {
     // Update time display in buttons
     updateTimeDisplay();
 
-    // Set up interval to update time display
+    // Set up interval to update time display synchronized with real-time minutes
     if (updateInterval) {
       clearInterval(updateInterval);
     }
-    updateInterval = setInterval(updateTimeDisplay, 1000);
+    
+    // Calculate milliseconds until the next full minute
+    const now = new Date();
+    const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+    
+    // Wait until the next minute, then update every minute after that
+    setTimeout(() => {
+      updateTimeDisplay();
+      // Now set up the regular interval to update every minute
+      updateInterval = setInterval(updateTimeDisplay, 60000);
+    }, msUntilNextMinute);
 
     // Initialize the slider
     const result = window.sliderButtons.init(".time-format-selector");
