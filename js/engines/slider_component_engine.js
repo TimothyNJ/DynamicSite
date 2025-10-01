@@ -56,6 +56,7 @@ class slider_component_engine {
     this.handleMousePositionUpdate = this.handleMousePositionUpdate.bind(this);
     
     // Initialization timestamp for verification
+    // REMOVE-LOGGING: Excessive debug output
     console.log(`[slider_component_engine] Initializing slider engine with full hover animations`);
   }
 
@@ -101,6 +102,7 @@ class slider_component_engine {
    * Create slider container and inject HTML
    */
   createSliderContainer() {
+    // REMOVE-LOGGING: Excessive debug output
     console.log(`[slider_component_engine] Creating container for: ${this.containerId}`);
     const container = document.getElementById(this.containerId);
     if (!container) {
@@ -113,8 +115,11 @@ class slider_component_engine {
     container.style.border = '1px solid yellow';  // Debug border only
     
     // Debug logging to see what container we're in
+    // REMOVE-LOGGING: Excessive debug output
     console.log(`[${this.containerId}] Parent element:`, container.parentElement);
+    // REMOVE-LOGGING: Excessive debug output
     console.log(`[${this.containerId}] Parent class:`, container.parentElement?.className);
+    // REMOVE-LOGGING: Excessive debug output
     console.log(`[${this.containerId}] Parent width:`, container.parentElement?.offsetWidth);
 
     // Generate and inject HTML
@@ -125,6 +130,7 @@ class slider_component_engine {
     this.sliderElement = container.querySelector('.slider-selector');
     
     const success = this.sliderElement !== null;
+    // REMOVE-LOGGING: Excessive debug output
     console.log(`[slider_component_engine] Slider element created: ${success}`);
     
     return success;
@@ -134,6 +140,7 @@ class slider_component_engine {
    * Initialize slider engine with proven main branch logic
    */
   init() {
+    // REMOVE-LOGGING: Excessive debug output
     console.log(`[slider_component_engine] Initializing: ${this.sliderClass}`);
     
     // Create HTML structure
@@ -166,6 +173,7 @@ class slider_component_engine {
       this.setupMouseTracking();
       this.startContinuousMonitoring();
       
+      // REMOVE-LOGGING: Excessive debug output
       console.log(`[slider_component_engine] Initialization complete for: ${this.sliderClass}`);
       return true;
     } catch (error) {
@@ -249,9 +257,11 @@ class slider_component_engine {
     this._options.forEach((option) => {
       const width = option.offsetWidth;
       maxWidth = Math.max(maxWidth, width);
+      // REMOVE-LOGGING: Excessive debug output
       console.log(`[slider_component_engine] Button '${option.textContent.trim()}' natural width: ${width}px`);
     });
 
+    // REMOVE-LOGGING: Excessive debug output
     console.log(`[slider_component_engine] Setting all buttons to max width: ${maxWidth}px`);
 
     // Set all buttons to the max width
@@ -694,6 +704,7 @@ class slider_component_engine {
    * Set active option with animation (from slider-buttons.js logic)
    */
   setActiveOption(option, skipAnimation = false) {
+    // REMOVE-LOGGING: Excessive debug output
     console.log(`[slider_component_engine] Setting active option: ${option ? option.textContent : 'none'}`);
 
     if (!option || !this._themeSelector || !this._selectorBackground) return;
@@ -767,6 +778,7 @@ class slider_component_engine {
 
     // Call the custom handler
     if (this.handler && typeof this.handler === "function") {
+      // REMOVE-LOGGING: Excessive debug output
       console.log(`[slider_component_engine] Calling custom handler`);
       this.handler(option);
     }
@@ -885,6 +897,7 @@ class slider_component_engine {
 
       // If text changed, recalculate shortest width and equalize buttons
       if (textChanged) {
+        // REMOVE-LOGGING: Excessive debug output - fires on every time update
         console.log(`[slider_component_engine] Text change detected in ${this.sliderClass}, recalculating button widths`);
         this.equalizeButtonWidths();
       }
