@@ -2359,6 +2359,13 @@ export class ThreeD_component_engine {
     }
     
     destroy() {
+        // Prevent multiple disposal calls
+        if (this.isDisposed) {
+            console.log('[3D Component Engine] Already disposed, skipping');
+            return;
+        }
+        this.isDisposed = true;
+        
         // Remove from global registry to prevent memory leaks
         if (window.threedComponents) {
             const index = window.threedComponents.indexOf(this);
@@ -2422,7 +2429,14 @@ export class ThreeD_component_engine {
             
             // 5. Remove canvas from DOM
             if (this.renderer.domElement && this.renderer.domElement.parentNode) {
-                this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+                // Only remove if it's actually a child of the parent
+                try {
+                    if (this.renderer.domElement.parentNode.contains(this.renderer.domElement)) {
+                        this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+                    }
+                } catch (e) {
+                    console.warn('[3D Engine] Canvas already removed or not a child:', e);
+                }
             }
         }
         
