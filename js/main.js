@@ -516,8 +516,6 @@ function initializeSettingsComponents() {
       ]
     }, (selectedOption) => {
       const format = selectedOption.getAttribute('data-format');
-      // REMOVE-LOGGING: Fires on every time update
-      console.log('[Time Format] Selected:', format);
       localStorage.setItem('userTimeFormatPreference', format);
     });
     
