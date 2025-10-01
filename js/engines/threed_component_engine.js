@@ -2397,13 +2397,25 @@ export class ThreeD_component_engine {
         if (this.scene) {
             this.scene.traverse((object) => {
                 if (object.geometry) {
-                    object.geometry.dispose();
+                    try {
+                        object.geometry.dispose();
+                    } catch (e) {
+                        console.warn('[3D Engine] Could not dispose geometry:', e);
+                    }
                 }
                 if (object.material) {
-                    if (Array.isArray(object.material)) {
-                        object.material.forEach(material => material.dispose());
-                    } else {
-                        object.material.dispose();
+                    try {
+                        if (Array.isArray(object.material)) {
+                            object.material.forEach(material => {
+                                if (material && typeof material.dispose === 'function') {
+                                    material.dispose();
+                                }
+                            });
+                        } else if (typeof object.material.dispose === 'function') {
+                            object.material.dispose();
+                        }
+                    } catch (e) {
+                        console.warn('[3D Engine] Could not dispose material:', e);
                     }
                 }
             });
