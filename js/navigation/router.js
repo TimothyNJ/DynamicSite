@@ -55,7 +55,9 @@ export async function navigateToPage(pageName, pushState = true) {
     currentPageCleanup = null;
   }
   
-  // Route guard: Block access to protected pages when not authenticated
+  // Route guard: TEMPORARILY DISABLED for development
+  // TODO: Re-enable when authentication system is complete
+  /*
   const protectedPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
   
   if (protectedPages.includes(pageName)) {
@@ -70,6 +72,7 @@ export async function navigateToPage(pageName, pushState = true) {
       return;
     }
   }
+  */
   
   if (!pageName || pageName === activePage) {
     return; // Already on this page
