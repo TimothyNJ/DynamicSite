@@ -436,8 +436,12 @@ function initializeComponentEnginesDemos() {
   
   console.log('[Engines Page] Demo components initialized');
   
+  // Return 3D components for cleanup
+  return [demo3D, demoCylinder3D, demoCone3D, demoTube3D, demoTextGeometry3D, demoSphere3D, demoThreeDTextGeometryDrum];
+  
 } catch (error) {
   console.error('[Engines Page] Error initializing components:', error);
+  return [];
 }
 }
 
@@ -630,7 +634,19 @@ function initializeDataEntryComponents() {
 function initializeEnginesViewComponents() {
   console.log('[Engines View] Initializing component engine demos');
   // Call the component engines demo function
-  initializeComponentEnginesDemos();
+  const threeDComponents = initializeComponentEnginesDemos();
+  
+  // Register cleanup for Engines page
+  if (typeof window.registerPageCleanup === 'function' && threeDComponents) {
+    window.registerPageCleanup(() => {
+      threeDComponents.forEach(component => {
+        if (component && component.dispose) {
+          component.dispose();
+        }
+      });
+      console.log('[Engines Cleanup] Disposed 3D components');
+    });
+  }
 }
 
 // Component initialization function for router
