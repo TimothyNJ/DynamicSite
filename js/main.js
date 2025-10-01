@@ -459,6 +459,10 @@ function initializeSettingsComponents() {
   if (!document.body.hasAttribute('data-theme')) {
       document.body.setAttribute('data-theme', savedTheme);
     }
+  
+  // Time Format Slider (12-hour / 24-hour) with live time display
+  const savedTimeFormat = localStorage.getItem('userTimeFormatPreference') || '12';
+  let timeUpdateInterval = null;  // Declare at function scope for cleanup access
     
     try {
     
@@ -475,10 +479,6 @@ function initializeSettingsComponents() {
     
     // User Settings Components
     console.log('[Settings Page] Initializing User Settings components...');
-    
-    // Time Format Slider (12-hour / 24-hour) with live time display
-    const savedTimeFormat = localStorage.getItem('userTimeFormatPreference') || '12';
-    let timeUpdateInterval = null;
     
     // Utility function to format current time
     function formatCurrentTime(use24Hour = false) {
