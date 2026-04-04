@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authenticating...</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #000;
+      color: #fff;
+      font-family: Helvetica, sans-serif;
+      font-size: 1.2rem;
+    }
+    .message { text-align: center; }
+    .error { color: #ff4444; }
+  </style>
+</head>
+<body>
+  <div class="message" id="message">Completing login...</div>
+  <script type="module">
+    import { handleCallback, startTokenRefreshTimer } from '../js/auth/zitadel-auth.js';
+
+    async function processCallback() {
+      const messageEl = document.getElementById('message');
+      try {
+        await handleCallback();
+        startTokenRefreshTimer();
+        // Redirect back to the main SPA
+        const origin = window.location.origin;
+        window.location.href = origin + '/index.html#home';
+      } catch (error) {
+        console.error('[Callback] Auth failed:', error);
+        messageEl.className = 'message error';
+        messageEl.textContent = `Login failed: ${error.message}. Redirecting...`;
+        setTimeout(() => {
+          window.location.href = window.location.origin + '/index.html#home';
+        }, 3000);
+      }
+    }
+
+    processCallback();
+  </script>
+</body>
+</html>

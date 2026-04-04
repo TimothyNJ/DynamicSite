@@ -16,23 +16,32 @@ console.log(`[main.js] Starting application initialization [Deployment: ${DEPLOY
 // Import styles - Single source of truth (SCSS)
 import '../styles/styles.scss';
 
-// Authentication helper functions
+// Authentication - Zitadel PKCE
+import {
+  login,
+  logout,
+  isAuthenticated,
+  getUserInfo,
+  getAccessToken,
+  startTokenRefreshTimer,
+  clearAuthState
+} from './auth/zitadel-auth.js';
+
 function isUserAuthenticated() {
-  return localStorage.getItem('isAuthenticated') === 'true';
-}
-
-function setAuthenticationState(isAuthenticated) {
-  localStorage.setItem('isAuthenticated', isAuthenticated ? 'true' : 'false');
-}
-
-function logout() {
-  setAuthenticationState(false);
-  window.location.reload(); // Refresh to show logged-out state
+  return isAuthenticated();
 }
 
 // Make auth functions available globally
 window.isUserAuthenticated = isUserAuthenticated;
 window.logout = logout;
+window.login = login;
+window.getUserInfo = getUserInfo;
+window.getAccessToken = getAccessToken;
+
+// Start token refresh timer if already authenticated
+if (isAuthenticated()) {
+  startTokenRefreshTimer();
+}
 
 // Import Three.js subdivision library for better cube symmetry
 import { LoopSubdivision } from 'three-subdivide';
@@ -470,9 +479,9 @@ function initializeSettingsComponents() {
     // Logout Button
     componentFactory.createButton('logout-button-container', {
       text: 'Log Out',
-      onClick: () => {
+      onClick: async () => {
         if (typeof window.logout === 'function') {
-          window.logout();
+          await window.logout(); // Zitadel logout handles redirect
         }
       }
     });
@@ -751,6 +760,7 @@ function initializeApp() {
   
   // Update navigation based on authentication state
   updateNavigationForAuthState();
+  window.updateNavigationForAuthState = updateNavigationForAuthState;
   
   // Initialize layout first (this was missing!)
   console.log('[main.js] Initializing layout system');
@@ -800,25 +810,18 @@ function initializeApp() {
   document.body.style.opacity = '1';
 }
 
-// Initialize login form when login page is loaded
+// Initialize login page - wire up login button to Zitadel PKCE flow
 function initializeLoginForm() {
-  const loginForm = document.getElementById('login-form');
-  if (!loginForm) return;
-  
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    // Get form values
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    
-    console.log(`[Auth] Login attempt for: ${email}`);
-    
-    // For now, just set authenticated state (real Zitadel integration later)
-    if (email && password) {
-      setAuthenticationState(true);
-      console.log('[Auth] Authentication state set to true');
-      window.location.reload(); // Refresh to show authenticated state
+  console.log('[Auth] Initializing login page');
+  componentFactory.createButton('login-button-container', {
+    id: 'zitadel-login-button',
+    text: 'Sign In',
+    onClick: async () => {
+      try {
+        await window.login();
+      } catch (error) {
+        console.error('[Auth] Login redirect failed:', error);
+      }
     }
   });
 }

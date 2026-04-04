@@ -55,24 +55,20 @@ export async function navigateToPage(pageName, pushState = true) {
     currentPageCleanup = null;
   }
   
-  // Route guard: TEMPORARILY DISABLED for development
-  // TODO: Re-enable when authentication system is complete
-  /*
+  // Route guard: protect pages that require authentication
   const protectedPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
   
   if (protectedPages.includes(pageName)) {
-    // Check if user is authenticated (use window function if available)
     const isAuthenticated = typeof window.isUserAuthenticated === 'function' 
       ? window.isUserAuthenticated() 
       : localStorage.getItem('isAuthenticated') === 'true';
     
     if (!isAuthenticated) {
-      console.log(`[Router] Blocked access to protected page: ${pageName}`);
-      navigateToPage('home'); // Redirect to home
+      console.log(`[Router] Blocked access to protected page: ${pageName} - redirecting to login`);
+      navigateToPage('login');
       return;
     }
   }
-  */
   
   if (!pageName || pageName === activePage) {
     return; // Already on this page
@@ -133,6 +129,11 @@ export async function navigateToPage(pageName, pushState = true) {
     // Initialize login form if on login page
     if (pageName === 'login' && typeof window.initializeLoginForm === 'function') {
       window.initializeLoginForm();
+    }
+
+    // Update nav visibility based on auth state
+    if (typeof window.updateNavigationForAuthState === 'function') {
+      window.updateNavigationForAuthState();
     }
 
     // Update collapsed navbar menu
