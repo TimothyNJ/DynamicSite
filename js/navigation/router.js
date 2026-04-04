@@ -55,17 +55,33 @@ export async function navigateToPage(pageName, pushState = true) {
     currentPageCleanup = null;
   }
   
-  // Route guard: protect pages that require authentication
-  const protectedPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
-  
-  if (protectedPages.includes(pageName)) {
-    const isAuthenticated = typeof window.isUserAuthenticated === 'function' 
-      ? window.isUserAuthenticated() 
+  // Route guard: protect pages that require authentication and minimum role
+  const protectedPages = {
+    'settings':       'admin',
+    'data-entry':     'admin',
+    'engines':        'admin',
+    'vendor-request': 'admin'
+  };
+
+  if (protectedPages[pageName]) {
+    const isAuth = typeof window.isUserAuthenticated === 'function'
+      ? window.isUserAuthenticated()
       : localStorage.getItem('isAuthenticated') === 'true';
-    
-    if (!isAuthenticated) {
-      console.log(`[Router] Blocked access to protected page: ${pageName} - redirecting to login`);
+
+    if (!isAuth) {
+      console.log(`[Router] Not authenticated - redirecting to login`);
       navigateToPage('login');
+      return;
+    }
+
+    const requiredRole = protectedPages[pageName];
+    const hasAccess = typeof window.hasMinimumRole === 'function'
+      ? window.hasMinimumRole(requiredRole)
+      : true; // fallback if roles not loaded yet
+
+    if (!hasAccess) {
+      console.log(`[Router] Insufficient role for ${pageName} - requires ${requiredRole}`);
+      navigateToPage('home');
       return;
     }
   }

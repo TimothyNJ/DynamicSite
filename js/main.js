@@ -24,7 +24,11 @@ import {
   getUserInfo,
   getAccessToken,
   startTokenRefreshTimer,
-  clearAuthState
+  clearAuthState,
+  handleCallback,
+  getUserRoles,
+  getHighestRole,
+  hasMinimumRole
 } from './auth/zitadel-auth.js';
 
 function isUserAuthenticated() {
@@ -37,6 +41,9 @@ window.logout = logout;
 window.login = login;
 window.getUserInfo = getUserInfo;
 window.getAccessToken = getAccessToken;
+window.getUserRoles = getUserRoles;
+window.getHighestRole = getHighestRole;
+window.hasMinimumRole = hasMinimumRole;
 
 // Start token refresh timer if already authenticated
 if (isAuthenticated()) {
@@ -757,6 +764,29 @@ function updateNavigationForAuthState() {
 // Initialize components when DOM is ready
 function initializeApp() {
   console.log('[main.js] DOM ready, initializing application');
+  
+  // Check if this is a Zitadel auth callback (code in URL params)
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('code')) {
+    console.log('[Auth] Detected auth callback - processing...');
+    document.body.style.visibility = 'visible';
+    document.body.style.opacity = '1';
+    handleCallback()
+      .then(() => {
+        startTokenRefreshTimer();
+        console.log('[Auth] Callback handled - redirecting to home');
+        // Clean URL and navigate to home
+        window.history.replaceState({}, '', window.location.pathname);
+        window.location.hash = 'home';
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error('[Auth] Callback failed:', error);
+        window.history.replaceState({}, '', window.location.pathname);
+        window.location.reload();
+      });
+    return; // Don't initialize the rest of the app during callback
+  }
   
   // Update navigation based on authentication state
   updateNavigationForAuthState();
