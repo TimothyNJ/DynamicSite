@@ -20,11 +20,11 @@ const SCOPES = 'openid profile email offline_access';
 function getRedirectUri() {
   const origin = window.location.origin;
   if (origin.includes('tnjdynamicsite-dev')) {
-    return 'https://tnjdynamicsite-dev.s3.us-west-2.amazonaws.com/index.html';
+    return 'https://tnjdynamicsite-dev.s3.us-west-2.amazonaws.com/callback.html';
   } else if (origin.includes('tnjdynamicsite')) {
-    return 'https://tnjdynamicsite.s3.us-west-2.amazonaws.com/index.html';
+    return 'https://tnjdynamicsite.s3.us-west-2.amazonaws.com/callback.html';
   }
-  return `${origin}/index.html`;
+  return `${origin}/callback.html`;
 }
 
 function getPostLogoutUri() {

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Authenticating...</title>
+  <style>
+    body { visibility: hidden; background: #1a1a1a; }
+  </style>
+</head>
+<body>
+  <script>
+    // This page receives the Zitadel auth callback with ?code=...&state=...
+    // It processes the token exchange and redirects back to the main app
+    (async function() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const state = params.get('state');
+      const error = params.get('error');
+
+      if (error) {
+        console.error('[Callback] Auth error:', error);
+        window.location.href = 'index.html#login';
+        return;
+      }
+
+      if (!code) {
+        window.location.href = 'index.html#home';
+        return;
+      }
+
+      const storedState = sessionStorage.getItem('pkce_state');
+      const codeVerifier = sessionStorage.getItem('pkce_code_verifier');
+
+      if (state !== storedState || !codeVerifier) {
+        console.error('[Callback] State mismatch or missing verifier');
+        window.location.href = 'index.html#login';
+        return;
+      }
+
+      try {
+        const ZITADEL_ISSUER = 'https://dynamicsite-hgyhhz.us1.zitadel.cloud';
+        const CLIENT_ID = '339931209931003985';
+
+        // Determine redirect URI (must match what was used in login)
+        const origin = window.location.origin;
+        let redirectUri;
+        if (origin.includes('tnjdynamicsite-dev')) {
+          redirectUri = 'https://tnjdynamicsite-dev.s3.us-west-2.amazonaws.com/callback.html';
+        } else if (origin.includes('tnjdynamicsite')) {
+          redirectUri = 'https://tnjdynamicsite.s3.us-west-2.amazonaws.com/callback.html';
+        } else {
+          redirectUri = `${origin}/callback.html`;
+        }
+
+        // Fetch OIDC config
+        const configResp = await fetch(`${ZITADEL_ISSUER}/.well-known/openid-configuration`);
+        const config = await configResp.json();
+
+        // Exchange code for tokens
+        const tokenResp = await fetch(config.token_endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            grant_type: 'authorization_code',
+            client_id: CLIENT_ID,
+            redirect_uri: redirectUri,
+            code: code,
+            code_verifier: codeVerifier,
+          }),
+        });
+
+        if (!tokenResp.ok) {
+          const err = await tokenResp.json();
+          throw new Error(`Token exchange failed: ${err.error_description || err.error}`);
+        }
+
+        const tokens = await tokenResp.json();
+
+        // Store tokens in localStorage (same as main app)
+        if (tokens.access_token) {
+          localStorage.setItem('access_token', tokens.access_token);
+        }
+        if (tokens.refresh_token) {
+          localStorage.setItem('refresh_token', tokens.refresh_token);
+        }
+        if (tokens.id_token) {
+          // Decode and store user info from ID token
+          const payload = JSON.parse(atob(tokens.id_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          localStorage.setItem('auth_user', JSON.stringify(payload));
+          localStorage.setItem('isAuthenticated', 'true');
+        }
+
+        // Clean up session storage
+        sessionStorage.removeItem('pkce_code_verifier');
+        sessionStorage.removeItem('pkce_state');
+
+        // Redirect back to main app
+        window.location.href = 'index.html#home';
+
+      } catch (err) {
+        console.error('[Callback] Token exchange failed:', err);
+        window.location.href = 'index.html#login';
+      }
+    })();
+  </script>
+</body>
+</html>
