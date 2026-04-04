@@ -76,19 +76,19 @@
 
         const tokens = await tokenResp.json();
 
-        // Store tokens in localStorage (same as main app)
-        if (tokens.access_token) {
-          localStorage.setItem('access_token', tokens.access_token);
-        }
+        // Store tokens in localStorage — must match storeTokens() in zitadel-auth.js exactly
+        const expiresAt = Date.now() + (tokens.expires_in * 1000);
+        localStorage.setItem('auth_access_token', tokens.access_token);
+        localStorage.setItem('auth_expires_at', expiresAt.toString());
         if (tokens.refresh_token) {
-          localStorage.setItem('refresh_token', tokens.refresh_token);
+          localStorage.setItem('auth_refresh_token', tokens.refresh_token);
         }
         if (tokens.id_token) {
-          // Decode and store user info from ID token
+          localStorage.setItem('auth_id_token', tokens.id_token);
           const payload = JSON.parse(atob(tokens.id_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
           localStorage.setItem('auth_user', JSON.stringify(payload));
-          localStorage.setItem('isAuthenticated', 'true');
         }
+        localStorage.setItem('isAuthenticated', 'true');
 
         // Clean up session storage
         sessionStorage.removeItem('pkce_code_verifier');
