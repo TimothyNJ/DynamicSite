@@ -10,6 +10,7 @@ const pagePathMap = {
   "data-entry": "pages/data-entry/index.html",
   engines: "pages/engines/index.html",
   settings: "pages/settings/index.html",
+  users: "pages/users/index.html",
   login: "pages/login/index.html",
 };
 
@@ -60,7 +61,8 @@ export async function navigateToPage(pageName, pushState = true) {
     'settings':       'admin',
     'data-entry':     'admin',
     'engines':        'admin',
-    'vendor-request': 'admin'
+    'vendor-request': 'admin',
+    'users':          'org_admin'
   };
 
   if (protectedPages[pageName]) {

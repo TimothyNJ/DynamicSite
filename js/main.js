@@ -729,6 +729,10 @@ function updateNavigationForAuthState() {
   // Pages requiring minimum 'admin' role
   const adminPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
   const hasAdminAccess = isAuth && hasMinimumRole('admin');
+
+  // Pages requiring minimum 'org_admin' role
+  const orgAdminPages = ['users'];
+  const hasOrgAdminAccess = isAuth && hasMinimumRole('org_admin');
   
   navButtons.forEach(button => {
     const pageName = button.getAttribute('data-page');
@@ -746,6 +750,16 @@ function updateNavigationForAuthState() {
     // Handle admin-protected pages - require minimum admin role
     if (adminPages.includes(pageName)) {
       if (hasAdminAccess) {
+        button.classList.remove('auth-hidden');
+      } else {
+        button.classList.add('auth-hidden');
+      }
+      return;
+    }
+
+    // Handle org_admin-protected pages - require minimum org_admin role
+    if (orgAdminPages.includes(pageName)) {
+      if (hasOrgAdminAccess) {
         button.classList.remove('auth-hidden');
       } else {
         button.classList.add('auth-hidden');
