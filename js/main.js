@@ -720,20 +720,22 @@ function getCurrentPage() {
   return 'home';
 }
 
-// Update navigation button visibility based on authentication state
+// Update navigation button visibility based on authentication state and role
 // Uses CSS class 'auth-hidden' instead of inline styles to work with navbar system
 function updateNavigationForAuthState() {
-  const isAuthenticated = isUserAuthenticated();
+  const isAuth = isUserAuthenticated();
   const navButtons = document.querySelectorAll('.nav-container button[data-page]');
   
-  const protectedPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
+  // Pages requiring minimum 'admin' role
+  const adminPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
+  const hasAdminAccess = isAuth && hasMinimumRole('admin');
   
   navButtons.forEach(button => {
     const pageName = button.getAttribute('data-page');
     
     // Handle Login button visibility
     if (pageName === 'login') {
-      if (isAuthenticated) {
+      if (isAuth) {
         button.classList.add('auth-hidden');
       } else {
         button.classList.remove('auth-hidden');
@@ -741,9 +743,9 @@ function updateNavigationForAuthState() {
       return;
     }
     
-    // Handle protected pages visibility
-    if (protectedPages.includes(pageName)) {
-      if (isAuthenticated) {
+    // Handle admin-protected pages - require minimum admin role
+    if (adminPages.includes(pageName)) {
+      if (hasAdminAccess) {
         button.classList.remove('auth-hidden');
       } else {
         button.classList.add('auth-hidden');
