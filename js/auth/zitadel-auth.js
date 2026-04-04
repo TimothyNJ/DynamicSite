@@ -30,11 +30,11 @@ function getRedirectUri() {
 function getPostLogoutUri() {
   const origin = window.location.origin;
   if (origin.includes('tnjdynamicsite-dev')) {
-    return 'https://tnjdynamicsite-dev.s3.us-west-2.amazonaws.com';
+    return 'https://tnjdynamicsite-dev.s3.us-west-2.amazonaws.com/index.html';
   } else if (origin.includes('tnjdynamicsite')) {
-    return 'https://tnjdynamicsite.s3.us-west-2.amazonaws.com';
+    return 'https://tnjdynamicsite.s3.us-west-2.amazonaws.com/index.html';
   }
-  return origin;
+  return `${origin}/index.html`;
 }
 
 // ─── PKCE Helpers ─────────────────────────────────────────────────────────────
