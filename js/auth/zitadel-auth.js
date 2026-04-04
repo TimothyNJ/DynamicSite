@@ -20,11 +20,11 @@ const SCOPES = 'openid profile email offline_access';
 function getRedirectUri() {
   const origin = window.location.origin;
   if (origin.includes('tnjdynamicsite-dev')) {
-    return 'https://tnjdynamicsite-dev.s3.us-west-2.amazonaws.com/auth/callback';
+    return 'https://tnjdynamicsite-dev.s3.us-west-2.amazonaws.com/index.html';
   } else if (origin.includes('tnjdynamicsite')) {
-    return 'https://tnjdynamicsite.s3.us-west-2.amazonaws.com/auth/callback';
+    return 'https://tnjdynamicsite.s3.us-west-2.amazonaws.com/index.html';
   }
-  return `${origin}/auth/callback`;
+  return `${origin}/index.html`;
 }
 
 function getPostLogoutUri() {
@@ -199,6 +199,45 @@ export function isAuthenticated() {
     && !!getAccessToken()
     && !isTokenExpired();
 }
+
+// ─── Role Management ─────────────────────────────────────────────────────────
+
+const ROLE_HIERARCHY = ['guest', 'admin', 'org_admin', 'account_owner', 'system_admin'];
+
+export function getUserRoles() {
+  const user = getUserInfo();
+  if (!user) return [];
+  const projectId = '339930261431031889';
+  const roleClaims =
+    user[`urn:zitadel:iam:org:project:${projectId}:roles`] ||
+    user['urn:zitadel:iam:org:project:roles'] ||
+    user[`urn:zitadel:iam:org:projects`]?.[projectId] ||
+    {};
+  return Object.keys(roleClaims);
+}
+
+export function getHighestRole() {
+  const roles = getUserRoles();
+  if (roles.length === 0) return null;
+  let highest = null, highestIndex = -1;
+  for (const role of roles) {
+    const index = ROLE_HIERARCHY.indexOf(role);
+    if (index > highestIndex) { highestIndex = index; highest = role; }
+  }
+  return highest;
+}
+
+export function hasRole(role) {
+  return getUserRoles().includes(role);
+}
+
+export function hasMinimumRole(minimumRole) {
+  const minimumIndex = ROLE_HIERARCHY.indexOf(minimumRole);
+  if (minimumIndex === -1) return false;
+  return getUserRoles().some(role => ROLE_HIERARCHY.indexOf(role) >= minimumIndex);
+}
+
+// ─── Token Refresh ────────────────────────────────────────────────────────────
 
 // ─── Token Refresh ────────────────────────────────────────────────────────────
 
