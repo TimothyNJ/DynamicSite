@@ -891,6 +891,7 @@ function initializeLoginForm() {
   componentFactory.createButton('login-button-container', {
     id: 'zitadel-login-button',
     text: 'Sign In',
+    active: true,
     onClick: async () => {
       try {
         await window.login();
