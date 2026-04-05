@@ -592,18 +592,18 @@ function initializeSettingsComponents() {
     applyThemeByName(savedTheme);
 
     // Session Timeout Slider
-    const savedTimeout = parseInt(localStorage.getItem('sessionTimeoutMinutes') || '0.5');
+    const savedTimeout = localStorage.getItem('sessionTimeoutMinutes');
+    const timeoutVal = savedTimeout ? parseFloat(savedTimeout) : null;
     componentFactory.createSlider({
       containerId: 'session-timeout-slider-container',
       sliderClass: 'session-timeout-slider',
       options: [
-        { text: '30 sec', value: '0.5', position: 1, active: savedTimeout === 0.5 },
-        { text: '1 min',  value: '1',   position: 2, active: savedTimeout === 1   },
-        { text: '3 min',  value: '3',   position: 3, active: savedTimeout === 3   },
+        { text: '30 sec', value: '0.5', position: 1, active: !timeoutVal || timeoutVal === 0.5 },
+        { text: '1 min',  value: '1',   position: 2, active: timeoutVal === 1   },
+        { text: '3 min',  value: '3',   position: 3, active: timeoutVal === 3   },
       ]
     }, (selectedOption) => {
-      const val = parseFloat(selectedOption.querySelector('h3').textContent);
-      const minutes = selectedOption.querySelector('h3').textContent.includes('sec') ? 0.5 : val;
+      const minutes = selectedOption.querySelector('h3').textContent.includes('sec') ? 0.5 : parseFloat(selectedOption.querySelector('h3').textContent);
       localStorage.setItem('sessionTimeoutMinutes', minutes.toString());
       if (typeof window.restartSessionTimeout === 'function') {
         window.restartSessionTimeout();
