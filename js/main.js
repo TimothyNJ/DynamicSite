@@ -837,12 +837,12 @@ function updateNavigationForAuthState() {
     homeSvg.style.verticalAlign = 'middle';
     homeSvg.style.display = 'inline-block';
     homeSvg.innerHTML = `
-      <line x1="4" y1="46" x2="42" y2="6" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-      <line x1="42" y1="6" x2="80" y2="46" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-      <polyline points="58,10 68,10 68,28" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      <line x1="12" y1="50" x2="12" y2="84" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-      <line x1="72" y1="50" x2="72" y2="84" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-      <line x1="12" y1="84" x2="72" y2="84" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <line x1="4" y1="46" x2="42" y2="6" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+      <line x1="42" y1="6" x2="80" y2="46" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+      <polyline points="58,10 68,10 68,28" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="12" y1="50" x2="12" y2="84" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+      <line x1="72" y1="50" x2="72" y2="84" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+      <line x1="12" y1="84" x2="72" y2="84" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
     `;
     homeButton.appendChild(homeSvg);
   }
