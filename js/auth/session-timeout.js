@@ -72,36 +72,9 @@ function buildModal() {
   headingEl = document.createElement('h3');
   headingEl.textContent = getHeadingText(COUNTDOWN_SECONDS);
 
-  // Button — matches site button structure exactly
+  // Button container — ID so componentFactory can find it
   const buttonContainer = document.createElement('div');
-  buttonContainer.className = 'button-container';
-
-  const button = document.createElement('div');
-  button.className = 'button-component button-text active';
-
-  const borderContainer = document.createElement('div');
-  borderContainer.className = 'border-container';
-
-  const borderTop = document.createElement('div');
-  borderTop.className = 'border-segment border-top';
-
-  const borderBottom = document.createElement('div');
-  borderBottom.className = 'border-segment border-bottom';
-
-  const content = document.createElement('div');
-  content.className = 'button-content';
-
-  const label = document.createElement('h3');
-  label.textContent = 'Continue Session';
-
-  borderContainer.appendChild(borderTop);
-  borderContainer.appendChild(borderBottom);
-  content.appendChild(label);
-  button.appendChild(borderContainer);
-  button.appendChild(content);
-  buttonContainer.appendChild(button);
-
-  button.addEventListener('click', dismissWarning);
+  buttonContainer.id = 'session-timeout-button-container';
 
   box.appendChild(headingEl);
   box.appendChild(buttonContainer);
@@ -116,6 +89,15 @@ function showWarningModal() {
 
   modalEl = buildModal();
   document.body.appendChild(modalEl);
+
+  // Create button via componentFactory — same as every other button on the site
+  if (window.componentFactory) {
+    window.componentFactory.createButton('session-timeout-button-container', {
+      id: 'session-timeout-continue-button',
+      text: 'Continue Session',
+      onClick: dismissWarning
+    });
+  }
 
   // Update heading every second — same pattern as updateTimeDisplay() in settings
   countdownTimer = setInterval(() => {
