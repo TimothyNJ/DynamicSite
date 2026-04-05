@@ -151,11 +151,6 @@ export async function navigateToPage(pageName, pushState = true) {
       window.initializePageComponents(pageName);
     }
     
-    // Initialize login form if on login page
-    if (pageName === 'login' && typeof window.initializeLoginForm === 'function') {
-      window.initializeLoginForm();
-    }
-
     // Update nav visibility based on auth state
     if (typeof window.updateNavigationForAuthState === 'function') {
       window.updateNavigationForAuthState();

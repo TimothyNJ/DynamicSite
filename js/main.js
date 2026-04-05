@@ -933,26 +933,6 @@ function initializeApp() {
   document.body.style.opacity = '1';
 }
 
-// Initialize login page - wire up login button to Zitadel PKCE flow
-function initializeLoginForm() {
-  console.log('[Auth] Initializing login page');
-  componentFactory.createButton('login-button-container', {
-    id: 'zitadel-login-button',
-    text: 'Sign In',
-    active: true,
-    onClick: async () => {
-      try {
-        await window.login();
-      } catch (error) {
-        console.error('[Auth] Login redirect failed:', error);
-      }
-    }
-  });
-}
-
-// Make initializeLoginForm available globally for router
-window.initializeLoginForm = initializeLoginForm;
-
 // Set up initialization
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeApp);
