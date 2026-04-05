@@ -23,6 +23,11 @@ export function initRouter() {
   document.querySelectorAll("[data-page]").forEach((button) => {
     button.addEventListener("click", (event) => {
       const pageName = button.getAttribute("data-page");
+      // Sign In button triggers login directly — no intermediate page
+      if (pageName === 'login') {
+        if (typeof window.login === 'function') window.login();
+        return;
+      }
       navigateToPage(pageName);
     });
   });
