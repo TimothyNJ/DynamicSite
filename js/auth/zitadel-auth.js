@@ -98,6 +98,7 @@ export async function login() {
       state: state,
       code_challenge: codeChallenge,
       code_challenge_method: 'S256',
+      prompt: 'login',
     });
 
     console.log('[Auth] Redirecting to Zitadel login...');
