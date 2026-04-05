@@ -31,6 +31,8 @@ import {
   hasMinimumRole
 } from './auth/zitadel-auth.js';
 
+import { start as startSessionTimeout, stop as stopSessionTimeout } from './auth/session-timeout.js';
+
 function isUserAuthenticated() {
   return isAuthenticated();
 }
@@ -48,6 +50,7 @@ window.hasMinimumRole = hasMinimumRole;
 // Start token refresh timer if already authenticated
 if (isAuthenticated()) {
   startTokenRefreshTimer();
+  startSessionTimeout();
 }
 
 // Import Three.js subdivision library for better cube symmetry
@@ -488,7 +491,8 @@ function initializeSettingsComponents() {
       text: 'Log Out',
       onClick: async () => {
         if (typeof window.logout === 'function') {
-          await window.logout(); // Zitadel logout handles redirect
+          stopSessionTimeout();
+          await window.logout();
         }
       }
     });
@@ -790,6 +794,7 @@ function initializeApp() {
     handleCallback()
       .then(() => {
         startTokenRefreshTimer();
+        startSessionTimeout();
         console.log('[Auth] Callback handled - redirecting to home');
         // Clean URL and navigate to home
         window.history.replaceState({}, '', window.location.pathname);
