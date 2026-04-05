@@ -805,7 +805,23 @@ function updateNavigationForAuthState() {
     if (isAuth) {
       const userInfo = getUserInfo();
       const loginName = userInfo?.preferred_username || userInfo?.email || 'Settings';
-      settingsButton.textContent = loginName + ' ⚙';
+      settingsButton.textContent = loginName + ' ';
+      // Append sliders icon sized to match font
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('width', '1em');
+      svg.setAttribute('height', '1em');
+      svg.style.verticalAlign = 'middle';
+      svg.style.display = 'inline-block';
+      svg.innerHTML = `
+        <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="9" cy="6" r="2.5" fill="currentColor"/>
+        <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="16" cy="12" r="2.5" fill="currentColor"/>
+        <line x1="4" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="11" cy="18" r="2.5" fill="currentColor"/>
+      `;
+      settingsButton.appendChild(svg);
     } else {
       settingsButton.textContent = 'Settings';
     }
