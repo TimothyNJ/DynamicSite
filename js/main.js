@@ -598,9 +598,9 @@ function initializeSettingsComponents() {
       containerId: 'session-timeout-slider-container',
       sliderClass: 'session-timeout-slider',
       options: [
-        { text: '30 sec', value: '0.5', position: 1, active: !timeoutVal || timeoutVal === 0.5 },
-        { text: '1 min',  value: '1',   position: 2, active: timeoutVal === 1   },
-        { text: '3 min',  value: '3',   position: 3, active: timeoutVal === 3   },
+        { text: '5 min',  value: '5',  position: 1, active: !timeoutVal || timeoutVal === 5  },
+        { text: '15 min', value: '15', position: 2, active: timeoutVal === 15  },
+        { text: '30 min', value: '30', position: 3, active: timeoutVal === 30  },
       ]
     }, (selectedOption) => {
       const minutes = selectedOption.querySelector('h3').textContent.includes('sec') ? 0.5 : parseFloat(selectedOption.querySelector('h3').textContent);
