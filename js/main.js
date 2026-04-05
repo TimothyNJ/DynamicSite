@@ -829,7 +829,7 @@ function updateNavigationForAuthState() {
   // Update Home button with house icon
   const homeButton = document.querySelector('.nav-container button[data-page="home"] h3');
   if (homeButton) {
-    homeButton.textContent = 'Home ';
+    homeButton.textContent = ' ';
     const homeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     homeSvg.setAttribute('viewBox', '0 0 84 88');
     homeSvg.setAttribute('width', '1em');
