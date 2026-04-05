@@ -96,6 +96,7 @@ function showSessionTimeOutWarning() {
     window.componentFactory.createButton('session-timeout-button-container', {
       id: 'session-timeout-continue-button',
       text: 'Continue Session',
+      active: true,
       onClick: dismissSessionTimeOut
     });
   }
