@@ -22,6 +22,10 @@ $dark-slider-end: #6c7f8b;    // 68% of range between dark page colors
 $active-button-start: #6a0dad; // Purple
 $active-button-end: #4169e1;   // Royal Blue
 
+// Session Time Out Button Colors
+$session-timeout-button-start: #6a0dad; // Purple
+$session-timeout-button-end: #c0392b;   // Red
+
 // Additional Colors (from other files)
 $nav-primary: #007bff;
 $nav-hover: #0056b3;
@@ -154,6 +158,10 @@ $z-index-tooltip: 1070;
   --active-button-end: #{$active-button-end};
   --active-element-start: #{$active-button-start};
   --active-element-end: #{$active-button-end};
+
+  // Session Time Out Button Colors
+  --session-timeout-button-start: #{$session-timeout-button-start};
+  --session-timeout-button-end: #{$session-timeout-button-end};
   
   // Percentage values for JavaScript
   --light-slider-start-percent: 34;
