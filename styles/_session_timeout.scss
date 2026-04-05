@@ -9,11 +9,15 @@
 .session-timeout-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: #{$z-index-modal};
+
+  body[data-theme="light"] & {
+    background: linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%);
+  }
 }
 
 // ─── Box — transparent, no padding, just stacks children ─────────────────────
