@@ -88,7 +88,8 @@ function showSessionTimeOutWarning() {
   countdownSeconds = COUNTDOWN_SECONDS;
 
   modalEl = buildSessionTimeOutModal();
-  document.body.appendChild(modalEl);
+  const siteContainer = document.querySelector('.site-container') || document.body;
+  siteContainer.appendChild(modalEl);
 
   // Create button via componentFactory — same as every other button on the site
   if (window.componentFactory) {
