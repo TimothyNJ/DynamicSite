@@ -805,7 +805,7 @@ function updateNavigationForAuthState() {
     if (isAuth) {
       const userInfo = getUserInfo();
       const loginName = userInfo?.preferred_username || userInfo?.email || 'Settings';
-      settingsButton.textContent = loginName;
+      settingsButton.textContent = loginName + ' ⚙';
     } else {
       settingsButton.textContent = 'Settings';
     }
