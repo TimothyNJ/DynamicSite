@@ -848,7 +848,7 @@ function initializeApp() {
   initRouter();
   
   // Initialize borders based on saved preference (default to true)
-  const bordersEnabled = localStorage.getItem('showBorders') !== 'false';
+  const bordersEnabled = localStorage.getItem('showBorders') === 'true';
   if (bordersEnabled) {
     console.log('[main.js] Borders should be enabled, waiting for toggleBorders function...');
     // Wait for script.js to load and define toggleBorders
