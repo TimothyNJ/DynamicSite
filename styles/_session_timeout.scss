@@ -1,0 +1,59 @@
+// _session_timeout.scss - Session timeout warning modal
+// Uses site design system variables throughout — no hardcoded values
+// Created: 04-Apr-2026
+
+// ─── Overlay ─────────────────────────────────────────────────────────────────
+
+.session-timeout-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: #{$z-index-modal};
+}
+
+// ─── Modal Box ────────────────────────────────────────────────────────────────
+
+.session-timeout-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl) var(--spacing-xl);
+  background: linear-gradient(
+    -25deg,
+    var(--dark-slider-start) 0%,
+    var(--dark-slider-end) 100%
+  );
+  border-radius: var(--component-border-radius);
+
+  body[data-theme="light"] & {
+    background: linear-gradient(
+      -25deg,
+      var(--light-slider-start) 0%,
+      var(--light-slider-end) 100%
+    );
+  }
+}
+
+// ─── Heading ─────────────────────────────────────────────────────────────────
+
+.session-timeout-box h3 {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  text-align: center;
+  margin: 0 0 var(--spacing-lg) 0;
+  color: var(--text-color-dark);
+  font-size: var(--h3-font-size);
+  font-weight: var(--component-font-weight);
+  font-family: var(--font-family-primary);
+}
+
+// ─── Button ──────────────────────────────────────────────────────────────────
+
+.session-timeout-box .button-container {
+  margin: 0;
+}

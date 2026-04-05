@@ -2,25 +2,30 @@
  * session-timeout.js
  *
  * Monitors user activity within the DynamicSite tab.
- * After 5 minutes of inactivity, shows a warning modal with a 30-second
- * countdown. If the user does not respond, they are automatically logged out.
+ * After the configured inactivity period, shows a warning modal with a
+ * 30-second countdown. If the user does not respond, they are auto-logged out.
  *
  * Activity events monitored: mousemove, mousedown, keypress, scroll, touchstart
- * These are scoped to the current document only — other tabs/apps are ignored.
+ * Scoped to the current document only — other tabs/apps are ignored.
+ *
+ * Styling: entirely via _session_timeout.scss — no inline styles here.
+ * Button: uses site button classes (.button-component, .button-content etc.)
+ * Countdown: updates h3 text every second via setInterval (same pattern as
+ *            the time format display in settings).
  */
 
 function getInactivityLimit() {
   const minutes = parseFloat(localStorage.getItem('sessionTimeoutMinutes') || '5');
   return minutes * 60 * 1000;
 }
-const WARNING_DURATION_MS  = 30 * 1000;      // 30 seconds
-const COUNTDOWN_SECONDS    = 30;
+
+const COUNTDOWN_SECONDS = 30;
 
 let inactivityTimer  = null;
 let countdownTimer   = null;
 let countdownSeconds = COUNTDOWN_SECONDS;
 let modalEl          = null;
-let countdownEl      = null;
+let headingEl        = null;
 let isWarningVisible = false;
 
 // ─── Activity Detection ───────────────────────────────────────────────────────
@@ -45,74 +50,61 @@ function detachActivityListeners() {
   });
 }
 
+// ─── Heading Text ─────────────────────────────────────────────────────────────
+
+function getHeadingText(seconds) {
+  return `Session Time Out in ${seconds} Second${seconds === 1 ? '' : 's'}`;
+}
+
 // ─── Warning Modal ────────────────────────────────────────────────────────────
 
 function buildModal() {
+  // Overlay
   const overlay = document.createElement('div');
   overlay.id = 'session-timeout-overlay';
-  overlay.style.cssText = `
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.65);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 99999;
-    font-family: inherit;
-  `;
+  overlay.className = 'session-timeout-overlay';
 
+  // Box
   const box = document.createElement('div');
-  box.style.cssText = `
-    background: var(--color-background, #1a1a1a);
-    color: var(--color-text, #ffffff);
-    border: 1px solid var(--color-border, #333);
-    border-radius: 12px;
-    padding: 40px 48px;
-    text-align: center;
-    max-width: 380px;
-    width: 90%;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-  `;
+  box.className = 'session-timeout-box';
 
-  const heading = document.createElement('h2');
-  heading.textContent = 'Still there?';
-  heading.style.cssText = 'margin: 0 0 12px; font-size: 1.4rem;';
+  // Heading — updates every second like the time format display
+  headingEl = document.createElement('h3');
+  headingEl.textContent = getHeadingText(COUNTDOWN_SECONDS);
 
-  const message = document.createElement('p');
-  message.textContent = 'You\'ve been inactive. You will be logged out in:';
-  message.style.cssText = 'margin: 0 0 24px; opacity: 0.8; font-size: 0.95rem;';
+  // Button — matches site button structure exactly
+  const buttonContainer = document.createElement('div');
+  buttonContainer.className = 'button-container';
 
-  countdownEl = document.createElement('div');
-  countdownEl.textContent = COUNTDOWN_SECONDS;
-  countdownEl.style.cssText = `
-    font-size: 4rem;
-    font-weight: bold;
-    line-height: 1;
-    margin-bottom: 32px;
-    color: var(--color-accent, #e06c75);
-  `;
+  const button = document.createElement('div');
+  button.className = 'button-component button-text active';
 
-  const button = document.createElement('button');
-  button.textContent = 'Stay Logged In';
-  button.style.cssText = `
-    background: var(--color-accent, #e06c75);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 32px;
-    font-size: 1rem;
-    cursor: pointer;
-    font-family: inherit;
-    transition: opacity 0.2s;
-  `;
-  button.addEventListener('mouseover', () => button.style.opacity = '0.85');
-  button.addEventListener('mouseout',  () => button.style.opacity = '1');
+  const borderContainer = document.createElement('div');
+  borderContainer.className = 'border-container';
+
+  const borderTop = document.createElement('div');
+  borderTop.className = 'border-segment border-top';
+
+  const borderBottom = document.createElement('div');
+  borderBottom.className = 'border-segment border-bottom';
+
+  const content = document.createElement('div');
+  content.className = 'button-content';
+
+  const label = document.createElement('h3');
+  label.textContent = 'Continue Session';
+
+  borderContainer.appendChild(borderTop);
+  borderContainer.appendChild(borderBottom);
+  content.appendChild(label);
+  button.appendChild(borderContainer);
+  button.appendChild(content);
+  buttonContainer.appendChild(button);
+
   button.addEventListener('click', dismissWarning);
 
-  box.appendChild(heading);
-  box.appendChild(message);
-  box.appendChild(countdownEl);
-  box.appendChild(button);
+  box.appendChild(headingEl);
+  box.appendChild(buttonContainer);
   overlay.appendChild(box);
   return overlay;
 }
@@ -125,9 +117,10 @@ function showWarningModal() {
   modalEl = buildModal();
   document.body.appendChild(modalEl);
 
+  // Update heading every second — same pattern as updateTimeDisplay() in settings
   countdownTimer = setInterval(() => {
     countdownSeconds -= 1;
-    if (countdownEl) countdownEl.textContent = countdownSeconds;
+    if (headingEl) headingEl.textContent = getHeadingText(countdownSeconds);
     if (countdownSeconds <= 0) {
       clearInterval(countdownTimer);
       performLogout();
@@ -144,9 +137,8 @@ function dismissWarning() {
     modalEl.parentNode.removeChild(modalEl);
   }
   modalEl = null;
-  countdownEl = null;
+  headingEl = null;
 
-  // Restart inactivity timer
   resetInactivityTimer();
 }
 
@@ -181,6 +173,6 @@ export function stop() {
     modalEl.parentNode.removeChild(modalEl);
   }
   modalEl = null;
-  countdownEl = null;
+  headingEl = null;
   console.log('[SessionTimeout] Stopped');
 }
