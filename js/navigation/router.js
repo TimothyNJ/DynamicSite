@@ -58,11 +58,11 @@ export async function navigateToPage(pageName, pushState = true) {
   
   // Route guard: protect pages that require authentication and minimum role
   const protectedPages = {
-    'settings':       'admin',
-    'data-entry':     'admin',
-    'engines':        'admin',
-    'vendor-request': 'admin',
-    'users':          'org_admin'
+    'settings':       '05_org_admin',
+    'data-entry':     '05_org_admin',
+    'engines':        '05_org_admin',
+    'vendor-request': '05_org_admin',
+    'users':          '05_org_admin'
   };
 
   if (protectedPages[pageName]) {

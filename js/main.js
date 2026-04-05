@@ -728,11 +728,11 @@ function updateNavigationForAuthState() {
   
   // Pages requiring minimum 'admin' role
   const adminPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
-  const hasAdminAccess = isAuth && hasMinimumRole('admin');
+  const hasAdminAccess = isAuth && hasMinimumRole('05_org_admin');
 
-  // Pages requiring minimum 'org_admin' role
+  // Pages requiring minimum '05_org_admin' role
   const orgAdminPages = ['users'];
-  const hasOrgAdminAccess = isAuth && hasMinimumRole('org_admin');
+  const hasOrgAdminAccess = isAuth && hasMinimumRole('05_org_admin');
   
   navButtons.forEach(button => {
     const pageName = button.getAttribute('data-page');

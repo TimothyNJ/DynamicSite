@@ -205,7 +205,7 @@ export function isAuthenticated() {
 
 // ─── Role Management ─────────────────────────────────────────────────────────
 
-const ROLE_HIERARCHY = ['guest_user', 'org_admin', 'org_audit_admin', 'org_super_admin', 'org_owner', 'system_admin'];
+const ROLE_HIERARCHY = ['06_guest_user', '05_org_admin', '04_org_audit_admin', '03_org_super_admin', '02_org_owner', '01_system_admin'];
 
 export function getUserRoles() {
   const user = getUserInfo();
