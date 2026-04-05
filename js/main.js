@@ -31,7 +31,7 @@ import {
   hasMinimumRole
 } from './auth/zitadel-auth.js';
 
-import { start as startSessionTimeout, stop as stopSessionTimeout } from './auth/session-timeout.js';
+import { start as startSessionTimeout, stop as stopSessionTimeout, restart as restartSessionTimeout } from './auth/session-timeout.js';
 
 function isUserAuthenticated() {
   return isAuthenticated();
@@ -46,6 +46,7 @@ window.getAccessToken = getAccessToken;
 window.getUserRoles = getUserRoles;
 window.getHighestRole = getHighestRole;
 window.hasMinimumRole = hasMinimumRole;
+window.restartSessionTimeout = restartSessionTimeout;
 
 // Start token refresh timer if already authenticated
 if (isAuthenticated()) {
@@ -589,6 +590,24 @@ function initializeSettingsComponents() {
     
     // Apply initial theme
     applyThemeByName(savedTheme);
+
+    // Session Timeout Slider
+    const savedTimeout = parseInt(localStorage.getItem('sessionTimeoutMinutes') || '5');
+    componentFactory.createSlider({
+      containerId: 'session-timeout-slider-container',
+      sliderClass: 'session-timeout-slider',
+      options: [
+        { text: '5 min',  value: '5',  position: 1, active: savedTimeout === 5  },
+        { text: '15 min', value: '15', position: 2, active: savedTimeout === 15 },
+        { text: '30 min', value: '30', position: 3, active: savedTimeout === 30 },
+      ]
+    }, (selectedOption) => {
+      const minutes = parseInt(selectedOption.querySelector('h3').textContent);
+      localStorage.setItem('sessionTimeoutMinutes', minutes.toString());
+      if (typeof window.restartSessionTimeout === 'function') {
+        window.restartSessionTimeout();
+      }
+    });
     
     // Size Guides and Borders Button
     componentFactory.createButton('borders-toggle-button-container', {

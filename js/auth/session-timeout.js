@@ -9,7 +9,10 @@
  * These are scoped to the current document only — other tabs/apps are ignored.
  */
 
-const INACTIVITY_LIMIT_MS  = 5 * 60 * 1000; // 5 minutes
+function getInactivityLimit() {
+  const minutes = parseInt(localStorage.getItem('sessionTimeoutMinutes') || '5');
+  return minutes * 60 * 1000;
+}
 const WARNING_DURATION_MS  = 30 * 1000;      // 30 seconds
 const COUNTDOWN_SECONDS    = 30;
 
@@ -23,9 +26,9 @@ let isWarningVisible = false;
 // ─── Activity Detection ───────────────────────────────────────────────────────
 
 function resetInactivityTimer() {
-  if (isWarningVisible) return; // Don't reset while warning is showing
+  if (isWarningVisible) return;
   clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(showWarningModal, INACTIVITY_LIMIT_MS);
+  inactivityTimer = setTimeout(showWarningModal, getInactivityLimit());
 }
 
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'];
@@ -159,10 +162,14 @@ function performLogout() {
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 export function start() {
-  stop(); // Clear any existing timers first
+  stop();
   attachActivityListeners();
   resetInactivityTimer();
-  console.log('[SessionTimeout] Started — inactivity limit: 5 min, warning: 30 sec');
+  console.log(`[SessionTimeout] Started — inactivity limit: ${localStorage.getItem('sessionTimeoutMinutes') || 5} min, warning: 30 sec`);
+}
+
+export function restart() {
+  start();
 }
 
 export function stop() {
