@@ -28,16 +28,5 @@
   align-items: center;
 }
 
-// ─── Button — royal blue to red gradient, overrides default inactive grey ─────
-
-#session-timeout-button-container .button-component {
-  background: linear-gradient(
-    145deg,
-    var(--session-timeout-button-start),
-    var(--session-timeout-button-end)
-  ) !important;
-}
-
-#session-timeout-button-container .button-content h3 {
-  color: #ffffff;
-}
+// ─── Button — uses default component engine gradient ─────────────────────────
+// No colour override needed — button engine handles this automatically
