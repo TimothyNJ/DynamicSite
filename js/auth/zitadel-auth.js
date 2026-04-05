@@ -274,6 +274,7 @@ export async function refreshToken() {
 // ─── Logout ───────────────────────────────────────────────────────────────────
 
 export async function logout() {
+  const idToken = localStorage.getItem('auth_id_token');
   clearAuthState();
   try {
     const config = await getOidcConfig();
@@ -282,6 +283,7 @@ export async function logout() {
         post_logout_redirect_uri: getPostLogoutUri(),
         client_id: CLIENT_ID,
       });
+      if (idToken) params.set('id_token_hint', idToken);
       window.location.href = `${config.end_session_endpoint}?${params.toString()}`;
     } else {
       window.location.href = getPostLogoutUri();
