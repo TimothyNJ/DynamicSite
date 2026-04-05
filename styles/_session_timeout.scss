@@ -1,6 +1,6 @@
 // _session_timeout.scss - Session timeout warning modal
 // Uses site design system variables throughout — no hardcoded values
-// Modal box follows same pattern as .settings-container in _components.scss
+// Follows .settings-container pattern exactly from _components.scss
 // Created: 04-Apr-2026
 
 // ─── Overlay ─────────────────────────────────────────────────────────────────
@@ -15,8 +15,7 @@
   z-index: #{$z-index-modal};
 }
 
-// ─── Modal Box ────────────────────────────────────────────────────────────────
-// Follows .settings-container pattern: fit-content, flex column, centered children
+// ─── Modal Box — exact same pattern as .settings-container ───────────────────
 
 .session-timeout-box {
   display: flex;
@@ -50,4 +49,12 @@
   text-overflow: clip;
   text-align: center;
   margin: 0 0 var(--component-spacing) 0;
+}
+
+// ─── Button — prevent stretching to full modal width ─────────────────────────
+
+.session-timeout-box .button-container {
+  margin: 0;
+  width: auto;
+  display: inline-flex;
 }
