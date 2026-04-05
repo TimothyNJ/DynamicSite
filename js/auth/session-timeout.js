@@ -10,7 +10,7 @@
  */
 
 function getInactivityLimit() {
-  const minutes = parseInt(localStorage.getItem('sessionTimeoutMinutes') || '5');
+  const minutes = parseFloat(localStorage.getItem('sessionTimeoutMinutes') || '0.5');
   return minutes * 60 * 1000;
 }
 const WARNING_DURATION_MS  = 30 * 1000;      // 30 seconds
