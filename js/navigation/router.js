@@ -58,10 +58,10 @@ export async function navigateToPage(pageName, pushState = true) {
   
   // Route guard: protect pages that require authentication and minimum role
   const protectedPages = {
-    'settings':       '05_org_admin',
-    'data-entry':     '05_org_admin',
-    'engines':        '05_org_admin',
-    'vendor-request': '05_org_admin',
+    'settings':       'authenticated',
+    'data-entry':     'authenticated',
+    'engines':        'authenticated',
+    'vendor-request': 'authenticated',
     'users':          '05_org_admin'
   };
 
@@ -77,9 +77,11 @@ export async function navigateToPage(pageName, pushState = true) {
     }
 
     const requiredRole = protectedPages[pageName];
-    const hasAccess = typeof window.hasMinimumRole === 'function'
-      ? window.hasMinimumRole(requiredRole)
-      : true; // fallback if roles not loaded yet
+    const hasAccess = requiredRole === 'authenticated'
+      ? true
+      : typeof window.hasMinimumRole === 'function'
+        ? window.hasMinimumRole(requiredRole)
+        : true;
 
     if (!hasAccess) {
       console.log(`[Router] Insufficient role for ${pageName} - requires ${requiredRole}`);

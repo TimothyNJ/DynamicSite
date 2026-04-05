@@ -726,11 +726,11 @@ function updateNavigationForAuthState() {
   const isAuth = isUserAuthenticated();
   const navButtons = document.querySelectorAll('.nav-container button[data-page]');
   
-  // Pages requiring minimum 'admin' role
+  // Pages requiring only authentication (all logged-in users including guest)
   const adminPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
-  const hasAdminAccess = isAuth && hasMinimumRole('05_org_admin');
+  const hasAdminAccess = isAuth;
 
-  // Pages requiring minimum '05_org_admin' role
+  // Pages requiring minimum '05_org_admin' role (not visible to guest)
   const orgAdminPages = ['users'];
   const hasOrgAdminAccess = isAuth && hasMinimumRole('05_org_admin');
   
