@@ -51,10 +51,9 @@
   margin: 0 0 var(--component-spacing) 0;
 }
 
-// ─── Button — prevent stretching to full modal width ─────────────────────────
+// ─── Button container — must not stretch to full modal width ─────────────────
 
-.session-timeout-box .button-container {
-  margin: 0;
-  width: auto;
+#session-timeout-button-container {
   display: inline-flex;
+  width: fit-content;
 }
