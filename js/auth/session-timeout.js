@@ -26,14 +26,14 @@ let countdownTimer   = null;
 let countdownSeconds = COUNTDOWN_SECONDS;
 let modalEl          = null;
 let headingEl        = null;
-let isWarningVisible = false;
+let isSessionTimeOutVisible = false;
 
 // ─── Activity Detection ───────────────────────────────────────────────────────
 
 function resetInactivityTimer() {
-  if (isWarningVisible) return;
+  if (isSessionTimeOutVisible) return;
   clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(showWarningModal, getInactivityLimit());
+  inactivityTimer = setTimeout(showSessionTimeOutWarning, getInactivityLimit());
 }
 
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'];
@@ -58,7 +58,7 @@ function getHeadingText(seconds) {
 
 // ─── Warning Modal ────────────────────────────────────────────────────────────
 
-function buildModal() {
+function buildSessionTimeOutModal() {
   // Overlay
   const overlay = document.createElement('div');
   overlay.id = 'session-timeout-overlay';
@@ -82,12 +82,12 @@ function buildModal() {
   return overlay;
 }
 
-function showWarningModal() {
-  if (isWarningVisible) return;
-  isWarningVisible = true;
+function showSessionTimeOutWarning() {
+  if (isSessionTimeOutVisible) return;
+  isSessionTimeOutVisible = true;
   countdownSeconds = COUNTDOWN_SECONDS;
 
-  modalEl = buildModal();
+  modalEl = buildSessionTimeOutModal();
   document.body.appendChild(modalEl);
 
   // Create button via componentFactory — same as every other button on the site
@@ -95,7 +95,7 @@ function showWarningModal() {
     window.componentFactory.createButton('session-timeout-button-container', {
       id: 'session-timeout-continue-button',
       text: 'Continue Session',
-      onClick: dismissWarning
+      onClick: dismissSessionTimeOut
     });
   }
 
@@ -110,10 +110,10 @@ function showWarningModal() {
   }, 1000);
 }
 
-function dismissWarning() {
-  if (!isWarningVisible) return;
+function dismissSessionTimeOut() {
+  if (!isSessionTimeOutVisible) return;
   clearInterval(countdownTimer);
-  isWarningVisible = false;
+  isSessionTimeOutVisible = false;
 
   if (modalEl && modalEl.parentNode) {
     modalEl.parentNode.removeChild(modalEl);
@@ -150,7 +150,7 @@ export function stop() {
   clearTimeout(inactivityTimer);
   clearInterval(countdownTimer);
   detachActivityListeners();
-  isWarningVisible = false;
+  isSessionTimeOutVisible = false;
   if (modalEl && modalEl.parentNode) {
     modalEl.parentNode.removeChild(modalEl);
   }
