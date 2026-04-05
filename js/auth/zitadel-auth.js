@@ -79,6 +79,9 @@ async function getOidcConfig() {
 
 export async function login() {
   try {
+    // Clear any stale auth state before starting fresh login
+    clearAuthState();
+    
     const config = await getOidcConfig();
     const codeVerifier = generateRandomString(64);
     const codeChallenge = await generateCodeChallenge(codeVerifier);
