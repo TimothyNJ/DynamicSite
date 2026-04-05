@@ -1,6 +1,7 @@
 // _session_timeout.scss - Session timeout warning modal
-// Uses site design system variables throughout — no hardcoded values
-// Follows .settings-container pattern exactly from _components.scss
+// Minimal — let the component engine do its work.
+// We own: the overlay backdrop, centering, and button colour variables.
+// Everything else is handled by the existing component engine styles.
 // Created: 04-Apr-2026
 
 // ─── Overlay ─────────────────────────────────────────────────────────────────
@@ -15,50 +16,15 @@
   z-index: #{$z-index-modal};
 }
 
-// ─── Modal Box — exact same pattern as .settings-container ───────────────────
+// ─── Box — transparent, no padding, just stacks children ─────────────────────
 
 .session-timeout-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  align-self: center;
-  width: fit-content;
-  max-width: 100%;
-  box-sizing: border-box;
-  padding: var(--spacing-lg);
-  background: linear-gradient(
-    -25deg,
-    var(--dark-slider-start) 0%,
-    var(--dark-slider-end) 100%
-  );
-
-  body[data-theme="light"] & {
-    background: linear-gradient(
-      -25deg,
-      var(--light-slider-start) 0%,
-      var(--light-slider-end) 100%
-    );
-  }
 }
 
-// ─── Heading ─────────────────────────────────────────────────────────────────
-
-.session-timeout-box h1 {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  text-align: center;
-  margin: 0 0 var(--component-spacing) 0;
-}
-
-// ─── Button container — must not stretch to full modal width ─────────────────
-
-#session-timeout-button-container {
-  display: inline-flex;
-  width: fit-content;
-}
-
-// ─── Button — purple to red gradient, active by default ──────────────────────
+// ─── Button — royal blue to red gradient, overrides default inactive grey ─────
 
 #session-timeout-button-container .button-component {
   background: linear-gradient(
@@ -66,22 +32,6 @@
     var(--session-timeout-button-start),
     var(--session-timeout-button-end)
   ) !important;
-}
-
-#session-timeout-button-container .button-component:active {
-  background: linear-gradient(
-    -25deg,
-    var(--dark-slider-start) 0%,
-    var(--dark-slider-end) 100%
-  ) !important;
-
-  body[data-theme="light"] & {
-    background: linear-gradient(
-      -25deg,
-      var(--light-slider-start) 0%,
-      var(--light-slider-end) 100%
-    ) !important;
-  }
 }
 
 #session-timeout-button-container .button-content h3 {
