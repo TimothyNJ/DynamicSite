@@ -183,29 +183,6 @@
 }
 
 // ==============================================
-// Nav Dividers
-// ==============================================
-.nav-divider {
-  display: inline-block;
-  width: 1px;
-  height: 1em;
-  background-color: royalblue;
-  margin: 0 1px;
-  vertical-align: middle;
-  transition: opacity 0.15s ease;
-  flex-shrink: 0;
-
-  &.divider-hidden {
-    opacity: 0;
-  }
-}
-
-// Hide dividers when borders are hidden
-.borders-hidden .nav-divider {
-  opacity: 0 !important;
-}
-
-// ==============================================
 // Authentication-based Visibility
 // ==============================================
 // Hide buttons based on authentication state
