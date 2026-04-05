@@ -806,14 +806,13 @@ function updateNavigationForAuthState() {
       const userInfo = getUserInfo();
       const loginName = userInfo?.preferred_username || userInfo?.email || 'Settings';
       settingsButton.textContent = loginName + ' ';
-      // Append sliders icon sized to match font
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('viewBox', '0 0 24 24');
-      svg.setAttribute('width', '1em');
-      svg.setAttribute('height', '1em');
-      svg.style.verticalAlign = 'middle';
-      svg.style.display = 'inline-block';
-      svg.innerHTML = `
+      const slidersSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      slidersSvg.setAttribute('viewBox', '0 0 24 24');
+      slidersSvg.setAttribute('width', '1em');
+      slidersSvg.setAttribute('height', '1em');
+      slidersSvg.style.verticalAlign = 'middle';
+      slidersSvg.style.display = 'inline-block';
+      slidersSvg.innerHTML = `
         <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         <circle cx="9" cy="6" r="2.5" fill="currentColor"/>
         <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -821,10 +820,31 @@ function updateNavigationForAuthState() {
         <line x1="4" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         <circle cx="11" cy="18" r="2.5" fill="currentColor"/>
       `;
-      settingsButton.appendChild(svg);
+      settingsButton.appendChild(slidersSvg);
     } else {
       settingsButton.textContent = 'Settings';
     }
+  }
+
+  // Update Home button with house icon
+  const homeButton = document.querySelector('.nav-container button[data-page="home"] h3');
+  if (homeButton) {
+    homeButton.textContent = 'Home ';
+    const homeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    homeSvg.setAttribute('viewBox', '0 0 84 88');
+    homeSvg.setAttribute('width', '1em');
+    homeSvg.setAttribute('height', '1em');
+    homeSvg.style.verticalAlign = 'middle';
+    homeSvg.style.display = 'inline-block';
+    homeSvg.innerHTML = `
+      <line x1="4" y1="46" x2="42" y2="6" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <line x1="42" y1="6" x2="80" y2="46" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <polyline points="58,10 68,10 68,28" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="12" y1="50" x2="12" y2="84" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <line x1="72" y1="50" x2="72" y2="84" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <line x1="12" y1="84" x2="72" y2="84" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    `;
+    homeButton.appendChild(homeSvg);
   }
 
   // Refresh the dropdown menu to respect auth-hidden class
