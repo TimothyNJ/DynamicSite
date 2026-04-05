@@ -1,5 +1,6 @@
 // _session_timeout.scss - Session timeout warning modal
 // Uses site design system variables throughout — no hardcoded values
+// Modal box follows same pattern as .settings-container in _components.scss
 // Created: 04-Apr-2026
 
 // ─── Overlay ─────────────────────────────────────────────────────────────────
@@ -15,19 +16,22 @@
 }
 
 // ─── Modal Box ────────────────────────────────────────────────────────────────
+// Follows .settings-container pattern: fit-content, flex column, centered children
 
 .session-timeout-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xl) var(--spacing-xl);
+  width: fit-content;
+  max-width: 100%;
+  flex: 0 1 auto;
+  box-sizing: border-box;
+  padding: var(--spacing-lg);
   background: linear-gradient(
     -25deg,
     var(--dark-slider-start) 0%,
     var(--dark-slider-end) 100%
   );
-  border-radius: var(--component-border-radius);
 
   body[data-theme="light"] & {
     background: linear-gradient(
@@ -45,15 +49,5 @@
   overflow: visible;
   text-overflow: clip;
   text-align: center;
-  margin: 0 0 var(--spacing-lg) 0;
-  color: var(--text-color-dark);
-  font-size: var(--h3-font-size);
-  font-weight: var(--component-font-weight);
-  font-family: var(--font-family-primary);
-}
-
-// ─── Button ──────────────────────────────────────────────────────────────────
-
-.session-timeout-box .button-container {
-  margin: 0;
+  margin: 0 0 var(--component-spacing) 0;
 }
