@@ -660,8 +660,12 @@ function initializeEnginesViewComponents() {
   if (typeof window.registerPageCleanup === 'function' && threeDComponents) {
     window.registerPageCleanup(() => {
       threeDComponents.forEach(component => {
-        if (component && component.dispose) {
-          component.dispose();
+        try {
+          if (component && component.dispose) {
+            component.dispose();
+          }
+        } catch (e) {
+          console.warn('[Engines Cleanup] Dispose error (safe to ignore):', e.message);
         }
       });
       console.log('[Engines Cleanup] Disposed 3D components');
