@@ -84,8 +84,8 @@ export async function login() {
     const codeChallenge = await generateCodeChallenge(codeVerifier);
     const state = generateRandomString(32);
 
-    sessionStorage.setItem('pkce_code_verifier', codeVerifier);
-    sessionStorage.setItem('pkce_state', state);
+    localStorage.setItem('pkce_code_verifier', codeVerifier);
+    localStorage.setItem('pkce_state', state);
 
     const params = new URLSearchParams({
       response_type: 'code',

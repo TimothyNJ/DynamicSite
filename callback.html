@@ -28,8 +28,8 @@
         return;
       }
 
-      const storedState = sessionStorage.getItem('pkce_state');
-      const codeVerifier = sessionStorage.getItem('pkce_code_verifier');
+      const storedState = localStorage.getItem('pkce_state');
+      const codeVerifier = localStorage.getItem('pkce_code_verifier');
 
       if (state !== storedState || !codeVerifier) {
         console.error('[Callback] State mismatch or missing verifier');
@@ -90,9 +90,9 @@
         }
         localStorage.setItem('isAuthenticated', 'true');
 
-        // Clean up session storage
-        sessionStorage.removeItem('pkce_code_verifier');
-        sessionStorage.removeItem('pkce_state');
+        // Clean up localStorage PKCE values
+        localStorage.removeItem('pkce_code_verifier');
+        localStorage.removeItem('pkce_state');
 
         // Redirect back to main app
         window.location.href = 'index.html#home';
