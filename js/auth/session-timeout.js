@@ -69,7 +69,7 @@ function buildSessionTimeOutModal() {
   box.className = 'session-timeout-box';
 
   // Heading — updates every second like the time format display
-  headingEl = document.createElement('h3');
+  headingEl = document.createElement('h1');
   headingEl.textContent = getHeadingText(COUNTDOWN_SECONDS);
 
   // Button container — ID so componentFactory can find it
