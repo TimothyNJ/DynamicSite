@@ -21,9 +21,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  align-self: center;
   width: fit-content;
   max-width: 100%;
-  flex: 0 1 auto;
   box-sizing: border-box;
   padding: var(--spacing-lg);
   background: linear-gradient(
