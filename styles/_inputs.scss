@@ -12,7 +12,7 @@
   // No fixed min-width - let JavaScript control based on content
   // Let JavaScript control the width dynamically
   // No max-width restriction - allow full width usage
-  margin: var(--component-spacing) 0;
+  margin: 0 0 var(--component-spacing) 0;
   background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
   border-radius: var(--input-border-radius);
   // No overflow:hidden needed - padding prevents clipping
@@ -68,15 +68,13 @@
   gap: var(--component-gap); // Standardized to 4px
   width: 100%;
   // No max-width restriction
-  margin: var(--component-spacing) auto;
+  margin: 0 0 var(--component-spacing) auto;
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
-  margin: var(--component-spacing) 0;
-  
-  // Hide labels by default
+  margin: 0 0 var(--component-spacing) 0;
   label {
     display: none;
   }
