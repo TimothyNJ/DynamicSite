@@ -748,6 +748,76 @@ function getCurrentPage() {
   return 'home';
 }
 
+// ─── Nav Dividers ────────────────────────────────────────────────────────────
+
+function buildNavDividers() {
+  const container = document.querySelector('.nav-container:nth-child(4)');
+  if (!container) return;
+
+  // Remove any existing dividers first
+  container.querySelectorAll('.nav-divider').forEach(d => d.remove());
+
+  // Get all visible buttons in order (exclude collapsed-navbar)
+  const buttons = Array.from(container.querySelectorAll('button:not(.collapsed-navbar)'));
+
+  // Insert a divider after each button except the last visible one
+  // Rules: no divider before home (first), no divider after settings (last before sign-in when logged in)
+  buttons.forEach((button, index) => {
+    if (index === buttons.length - 1) return; // no divider after last button
+    const pageName = button.getAttribute('data-page');
+    if (pageName === 'login') return; // no divider after sign-in
+    const divider = document.createElement('span');
+    divider.className = 'nav-divider';
+    divider.dataset.afterPage = pageName;
+    button.after(divider);
+  });
+
+  updateDividerVisibility();
+}
+
+function updateDividerVisibility() {
+  const container = document.querySelector('.nav-container:nth-child(4)');
+  if (!container) return;
+
+  const buttons = Array.from(container.querySelectorAll('button:not(.collapsed-navbar)'));
+  const dividers = Array.from(container.querySelectorAll('.nav-divider'));
+
+  dividers.forEach(divider => {
+    const afterPage = divider.dataset.afterPage;
+    const beforeButton = container.querySelector(`button[data-page="${afterPage}"]`);
+    const afterButton = divider.nextElementSibling;
+
+    // Find the next visible button after this divider
+    let nextVisibleButton = afterButton;
+    while (nextVisibleButton && (nextVisibleButton.classList.contains('auth-hidden') || nextVisibleButton.classList.contains('nav-divider'))) {
+      nextVisibleButton = nextVisibleButton.nextElementSibling;
+    }
+
+    // Hide divider if either adjacent button is hidden, active, or hovered
+    const beforeHidden = !beforeButton || beforeButton.classList.contains('auth-hidden');
+    const afterHidden = !nextVisibleButton || nextVisibleButton.classList.contains('auth-hidden');
+    const beforeActive = beforeButton && beforeButton.classList.contains('active');
+    const afterActive = nextVisibleButton && nextVisibleButton.classList.contains('active');
+    const beforeHovered = beforeButton && beforeButton.matches(':hover');
+    const afterHovered = nextVisibleButton && nextVisibleButton.matches(':hover');
+    // Also hide divider after settings (last visible non-login button when logged in)
+    const isLastBeforeLogin = nextVisibleButton && nextVisibleButton.getAttribute('data-page') === 'login';
+
+    const shouldHide = beforeHidden || afterHidden || beforeActive || afterActive || beforeHovered || afterHovered || isLastBeforeLogin;
+    divider.classList.toggle('divider-hidden', shouldHide);
+  });
+}
+
+// Update divider visibility on hover
+function attachDividerHoverListeners() {
+  const container = document.querySelector('.nav-container:nth-child(4)');
+  if (!container) return;
+  container.querySelectorAll('button:not(.collapsed-navbar)').forEach(button => {
+    button.addEventListener('mouseenter', updateDividerVisibility);
+    button.addEventListener('mouseleave', updateDividerVisibility);
+  });
+}
+
 // Update navigation button visibility based on authentication state and role
 // Uses CSS class 'auth-hidden' instead of inline styles to work with navbar system
 function updateNavigationForAuthState() {
@@ -847,6 +917,10 @@ function updateNavigationForAuthState() {
     homeButton.appendChild(homeSvg);
   }
 
+  // Build/rebuild dividers after auth state changes
+  buildNavDividers();
+  attachDividerHoverListeners();
+
   // Refresh the dropdown menu to respect auth-hidden class
   if (typeof window.updateMenuContent === 'function') {
     window.updateMenuContent();
@@ -884,6 +958,7 @@ function initializeApp() {
   // Update navigation based on authentication state
   updateNavigationForAuthState();
   window.updateNavigationForAuthState = updateNavigationForAuthState;
+  window.updateDividerVisibility = updateDividerVisibility;
   
   // Initialize layout first (this was missing!)
   console.log('[main.js] Initializing layout system');

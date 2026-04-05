@@ -108,6 +108,10 @@ export async function navigateToPage(pageName, pushState = true) {
         button.classList.remove("active");
       }
     });
+    // Update divider visibility after active state changes
+    if (typeof window.updateDividerVisibility === 'function') {
+      window.updateDividerVisibility();
+    }
 
     // Get the content container
     const contentContainer = document.querySelector("#page-content");
