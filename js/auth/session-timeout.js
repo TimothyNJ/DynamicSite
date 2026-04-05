@@ -15,7 +15,7 @@
  */
 
 function getInactivityLimit() {
-  const minutes = parseFloat(localStorage.getItem('sessionTimeoutMinutes') || '5');
+  const minutes = parseFloat(localStorage.getItem('sessionTimeoutMinutes') || '0.5');
   return minutes * 60 * 1000;
 }
 
