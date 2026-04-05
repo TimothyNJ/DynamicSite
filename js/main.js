@@ -799,6 +799,18 @@ function updateNavigationForAuthState() {
     button.classList.remove('auth-hidden');
   });
   
+  // Update Settings button text to show username when logged in
+  const settingsButton = document.querySelector('.nav-container button[data-page="settings"] h3');
+  if (settingsButton) {
+    if (isAuth) {
+      const userInfo = getUserInfo();
+      const loginName = userInfo?.preferred_username || userInfo?.email || 'Settings';
+      settingsButton.textContent = loginName;
+    } else {
+      settingsButton.textContent = 'Settings';
+    }
+  }
+
   // Refresh the dropdown menu to respect auth-hidden class
   if (typeof window.updateMenuContent === 'function') {
     window.updateMenuContent();
