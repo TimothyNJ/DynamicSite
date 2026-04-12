@@ -21,7 +21,7 @@
   flex-direction: column;
   width: fit-content;
   flex: 0 1 auto;
-  background-color: black;
+  background-color: transparent;
   border-right: 1px solid rgb(77, 77, 77);
 }
 
@@ -31,7 +31,7 @@
 .sidenav-button {
   font-size: inherit;
   flex: 0 1 auto;
-  background-color: black;
+  background-color: transparent;
   color: white;
   border: 1px solid rgb(77, 77, 77);
   padding: 2px 2px;
@@ -50,7 +50,7 @@
   }
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(255, 255, 255, 0.1);
     color: white;
     cursor: pointer;
     border: 1px solid royalblue;
