@@ -35,7 +35,7 @@
   background-color: transparent;
   color: white;
   border: 1px solid var(--sidenav-button-border-idle);
-  padding: 2px 2px;
+  padding: var(--sidenav-button-padding);
   border-radius: 5px;
   cursor: pointer;
   display: flex;
