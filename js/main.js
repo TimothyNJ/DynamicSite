@@ -771,6 +771,16 @@ function updateDividers() {
       sidenav.style.setProperty('--sidenav-divider-width', `${minWidth}px`);
     }
   }
+
+  // Collapsed menu: horizontal dividers sized to the narrowest button
+  const collapsedMenu = document.querySelector('.collapsed-menu');
+  if (collapsedMenu && collapsedMenu.style.display === 'flex') {
+    const menuButtons = Array.from(collapsedMenu.querySelectorAll('button'));
+    if (menuButtons.length > 1) {
+      const minWidth = Math.min(...menuButtons.map(btn => btn.offsetWidth));
+      collapsedMenu.style.setProperty('--collapsed-menu-divider-width', `${minWidth}px`);
+    }
+  }
 }
 
 // Update navigation button visibility based on authentication state and role
@@ -909,7 +919,8 @@ function initializeApp() {
   // Update navigation based on authentication state
   updateNavigationForAuthState();
   window.updateNavigationForAuthState = updateNavigationForAuthState;
-  
+  window.updateDividers = updateDividers;
+
   // Initialize layout first (this was missing!)
   console.log('[main.js] Initializing layout system');
   initializeBuffers();

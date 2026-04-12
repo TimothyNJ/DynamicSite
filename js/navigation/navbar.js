@@ -13,6 +13,7 @@ export function initializeNavbar() {
       if (!isMenuOpenedByClick) {
         updateMenuContent();
         collapsedMenu.style.display = "flex";
+        if (typeof window.updateDividers === 'function') window.updateDividers();
       }
     });
 
@@ -42,6 +43,7 @@ export function initializeNavbar() {
         updateMenuContent();
         collapsedMenu.style.display = "flex";
         isMenuOpenedByClick = true;
+        if (typeof window.updateDividers === 'function') window.updateDividers();
       }
     });
 
