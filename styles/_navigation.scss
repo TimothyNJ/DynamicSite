@@ -122,16 +122,16 @@
   position: absolute;
   top: 100%;
   right: 0;
-  background-color: transparent;
+  background-color: black;
   color: white;
-  border: none;
+  border: 1px solid var(--nav-button-border-idle);
   border-radius: 5px;
   padding: 0;
   width: fit-content;
   z-index: 9999;
   overflow: visible;
   font-size: inherit;
-
+  
   button {
     display: flex !important;
     text-align: right;
@@ -139,11 +139,11 @@
     align-items: center;
     width: 100%;
     flex: 0 1 auto;
-    padding: var(--sidenav-button-padding);
-    margin: var(--sidenav-button-margin);
-    background-color: transparent;
+    padding: var(--nav-button-padding);
+    margin: var(--nav-button-margin);
+    background-color: black;
     color: white;
-    border: 1px solid transparent;
+    border: 1px solid var(--nav-button-border-idle);
     border-radius: 5px;
     cursor: pointer;
     white-space: nowrap;
@@ -151,40 +151,13 @@
     font-size: inherit;
     max-width: none !important;
     text-overflow: clip !important;
-    position: relative;
-
+    
     &:hover {
-      background-color: transparent;
+      background-color: rgba(0, 0, 0, 0.8);
       color: white;
       cursor: pointer;
       border: 1px solid royalblue;
     }
-
-    &.active {
-      background-color: royalblue;
-      color: white;
-    }
-  }
-
-  // Divider lines between collapsed menu buttons (horizontal, sized to narrowest button)
-  button + button::before {
-    content: '';
-    position: absolute;
-    top: calc(-1 * var(--sidenav-button-margin) - 1px);
-    left: 50%;
-    transform: translateX(-50%);
-    height: 1px;
-    width: var(--collapsed-menu-divider-width, 100%);
-    background-color: var(--sidenav-divider-color);
-    pointer-events: none;
-  }
-
-  // Hide dividers adjacent to hovered or active buttons
-  button:hover::before,
-  button.active::before,
-  button:hover + button::before,
-  button.active + button::before {
-    background-color: transparent !important;
   }
 }
 
