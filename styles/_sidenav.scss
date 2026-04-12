@@ -78,6 +78,14 @@
   pointer-events: none;
 }
 
+// Hide dividers adjacent to hovered or active buttons
+.sidenav-button:hover::before,
+.sidenav-button.active::before,
+.sidenav-button:hover + .sidenav-button::before,
+.sidenav-button.active + .sidenav-button::before {
+  background-color: transparent !important;
+}
+
 // ==============================================
 // Side Navigation Content Area
 // ==============================================
