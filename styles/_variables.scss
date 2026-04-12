@@ -176,6 +176,8 @@ $z-index-tooltip: 1070;
   // Navigation Colors
   --nav-primary: #{$nav-primary};
   --nav-hover: #{$nav-hover};
+  --nav-button-border-idle: rgb(69, 69, 69);
+  --sidenav-button-border-idle: rgb(85, 85, 85);
   
   // Text Colors
   --text-primary: #{$text-primary};
