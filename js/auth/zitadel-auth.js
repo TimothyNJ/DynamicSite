@@ -18,23 +18,11 @@ const CLIENT_ID = '339931209931003985';
 const SCOPES = 'openid profile email offline_access urn:zitadel:iam:org:project:id:339930261431031889:aud';
 
 function getRedirectUri() {
-  const origin = window.location.origin;
-  if (origin.includes('tnjdynamicsite-dev')) {
-    return 'https://tnjdynamicsite-dev.s3.us-west-2.amazonaws.com/callback.html';
-  } else if (origin.includes('tnjdynamicsite')) {
-    return 'https://tnjdynamicsite.s3.us-west-2.amazonaws.com/callback.html';
-  }
-  return `${origin}/callback.html`;
+  return `${window.location.origin}/callback.html`;
 }
 
 function getPostLogoutUri() {
-  const origin = window.location.origin;
-  if (origin.includes('tnjdynamicsite-dev')) {
-    return 'https://tnjdynamicsite-dev.s3.us-west-2.amazonaws.com/index.html';
-  } else if (origin.includes('tnjdynamicsite')) {
-    return 'https://tnjdynamicsite.s3.us-west-2.amazonaws.com/index.html';
-  }
-  return `${origin}/index.html`;
+  return `${window.location.origin}/index.html`;
 }
 
 // ─── PKCE Helpers ─────────────────────────────────────────────────────────────
