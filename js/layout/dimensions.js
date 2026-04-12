@@ -154,7 +154,7 @@ function handleCollapsedNavbar() {
 
     // Then clone and measure all other buttons
     allButtons.forEach((button) => {
-      if (button !== collapsedButton) {
+      if (button !== collapsedButton && !button.classList.contains("auth-hidden")) {
         const clone = button.cloneNode(true);
         clone.style.display = "block"; // Ensure button is measurable
         clone.classList.add("active");
