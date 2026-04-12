@@ -65,6 +65,7 @@
     color: white;
     border: 1px solid var(--nav-button-border-idle);
     padding: var(--nav-button-padding);
+    margin: var(--nav-button-margin);
     border-radius: 5px;
     cursor: pointer;
     display: flex;
@@ -117,6 +118,7 @@
     width: 100%;
     flex: 0 1 auto;
     padding: var(--nav-button-padding);
+    margin: var(--nav-button-margin);
     background-color: black;
     color: white;
     border: 1px solid var(--nav-button-border-idle);

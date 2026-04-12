@@ -180,6 +180,8 @@ $z-index-tooltip: 1070;
   --sidenav-button-border-idle: rgb(97, 97, 97);
   --nav-button-padding: calc(0.2vw + 0.2vh) calc(0.3vw + 0.3vh);
   --sidenav-button-padding: calc(0.2vw + 0.2vh) calc(0.3vw + 0.3vh);
+  --nav-button-margin: calc(0.15vw + 0.15vh);
+  --sidenav-button-margin: calc(0.15vw + 0.15vh);
   
   // Text Colors
   --text-primary: #{$text-primary};
