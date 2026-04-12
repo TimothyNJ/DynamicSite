@@ -177,7 +177,7 @@ $z-index-tooltip: 1070;
   --nav-primary: #{$nav-primary};
   --nav-hover: #{$nav-hover};
   --nav-button-border-idle: rgb(57, 57, 57);
-  --sidenav-button-border-idle: rgb(97, 97, 97);
+  --sidenav-button-border-idle: transparent;
   --nav-button-padding: calc(0.1vw + 0.1vh);
   --sidenav-button-padding: calc(0.1vw + 0.1vh);
   --nav-button-margin: calc(0.1vw + 0.1vh);
