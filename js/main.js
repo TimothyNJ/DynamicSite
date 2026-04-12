@@ -755,7 +755,7 @@ function updateNavigationForAuthState() {
   const navButtons = document.querySelectorAll('.nav-container button[data-page]');
   
   // Pages requiring only authentication (all logged-in users including guest)
-  const adminPages = ['settings', 'data-entry', 'engines', 'vendor-request'];
+  const adminPages = ['settings', 'data-entry', 'engines', 'vendor-request', 'finance', 'logistics', 'reporting', 'development'];
   const hasAdminAccess = isAuth;
 
   // Pages requiring minimum '05_org_admin' role (not visible to guest)
