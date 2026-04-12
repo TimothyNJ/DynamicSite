@@ -11,6 +11,10 @@ const pagePathMap = {
   engines: "pages/engines/index.html",
   settings: "pages/settings/index.html",
   users: "pages/users/index.html",
+  finance: "pages/finance/index.html",
+  logistics: "pages/logistics/index.html",
+  reporting: "pages/reporting/index.html",
+  development: "pages/development/index.html",
   login: "pages/login/index.html",
 };
 
@@ -67,7 +71,11 @@ export async function navigateToPage(pageName, pushState = true) {
     'data-entry':     'authenticated',
     'engines':        'authenticated',
     'vendor-request': 'authenticated',
-    'users':          '05_org_admin'
+    'users':          '05_org_admin',
+    'finance':        'authenticated',
+    'logistics':      'authenticated',
+    'reporting':      'authenticated',
+    'development':    'authenticated'
   };
 
   if (protectedPages[pageName]) {
