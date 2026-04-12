@@ -71,13 +71,27 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    
+    position: relative;
+
     &:hover {
       background-color: rgba(0, 0, 0, 0.8);
       color: white;
       cursor: pointer;
       border: 1px solid royalblue;
     }
+  }
+
+  // Divider lines between navbar buttons (vertical, sized to shortest button)
+  button + button:not(.auth-hidden):not(.collapsed-navbar)::before {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--nav-button-margin) - 1px);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: var(--nav-divider-height);
+    background-color: var(--nav-divider-color);
+    pointer-events: none;
   }
 }
 

@@ -748,6 +748,31 @@ function getCurrentPage() {
   return 'home';
 }
 
+// Measure buttons and set divider dimensions to the minimum sibling size
+function updateDividers() {
+  // Navbar: vertical dividers sized to the shortest visible button
+  const navContainer = document.querySelector('.nav-container:nth-child(4)');
+  if (navContainer) {
+    const visibleButtons = Array.from(
+      navContainer.querySelectorAll('button[data-page]:not(.auth-hidden):not(.collapsed-navbar)')
+    );
+    if (visibleButtons.length > 1) {
+      const minHeight = Math.min(...visibleButtons.map(btn => btn.offsetHeight));
+      navContainer.style.setProperty('--nav-divider-height', `${minHeight}px`);
+    }
+  }
+
+  // Sidenav: horizontal dividers sized to the narrowest button
+  const sidenav = document.querySelector('.sidenav');
+  if (sidenav) {
+    const sidenavButtons = Array.from(sidenav.querySelectorAll('.sidenav-button'));
+    if (sidenavButtons.length > 1) {
+      const minWidth = Math.min(...sidenavButtons.map(btn => btn.offsetWidth));
+      sidenav.style.setProperty('--sidenav-divider-width', `${minWidth}px`);
+    }
+  }
+}
+
 // Update navigation button visibility based on authentication state and role
 // Uses CSS class 'auth-hidden' instead of inline styles to work with navbar system
 function updateNavigationForAuthState() {
@@ -889,6 +914,7 @@ function initializeApp() {
   console.log('[main.js] Initializing layout system');
   initializeBuffers();
   updateDimensions();
+  updateDividers();
   
   // Initialize navigation system
   console.log('[main.js] Initializing navigation system');
@@ -923,7 +949,10 @@ function initializeApp() {
   // Background is now handled by CSS pseudo-element based on data-theme attribute
   
   // Add resize listener for dimension updates
-  window.addEventListener("resize", updateDimensions);
+  window.addEventListener("resize", () => {
+    updateDimensions();
+    updateDividers();
+  });
   
   // Router will handle page loading and component initialization
   console.log('[main.js] Application initialized');
@@ -944,9 +973,13 @@ if (document.readyState === 'loading') {
 // Force reflow on page load to ensure proper layout calculations
 window.addEventListener("load", () => {
   updateDimensions();
+  updateDividers();
 });
 
 // Update dimensions when a page loads
-document.addEventListener("pageLoaded", updateDimensions);
+document.addEventListener("pageLoaded", () => {
+  updateDimensions();
+  updateDividers();
+});
 
 console.log(`[main.js] Application setup complete [Deployment: ${DEPLOYMENT_TIMESTAMP}]`);

@@ -182,6 +182,10 @@ $z-index-tooltip: 1070;
   --sidenav-button-padding: calc(0.1vw + 0.1vh);
   --nav-button-margin: calc(0.1vw + 0.1vh);
   --sidenav-button-margin: calc(0.1vw + 0.1vh);
+  --nav-divider-color: var(--active-button-end);
+  --nav-divider-height: 100%;
+  --sidenav-divider-color: var(--active-button-end);
+  --sidenav-divider-width: 100%;
   
   // Text Colors
   --text-primary: #{$text-primary};
