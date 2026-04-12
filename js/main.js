@@ -780,7 +780,7 @@ function updateNavigationForAuthState() {
   const navButtons = document.querySelectorAll('.nav-container button[data-page]');
   
   // Pages requiring only authentication (all logged-in users including guest)
-  const adminPages = ['settings', 'data-entry', 'engines', 'vendor-request', 'finance', 'logistics', 'reporting', 'development'];
+  const adminPages = ['settings', 'engines', 'vendor-request', 'finance', 'logistics', 'reporting', 'development'];
   const hasAdminAccess = isAuth;
 
   // Pages requiring minimum '05_org_admin' role (not visible to guest)
@@ -854,7 +854,7 @@ function updateNavigationForAuthState() {
   // Update Home button with house icon
   const homeButton = document.querySelector('.nav-container button[data-page="home"] h3');
   if (homeButton) {
-    homeButton.textContent = ' ';
+    homeButton.textContent = 'Home ';
     const homeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     homeSvg.setAttribute('viewBox', '0 0 84 88');
     homeSvg.setAttribute('width', '1em');
