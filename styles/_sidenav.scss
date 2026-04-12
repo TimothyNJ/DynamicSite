@@ -70,8 +70,7 @@
   content: '';
   position: absolute;
   top: calc(-1 * var(--sidenav-button-margin) - 1px);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   height: 1px;
   width: var(--sidenav-divider-width);
   background-color: var(--sidenav-divider-color);
