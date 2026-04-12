@@ -142,6 +142,7 @@ function handleCollapsedNavbar() {
     // Get ALL buttons including collapsed navbar
     const allButtons = navbar4.querySelectorAll("button");
     let maxButtonWidth = 0;
+    let minButtonWidth = Infinity;
     let widestButton = null;
 
     // First clone and measure the collapsed navbar button
@@ -163,11 +164,19 @@ function handleCollapsedNavbar() {
           maxButtonWidth = buttonWidth;
           widestButton = button;
         }
+        if (buttonWidth < minButtonWidth) {
+          minButtonWidth = buttonWidth;
+        }
       }
     });
 
     // Clean up temporary container
     document.body.removeChild(tempContainer);
+
+    // Set collapsed menu divider width to narrowest button
+    if (minButtonWidth !== Infinity) {
+      document.documentElement.style.setProperty('--collapsed-menu-divider-width', `${minButtonWidth}px`);
+    }
 
     // Calculate total width by ADDING widest button and collapsed button widths
     const totalWidth = maxButtonWidth + collapsedButtonWidth + 4; // 2px border on each side

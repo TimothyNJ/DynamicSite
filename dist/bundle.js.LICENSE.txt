@@ -7,3 +7,9 @@
  * @license     MIT - Copyright (c) 2022 Stephens Nunnally
  * @source      https://github.com/stevinz/three-subdivide
  */
+
+/**
+ * @license
+ * Copyright 2010-2025 Three.js Authors
+ * SPDX-License-Identifier: MIT
+ */

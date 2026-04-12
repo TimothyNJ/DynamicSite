@@ -159,6 +159,25 @@
       border: 1px solid royalblue;
     }
   }
+
+  button + button::before {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--nav-button-margin) - 1px);
+    left: 50%;
+    transform: translateX(-50%);
+    height: 1px;
+    width: var(--collapsed-menu-divider-width, 100%);
+    background-color: var(--sidenav-divider-color);
+    pointer-events: none;
+  }
+
+  button:hover::before,
+  button.active::before,
+  button:hover + button::before,
+  button.active + button::before {
+    background-color: transparent !important;
+  }
 }
 
 // ==============================================
