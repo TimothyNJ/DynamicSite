@@ -18,8 +18,25 @@ const pagePathMap = {
   login: "pages/login/index.html",
 };
 
+// Map hash aliases to internal page names (URL-friendly → data-page)
+const hashAliasMap = {
+  "tasks": "vendor-request",
+};
+
+// Map parent pages to their subpage configs
+// defaultSub: which subpage loads when navigating to the parent
+// basePath: filesystem path prefix for subpage HTML files
+const sidenavConfig = {
+  "vendor-request": {
+    defaultSub: "approve",
+    basePath: "pages/vendor-request",
+    subpages: ["approve", "visibility", "create"]
+  }
+};
+
 // Store the active page to avoid reloading the same page
 let activePage = null;
+let activeSubpage = null;
 
 // Initialize the router
 export function initRouter() {
@@ -37,27 +54,43 @@ export function initRouter() {
   });
 
   // Load the initial page (either from URL or default to home)
-  const initialPage = getPageFromURL() || "home";
-  navigateToPage(initialPage);
+  const initial = parseHash();
+  navigateToPage(initial.page || "home", true, initial.subpage);
 
   // Handle browser back/forward navigation
   window.addEventListener("popstate", (event) => {
-    const pageName = event.state?.page || getPageFromURL() || "home";
-    navigateToPage(pageName, false); // Don't push state on popstate events
+    const parsed = parseHash();
+    const pageName = event.state?.page || parsed.page || "home";
+    const subpage = event.state?.subpage || parsed.subpage || null;
+    navigateToPage(pageName, false, subpage); // Don't push state on popstate events
   });
+}
+
+// Parse the URL hash into parent page and optional subpage
+// e.g., #tasks/approve → { page: "vendor-request", subpage: "approve" }
+// e.g., #home → { page: "home", subpage: null }
+function parseHash() {
+  const hash = window.location.hash.substring(1);
+  if (!hash) return { page: null, subpage: null };
+
+  const parts = hash.split("/");
+  const rawPage = parts[0];
+  const subpage = parts[1] || null;
+
+  // Resolve alias (e.g., "tasks" → "vendor-request") or use as-is
+  const page = hashAliasMap[rawPage] || rawPage;
+  return { page, subpage };
 }
 
 // Get the page name from the URL (for bookmarking support)
 function getPageFromURL() {
-  // Extract page from URL hash (e.g., #home)
-  const hash = window.location.hash.substring(1);
-  return hash || null;
+  return parseHash().page;
 }
 
 
 
-// Navigate to a specific page
-export async function navigateToPage(pageName, pushState = true) {
+// Navigate to a specific page, optionally to a specific subpage
+export async function navigateToPage(pageName, pushState = true, subpage = null) {
   // Cleanup previous page components
   if (currentPageCleanup) {
     console.log(`[Router] Cleaning up previous page components`);
@@ -103,6 +136,16 @@ export async function navigateToPage(pageName, pushState = true) {
     }
   }
   
+  // If same parent page but different subpage, just swap the subpage
+  if (pageName && pageName === activePage && sidenavConfig[pageName]) {
+    const config = sidenavConfig[pageName];
+    const targetSub = subpage || config.defaultSub;
+    if (targetSub !== activeSubpage) {
+      await loadSubpage(pageName, targetSub, pushState);
+    }
+    return;
+  }
+
   if (!pageName || pageName === activePage) {
     return; // Already on this page
   }
@@ -148,10 +191,18 @@ export async function navigateToPage(pageName, pushState = true) {
 
     // Update active page tracking
     activePage = pageName;
+    activeSubpage = null;
 
-    // Update URL for bookmarking (if this isn't from a popstate event)
-    if (pushState) {
-      window.history.pushState({ page: pageName }, "", `#${pageName}`);
+    // If this page has a sidenav, initialize sub-routing
+    if (sidenavConfig[pageName]) {
+      initSidenav(pageName);
+      const targetSub = subpage || sidenavConfig[pageName].defaultSub;
+      await loadSubpage(pageName, targetSub, pushState);
+    } else {
+      // Update URL for bookmarking (if this isn't from a popstate event)
+      if (pushState) {
+        window.history.pushState({ page: pageName }, "", `#${pageName}`);
+      }
     }
 
     // Initialize components for the loaded page
@@ -173,6 +224,66 @@ export async function navigateToPage(pageName, pushState = true) {
     document.dispatchEvent(new Event('pageLoaded'));
   } catch (error) {
     console.error("Error loading page:", error);
+  }
+}
+
+// Initialize sidenav button click handlers for a parent page
+function initSidenav(pageName) {
+  const sidenavButtons = document.querySelectorAll('.sidenav-button[data-subpage]');
+  sidenavButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const sub = button.getAttribute('data-subpage');
+      loadSubpage(pageName, sub, true);
+    });
+  });
+}
+
+// Load a subpage into the sidenav-content area
+async function loadSubpage(pageName, subpage, pushState = true) {
+  const config = sidenavConfig[pageName];
+  if (!config || !config.subpages.includes(subpage)) {
+    console.error(`[Router] Unknown subpage: ${subpage} for ${pageName}`);
+    return;
+  }
+
+  const subpagePath = `${config.basePath}/${subpage}/index.html`;
+  const contentArea = document.querySelector('.sidenav-content');
+  if (!contentArea) {
+    console.error('[Router] .sidenav-content container not found');
+    return;
+  }
+
+  try {
+    const response = await fetch(subpagePath);
+    if (!response.ok) {
+      throw new Error(`Failed to load subpage: ${response.status} ${response.statusText}`);
+    }
+    const html = await response.text();
+    contentArea.innerHTML = html;
+    activeSubpage = subpage;
+
+    // Update sidenav active button state
+    document.querySelectorAll('.sidenav-button[data-subpage]').forEach(btn => {
+      if (btn.getAttribute('data-subpage') === subpage) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Build the URL hash — use alias if one exists, otherwise use pageName
+    const reverseAlias = Object.entries(hashAliasMap).find(([, v]) => v === pageName);
+    const hashParent = reverseAlias ? reverseAlias[0] : pageName;
+
+    if (pushState) {
+      window.history.pushState(
+        { page: pageName, subpage: subpage },
+        "",
+        `#${hashParent}/${subpage}`
+      );
+    }
+  } catch (error) {
+    console.error('[Router] Error loading subpage:', error);
   }
 }
 

@@ -1,0 +1,74 @@
+// _sidenav.scss - Reusable left side navigation for content pages with subpages
+// Created: 12-Apr-2026
+// Pattern: Same fit-content width approach as collapsed navbar menu
+
+// ==============================================
+// Page with Side Navigation Layout
+// ==============================================
+.page-with-sidenav {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+// ==============================================
+// Side Navigation Panel
+// ==============================================
+.sidenav {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  flex: 0 1 auto;
+  background-color: black;
+  border-right: 1px solid rgb(77, 77, 77);
+}
+
+// ==============================================
+// Side Navigation Buttons
+// ==============================================
+.sidenav-button {
+  font-size: inherit;
+  flex: 0 1 auto;
+  background-color: black;
+  color: white;
+  border: 1px solid rgb(77, 77, 77);
+  padding: 2px 2px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  white-space: nowrap;
+  overflow: visible;
+  max-width: none;
+  text-overflow: clip;
+
+  h3 {
+    text-align: left;
+  }
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    cursor: pointer;
+    border: 1px solid royalblue;
+  }
+
+  &.active {
+    background-color: royalblue;
+    color: white;
+  }
+}
+
+// ==============================================
+// Side Navigation Content Area
+// ==============================================
+.sidenav-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
