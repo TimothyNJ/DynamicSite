@@ -238,6 +238,12 @@ export async function navigateToPage(pageName, pushState = true, subpage = null,
 
 // Initialize sidenav button click handlers for a parent page
 function initSidenav(pageName) {
+  // Start both sidenavs in collapsed state immediately to prevent flash
+  const sidenav = document.querySelector('.sidenav');
+  const secondary = document.querySelector('.sidenav-secondary');
+  if (sidenav) sidenav.classList.add('collapsible');
+  if (secondary) secondary.classList.add('collapsible');
+
   // Primary sidenav buttons
   const sidenavButtons = document.querySelectorAll('.sidenav-button[data-subpage]');
   sidenavButtons.forEach(button => {
@@ -256,44 +262,71 @@ function initSidenav(pageName) {
     });
   });
 
-  // Unified hover zone: both sidenavs act as one hover area
-  initSidenavHover();
+  // Set up independent hover expand/collapse for each sidenav
+  // and button hover detection for sidenav2 visibility
+  initSidenavHover(pageName);
 }
 
-// Unified hover management for both sidenavs
-let sidenavCollapseTimer = null;
+// Independent hover management for each sidenav
+let sidenav1CollapseTimer = null;
+let sidenav2CollapseTimer = null;
 
-function initSidenavHover() {
+function setupCollapseHover(el, timerRef) {
+  if (!el) return;
+
+  el.addEventListener('mouseenter', () => {
+    if (timerRef.id) {
+      clearTimeout(timerRef.id);
+      timerRef.id = null;
+    }
+    if (el.classList.contains('collapsible')) {
+      el.classList.add('expanded');
+    }
+  });
+
+  el.addEventListener('mouseleave', () => {
+    if (timerRef.id) clearTimeout(timerRef.id);
+    timerRef.id = setTimeout(() => {
+      el.classList.remove('expanded');
+      timerRef.id = null;
+    }, 1000);
+  });
+}
+
+function initSidenavHover(pageName) {
   const sidenav = document.querySelector('.sidenav');
   const secondary = document.querySelector('.sidenav-secondary');
-  const hoverTargets = [sidenav, secondary].filter(Boolean);
+  const config = sidenavConfig[pageName];
 
-  function expandAll() {
-    // Cancel any pending collapse
-    if (sidenavCollapseTimer) {
-      clearTimeout(sidenavCollapseTimer);
-      sidenavCollapseTimer = null;
-    }
-    hoverTargets.forEach(el => {
-      if (el.classList.contains('collapsible')) {
-        el.classList.add('expanded');
+  // Each sidenav expands/collapses independently
+  const timer1 = { id: null };
+  const timer2 = { id: null };
+  setupCollapseHover(sidenav, timer1);
+  setupCollapseHover(secondary, timer2);
+
+  // When hovering a sidenav1 button, show/hide sidenav2 based on sub-subpages
+  if (sidenav && secondary && config) {
+    const buttons = sidenav.querySelectorAll('.sidenav-button[data-subpage]');
+    buttons.forEach(button => {
+      button.addEventListener('mouseenter', () => {
+        const sub = button.getAttribute('data-subpage');
+        if (config.subSubpages?.[sub]) {
+          secondary.classList.add('visible');
+        } else {
+          secondary.classList.remove('visible');
+        }
+      });
+    });
+
+    // When mouse leaves sidenav1, revert sidenav2 visibility to match active button
+    sidenav.addEventListener('mouseleave', () => {
+      if (config.subSubpages?.[activeSubpage]) {
+        secondary.classList.add('visible');
+      } else {
+        secondary.classList.remove('visible');
       }
     });
   }
-
-  function scheduleCollapse() {
-    // Only collapse after 1s delay, and only if mouse isn't in any sidenav
-    if (sidenavCollapseTimer) clearTimeout(sidenavCollapseTimer);
-    sidenavCollapseTimer = setTimeout(() => {
-      hoverTargets.forEach(el => el.classList.remove('expanded'));
-      sidenavCollapseTimer = null;
-    }, 1000);
-  }
-
-  hoverTargets.forEach(el => {
-    el.addEventListener('mouseenter', expandAll);
-    el.addEventListener('mouseleave', scheduleCollapse);
-  });
 }
 
 // Load a subpage into the sidenav-content area
