@@ -734,10 +734,33 @@ window.initializePageComponents = function(pageName) {
     // Initialize vendor request components
     console.log('[main.js] Initializing vendor request components');
     initializeVendorRequestComponents();
+  } else if (pageName === 'table') {
+    // Isolated top-level Table page for working the overflow/shrink behaviour
+    console.log('[main.js] Initializing Table page');
+    requestAnimationFrame(() => initializeTablePage());
   }
-  
+
   // Add other page-specific initialization as needed
 };
+
+// ─── Table (top-level display-only table for overflow testing) ───────────────
+
+function initializeTablePage() {
+  if (!window.componentFactory) {
+    console.error('[Table] ComponentFactory not available');
+    return;
+  }
+  const slots = document.querySelectorAll('.table-button-slot');
+  slots.forEach((slot) => {
+    if (!slot.id) return;
+    componentFactory.createButton(slot.id, {
+      id: `${slot.id}-btn`,
+      text: '•',
+      active: false,
+    });
+  });
+  console.log(`[Table] Rendered ${slots.length} circle buttons`);
+}
 
 // ─── System Roles (Zitadel) ──────────────────────────────────────────────────
 

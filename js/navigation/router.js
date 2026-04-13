@@ -15,6 +15,7 @@ const pagePathMap = {
   logistics: "pages/logistics/index.html",
   reporting: "pages/reporting/index.html",
   development: "pages/development/index.html",
+  table: "pages/table/index.html",
   login: "pages/login/index.html",
 };
 
