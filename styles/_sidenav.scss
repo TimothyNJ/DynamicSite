@@ -140,6 +140,22 @@
   }
 }
 
+// When primary sidenav is hovered, also expand secondary sidenav
+.sidenav.collapsible:hover ~ .sidenav-secondary.collapsible {
+  width: fit-content;
+  min-width: fit-content;
+  overflow: visible;
+
+  .sidenav-button {
+    opacity: 1;
+    transition: opacity 0.2s ease 0.3s;
+  }
+
+  &::after {
+    opacity: 0;
+  }
+}
+
 // ==============================================
 // Secondary Side Navigation Panel (sub-subpages)
 // ==============================================
