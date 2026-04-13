@@ -37,6 +37,31 @@ const sidenavConfig = {
         items: ["bank-validations", "tin-validations", "create-scac", "change-payment-terms", "change-invoice-approver", "vendor-request", "user-permission-request", "report"]
       }
     }
+  },
+  "users": {
+    defaultSub: "system-roles",
+    basePath: "pages/users",
+    subpages: ["system-roles", "org-roles-above-admin", "org-admins", "create-org-users", "create-org-users-email", "guests", "view-org-chart", "upload-org-chart"]
+  },
+  "finance": {
+    defaultSub: "invoice-approvers",
+    basePath: "pages/finance",
+    subpages: ["invoice-approvers", "upload-invoice-approvers", "banks", "upload-banks"]
+  },
+  "logistics": {
+    defaultSub: "view-scac",
+    basePath: "pages/logistics",
+    subpages: ["view-scac", "upload-scac"]
+  },
+  "reporting": {
+    defaultSub: "individual-metrics",
+    basePath: "pages/reporting",
+    subpages: ["individual-metrics", "team-metrics", "organisation-metrics"]
+  },
+  "development": {
+    defaultSub: "engines",
+    basePath: "pages/development",
+    subpages: ["engines", "site-settings", "infrastructure"]
   }
 };
 
