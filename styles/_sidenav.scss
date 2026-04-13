@@ -102,6 +102,12 @@
   position: relative;
   cursor: pointer;
 
+  // Hide buttons instantly when collapsed
+  .sidenav-button {
+    opacity: 0;
+    transition: opacity 0s ease;
+  }
+
   // Arrow indicator visible when collapsed
   &::after {
     content: '▶';
@@ -121,6 +127,12 @@
     width: fit-content;
     min-width: fit-content;
     overflow: visible;
+
+    // Fade buttons in after container finishes expanding
+    .sidenav-button {
+      opacity: 1;
+      transition: opacity 0.2s ease 0.3s;
+    }
 
     &::after {
       opacity: 0;
