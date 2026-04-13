@@ -437,6 +437,7 @@ function initSidenavHover(pageName) {
   if (secondary) {
     secondary.addEventListener('mouseenter', () => {
       cancelCollapse();
+      sidenav.classList.add('expanded');
       if (!hoveredSubpage) {
         restoreActiveSecondary();
       }
