@@ -1,0 +1,253 @@
+"""
+Zitadel API Proxy — AWS Lambda Function
+
+Sits between the DynamicSite SPA and Zitadel's Management API.
+The browser sends the user's access token; this function:
+  1. Validates the user's token against Zitadel's userinfo endpoint
+  2. Authenticates as the claude-admin service account (JWT bearer grant)
+  3. Calls the requested Management API endpoint
+  4. Returns the result to the browser
+
+Environment variables:
+  ZITADEL_ISSUER       — e.g. https://dynamicsite-hgyhhz.us1.zitadel.cloud
+  ZITADEL_PROJECT_ID   — e.g. 339930261431031889
+  SECRET_NAME          — Secrets Manager key name for the service account key
+  ALLOWED_ORIGINS      — comma-separated list of allowed CORS origins
+"""
+
+import json
+import os
+import time
+import urllib.request
+import urllib.parse
+import urllib.error
+
+import jwt  # PyJWT
+import boto3
+from botocore.exceptions import ClientError
+
+# ─── Configuration ────────────────────────────────────────────────────────────
+
+ZITADEL_ISSUER = os.environ.get('ZITADEL_ISSUER', 'https://dynamicsite-hgyhhz.us1.zitadel.cloud')
+PROJECT_ID = os.environ.get('ZITADEL_PROJECT_ID', '339930261431031889')
+SECRET_NAME = os.environ.get('SECRET_NAME', 'dynamicsite/zitadel-service-account-key')
+ALLOWED_ORIGINS = [o.strip() for o in os.environ.get('ALLOWED_ORIGINS', 'https://dev.dynamicsite.io,https://sandbox.dynamicsite.io,https://dynamicsite.io,https://www.dynamicsite.io').split(',')]
+
+# Cache service account token across warm Lambda invocations
+_sa_token_cache = {'token': None, 'expires_at': 0}
+_sa_key_cache = {'key_data': None}
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+def get_cors_headers(origin):
+    """Return CORS headers if origin is allowed."""
+    if origin in ALLOWED_ORIGINS:
+        return {
+            'Access-Control-Allow-Origin': origin,
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+            'Access-Control-Max-Age': '86400'
+        }
+    return {
+        'Access-Control-Allow-Origin': '',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+    }
+
+
+def respond(status_code, body, origin=''):
+    """Build an API Gateway proxy response."""
+    headers = get_cors_headers(origin)
+    headers['Content-Type'] = 'application/json'
+    return {
+        'statusCode': status_code,
+        'headers': headers,
+        'body': json.dumps(body)
+    }
+
+
+def get_service_account_key():
+    """Retrieve the service account key from Secrets Manager (cached)."""
+    if _sa_key_cache['key_data']:
+        return _sa_key_cache['key_data']
+
+    client = boto3.client('secretsmanager', region_name='us-west-2')
+    try:
+        response = client.get_secret_value(SecretId=SECRET_NAME)
+        key_data = json.loads(response['SecretString'])
+        _sa_key_cache['key_data'] = key_data
+        return key_data
+    except ClientError as e:
+        raise RuntimeError(f'Failed to retrieve service account key: {e}')
+
+
+def get_service_account_token():
+    """Get a valid service account access token (cached until near expiry)."""
+    now = int(time.time())
+
+    # Return cached token if still valid (with 60s buffer)
+    if _sa_token_cache['token'] and _sa_token_cache['expires_at'] > now + 60:
+        return _sa_token_cache['token']
+
+    key_data = get_service_account_key()
+
+    # Create JWT assertion
+    assertion = jwt.encode(
+        {
+            'iss': key_data['userId'],
+            'sub': key_data['userId'],
+            'aud': ZITADEL_ISSUER,
+            'iat': now,
+            'exp': now + 3600
+        },
+        key_data['key'],
+        algorithm='RS256',
+        headers={'kid': key_data['keyId']}
+    )
+
+    # Exchange for access token
+    token_url = f'{ZITADEL_ISSUER}/oauth/v2/token'
+    token_data = urllib.parse.urlencode({
+        'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        'assertion': assertion,
+        'scope': 'openid urn:zitadel:iam:org:project:id:zitadel:aud'
+    }).encode()
+
+    req = urllib.request.Request(token_url, data=token_data,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'})
+    resp = urllib.request.urlopen(req)
+    tokens = json.loads(resp.read())
+
+    _sa_token_cache['token'] = tokens['access_token']
+    _sa_token_cache['expires_at'] = now + tokens.get('expires_in', 3600)
+
+    return tokens['access_token']
+
+
+def validate_user_token(user_token):
+    """
+    Validate the caller's access token by calling Zitadel's userinfo endpoint.
+    Returns user info dict if valid, raises on failure.
+    """
+    userinfo_url = f'{ZITADEL_ISSUER}/oidc/v1/userinfo'
+    req = urllib.request.Request(userinfo_url, headers={
+        'Authorization': f'Bearer {user_token}'
+    })
+    try:
+        resp = urllib.request.urlopen(req)
+        return json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        raise ValueError(f'Invalid user token: {e.code} {e.reason}')
+
+
+def call_zitadel_management(method, path, body=None):
+    """Call a Zitadel Management API endpoint using the service account token."""
+    sa_token = get_service_account_token()
+    url = f'{ZITADEL_ISSUER}{path}'
+
+    req = urllib.request.Request(url, method=method, headers={
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {sa_token}'
+    })
+
+    if body:
+        req.data = json.dumps(body).encode()
+
+    try:
+        resp = urllib.request.urlopen(req)
+        return json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode()
+        raise RuntimeError(f'Zitadel API error {e.code}: {error_body}')
+
+
+# ─── Route Handlers ──────────────────────────────────────────────────────────
+
+def handle_get_roles():
+    """Fetch all project roles."""
+    return call_zitadel_management('POST',
+        f'/management/v1/projects/{PROJECT_ID}/roles/_search',
+        {'query': {'offset': '0', 'limit': 100, 'asc': True}}
+    )
+
+
+def handle_get_users():
+    """Fetch all users with grants on this project."""
+    return call_zitadel_management('POST',
+        f'/management/v1/projects/{PROJECT_ID}/grants/_search',
+        {'query': {'offset': '0', 'limit': 100}}
+    )
+
+
+def handle_get_user_grants():
+    """Fetch all user grants (role assignments) for the project."""
+    return call_zitadel_management('POST',
+        '/management/v1/users/grants/_search',
+        {
+            'query': {'offset': '0', 'limit': 100},
+            'queries': [
+                {
+                    'projectIdQuery': {
+                        'projectId': PROJECT_ID
+                    }
+                }
+            ]
+        }
+    )
+
+
+# ─── Route Map ───────────────────────────────────────────────────────────────
+
+ROUTES = {
+    'GET /roles': handle_get_roles,
+    'GET /users': handle_get_users,
+    'GET /user-grants': handle_get_user_grants,
+}
+
+# ─── Lambda Entry Point ──────────────────────────────────────────────────────
+
+def lambda_handler(event, context):
+    """Main Lambda handler for API Gateway proxy integration."""
+    origin = (event.get('headers') or {}).get('origin', '')
+    http_method = event.get('httpMethod', event.get('requestContext', {}).get('http', {}).get('method', ''))
+    path = event.get('path', event.get('rawPath', ''))
+
+    # Strip stage prefix if present (e.g. /prod/roles -> /roles)
+    if path and '/' in path[1:]:
+        parts = path.split('/')
+        if len(parts) >= 3 and parts[1] in ('prod', 'dev', 'staging'):
+            path = '/' + '/'.join(parts[2:])
+
+    # Handle CORS preflight
+    if http_method == 'OPTIONS':
+        return respond(200, {}, origin)
+
+    # Extract and validate user token
+    auth_header = (event.get('headers') or {}).get('Authorization',
+                   (event.get('headers') or {}).get('authorization', ''))
+    if not auth_header.startswith('Bearer '):
+        return respond(401, {'error': 'Missing or invalid Authorization header'}, origin)
+
+    user_token = auth_header[7:]
+
+    try:
+        user_info = validate_user_token(user_token)
+    except ValueError as e:
+        return respond(401, {'error': str(e)}, origin)
+
+    # Route to handler
+    route_key = f'{http_method} {path}'
+    handler = ROUTES.get(route_key)
+
+    if not handler:
+        return respond(404, {'error': f'Unknown route: {route_key}',
+                             'available_routes': list(ROUTES.keys())}, origin)
+
+    try:
+        data = handler()
+        return respond(200, data, origin)
+    except RuntimeError as e:
+        return respond(502, {'error': str(e)}, origin)
+    except Exception as e:
+        return respond(500, {'error': f'Internal error: {str(e)}'}, origin)
