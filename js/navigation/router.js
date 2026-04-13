@@ -340,6 +340,7 @@ function initSidenavHover(pageName) {
 
   function collapseAll() {
     // Remove expanded — CSS transitions handle the fade/shrink sequence
+    hoveredSubpage = null;
     sidenav.classList.remove('expanded');
     if (secondary) {
       secondary.classList.remove('expanded');
@@ -405,9 +406,8 @@ function initSidenavHover(pageName) {
           }
         }
       });
-      button.addEventListener('mouseleave', () => {
-        hoveredSubpage = null;
-      });
+      // hoveredSubpage is cleared in collapseAll or when another button is hovered,
+      // NOT on mouseleave — so it persists while the user moves to sidenav2
     });
   }
 
