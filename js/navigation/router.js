@@ -145,11 +145,6 @@ function setActiveButton(attr, value) {
 // ==============================================
 
 export async function navigateToPage(pageName, pushState = true, subpage = null, subsubpage = null) {
-  if (currentPageCleanup) {
-    currentPageCleanup();
-    currentPageCleanup = null;
-  }
-
   // Route guard
   if (protectedPages[pageName]) {
     const isAuth = typeof window.isUserAuthenticated === 'function'
@@ -184,6 +179,12 @@ export async function navigateToPage(pageName, pushState = true, subpage = null,
   }
 
   if (!pageName || pageName === activePage) return;
+
+  // Cleanup previous page — only runs when actually changing pages
+  if (currentPageCleanup) {
+    currentPageCleanup();
+    currentPageCleanup = null;
+  }
 
   try {
     // Update navbar active button
