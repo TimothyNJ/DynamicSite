@@ -1,0 +1,290 @@
+// _user_management_table.scss - User Management Table (Org Roles Above Admin)
+// Extracted from standalone dynamictable56.html prototype
+// Created: 13-Apr-2026
+
+// ==============================================
+// Table Layout Container
+// ==============================================
+.user-mgmt-outer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.user-mgmt-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 1;
+  overflow-x: auto;
+  background-color: white;
+  color: black;
+  scroll-behavior: smooth;
+  position: relative;
+  box-sizing: border-box;
+}
+
+// ==============================================
+// Header Section
+// ==============================================
+.user-mgmt-header {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: white;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.user-mgmt-title {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  border-bottom: 1px solid $border-color;
+}
+
+// ==============================================
+// Controls Section
+// ==============================================
+.user-mgmt-controls {
+  display: flex;
+  width: 100%;
+}
+
+.user-mgmt-controls-left {
+  flex: 0 1 auto;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.user-mgmt-controls-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.user-mgmt-controls-right {
+  flex: 0 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+// ==============================================
+// Search Input
+// ==============================================
+.user-mgmt-search-container {
+  width: clamp(150px, 30vw, 300px);
+}
+
+.user-mgmt-search-input {
+  width: 100%;
+  font-family: var(--font-family-primary);
+  font-size: var(--component-font-size);
+  border: 1px solid #ddd;
+  border-radius: $border-radius-sm;
+}
+
+// ==============================================
+// Toggle Buttons (View / Edit)
+// ==============================================
+.user-mgmt-toggle-container {
+  display: flex;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.user-mgmt-toggle-button {
+  padding: $spacing-xs $spacing-sm;
+  background-color: #f8f9fa;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: clamp(0.5rem, 1.2vw, 1.8rem);
+  transition: background-color $transition-normal;
+  flex: 1 1 auto;
+
+  &.active {
+    background-color: var(--active-button-end);
+    color: white;
+  }
+}
+
+// ==============================================
+// Control Buttons (Add User, Import Users)
+// ==============================================
+.user-mgmt-control-button {
+  padding: $spacing-xs $spacing-sm;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: clamp(0.5rem, 1.2vw, 1.8rem);
+  margin-left: $spacing-xs;
+  transition: background-color $transition-normal;
+
+  &:hover {
+    background-color: #e9ecef;
+    border-color: var(--active-button-end);
+  }
+}
+
+// ==============================================
+// Table Wrap & Table
+// ==============================================
+.user-mgmt-table-wrap {
+  flex: 0 1 auto;
+  overflow-x: auto;
+  width: 100%;
+  min-width: var(--collapse-breakpoint);
+}
+
+.user-mgmt-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+
+  // ---- Table Header Cells ----
+  th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 10;
+    border-bottom: 1px solid #ddd;
+    vertical-align: bottom;
+    padding: $spacing-xs;
+    flex: 1 1 auto;
+  }
+
+  // ---- Table Body Cells ----
+  td {
+    text-align: left;
+    overflow: hidden;
+    border-bottom: 1px solid #f5f5f5;
+  }
+
+  // ---- Row Hover ----
+  tbody tr:hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+  }
+}
+
+// ==============================================
+// Rotated Header System
+// ==============================================
+.user-mgmt-header-container {
+  position: relative;
+  height: 100%;
+  width: auto;
+  min-width: fit-content;
+  overflow: visible;
+}
+
+.user-mgmt-rotated-header {
+  position: absolute;
+  bottom: $spacing-xs;
+  left: calc(#{$spacing-xs} + 1em);
+  transform-origin: 0 100%;
+  transform: rotate(-45deg);
+  width: auto;
+  white-space: nowrap;
+  padding: $spacing-xs;
+
+  h2 {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    font-size: clamp(0.5rem, 1.2vw, 1.6rem);
+    line-height: 1.2;
+  }
+}
+
+.user-mgmt-short-header .user-mgmt-rotated-header {
+  max-width: clamp(40px, 5vw, 100px);
+}
+
+// ==============================================
+// Field Styling
+// ==============================================
+.user-mgmt-field-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100%;
+}
+
+.user-mgmt-boolean-field {
+  width: auto;
+  text-align: left;
+  font-family: var(--font-family-primary);
+  font-size: clamp(0.5rem, 1.2vw, 2rem);
+  background: none;
+  border: none;
+  outline: none;
+}
+
+// ==============================================
+// Admin Column Conditional Visibility
+// ==============================================
+.user-mgmt-admin-column {
+  opacity: 0.5;
+  pointer-events: none;
+  color: #aaa;
+}
+
+tr.user-mgmt-has-admin .user-mgmt-admin-column {
+  opacity: 1;
+  pointer-events: auto;
+  color: inherit;
+}
+
+// ==============================================
+// New Import Row Highlight
+// ==============================================
+tr.user-mgmt-new-import {
+  background-color: #e6f7ff;
+}
+
+// ==============================================
+// Responsive: Card Layout Below Breakpoint
+// ==============================================
+@media screen and (max-width: 500px) {
+  .user-mgmt-table {
+    display: block;
+
+    thead,
+    tbody,
+    tr {
+      display: block;
+      width: 100%;
+    }
+
+    th {
+      display: none;
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: $spacing-sm;
+      position: relative;
+      text-align: right;
+
+      &::before {
+        content: attr(data-label);
+        font-weight: bold;
+        text-align: left;
+        margin-right: $spacing-md;
+      }
+    }
+  }
+}
