@@ -6,17 +6,19 @@
 
 // ==============================================
 // Outer wrapper — sits inside .sidenav-content
+// Uses the Sept 2025 grid-boundary pattern (same as .content-isolation-container):
+// grid-template-columns: minmax(0, 1fr) creates a definite-width track that
+// cannot be exceeded by the child <table>, forcing it to respect max-width: 100%.
 // ==============================================
 .table-outer {
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
-  width: fit-content;
-  max-width: 100%;
-  min-width: 0; // Allow children to shrink below their intrinsic min-content
-  flex: 0 1 auto;
-  margin: 0 auto;
+  justify-items: center;
+  overflow: visible;
+  position: relative;
   box-sizing: border-box;
   border: 1px solid magenta;
 }
@@ -38,17 +40,18 @@
 
 // ==============================================
 // Body wrapper — holds the <table>
+// Same grid-boundary pattern as .table-outer — needed because it sits directly
+// above the <table>, which is the element that actually has intrinsic overflow.
 // ==============================================
 .table-body {
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
-  width: fit-content;
-  max-width: 100%;
-  min-width: 0; // Allow the <table> inside to shrink when the viewport is narrower
-  flex: 0 1 auto;
-  margin: 0 auto;
+  justify-items: center;
+  overflow: visible;
+  position: relative;
   box-sizing: border-box;
   border: 1px solid green;
 }
