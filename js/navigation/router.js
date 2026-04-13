@@ -428,19 +428,33 @@ function initSidenavHover(pageName) {
     if (!isInZone(e.relatedTarget)) scheduleCollapse();
   });
 
-  // Sidenav2 and left buffer: restore active state on enter
-  [secondary, contentBuffer].forEach(el => {
-    if (!el) return;
-    el.addEventListener('mouseenter', () => {
+  // Sidenav2: keep preview if hoveredSubpage is set (user came from sidenav1 button),
+  // otherwise restore active state (user came from left buffer or elsewhere)
+  if (secondary) {
+    secondary.addEventListener('mouseenter', () => {
+      cancelCollapse();
+      if (!hoveredSubpage) {
+        restoreActiveSecondary();
+      }
+      expandAll();
+    });
+    secondary.addEventListener('mouseleave', (e) => {
+      if (!isInZone(e.relatedTarget)) scheduleCollapse();
+    });
+  }
+
+  // Left buffer: always restore active state on enter
+  if (contentBuffer) {
+    contentBuffer.addEventListener('mouseenter', () => {
       cancelCollapse();
       hoveredSubpage = null;
       restoreActiveSecondary();
       expandAll();
     });
-    el.addEventListener('mouseleave', (e) => {
+    contentBuffer.addEventListener('mouseleave', (e) => {
       if (!isInZone(e.relatedTarget)) scheduleCollapse();
     });
-  });
+  }
 
   // --- Rule 4: Sidenav1 button hover — live preview of sub-subpages ---
   // Hovering a sidenav1 button dynamically renders sidenav2 for that button's children.
