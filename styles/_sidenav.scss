@@ -135,10 +135,10 @@
     transition: width var(--sidenav-expand-duration) ease,
                 min-width var(--sidenav-expand-duration) ease;
 
-    // Buttons fade in after expand finishes
+    // Buttons fade in immediately on expand (no delay)
     .sidenav-button {
       opacity: 1;
-      transition: opacity var(--sidenav-fade-speed) ease var(--sidenav-expand-duration);
+      transition: opacity var(--sidenav-fade-speed) ease;
     }
 
     // Arrow hidden instantly when expanding
