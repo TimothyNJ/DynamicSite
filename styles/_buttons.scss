@@ -65,6 +65,9 @@ body[data-theme="dark"] .button-component {
 // cap-top, excluding descenders). No JS measurement required.
 .button-component.button-circle {
   border-radius: 50%;
+  // Set font-size here so `1cap` and the calc() fallback both resolve
+  // against the flexing component font-size, not an inherited default.
+  font-size: var(--component-font-size);
   // Fallback: ~70% of font-size approximates cap-height for most sans-serif fonts
   width: calc(var(--component-font-size) * 0.7);
   height: calc(var(--component-font-size) * 0.7);
