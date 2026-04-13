@@ -736,8 +736,11 @@ window.initializePageComponents = function(pageName) {
 document.addEventListener('subpageLoaded', (e) => {
   const { page, subpage } = e.detail;
   if (page === 'development' && subpage === 'engines') {
-    console.log('[main.js] Initializing engines components (development/engines)');
-    initializeEnginesViewComponents();
+    // Defer to next frame so the DOM layout is settled before component init
+    requestAnimationFrame(() => {
+      console.log('[main.js] Initializing engines components (development/engines)');
+      initializeEnginesViewComponents();
+    });
   }
 });
 
