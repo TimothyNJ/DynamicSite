@@ -99,14 +99,14 @@
   width: 28px;
   min-width: 28px;
   overflow: hidden;
-  transition: width 0.3s ease, min-width 0.3s ease;
+  transition: width 0.6s ease, min-width 0.6s ease;
   position: relative;
   cursor: pointer;
 
-  // Hide buttons instantly when collapsed
+  // Hide buttons when collapsed
   .sidenav-button {
     opacity: 0;
-    transition: opacity 0s ease;
+    transition: opacity 0.2s ease;
   }
 
   // Arrow indicator visible when collapsed
@@ -123,11 +123,12 @@
     transition: opacity 0.2s ease;
   }
 
-  // Expand on hover
-  &:hover {
+  // Expand when .expanded class is set by JS
+  &.expanded {
     width: fit-content;
     min-width: fit-content;
     overflow: visible;
+    transition: width 0.3s ease, min-width 0.3s ease;
 
     // Fade buttons in after container finishes expanding
     .sidenav-button {
@@ -138,22 +139,6 @@
     &::after {
       opacity: 0;
     }
-  }
-}
-
-// When primary sidenav is hovered/expanded, also expand secondary sidenav
-.sidenav.collapsible:hover ~ .sidenav-secondary.collapsible {
-  width: fit-content;
-  min-width: fit-content;
-  overflow: visible;
-
-  .sidenav-button {
-    opacity: 1;
-    transition: opacity 0.2s ease 0.3s;
-  }
-
-  &::after {
-    opacity: 0;
   }
 }
 

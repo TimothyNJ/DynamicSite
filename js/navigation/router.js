@@ -256,6 +256,44 @@ function initSidenav(pageName) {
     });
   });
 
+  // Unified hover zone: both sidenavs act as one hover area
+  initSidenavHover();
+}
+
+// Unified hover management for both sidenavs
+let sidenavCollapseTimer = null;
+
+function initSidenavHover() {
+  const sidenav = document.querySelector('.sidenav');
+  const secondary = document.querySelector('.sidenav-secondary');
+  const hoverTargets = [sidenav, secondary].filter(Boolean);
+
+  function expandAll() {
+    // Cancel any pending collapse
+    if (sidenavCollapseTimer) {
+      clearTimeout(sidenavCollapseTimer);
+      sidenavCollapseTimer = null;
+    }
+    hoverTargets.forEach(el => {
+      if (el.classList.contains('collapsible')) {
+        el.classList.add('expanded');
+      }
+    });
+  }
+
+  function scheduleCollapse() {
+    // Only collapse after 1s delay, and only if mouse isn't in any sidenav
+    if (sidenavCollapseTimer) clearTimeout(sidenavCollapseTimer);
+    sidenavCollapseTimer = setTimeout(() => {
+      hoverTargets.forEach(el => el.classList.remove('expanded'));
+      sidenavCollapseTimer = null;
+    }, 1000);
+  }
+
+  hoverTargets.forEach(el => {
+    el.addEventListener('mouseenter', expandAll);
+    el.addEventListener('mouseleave', scheduleCollapse);
+  });
 }
 
 // Load a subpage into the sidenav-content area
