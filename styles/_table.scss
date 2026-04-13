@@ -2,7 +2,7 @@
 // Pattern: nested fit-content flex containers, centred by .sidenav-content
 // Borders: always-on; hidden globally by .borders-hidden (see _base.scss and script.js)
 // Typography: inherits --font-family-primary + global h2/h3/p rules from _base.scss
-// No arbitrary padding, gap, or margin — every container fits to its contents
+// Every object is centred; no arbitrary padding, gap, or margin
 
 // ==============================================
 // Outer wrapper — sits inside .sidenav-content
@@ -10,9 +10,12 @@
 .table-outer {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: fit-content;
   max-width: 100%;
   flex: 0 1 auto;
+  margin: 0 auto;
   box-sizing: border-box;
   border: 1px solid magenta;
 }
@@ -22,9 +25,12 @@
 // ==============================================
 .table-title {
   display: flex;
+  align-items: center;
+  justify-content: center;
   width: fit-content;
   max-width: 100%;
   flex: 0 1 auto;
+  margin: 0 auto;
   box-sizing: border-box;
   border: 1px solid purple;
 }
@@ -35,9 +41,12 @@
 .table-body {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: fit-content;
   max-width: 100%;
   flex: 0 1 auto;
+  margin: 0 auto;
   box-sizing: border-box;
   border: 1px solid green;
 }
@@ -49,51 +58,60 @@
   border-collapse: separate;
   border-spacing: 0;
   width: fit-content;
+  margin: 0 auto;
   table-layout: auto;
+  text-align: center;
   border: 1px solid orange;
 }
 
-// thead wrapper
+// thead / tbody
 .table-main thead {
   border: 1px solid yellow;
 }
 
-// tbody wrapper
 .table-main tbody {
   border: 1px solid teal;
 }
 
-// Header row
+// Rows
 .table-header-row {
+  text-align: center;
   border: 1px solid lime;
 }
 
-// Header cell
-.table-header-cell {
-  border: 1px solid cyan;
-}
-
-// Body row
 .table-body-row {
+  text-align: center;
   border: 1px solid deepskyblue;
 }
 
-// Body cell (text)
+// Cells — centred content
+.table-header-cell {
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid cyan;
+}
+
 .table-body-cell {
+  text-align: center;
+  vertical-align: middle;
   border: 1px solid dodgerblue;
 }
 
-// Body cell (holds a circle button)
 .table-button-cell {
+  text-align: center;
+  vertical-align: middle;
   border: 1px solid pink;
 }
 
 // Slot where the button_component_engine renders the circle button
 .table-button-slot {
   display: flex;
+  align-items: center;
+  justify-content: center;
   width: fit-content;
   max-width: 100%;
   flex: 0 1 auto;
+  margin: 0 auto;
   box-sizing: border-box;
   border: 1px solid red;
 }
