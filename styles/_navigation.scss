@@ -180,6 +180,24 @@
 }
 
 // ==============================================
+// Collapsed Menu Backdrop Overlay
+// ==============================================
+.collapsed-menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%);
+  z-index: 999;
+
+  body[data-theme="light"] & {
+    background: linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%);
+  }
+}
+
+// ==============================================
 // Responsive Behavior
 // ==============================================
 @media (max-width: 600px) {

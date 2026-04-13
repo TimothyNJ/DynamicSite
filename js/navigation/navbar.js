@@ -2,6 +2,15 @@
 import * as router from "./router.js";
 
 let isMenuOpenedByClick = false;
+const overlay = document.querySelector(".collapsed-menu-overlay");
+
+function showOverlay() {
+  if (overlay) overlay.style.display = "block";
+}
+
+function hideOverlay() {
+  if (overlay) overlay.style.display = "none";
+}
 
 export function initializeNavbar() {
   const collapsedNavbar = document.querySelector(".collapsed-navbar");
@@ -13,6 +22,7 @@ export function initializeNavbar() {
       if (!isMenuOpenedByClick) {
         updateMenuContent();
         collapsedMenu.style.display = "flex";
+        showOverlay();
       }
     });
 
@@ -21,6 +31,7 @@ export function initializeNavbar() {
         setTimeout(() => {
           if (!collapsedMenu.matches(":hover")) {
             collapsedMenu.style.display = "none";
+            hideOverlay();
           }
         }, 100);
       }
@@ -29,6 +40,7 @@ export function initializeNavbar() {
     collapsedMenu.addEventListener("mouseleave", () => {
       if (!isMenuOpenedByClick) {
         collapsedMenu.style.display = "none";
+        hideOverlay();
       }
     });
 
@@ -37,10 +49,12 @@ export function initializeNavbar() {
       event.stopPropagation();
       if (isMenuOpenedByClick) {
         collapsedMenu.style.display = "none";
+        hideOverlay();
         isMenuOpenedByClick = false;
       } else {
         updateMenuContent();
         collapsedMenu.style.display = "flex";
+        showOverlay();
         isMenuOpenedByClick = true;
       }
     });
@@ -49,6 +63,7 @@ export function initializeNavbar() {
     document.addEventListener("click", (event) => {
       if (isMenuOpenedByClick && !event.target.closest(".collapsed-menu")) {
         collapsedMenu.style.display = "none";
+        hideOverlay();
         isMenuOpenedByClick = false;
       }
     });
@@ -67,6 +82,7 @@ export function initializeNavbar() {
       const collapseBreakpoint = getCollapseBreakpoint();
       if (window.innerWidth > collapseBreakpoint) {
         collapsedMenu.style.display = "none";
+        hideOverlay();
         isMenuOpenedByClick = false;
       }
     });
@@ -118,6 +134,7 @@ export function updateMenuContent() {
       menuButton.onclick = () => {
         router.navigateToPage(pageName);
         collapsedMenu.style.display = "none";
+        hideOverlay();
         isMenuOpenedByClick = false;
       };
 
