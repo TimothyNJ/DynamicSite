@@ -22,7 +22,7 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  padding-top: 33.33vh;
+  padding-top: var(--sidenav-arrow-default-top);
   width: fit-content;
   flex: 0 1 auto;
   background-color: transparent;
@@ -91,54 +91,60 @@
 // ==============================================
 // Collapsible Sidenav Behaviour
 // ==============================================
-// Applied after a button is selected. Sidenav collapses to arrow tab,
-// expands on hover, collapses again when mouse leaves.
+// Controlled by JS via .collapsible and .expanded classes.
+// All timing values from CSS variables in _variables.scss.
+// Rules:
+//   Collapsed: buttons fade out, arrows appear, width shrinks
+//   Expanded: width grows, buttons fade in after expand, arrows hidden
 
 .sidenav.collapsible,
 .sidenav-secondary.collapsible {
-  width: 28px;
-  min-width: 28px;
+  width: var(--sidenav-collapsed-width);
+  min-width: var(--sidenav-collapsed-width);
   overflow: hidden;
-  transition: width 1.5s ease, min-width 1.5s ease;
+  transition: width var(--sidenav-shrink-duration) ease,
+              min-width var(--sidenav-shrink-duration) ease;
   position: relative;
   cursor: pointer;
 
-  // Fade buttons out slowly on collapse
+  // Buttons hidden when collapsed (fade out at fade-speed)
   .sidenav-button {
     opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity var(--sidenav-fade-speed) ease;
   }
 
-  // Arrow fades in slowly when collapsed
+  // Arrow visible when collapsed — appears instantly (no fade-in delay)
   &::after {
     content: '▶';
     position: absolute;
-    right: 6px;
-    top: 33.33vh;
+    right: 0.4em;
+    top: var(--sidenav-arrow-default-top);
     transform: translateY(-50%);
     font-size: 0.7em;
     color: white;
-    opacity: 0.6;
+    opacity: var(--sidenav-arrow-opacity);
     pointer-events: none;
-    transition: opacity 1s ease 1s;
+    transition: opacity 0s ease 0s;
   }
 
-  // Expand when .expanded class is set by JS
+  // Expanded state set by JS
   &.expanded {
     width: fit-content;
     min-width: fit-content;
     overflow: visible;
-    transition: width 0.3s ease, min-width 0.3s ease;
+    transition: width var(--sidenav-expand-duration) ease,
+                min-width var(--sidenav-expand-duration) ease;
 
-    // Fade buttons in after container finishes expanding
+    // Buttons fade in after expand finishes
     .sidenav-button {
       opacity: 1;
-      transition: opacity 0.2s ease 0.3s;
+      transition: opacity var(--sidenav-fade-speed) ease var(--sidenav-expand-duration);
     }
 
+    // Arrow hidden instantly when expanding
     &::after {
       opacity: 0;
-      transition: opacity 0.1s ease;
+      transition: opacity 0s ease 0s;
     }
   }
 }
@@ -151,7 +157,7 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  padding-top: 33.33vh;
+  padding-top: var(--sidenav-arrow-default-top);
   width: fit-content;
   flex: 0 1 auto;
   background-color: transparent;

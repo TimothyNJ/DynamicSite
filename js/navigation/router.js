@@ -236,13 +236,26 @@ export async function navigateToPage(pageName, pushState = true, subpage = null,
   }
 }
 
-// Initialize sidenav button click handlers for a parent page
+// Initialize sidenav button click handlers and hover logic for a parent page
 function initSidenav(pageName) {
-  // Start both sidenavs in collapsed state immediately to prevent flash
   const sidenav = document.querySelector('.sidenav');
   const secondary = document.querySelector('.sidenav-secondary');
-  if (sidenav) sidenav.classList.add('collapsible');
-  if (secondary) secondary.classList.add('collapsible');
+  const config = sidenavConfig[pageName];
+  if (!sidenav) return;
+
+  // --- Rule 3: Page Load ---
+  // Both sidenavs start collapsible but expanded. First button active.
+  // If button 1 has sub-subpages, sidenav2 is visible+expanded with first sub-subpage active.
+  // Collapse scheduled after --sidenav-collapse-delay.
+  sidenav.classList.add('collapsible', 'expanded');
+  if (secondary) {
+    secondary.classList.add('collapsible');
+    // Check if the default subpage has sub-subpages
+    const defaultSub = config?.defaultSub;
+    if (config?.subSubpages?.[defaultSub]) {
+      secondary.classList.add('visible', 'expanded');
+    }
+  }
 
   // Primary sidenav buttons
   const sidenavButtons = document.querySelectorAll('.sidenav-button[data-subpage]');
@@ -262,129 +275,134 @@ function initSidenav(pageName) {
     });
   });
 
-  // Set up independent hover expand/collapse for each sidenav
-  // and button hover detection for sidenav2 visibility
+  // Set up unified hover zone and collapse logic
   initSidenavHover(pageName);
 }
 
-// Sidenav hover management
-// Rules:
-// 1. Hovering a sidenav1 button with sub-subpages → sidenav2 visible AND expanded
-// 2. Active sidenav1 button has sub-subpages → hover on either sidenav expands sidenav2
-// 3. Sidenav2 has active button → hover on either sidenav expands both
+// ==============================================
+// Sidenav Hover / Collapse Logic
+// ==============================================
+// Implements the 5 consolidated rules:
+//
+// Rule 1 — Hover Zone:
+//   sidenav1, sidenav2, and left content buffer are a single hover zone.
+//   Mouse inside any = stay expanded. Mouse leaves all = start collapse-delay timer.
+//   Re-entering any zone cancels the timer.
+//
+// Rule 2 — Collapse Sequence (handled by CSS transitions):
+//   Buttons fade out (fade-speed), arrows appear (fade-speed),
+//   width shrinks (shrink-duration).
+//
+// Rule 3 — Page Load:
+//   Start expanded, schedule collapse after collapse-delay.
+//
+// Rule 4 — Sidenav1 button with sub-subpages (hover or click):
+//   sidenav2 becomes visible and expands (expand-duration),
+//   buttons fade in (fade-speed) after expand-duration delay.
+//
+// Rule 5 — Arrow/button position (handled by CSS):
+//   arrow-default-top if content fits, arrow-overflow-top if overflows.
 
 function initSidenavHover(pageName) {
   const sidenav = document.querySelector('.sidenav');
   const secondary = document.querySelector('.sidenav-secondary');
+  const contentBuffer = document.querySelector('.content-wrapper > .content-buffer:first-child');
   const config = sidenavConfig[pageName];
   if (!sidenav) return;
 
-  const timer1 = { id: null };
-  const timer2 = { id: null };
+  // Read collapse delay from CSS variable (fallback 2000ms)
+  const rootStyles = getComputedStyle(document.documentElement);
+  const collapseDelay = parseInt(rootStyles.getPropertyValue('--sidenav-collapse-delay'), 10) || 2000;
 
-  function cancelTimer(timerRef) {
-    if (timerRef.id) {
-      clearTimeout(timerRef.id);
-      timerRef.id = null;
+  // Single shared timer for the unified hover zone
+  let collapseTimerId = null;
+
+  function cancelCollapse() {
+    if (collapseTimerId) {
+      clearTimeout(collapseTimerId);
+      collapseTimerId = null;
     }
   }
 
-  function expandEl(el) {
-    if (el && el.classList.contains('collapsible')) {
-      el.classList.add('expanded');
+  function expandAll() {
+    // Expand sidenav1 always
+    sidenav.classList.add('expanded');
+
+    // Expand sidenav2 only if it's currently relevant (visible)
+    if (secondary && secondary.classList.contains('visible')) {
+      secondary.classList.add('expanded');
     }
   }
 
-  function scheduleCollapse(el, timerRef) {
-    cancelTimer(timerRef);
-    timerRef.id = setTimeout(() => {
-      if (el) el.classList.remove('expanded');
-      timerRef.id = null;
-    }, 1000);
-  }
-
-  function secondaryHasActive() {
-    return secondary && secondary.querySelector('.sidenav-button.active') !== null;
-  }
-
-  function activeSubpageHasSubSub() {
-    return config && config.subSubpages?.[activeSubpage];
-  }
-
-  // Sidenav1 mouseenter
-  sidenav.addEventListener('mouseenter', () => {
-    cancelTimer(timer1);
-    expandEl(sidenav);
-
-    // Rule 2: active button has sub-subpages → also expand sidenav2
-    // Rule 3: sidenav2 has active button → also expand sidenav2
-    if (secondary && (activeSubpageHasSubSub() || secondaryHasActive())) {
-      cancelTimer(timer2);
-      secondary.classList.add('visible');
-      expandEl(secondary);
-    }
-  });
-
-  // Sidenav1 mouseleave
-  sidenav.addEventListener('mouseleave', () => {
-    scheduleCollapse(sidenav, timer1);
-
-    // If sidenav2 was expanded due to sidenav1 hover, schedule its collapse too
-    if (secondary && secondary.classList.contains('expanded')) {
-      scheduleCollapse(secondary, timer2);
-    }
-
-    // Revert sidenav2 visibility to match active button
-    if (secondary && config) {
-      if (!activeSubpageHasSubSub()) {
+  function collapseAll() {
+    // Remove expanded — CSS transitions handle the fade/shrink sequence
+    sidenav.classList.remove('expanded');
+    if (secondary) {
+      secondary.classList.remove('expanded');
+      // If active subpage doesn't have sub-subpages, also hide sidenav2
+      if (!config?.subSubpages?.[activeSubpage]) {
         secondary.classList.remove('visible');
       }
     }
+  }
+
+  function scheduleCollapse() {
+    cancelCollapse();
+    collapseTimerId = setTimeout(() => {
+      collapseAll();
+      collapseTimerId = null;
+    }, collapseDelay);
+  }
+
+  // --- Rule 1: Unified hover zone ---
+  // mouseenter on any zone element → cancel timer, expand
+  // mouseleave on any zone element → if mouse didn't go to another zone element, schedule collapse
+
+  const zoneElements = [sidenav];
+  if (secondary) zoneElements.push(secondary);
+  if (contentBuffer) zoneElements.push(contentBuffer);
+
+  function isInZone(relatedTarget) {
+    if (!relatedTarget) return false;
+    return zoneElements.some(el => el === relatedTarget || el.contains(relatedTarget));
+  }
+
+  zoneElements.forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cancelCollapse();
+      expandAll();
+    });
+
+    el.addEventListener('mouseleave', (e) => {
+      // Only schedule collapse if mouse left the entire zone
+      if (!isInZone(e.relatedTarget)) {
+        scheduleCollapse();
+      }
+    });
   });
 
-  // Sidenav1 button hover → show/expand sidenav2 if button has sub-subpages
+  // --- Rule 4: Sidenav1 button hover/click with sub-subpages ---
+  // When hovering a sidenav1 button that has sub-subpages, sidenav2 becomes visible+expanded.
+  // When hovering a button without sub-subpages, hide sidenav2 (unless it has an active button
+  // for the current active subpage).
   if (secondary && config) {
     const buttons = sidenav.querySelectorAll('.sidenav-button[data-subpage]');
     buttons.forEach(button => {
       button.addEventListener('mouseenter', () => {
         const sub = button.getAttribute('data-subpage');
         if (config.subSubpages?.[sub]) {
-          // Rule 1: hovered button has sub-subpages → visible AND expanded
-          cancelTimer(timer2);
-          secondary.classList.add('visible');
-          expandEl(secondary);
-        } else {
-          // No sub-subpages for this button → hide sidenav2
-          secondary.classList.remove('visible');
-          secondary.classList.remove('expanded');
+          secondary.classList.add('visible', 'expanded');
+        } else if (!config.subSubpages?.[activeSubpage]) {
+          // Only hide if the active subpage also doesn't have sub-subpages
+          secondary.classList.remove('visible', 'expanded');
         }
       });
     });
   }
 
-  if (secondary) {
-    // Sidenav2 mouseenter
-    secondary.addEventListener('mouseenter', () => {
-      cancelTimer(timer2);
-      expandEl(secondary);
-
-      // Rule 3: sidenav2 has active button → also expand sidenav1
-      if (secondaryHasActive()) {
-        cancelTimer(timer1);
-        expandEl(sidenav);
-      }
-    });
-
-    // Sidenav2 mouseleave
-    secondary.addEventListener('mouseleave', () => {
-      scheduleCollapse(secondary, timer2);
-
-      // If sidenav1 was expanded due to sidenav2 hover, schedule its collapse too
-      if (secondaryHasActive() && sidenav.classList.contains('expanded')) {
-        scheduleCollapse(sidenav, timer1);
-      }
-    });
-  }
+  // --- Rule 3: Page load auto-collapse ---
+  // Schedule the first collapse after collapse-delay (same as mouse leaving the zone)
+  scheduleCollapse();
 }
 
 // Load a subpage into the sidenav-content area
@@ -400,9 +418,9 @@ async function loadSubpage(pageName, subpage, pushState = true, subsubpage = nul
   const subSubConfig = config.subSubpages?.[subpage];
   if (secondarySidenav) {
     if (subSubConfig) {
-      secondarySidenav.classList.add('visible');
+      secondarySidenav.classList.add('visible', 'expanded');
     } else {
-      secondarySidenav.classList.remove('visible');
+      secondarySidenav.classList.remove('visible', 'expanded');
     }
   }
 
@@ -419,10 +437,6 @@ async function loadSubpage(pageName, subpage, pushState = true, subsubpage = nul
         btn.classList.remove('active');
       }
     });
-
-    // Make primary sidenav collapsible after selection
-    const sidenav = document.querySelector('.sidenav');
-    if (sidenav) sidenav.classList.add('collapsible');
 
     await loadSubSubpage(pageName, subpage, targetSubSub, pushState);
     return;
@@ -453,14 +467,6 @@ async function loadSubpage(pageName, subpage, pushState = true, subsubpage = nul
         btn.classList.remove('active');
       }
     });
-
-    // Make primary sidenav collapsible after selection
-    const sidenav = document.querySelector('.sidenav');
-    if (sidenav) sidenav.classList.add('collapsible');
-
-    // Remove collapsible from secondary sidenav (no sub-subpage selected)
-    const secondaryNav = document.querySelector('.sidenav-secondary');
-    if (secondaryNav) secondaryNav.classList.remove('collapsible');
 
     // Build the URL hash — use alias if one exists, otherwise use pageName
     const reverseAlias = Object.entries(hashAliasMap).find(([, v]) => v === pageName);
@@ -511,10 +517,6 @@ async function loadSubSubpage(pageName, subpage, subsubpage, pushState = true) {
         btn.classList.remove('active');
       }
     });
-
-    // Make secondary sidenav collapsible after selection
-    const secondaryNav = document.querySelector('.sidenav-secondary');
-    if (secondaryNav) secondaryNav.classList.add('collapsible');
 
     // Build the URL hash
     const reverseAlias = Object.entries(hashAliasMap).find(([, v]) => v === pageName);

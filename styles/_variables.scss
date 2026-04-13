@@ -186,6 +186,16 @@ $z-index-tooltip: 1070;
   --nav-divider-height: 100%;
   --sidenav-divider-color: var(--active-button-end);
   --sidenav-divider-width: 100%;
+
+  // Sidenav Collapsible Behaviour
+  --sidenav-collapse-delay: 2000ms;
+  --sidenav-fade-speed: 150ms;
+  --sidenav-shrink-duration: 1500ms;
+  --sidenav-expand-duration: 300ms;
+  --sidenav-collapsed-width: 2em;
+  --sidenav-arrow-opacity: 0.6;
+  --sidenav-arrow-default-top: 33.33vh;
+  --sidenav-arrow-overflow-top: 0.6em;
   
   // Text Colors
   --text-primary: #{$text-primary};
