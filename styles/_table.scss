@@ -103,15 +103,5 @@
   border: 1px solid pink;
 }
 
-// Slot where the button_component_engine renders the circle button
-.table-button-slot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  max-width: 100%;
-  flex: 0 1 auto;
-  margin: 0 auto;
-  box-sizing: border-box;
-  border: 1px solid red;
-}
+// Button slot: the engine adds .button-container to this element at render time;
+// all container styling comes from _buttons.scss. No local rules needed.
