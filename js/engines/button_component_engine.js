@@ -61,23 +61,23 @@ class button_component_engine {
   }
   
   /**
-   * Ensure button is circular.
-   *
-   * Previously this wrote inline `width` and `height` in px after the first
-   * paint, which locked the circle to a fixed pixel size and prevented it
-   * from flexing with the viewport (the glyph inside still flexed via
-   * `--component-font-size` clamp, but the container did not).
-   *
-   * CSS now handles circularity: `.button-component.button-circle` sets
-   * `width: auto; height: auto; aspect-ratio: 1;`. The invisible `<h3>•</h3>`
-   * inside drives the content size (via `--component-font-size`), and
-   * `aspect-ratio: 1` keeps the button square as that size changes with
-   * viewport. No inline style writes are needed.
-   *
-   * Kept as a no-op so external callers (e.g., setText) don't break.
+   * Ensure button is circular when width < height
    */
   ensureCircular() {
-    // CSS-driven: see `.button-component.button-circle` in _buttons.scss.
+    // Use requestAnimationFrame to ensure DOM has rendered
+    requestAnimationFrame(() => {
+      if (!this.element) return;
+      
+      const height = this.element.offsetHeight;
+      const width = this.element.offsetWidth;
+      
+      // Make it circular by setting both dimensions to the larger value
+      if (height !== width) {
+        const size = Math.max(height, width);
+        this.element.style.width = `${size}px`;
+        this.element.style.height = `${size}px`;
+      }
+    });
   }
   
   /**
