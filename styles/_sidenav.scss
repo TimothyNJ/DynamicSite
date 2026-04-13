@@ -20,8 +20,9 @@
 .sidenav {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
+  padding-top: 33.33vh;
   width: fit-content;
   flex: 0 1 auto;
   background-color: transparent;
@@ -113,7 +114,7 @@
     content: '▶';
     position: absolute;
     right: 6px;
-    top: 50%;
+    top: 33.33vh;
     transform: translateY(-50%);
     font-size: 0.7em;
     color: white;
@@ -151,7 +152,6 @@
     transition: opacity 0.2s ease 0.3s;
   }
 
-  &::before,
   &::after {
     opacity: 0;
   }
@@ -163,8 +163,9 @@
 .sidenav-secondary {
   display: none;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
+  padding-top: 33.33vh;
   width: fit-content;
   flex: 0 1 auto;
   background-color: transparent;
