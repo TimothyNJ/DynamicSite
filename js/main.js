@@ -830,11 +830,11 @@ function updateNavigationForAuthState() {
     if (isAuth) {
       const userInfo = getUserInfo();
       const loginName = userInfo?.preferred_username || userInfo?.email || 'Settings';
-      settingsButton.textContent = loginName + ' ';
+      settingsButton.textContent = '';
       const slidersSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       slidersSvg.setAttribute('viewBox', '0 0 5 20');
-      slidersSvg.setAttribute('width', '0.85em');
-      slidersSvg.setAttribute('height', '0.85em');
+      slidersSvg.setAttribute('width', '0.9em');
+      slidersSvg.setAttribute('height', '0.9em');
       slidersSvg.style.verticalAlign = 'baseline';
       slidersSvg.style.display = 'inline-block';
       slidersSvg.innerHTML = `
@@ -843,6 +843,7 @@ function updateNavigationForAuthState() {
         <circle cx="2.5" cy="17.5" r="2.5" fill="currentColor"/>
       `;
       settingsButton.appendChild(slidersSvg);
+      settingsButton.appendChild(document.createTextNode(' ' + loginName));
     } else {
       settingsButton.textContent = 'Settings';
     }
@@ -851,11 +852,11 @@ function updateNavigationForAuthState() {
   // Update Home button with house icon
   const homeButton = document.querySelector('.nav-container button[data-page="home"] h3');
   if (homeButton) {
-    homeButton.textContent = 'Home ';
+    homeButton.textContent = '';
     const homeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     homeSvg.setAttribute('viewBox', '0 3 84 84');
-    homeSvg.setAttribute('width', '0.85em');
-    homeSvg.setAttribute('height', '0.85em');
+    homeSvg.setAttribute('width', '0.9em');
+    homeSvg.setAttribute('height', '0.9em');
     homeSvg.style.verticalAlign = 'baseline';
     homeSvg.style.display = 'inline-block';
     homeSvg.innerHTML = `
@@ -867,6 +868,7 @@ function updateNavigationForAuthState() {
       <line x1="12" y1="84" x2="72" y2="84" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
     `;
     homeButton.appendChild(homeSvg);
+    homeButton.appendChild(document.createTextNode(' Home'));
   }
 
   // Refresh the dropdown menu to respect auth-hidden class
