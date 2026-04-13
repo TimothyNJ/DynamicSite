@@ -390,9 +390,13 @@ function initSidenavHover(pageName) {
     sidenav.classList.remove('expanded');
     if (secondary) {
       secondary.classList.remove('expanded');
-      // Restore to active state before collapsing
-      restoreActiveSecondary();
-      if (!config?.subSubpages?.[activeSubpage]) {
+      // Restore content to active state (so it's correct when re-expanded),
+      // but keep it collapsed
+      if (config?.subSubpages?.[activeSubpage]) {
+        renderSecondaryNav(pageName, activeSubpage);
+        // visible but not expanded — CSS handles the collapsed width
+      } else {
+        secondary.innerHTML = '';
         secondary.classList.remove('visible');
       }
     }
