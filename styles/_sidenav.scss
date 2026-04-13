@@ -88,6 +88,47 @@
 }
 
 // ==============================================
+// Collapsible Sidenav Behaviour
+// ==============================================
+// Applied after a button is selected. Sidenav collapses to arrow tab,
+// expands on hover, collapses again when mouse leaves.
+
+.sidenav.collapsible,
+.sidenav-secondary.collapsible {
+  width: 28px;
+  min-width: 28px;
+  overflow: hidden;
+  transition: width 0.3s ease, min-width 0.3s ease;
+  position: relative;
+  cursor: pointer;
+
+  // Arrow indicator visible when collapsed
+  &::after {
+    content: '▶';
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7em;
+    color: white;
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  // Expand on hover
+  &:hover {
+    width: fit-content;
+    min-width: fit-content;
+    overflow: visible;
+
+    &::after {
+      opacity: 0;
+    }
+  }
+}
+
+// ==============================================
 // Secondary Side Navigation Panel (sub-subpages)
 // ==============================================
 .sidenav-secondary {

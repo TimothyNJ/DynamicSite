@@ -290,6 +290,10 @@ async function loadSubpage(pageName, subpage, pushState = true, subsubpage = nul
       }
     });
 
+    // Make primary sidenav collapsible after selection
+    const sidenav = document.querySelector('.sidenav');
+    if (sidenav) sidenav.classList.add('collapsible');
+
     await loadSubSubpage(pageName, subpage, targetSubSub, pushState);
     return;
   }
@@ -319,6 +323,14 @@ async function loadSubpage(pageName, subpage, pushState = true, subsubpage = nul
         btn.classList.remove('active');
       }
     });
+
+    // Make primary sidenav collapsible after selection
+    const sidenav = document.querySelector('.sidenav');
+    if (sidenav) sidenav.classList.add('collapsible');
+
+    // Remove collapsible from secondary sidenav (no sub-subpage selected)
+    const secondaryNav = document.querySelector('.sidenav-secondary');
+    if (secondaryNav) secondaryNav.classList.remove('collapsible');
 
     // Build the URL hash — use alias if one exists, otherwise use pageName
     const reverseAlias = Object.entries(hashAliasMap).find(([, v]) => v === pageName);
@@ -369,6 +381,10 @@ async function loadSubSubpage(pageName, subpage, subsubpage, pushState = true) {
         btn.classList.remove('active');
       }
     });
+
+    // Make secondary sidenav collapsible after selection
+    const secondaryNav = document.querySelector('.sidenav-secondary');
+    if (secondaryNav) secondaryNav.classList.add('collapsible');
 
     // Build the URL hash
     const reverseAlias = Object.entries(hashAliasMap).find(([, v]) => v === pageName);
