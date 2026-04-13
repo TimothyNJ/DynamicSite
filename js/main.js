@@ -610,27 +610,6 @@ function initializeSettingsComponents() {
       }
     });
     
-    // Size Guides and Borders Button
-    componentFactory.createButton('borders-toggle-button-container', {
-      id: 'borders-toggle-button',
-      text: 'Size Guides and Borders',
-      value: 'toggle-borders',
-      onClick: () => {
-        // Call the global toggleBorders function from script.js
-        if (window.toggleBorders) {
-          window.toggleBorders();
-          
-          // Save the state - check if borders are currently hidden
-          const siteContainer = document.querySelector('.site-container');
-          const bordersHidden = siteContainer && siteContainer.classList.contains('borders-hidden');
-          localStorage.setItem('showBorders', bordersHidden ? 'false' : 'true');
-          console.log('[Borders Toggle] Borders are now:', bordersHidden ? 'hidden' : 'visible');
-        } else {
-          console.error('[Borders Toggle] toggleBorders function not found');
-        }
-      }
-    });
-    
     console.log('[Settings Page] All components initialized successfully');
     
   } catch (error) {
@@ -693,6 +672,31 @@ function initializeEnginesViewComponents() {
   }
 }
 
+// Site Settings page initialization (development/site-settings)
+function initializeSiteSettingsComponents() {
+  if (!window.componentFactory) {
+    console.error('[Site Settings] ComponentFactory not available');
+    return;
+  }
+
+  componentFactory.createButton('borders-toggle-button-container', {
+    id: 'borders-toggle-button',
+    text: 'Size Guides and Borders',
+    value: 'toggle-borders',
+    onClick: () => {
+      if (window.toggleBorders) {
+        window.toggleBorders();
+        const siteContainer = document.querySelector('.site-container');
+        const bordersHidden = siteContainer && siteContainer.classList.contains('borders-hidden');
+        localStorage.setItem('showBorders', bordersHidden ? 'false' : 'true');
+        console.log('[Borders Toggle] Borders are now:', bordersHidden ? 'hidden' : 'visible');
+      } else {
+        console.error('[Borders Toggle] toggleBorders function not found');
+      }
+    }
+  });
+}
+
 // Component initialization function for router
 window.initializePageComponents = function(pageName) {
   console.log(`[main.js] Initializing components for page: ${pageName}`);
@@ -735,13 +739,18 @@ window.initializePageComponents = function(pageName) {
 // Subpage-specific initialization — fires when router loads subpage/sub-subpage content
 document.addEventListener('subpageLoaded', (e) => {
   const { page, subpage } = e.detail;
-  if (page === 'development' && subpage === 'engines') {
-    // Defer to next frame so the DOM layout is settled before component init
-    requestAnimationFrame(() => {
+  if (page !== 'development') return;
+
+  // Defer to next frame so the DOM layout is settled before component init
+  requestAnimationFrame(() => {
+    if (subpage === 'engines') {
       console.log('[main.js] Initializing engines components (development/engines)');
       initializeEnginesViewComponents();
-    });
-  }
+    } else if (subpage === 'site-settings') {
+      console.log('[main.js] Initializing site settings (development/site-settings)');
+      initializeSiteSettingsComponents();
+    }
+  });
 });
 
 console.log('[main.js] ES6 modules imported successfully');
