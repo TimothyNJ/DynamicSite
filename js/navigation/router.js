@@ -252,9 +252,9 @@ function initSidenav(pageName) {
   sidenav.classList.add('collapsible', 'expanded');
   if (secondary) {
     secondary.classList.add('collapsible');
-    // Check if the default subpage has sub-subpages
     const defaultSub = config?.defaultSub;
     if (config?.subSubpages?.[defaultSub]) {
+      renderSecondaryNav(pageName, defaultSub);
       secondary.classList.add('visible', 'expanded');
     }
   }
@@ -268,19 +268,54 @@ function initSidenav(pageName) {
     });
   });
 
-  // Secondary sidenav buttons (sub-subpages)
-  // Use hoveredSubpage if set (user hovering a sidenav1 button), otherwise activeSubpage
-  const subSubButtons = document.querySelectorAll('.sidenav-button[data-subsubpage]');
-  subSubButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const subsub = button.getAttribute('data-subsubpage');
-      const parentSub = hoveredSubpage || activeSubpage;
-      loadSubpage(pageName, parentSub, true, subsub);
-    });
-  });
-
   // Set up unified hover zone and collapse logic
   initSidenavHover(pageName);
+}
+
+// Dynamically populate sidenav2 with buttons for a given subpage's sub-subpages.
+// If the subpage has no sub-subpages, sidenav2 is cleared and hidden.
+// Preserves active state on the active sub-subpage button.
+function renderSecondaryNav(pageName, forSubpage) {
+  const secondary = document.querySelector('.sidenav-secondary');
+  const config = sidenavConfig[pageName];
+  if (!secondary || !config) return;
+
+  const subSubConfig = config.subSubpages?.[forSubpage];
+
+  if (!subSubConfig) {
+    // No sub-subpages — clear and hide
+    secondary.innerHTML = '';
+    secondary.classList.remove('visible', 'expanded');
+    return;
+  }
+
+  // Build buttons from config
+  secondary.innerHTML = '';
+  subSubConfig.items.forEach(item => {
+    const button = document.createElement('button');
+    button.className = 'sidenav-button';
+    button.setAttribute('data-subsubpage', item);
+
+    // Preserve active state if this is the currently active sub-subpage
+    // AND we're rendering for the active subpage
+    if (forSubpage === activeSubpage && item === activeSubSubpage) {
+      button.classList.add('active');
+    }
+
+    const h3 = document.createElement('h3');
+    // Format item name: "bank-validations" → "Bank Validations"
+    h3.textContent = item.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    button.appendChild(h3);
+
+    // Click handler — activate this sub-subpage under its parent
+    button.addEventListener('click', () => {
+      loadSubpage(pageName, forSubpage, true, item);
+    });
+
+    secondary.appendChild(button);
+  });
+
+  secondary.classList.add('visible');
 }
 
 // ==============================================
@@ -328,6 +363,17 @@ function initSidenavHover(pageName) {
     }
   }
 
+  // Restore sidenav2 to show the active subpage's sub-subpages
+  function restoreActiveSecondary() {
+    if (!secondary) return;
+    if (config?.subSubpages?.[activeSubpage]) {
+      renderSecondaryNav(pageName, activeSubpage);
+      secondary.classList.add('visible', 'expanded');
+    } else {
+      renderSecondaryNav(pageName, null);
+    }
+  }
+
   function expandAll() {
     // Expand sidenav1 always
     sidenav.classList.add('expanded');
@@ -344,7 +390,8 @@ function initSidenavHover(pageName) {
     sidenav.classList.remove('expanded');
     if (secondary) {
       secondary.classList.remove('expanded');
-      // If active subpage doesn't have sub-subpages, also hide sidenav2
+      // Restore to active state before collapsing
+      restoreActiveSecondary();
       if (!config?.subSubpages?.[activeSubpage]) {
         secondary.classList.remove('visible');
       }
@@ -372,42 +419,43 @@ function initSidenavHover(pageName) {
     return zoneElements.some(el => el === relatedTarget || el.contains(relatedTarget));
   }
 
-  zoneElements.forEach(el => {
+  // Sidenav1: just expand (button hover handles sidenav2 content)
+  sidenav.addEventListener('mouseenter', () => {
+    cancelCollapse();
+    expandAll();
+  });
+  sidenav.addEventListener('mouseleave', (e) => {
+    if (!isInZone(e.relatedTarget)) scheduleCollapse();
+  });
+
+  // Sidenav2 and left buffer: restore active state on enter
+  [secondary, contentBuffer].forEach(el => {
+    if (!el) return;
     el.addEventListener('mouseenter', () => {
       cancelCollapse();
+      hoveredSubpage = null;
+      restoreActiveSecondary();
       expandAll();
     });
-
     el.addEventListener('mouseleave', (e) => {
-      // Only schedule collapse if mouse left the entire zone
-      if (!isInZone(e.relatedTarget)) {
-        scheduleCollapse();
-      }
+      if (!isInZone(e.relatedTarget)) scheduleCollapse();
     });
   });
 
-  // --- Rule 4: Sidenav1 button hover/click with sub-subpages ---
-  // When hovering a sidenav1 button that has sub-subpages, sidenav2 becomes visible+expanded.
-  // When hovering a button without sub-subpages, hide sidenav2 (unless it has an active button
-  // for the current active subpage).
+  // --- Rule 4: Sidenav1 button hover — live preview of sub-subpages ---
+  // Hovering a sidenav1 button dynamically renders sidenav2 for that button's children.
+  // If the button has no sub-subpages, sidenav2 hides.
   if (secondary && config) {
     const buttons = sidenav.querySelectorAll('.sidenav-button[data-subpage]');
     buttons.forEach(button => {
       button.addEventListener('mouseenter', () => {
         const sub = button.getAttribute('data-subpage');
-        if (config.subSubpages?.[sub]) {
-          hoveredSubpage = sub;
-          secondary.classList.add('visible', 'expanded');
-        } else {
-          hoveredSubpage = null;
-          if (!config.subSubpages?.[activeSubpage]) {
-            // Only hide if the active subpage also doesn't have sub-subpages
-            secondary.classList.remove('visible', 'expanded');
-          }
+        hoveredSubpage = config.subSubpages?.[sub] ? sub : null;
+        renderSecondaryNav(pageName, sub);
+        if (secondary.classList.contains('visible')) {
+          secondary.classList.add('expanded');
         }
       });
-      // hoveredSubpage is cleared in collapseAll or when another button is hovered,
-      // NOT on mouseleave — so it persists while the user moves to sidenav2
     });
   }
 
@@ -424,15 +472,12 @@ async function loadSubpage(pageName, subpage, pushState = true, subsubpage = nul
     return;
   }
 
-  // Show/hide secondary sidenav based on whether this subpage has sub-subpages
+  // Render secondary sidenav for this subpage (dynamic content)
+  renderSecondaryNav(pageName, subpage);
   const secondarySidenav = document.querySelector('.sidenav-secondary');
   const subSubConfig = config.subSubpages?.[subpage];
-  if (secondarySidenav) {
-    if (subSubConfig) {
-      secondarySidenav.classList.add('visible', 'expanded');
-    } else {
-      secondarySidenav.classList.remove('visible', 'expanded');
-    }
+  if (secondarySidenav && subSubConfig) {
+    secondarySidenav.classList.add('expanded');
   }
 
   // If this subpage has sub-subpages, load the sub-subpage instead of the subpage itself
