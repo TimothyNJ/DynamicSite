@@ -856,11 +856,12 @@ function updateNavigationForAuthState() {
   if (homeButton) {
     homeButton.textContent = 'Home ';
     const homeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    homeSvg.setAttribute('viewBox', '0 3 84 84');
+    homeSvg.setAttribute('viewBox', '0 6 84 78');
     homeSvg.setAttribute('width', '1em');
     homeSvg.setAttribute('height', '1em');
     homeSvg.style.verticalAlign = 'text-bottom';
     homeSvg.style.display = 'inline-block';
+    homeSvg.style.transform = 'translateY(0.1em)';
     homeSvg.innerHTML = `
       <line x1="4" y1="46" x2="42" y2="6" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
       <line x1="42" y1="6" x2="80" y2="46" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
