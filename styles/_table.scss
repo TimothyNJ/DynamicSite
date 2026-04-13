@@ -14,6 +14,7 @@
   justify-content: center;
   width: fit-content;
   max-width: 100%;
+  min-width: 0; // Allow children to shrink below their intrinsic min-content
   flex: 0 1 auto;
   margin: 0 auto;
   box-sizing: border-box;
@@ -45,6 +46,7 @@
   justify-content: center;
   width: fit-content;
   max-width: 100%;
+  min-width: 0; // Allow the <table> inside to shrink when the viewport is narrower
   flex: 0 1 auto;
   margin: 0 auto;
   box-sizing: border-box;
@@ -58,8 +60,9 @@
   border-collapse: separate;
   border-spacing: 0;
   width: fit-content;
+  max-width: 100%; // Table cannot exceed its container; triggers column squeeze under pressure
   margin: 0 auto;
-  table-layout: auto;
+  table-layout: auto; // Each column sized to its own content (headers + buttons)
   text-align: center;
   border: 1px solid orange;
 }

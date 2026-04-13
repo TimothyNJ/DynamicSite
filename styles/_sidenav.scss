@@ -172,6 +172,7 @@
 // ==============================================
 .sidenav-content {
   flex: 1;
+  min-width: 0; // Allow flex children to shrink below their intrinsic min-content
   display: flex;
   flex-direction: column;
   justify-content: center;
