@@ -131,8 +131,9 @@
     transform: translateY(-50%);
   }
 
-  // Expand on hover
-  &:hover {
+  // Expand on hover or when .expanded class is set (e.g., buffer hover)
+  &:hover,
+  &.expanded {
     width: fit-content;
     min-width: fit-content;
     overflow: visible;
@@ -150,8 +151,9 @@
   }
 }
 
-// When primary sidenav is hovered, also expand secondary sidenav
-.sidenav.collapsible:hover ~ .sidenav-secondary.collapsible {
+// When primary sidenav is hovered/expanded, also expand secondary sidenav
+.sidenav.collapsible:hover ~ .sidenav-secondary.collapsible,
+.sidenav.collapsible.expanded ~ .sidenav-secondary.collapsible {
   width: fit-content;
   min-width: fit-content;
   overflow: visible;
