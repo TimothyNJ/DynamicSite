@@ -267,63 +267,121 @@ function initSidenav(pageName) {
   initSidenavHover(pageName);
 }
 
-// Independent hover management for each sidenav
-let sidenav1CollapseTimer = null;
-let sidenav2CollapseTimer = null;
-
-function setupCollapseHover(el, timerRef) {
-  if (!el) return;
-
-  el.addEventListener('mouseenter', () => {
-    if (timerRef.id) {
-      clearTimeout(timerRef.id);
-      timerRef.id = null;
-    }
-    if (el.classList.contains('collapsible')) {
-      el.classList.add('expanded');
-    }
-  });
-
-  el.addEventListener('mouseleave', () => {
-    if (timerRef.id) clearTimeout(timerRef.id);
-    timerRef.id = setTimeout(() => {
-      el.classList.remove('expanded');
-      timerRef.id = null;
-    }, 1000);
-  });
-}
+// Sidenav hover management
+// Rules:
+// 1. Hovering a sidenav1 button with sub-subpages → sidenav2 visible AND expanded
+// 2. Active sidenav1 button has sub-subpages → hover on either sidenav expands sidenav2
+// 3. Sidenav2 has active button → hover on either sidenav expands both
 
 function initSidenavHover(pageName) {
   const sidenav = document.querySelector('.sidenav');
   const secondary = document.querySelector('.sidenav-secondary');
   const config = sidenavConfig[pageName];
+  if (!sidenav) return;
 
-  // Each sidenav expands/collapses independently
   const timer1 = { id: null };
   const timer2 = { id: null };
-  setupCollapseHover(sidenav, timer1);
-  setupCollapseHover(secondary, timer2);
 
-  // When hovering a sidenav1 button, show/hide sidenav2 based on sub-subpages
-  if (sidenav && secondary && config) {
+  function cancelTimer(timerRef) {
+    if (timerRef.id) {
+      clearTimeout(timerRef.id);
+      timerRef.id = null;
+    }
+  }
+
+  function expandEl(el) {
+    if (el && el.classList.contains('collapsible')) {
+      el.classList.add('expanded');
+    }
+  }
+
+  function scheduleCollapse(el, timerRef) {
+    cancelTimer(timerRef);
+    timerRef.id = setTimeout(() => {
+      if (el) el.classList.remove('expanded');
+      timerRef.id = null;
+    }, 1000);
+  }
+
+  function secondaryHasActive() {
+    return secondary && secondary.querySelector('.sidenav-button.active') !== null;
+  }
+
+  function activeSubpageHasSubSub() {
+    return config && config.subSubpages?.[activeSubpage];
+  }
+
+  // Sidenav1 mouseenter
+  sidenav.addEventListener('mouseenter', () => {
+    cancelTimer(timer1);
+    expandEl(sidenav);
+
+    // Rule 2: active button has sub-subpages → also expand sidenav2
+    // Rule 3: sidenav2 has active button → also expand sidenav2
+    if (secondary && (activeSubpageHasSubSub() || secondaryHasActive())) {
+      cancelTimer(timer2);
+      secondary.classList.add('visible');
+      expandEl(secondary);
+    }
+  });
+
+  // Sidenav1 mouseleave
+  sidenav.addEventListener('mouseleave', () => {
+    scheduleCollapse(sidenav, timer1);
+
+    // If sidenav2 was expanded due to sidenav1 hover, schedule its collapse too
+    if (secondary && secondary.classList.contains('expanded')) {
+      scheduleCollapse(secondary, timer2);
+    }
+
+    // Revert sidenav2 visibility to match active button
+    if (secondary && config) {
+      if (!activeSubpageHasSubSub()) {
+        secondary.classList.remove('visible');
+      }
+    }
+  });
+
+  // Sidenav1 button hover → show/expand sidenav2 if button has sub-subpages
+  if (secondary && config) {
     const buttons = sidenav.querySelectorAll('.sidenav-button[data-subpage]');
     buttons.forEach(button => {
       button.addEventListener('mouseenter', () => {
         const sub = button.getAttribute('data-subpage');
         if (config.subSubpages?.[sub]) {
+          // Rule 1: hovered button has sub-subpages → visible AND expanded
+          cancelTimer(timer2);
           secondary.classList.add('visible');
+          expandEl(secondary);
         } else {
+          // No sub-subpages for this button → hide sidenav2
           secondary.classList.remove('visible');
+          secondary.classList.remove('expanded');
         }
       });
     });
+  }
 
-    // When mouse leaves sidenav1, revert sidenav2 visibility to match active button
-    sidenav.addEventListener('mouseleave', () => {
-      if (config.subSubpages?.[activeSubpage]) {
-        secondary.classList.add('visible');
-      } else {
-        secondary.classList.remove('visible');
+  if (secondary) {
+    // Sidenav2 mouseenter
+    secondary.addEventListener('mouseenter', () => {
+      cancelTimer(timer2);
+      expandEl(secondary);
+
+      // Rule 3: sidenav2 has active button → also expand sidenav1
+      if (secondaryHasActive()) {
+        cancelTimer(timer1);
+        expandEl(sidenav);
+      }
+    });
+
+    // Sidenav2 mouseleave
+    secondary.addEventListener('mouseleave', () => {
+      scheduleCollapse(secondary, timer2);
+
+      // If sidenav1 was expanded due to sidenav2 hover, schedule its collapse too
+      if (secondaryHasActive() && sidenav.classList.contains('expanded')) {
+        scheduleCollapse(sidenav, timer1);
       }
     });
   }
