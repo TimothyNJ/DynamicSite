@@ -835,7 +835,7 @@ function updateNavigationForAuthState() {
       slidersSvg.setAttribute('viewBox', '0 0 24 24');
       slidersSvg.setAttribute('width', '1em');
       slidersSvg.setAttribute('height', '1em');
-      slidersSvg.style.verticalAlign = 'text-bottom';
+      slidersSvg.style.verticalAlign = 'baseline';
       slidersSvg.style.display = 'inline-block';
       slidersSvg.innerHTML = `
         <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -859,7 +859,7 @@ function updateNavigationForAuthState() {
     homeSvg.setAttribute('viewBox', '0 3 84 84');
     homeSvg.setAttribute('width', '1em');
     homeSvg.setAttribute('height', '1em');
-    homeSvg.style.verticalAlign = 'text-bottom';
+    homeSvg.style.verticalAlign = 'baseline';
     homeSvg.style.display = 'inline-block';
     homeSvg.innerHTML = `
       <line x1="4" y1="46" x2="42" y2="6" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
