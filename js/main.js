@@ -833,8 +833,8 @@ function updateNavigationForAuthState() {
       settingsButton.textContent = loginName + ' ';
       const slidersSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       slidersSvg.setAttribute('viewBox', '0 0 5 20');
-      slidersSvg.setAttribute('width', '1em');
-      slidersSvg.setAttribute('height', '1em');
+      slidersSvg.setAttribute('width', '0.85em');
+      slidersSvg.setAttribute('height', '0.85em');
       slidersSvg.style.verticalAlign = 'baseline';
       slidersSvg.style.display = 'inline-block';
       slidersSvg.innerHTML = `
@@ -854,8 +854,8 @@ function updateNavigationForAuthState() {
     homeButton.textContent = 'Home ';
     const homeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     homeSvg.setAttribute('viewBox', '0 3 84 84');
-    homeSvg.setAttribute('width', '1em');
-    homeSvg.setAttribute('height', '1em');
+    homeSvg.setAttribute('width', '0.85em');
+    homeSvg.setAttribute('height', '0.85em');
     homeSvg.style.verticalAlign = 'baseline';
     homeSvg.style.display = 'inline-block';
     homeSvg.innerHTML = `
