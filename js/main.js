@@ -84,9 +84,6 @@ import { initializeComponents } from './loader/component-loader.js';
 import { initializeNavbar } from './navigation/navbar.js';
 import { initRouter, registerPageCleanup } from './navigation/router.js';
 
-// Page-specific modules
-import { initUserManagementTable, cleanupUserManagementTable } from './pages/user-management-table.js';
-
 // Make factory and cleanup registration available for pages that need it
 window.componentFactory = componentFactory;
 window.registerPageCleanup = registerPageCleanup;
@@ -825,9 +822,6 @@ document.addEventListener('subpageLoaded', (e) => {
       if (subpage === 'system-roles') {
         console.log('[main.js] Initializing system roles (users/system-roles)');
         initializeSystemRoles();
-      } else if (subpage === 'org-roles-above-admin') {
-        console.log('[main.js] Initializing user management table (users/org-roles-above-admin)');
-        initUserManagementTable();
       }
     });
   }
