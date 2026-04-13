@@ -104,4 +104,9 @@
 }
 
 // Button slot: the engine adds .button-container to this element at render time;
-// all container styling comes from _buttons.scss. No local rules needed.
+// all container styling comes from _buttons.scss. We only override the default
+// bottom margin (var(--component-spacing)) for ANY button-container nested in a
+// table button cell, so future table buttons inherit this zero-gap behaviour.
+.table-button-cell .button-container {
+  margin: 0;
+}
