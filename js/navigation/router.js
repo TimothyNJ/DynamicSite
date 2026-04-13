@@ -59,9 +59,9 @@ const sidenavConfig = {
     subpages: ["individual-metrics", "team-metrics", "organisation-metrics"]
   },
   "development": {
-    defaultSub: "engines",
+    defaultSub: "site-settings",
     basePath: "pages/development",
-    subpages: ["engines", "site-settings", "infrastructure"]
+    subpages: ["site-settings", "engines", "infrastructure"]
   }
 };
 
