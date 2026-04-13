@@ -44,6 +44,8 @@ const sidenavConfig = {
 let activePage = null;
 let activeSubpage = null;
 let activeSubSubpage = null;
+// Track which sidenav1 button is being hovered (for sidenav2 click targeting)
+let hoveredSubpage = null;
 
 // Initialize the router
 export function initRouter() {
@@ -267,11 +269,13 @@ function initSidenav(pageName) {
   });
 
   // Secondary sidenav buttons (sub-subpages)
+  // Use hoveredSubpage if set (user hovering a sidenav1 button), otherwise activeSubpage
   const subSubButtons = document.querySelectorAll('.sidenav-button[data-subsubpage]');
   subSubButtons.forEach(button => {
     button.addEventListener('click', () => {
       const subsub = button.getAttribute('data-subsubpage');
-      loadSubSubpage(pageName, activeSubpage, subsub, true);
+      const parentSub = hoveredSubpage || activeSubpage;
+      loadSubpage(pageName, parentSub, true, subsub);
     });
   });
 
@@ -391,11 +395,18 @@ function initSidenavHover(pageName) {
       button.addEventListener('mouseenter', () => {
         const sub = button.getAttribute('data-subpage');
         if (config.subSubpages?.[sub]) {
+          hoveredSubpage = sub;
           secondary.classList.add('visible', 'expanded');
-        } else if (!config.subSubpages?.[activeSubpage]) {
-          // Only hide if the active subpage also doesn't have sub-subpages
-          secondary.classList.remove('visible', 'expanded');
+        } else {
+          hoveredSubpage = null;
+          if (!config.subSubpages?.[activeSubpage]) {
+            // Only hide if the active subpage also doesn't have sub-subpages
+            secondary.classList.remove('visible', 'expanded');
+          }
         }
+      });
+      button.addEventListener('mouseleave', () => {
+        hoveredSubpage = null;
       });
     });
   }
