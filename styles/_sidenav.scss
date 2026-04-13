@@ -98,7 +98,7 @@
   width: 28px;
   min-width: 28px;
   overflow: hidden;
-  transition: width 0.3s ease, min-width 0.3s ease;
+  transition: width 0.3s ease 0.3s, min-width 0.3s ease 0.3s;
   position: relative;
   cursor: pointer;
 
@@ -137,6 +137,7 @@
     width: fit-content;
     min-width: fit-content;
     overflow: visible;
+    transition: width 0.3s ease, min-width 0.3s ease; // no delay on expand
 
     // Fade buttons in after container finishes expanding
     .sidenav-button {
@@ -157,6 +158,7 @@
   width: fit-content;
   min-width: fit-content;
   overflow: visible;
+  transition: width 0.3s ease, min-width 0.3s ease; // no delay on expand
 
   .sidenav-button {
     opacity: 1;
