@@ -61,26 +61,6 @@ class button_component_engine {
   }
   
   /**
-   * Ensure button is circular when width < height
-   */
-  ensureCircular() {
-    // Use requestAnimationFrame to ensure DOM has rendered
-    requestAnimationFrame(() => {
-      if (!this.element) return;
-      
-      const height = this.element.offsetHeight;
-      const width = this.element.offsetWidth;
-      
-      // Make it circular by setting both dimensions to the larger value
-      if (height !== width) {
-        const size = Math.max(height, width);
-        this.element.style.width = `${size}px`;
-        this.element.style.height = `${size}px`;
-      }
-    });
-  }
-  
-  /**
    * Render the button into the specified container
    * @param {string|HTMLElement} container - Container ID or element
    * @returns {HTMLElement} The created button element
@@ -156,13 +136,9 @@ class button_component_engine {
     // Add to container
     this.container.appendChild(this.element);
     
-    // For default dot, ensure circular shape
-    if (this.isDefaultDot) {
-      this.ensureCircular();
-      // Ensure the button uses circular border radius
-      this.element.style.borderRadius = '50%';
-    }
-    
+    // Circle shape and size handled entirely in CSS via .button-circle rule.
+    // No JS sizing required — diameter = 1cap of current font.
+
     // Set initial state
     if (this.options.active) {
       this.setActive(true);
@@ -268,12 +244,11 @@ class button_component_engine {
       this.element.classList.remove('button-circle', 'button-text');
       if (this.isDefaultDot) {
         this.element.classList.add('button-circle');
-        this.ensureCircular(); // Make circular if needed
-        this.element.style.borderRadius = '50%'; // Ensure circular border
+        // Sizing and border-radius handled in CSS
       } else {
         this.element.classList.add('button-text');
-        this.element.style.width = ''; // Remove fixed width for text buttons
-        this.element.style.borderRadius = '9999px'; // Restore pill shape
+        this.element.style.width = ''; // Clear any stale inline width
+        this.element.style.height = ''; // Clear any stale inline height
       }
     }
     
