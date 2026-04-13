@@ -832,18 +832,15 @@ function updateNavigationForAuthState() {
       const loginName = userInfo?.preferred_username || userInfo?.email || 'Settings';
       settingsButton.textContent = loginName + ' ';
       const slidersSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      slidersSvg.setAttribute('viewBox', '0 0 24 24');
+      slidersSvg.setAttribute('viewBox', '0 0 5 20');
       slidersSvg.setAttribute('width', '1em');
       slidersSvg.setAttribute('height', '1em');
       slidersSvg.style.verticalAlign = 'baseline';
       slidersSvg.style.display = 'inline-block';
       slidersSvg.innerHTML = `
-        <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="9" cy="6" r="2.5" fill="currentColor"/>
-        <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="16" cy="12" r="2.5" fill="currentColor"/>
-        <line x1="4" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="11" cy="18" r="2.5" fill="currentColor"/>
+        <circle cx="2.5" cy="2.5" r="2.5" fill="currentColor"/>
+        <circle cx="2.5" cy="10" r="2.5" fill="currentColor"/>
+        <circle cx="2.5" cy="17.5" r="2.5" fill="currentColor"/>
       `;
       settingsButton.appendChild(slidersSvg);
     } else {
