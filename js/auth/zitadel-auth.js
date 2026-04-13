@@ -15,7 +15,7 @@
 
 const ZITADEL_ISSUER = 'https://dynamicsite-hgyhhz.us1.zitadel.cloud';
 const CLIENT_ID = '339931209931003985';
-const SCOPES = 'openid profile email offline_access urn:zitadel:iam:org:project:id:339930261431031889:aud';
+const SCOPES = 'openid profile email offline_access urn:zitadel:iam:org:project:id:339930261431031889:aud urn:zitadel:iam:org:project:id:zitadel:aud';
 
 function getRedirectUri() {
   return `${window.location.origin}/callback.html`;
