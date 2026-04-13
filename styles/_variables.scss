@@ -189,8 +189,8 @@ $z-index-tooltip: 1070;
 
   // Sidenav Collapsible Behaviour
   --sidenav-collapse-delay: 2000ms;
-  --sidenav-fade-speed: 150ms;
-  --sidenav-shrink-duration: 1500ms;
+  --sidenav-fade-speed: 50ms;
+  --sidenav-shrink-duration: 3000ms;
   --sidenav-expand-duration: 300ms;
   --sidenav-collapsed-width: 2em;
   --sidenav-arrow-opacity: 0.6;
