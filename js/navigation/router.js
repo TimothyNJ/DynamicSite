@@ -256,28 +256,6 @@ function initSidenav(pageName) {
     });
   });
 
-  // Left content-buffer expands primary sidenav on hover
-  const leftBuffer = document.querySelector('.content-wrapper > .content-buffer:first-child');
-  const sidenav = document.querySelector('.sidenav');
-  if (leftBuffer && sidenav) {
-    leftBuffer.addEventListener('mouseenter', () => {
-      if (sidenav.classList.contains('collapsible')) {
-        sidenav.classList.add('expanded');
-      }
-    });
-    leftBuffer.addEventListener('mouseleave', (e) => {
-      // Only collapse if mouse didn't move into the sidenav itself
-      if (!sidenav.contains(e.relatedTarget)) {
-        sidenav.classList.remove('expanded');
-      }
-    });
-    // Also remove expanded when mouse leaves sidenav (unless going to buffer)
-    sidenav.addEventListener('mouseleave', (e) => {
-      if (!leftBuffer.contains(e.relatedTarget)) {
-        sidenav.classList.remove('expanded');
-      }
-    });
-  }
 }
 
 // Load a subpage into the sidenav-content area
