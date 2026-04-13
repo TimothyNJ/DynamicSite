@@ -719,10 +719,6 @@ window.initializePageComponents = function(pageName) {
     // Call the settings initialization directly
     console.log('[main.js] Initializing settings components');
     initializeSettingsComponents();
-  } else if (pageName === 'engines') {
-    // Initialize engines view components
-    console.log('[main.js] Initializing engines components');
-    initializeEnginesViewComponents();
   } else if (pageName === 'data-entry') {
     // Initialize data entry components
     console.log('[main.js] Initializing data entry components');
@@ -736,6 +732,15 @@ window.initializePageComponents = function(pageName) {
   // Add other page-specific initialization as needed
 };
 
+// Subpage-specific initialization — fires when router loads subpage/sub-subpage content
+document.addEventListener('subpageLoaded', (e) => {
+  const { page, subpage } = e.detail;
+  if (page === 'development' && subpage === 'engines') {
+    console.log('[main.js] Initializing engines components (development/engines)');
+    initializeEnginesViewComponents();
+  }
+});
+
 console.log('[main.js] ES6 modules imported successfully');
 
 // Function to determine current page from URL hash
@@ -744,7 +749,6 @@ function getCurrentPage() {
   if (hash.includes('settings')) return 'settings';
   if (hash.includes('create-vendor-request')) return 'create-vendor-request';
   if (hash.includes('data-entry-forms')) return 'data-entry-forms';
-  if (hash.includes('engines-view')) return 'engines-view';
   return 'home';
 }
 
@@ -780,7 +784,7 @@ function updateNavigationForAuthState() {
   const navButtons = document.querySelectorAll('.nav-container button[data-page]');
   
   // Pages requiring only authentication (all logged-in users including guest)
-  const adminPages = ['settings', 'engines', 'vendor-request', 'finance', 'logistics', 'reporting', 'development'];
+  const adminPages = ['settings', 'vendor-request', 'finance', 'logistics', 'reporting', 'development'];
   const hasAdminAccess = isAuth;
 
   // Pages requiring minimum '05_org_admin' role (not visible to guest)

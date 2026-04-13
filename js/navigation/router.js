@@ -8,7 +8,7 @@ const pagePathMap = {
   home: "pages/home/index.html",
   "vendor-request": "pages/vendor-request/index.html",
   "data-entry": "pages/data-entry/index.html",
-  engines: "pages/engines/index.html",
+
   settings: "pages/settings/index.html",
   users: "pages/users/index.html",
   finance: "pages/finance/index.html",
@@ -75,7 +75,6 @@ let hoveredSubpage = null; // Which sidenav1 button is hovered (for sidenav2 tar
 const protectedPages = {
   'settings':       'authenticated',
   'data-entry':     'authenticated',
-  'engines':        'authenticated',
   'vendor-request': 'authenticated',
   'users':          '05_org_admin',
   'finance':        'authenticated',
@@ -467,6 +466,11 @@ async function loadSubpage(pageName, subpage, pushState = true, subsubpage = nul
         `#${getHashParent(pageName)}/${subpage}`
       );
     }
+
+    // Notify listeners that subpage content has loaded
+    document.dispatchEvent(new CustomEvent('subpageLoaded', {
+      detail: { page: pageName, subpage }
+    }));
   } catch (error) {
     console.error('[Router] Error loading subpage:', error);
   }
@@ -495,6 +499,11 @@ async function loadSubSubpage(pageName, subpage, subsubpage, pushState = true) {
         `#${getHashParent(pageName)}/${subpage}/${subsubpage}`
       );
     }
+
+    // Notify listeners that sub-subpage content has loaded
+    document.dispatchEvent(new CustomEvent('subpageLoaded', {
+      detail: { page: pageName, subpage, subsubpage }
+    }));
   } catch (error) {
     console.error('[Router] Error loading sub-subpage:', error);
   }
