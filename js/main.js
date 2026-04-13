@@ -33,6 +33,9 @@ import {
 
 import { start as startSessionTimeout, stop as stopSessionTimeout, restart as restartSessionTimeout } from './auth/session-timeout.js';
 
+// Zitadel Management API
+import { fetchProjectRoles } from './api/zitadel-api.js';
+
 function isUserAuthenticated() {
   return isAuthenticated();
 }
@@ -736,21 +739,92 @@ window.initializePageComponents = function(pageName) {
   // Add other page-specific initialization as needed
 };
 
+// ─── System Roles (Zitadel) ──────────────────────────────────────────────────
+
+async function initializeSystemRoles() {
+  const loading = document.getElementById('system-roles-loading');
+  const errorEl = document.getElementById('system-roles-error');
+  const list = document.getElementById('system-roles-list');
+
+  if (!loading || !list) {
+    console.warn('[System Roles] DOM containers not found');
+    return;
+  }
+
+  try {
+    loading.style.display = '';
+    errorEl.style.display = 'none';
+    list.style.display = 'none';
+
+    const roles = await fetchProjectRoles();
+    console.log(`[System Roles] Fetched ${roles.length} roles from Zitadel`);
+
+    list.innerHTML = '';
+    if (roles.length === 0) {
+      list.innerHTML = '<li class="role-item empty">No roles found in project</li>';
+    } else {
+      for (const role of roles) {
+        const li = document.createElement('li');
+        li.className = 'role-item';
+        const keySpan = document.createElement('span');
+        keySpan.className = 'role-key';
+        keySpan.textContent = role.key;
+        li.appendChild(keySpan);
+
+        if (role.displayName && role.displayName !== role.key) {
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'role-display-name';
+          nameSpan.textContent = role.displayName;
+          li.appendChild(nameSpan);
+        }
+
+        if (role.group) {
+          const groupSpan = document.createElement('span');
+          groupSpan.className = 'role-group';
+          groupSpan.textContent = role.group;
+          li.appendChild(groupSpan);
+        }
+
+        list.appendChild(li);
+      }
+    }
+
+    loading.style.display = 'none';
+    list.style.display = '';
+  } catch (error) {
+    console.error('[System Roles] Failed to fetch roles:', error);
+    loading.style.display = 'none';
+    errorEl.textContent = `Failed to load roles: ${error.message}`;
+    errorEl.style.display = '';
+  }
+}
+
 // Subpage-specific initialization — fires when router loads subpage/sub-subpage content
 document.addEventListener('subpageLoaded', (e) => {
   const { page, subpage } = e.detail;
-  if (page !== 'development') return;
 
-  // Defer to next frame so the DOM layout is settled before component init
-  requestAnimationFrame(() => {
-    if (subpage === 'engines') {
-      console.log('[main.js] Initializing engines components (development/engines)');
-      initializeEnginesViewComponents();
-    } else if (subpage === 'site-settings') {
-      console.log('[main.js] Initializing site settings (development/site-settings)');
-      initializeSiteSettingsComponents();
-    }
-  });
+  // Development subpages
+  if (page === 'development') {
+    requestAnimationFrame(() => {
+      if (subpage === 'engines') {
+        console.log('[main.js] Initializing engines components (development/engines)');
+        initializeEnginesViewComponents();
+      } else if (subpage === 'site-settings') {
+        console.log('[main.js] Initializing site settings (development/site-settings)');
+        initializeSiteSettingsComponents();
+      }
+    });
+  }
+
+  // Users subpages
+  if (page === 'users') {
+    requestAnimationFrame(() => {
+      if (subpage === 'system-roles') {
+        console.log('[main.js] Initializing system roles (users/system-roles)');
+        initializeSystemRoles();
+      }
+    });
+  }
 });
 
 console.log('[main.js] ES6 modules imported successfully');
