@@ -11,7 +11,7 @@
   justify-content: center;
   align-items: center;
   gap: 0;
-  background-color: black;
+  background-color: transparent;
   border: 2px solid yellow;
   color: white;
   position: sticky;
@@ -60,9 +60,9 @@
   button {
     font-size: inherit;
     flex: 0 1 auto;
-    background-color: black;
+    background-color: transparent;
     color: white;
-    border: 1px solid var(--nav-button-border-idle);
+    border: 1px solid transparent;
     padding: var(--nav-button-padding);
     margin: var(--nav-button-margin);
     border-radius: 5px;
@@ -73,7 +73,7 @@
     position: relative;
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.8);
+      background-color: transparent;
       color: white;
       cursor: pointer;
       border: 1px solid royalblue;
