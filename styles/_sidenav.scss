@@ -93,9 +93,8 @@
 // ==============================================
 // Controlled by JS via .collapsible and .expanded classes.
 // All timing values from CSS variables in _variables.scss.
-// Rules:
-//   Collapsed: buttons fade out, arrows appear, width shrinks
-//   Expanded: width grows, buttons fade in after expand, arrows hidden
+// Collapsed: buttons fade out, arrows appear, width shrinks
+// Expanded: width snaps to fit-content, buttons fade in, arrows hidden
 
 .sidenav.collapsible,
 .sidenav-secondary.collapsible {
