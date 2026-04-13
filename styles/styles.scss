@@ -13,6 +13,7 @@
 @import 'wheel_selector'; // Wheel selector component styles
 @import 'sidenav';      // Left side navigation for subpages
 @import 'components';   // Generic reusable components
+@import 'table';        // Display-only table (users/org-roles-above-admin)
 @import 'animations';   // All animations & transitions
 @import 'session_timeout'; // Session timeout modal
 @import 'themes';       // Theme-specific overrides (must be last)

@@ -799,6 +799,28 @@ async function initializeSystemRoles() {
   }
 }
 
+// ─── Org Roles Above Admin (display-only table) ──────────────────────────────
+
+function initializeOrgRolesAboveAdmin() {
+  if (!window.componentFactory) {
+    console.error('[Org Roles Above Admin] ComponentFactory not available');
+    return;
+  }
+
+  // Render a default circle button into each .table-button-slot
+  const slots = document.querySelectorAll('.table-button-slot');
+  slots.forEach((slot) => {
+    if (!slot.id) return;
+    componentFactory.createButton(slot.id, {
+      id: `${slot.id}-btn`,
+      text: '•', // Triggers circle mode in button_component_engine
+      active: false,
+    });
+  });
+
+  console.log(`[Org Roles Above Admin] Rendered ${slots.length} circle buttons`);
+}
+
 // Subpage-specific initialization — fires when router loads subpage/sub-subpage content
 document.addEventListener('subpageLoaded', (e) => {
   const { page, subpage } = e.detail;
@@ -822,6 +844,9 @@ document.addEventListener('subpageLoaded', (e) => {
       if (subpage === 'system-roles') {
         console.log('[main.js] Initializing system roles (users/system-roles)');
         initializeSystemRoles();
+      } else if (subpage === 'org-roles-above-admin') {
+        console.log('[main.js] Initializing org roles above admin table (users/org-roles-above-admin)');
+        initializeOrgRolesAboveAdmin();
       }
     });
   }

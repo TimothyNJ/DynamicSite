@@ -1,0 +1,116 @@
+// _table.scss - Display-only table for Users → Org Roles Above Admin
+// Created: 13-Apr-2026
+// Pattern: nested fit-content flex containers, centred by .sidenav-content
+// Borders: always-on; hidden globally by .borders-hidden (see _base.scss and script.js)
+// Typography: inherits --font-family-primary + global h2/h3/p rules from _base.scss
+
+// ==============================================
+// Outer wrapper — sits inside .sidenav-content
+// fit-content in both axes so the table only takes the space it needs
+// ==============================================
+.table-outer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  flex: 0 1 auto;
+  gap: var(--spacing-sm);
+  box-sizing: border-box;
+  border: 1px solid magenta;
+}
+
+// ==============================================
+// Title wrapper — holds the <h2>Table</h2>
+// ==============================================
+.table-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  flex: 0 1 auto;
+  box-sizing: border-box;
+  border: 1px solid purple;
+}
+
+// ==============================================
+// Body wrapper — holds the <table>
+// ==============================================
+.table-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  flex: 0 1 auto;
+  box-sizing: border-box;
+  border: 1px solid green;
+}
+
+// ==============================================
+// The table element itself
+// ==============================================
+.table-main {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: fit-content;
+  table-layout: auto;
+  border: 1px solid orange;
+}
+
+// thead wrapper
+.table-main thead {
+  border: 1px solid yellow;
+}
+
+// tbody wrapper
+.table-main tbody {
+  border: 1px solid teal;
+}
+
+// Header row
+.table-header-row {
+  border: 1px solid lime;
+}
+
+// Header cell
+.table-header-cell {
+  padding: var(--spacing-sm) var(--spacing-md);
+  vertical-align: middle;
+  border: 1px solid cyan;
+}
+
+// Body row
+.table-body-row {
+  border: 1px solid deepskyblue;
+}
+
+// Body cell (text)
+.table-body-cell {
+  padding: var(--spacing-sm) var(--spacing-md);
+  vertical-align: middle;
+  border: 1px solid dodgerblue;
+}
+
+// Body cell (holds a circle button)
+.table-button-cell {
+  padding: var(--spacing-sm) var(--spacing-md);
+  vertical-align: middle;
+  text-align: center;
+  border: 1px solid pink;
+}
+
+// Slot where the button_component_engine renders the circle button
+// The engine adds .button-container to this element at runtime
+.table-button-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  flex: 0 1 auto;
+  margin: 0 auto;
+  box-sizing: border-box;
+  border: 1px solid red;
+}
