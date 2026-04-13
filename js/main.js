@@ -856,7 +856,7 @@ function updateNavigationForAuthState() {
   if (homeButton) {
     homeButton.textContent = 'Home ';
     const homeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    homeSvg.setAttribute('viewBox', '0 0 84 88');
+    homeSvg.setAttribute('viewBox', '0 3 84 84');
     homeSvg.setAttribute('width', '1em');
     homeSvg.setAttribute('height', '1em');
     homeSvg.style.verticalAlign = 'text-bottom';
