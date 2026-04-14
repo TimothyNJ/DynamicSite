@@ -12,15 +12,15 @@
 // ==============================================
 .table-outer {
   width: 100%;
-  max-width: 80%; // Constrain to centre 80% of content area; small tables can still shrink below
+  max-width: 80%; // Constrain to 80% of content area; small tables can still shrink below
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto; // Title and body are both content-sized
-  justify-items: center;
+  justify-items: start; // Left-align the title and body within the outer
   overflow: visible;
   position: relative;
   box-sizing: border-box;
-  margin: var(--component-spacing, 1em) auto; // auto left/right centres the 80%-capped outer
+  margin: var(--component-spacing, 1em) 0; // Left-align the 80%-capped outer in the content area
   border: 1px solid magenta;
 }
 
@@ -30,11 +30,11 @@
 .table-title {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: fit-content;
   max-width: 100%;
   flex: 0 1 auto;
-  margin: 0 auto;
+  margin: 0;
   box-sizing: border-box;
   border: 1px solid purple;
 }
@@ -49,7 +49,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  justify-items: center; // Centre the table horizontally within the track
+  justify-items: start; // Left-align the table within the track
   overflow-x: auto;
   overflow-y: auto;            // Enable vertical scroll so sticky header is functional
   max-height: 60vh;            // Cap height so vertical scroll kicks in on big sheets
@@ -68,7 +68,7 @@
   border-collapse: separate;
   border-spacing: 0;
   width: max-content;
-  margin: 0 auto;
+  margin: 0;
   table-layout: auto; // Auto layout — columns size to their content
   text-align: center;
   border: 1px solid orange;
