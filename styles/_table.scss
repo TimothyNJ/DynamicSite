@@ -12,6 +12,7 @@
 // ==============================================
 .table-outer {
   width: 100%;
+  max-width: 80%; // Constrain to centre 80% of content area; small tables can still shrink below
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto; // Title and body are both content-sized
@@ -19,7 +20,7 @@
   overflow: visible;
   position: relative;
   box-sizing: border-box;
-  margin: var(--component-spacing, 1em) 0; // Breathing room when multiple tables stack
+  margin: var(--component-spacing, 1em) auto; // auto left/right centres the 80%-capped outer
   border: 1px solid magenta;
 }
 
