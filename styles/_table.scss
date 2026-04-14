@@ -202,13 +202,24 @@ body[data-theme="dark"] .table-main tr > *:first-child {
   margin: 0;
 }
 
-// Description-cell modifier — wraps long prose inside a single cell instead of
-// letting it widen the column. Cap the cell, force normal wrapping, and allow
-// long tokens (URLs, SHAs joined to words) to break. Used by the Deployment
-// Index table's fourth column; reusable anywhere a column needs word-wrap
-// instead of content-sizing.
-.description-cell {
-  max-width: 40em;
+// Prose-column modifiers — .description-cell and .summary-cell share one
+// character-based rule: content up to ~40 chars never wraps; content past
+// ~90 chars must wrap. The unit is `ch` (width of the "0" glyph in the
+// current font), which tracks font size automatically and keeps the rule
+// expressed in reading terms rather than pixels.
+//
+// min-width uses min(40ch, 80vw) so the floor never exceeds a narrow phone's
+// viewport — prevents the column from demanding more horizontal space than
+// the screen has on mobile.
+//
+// Both classes get the same rule today; kept as separate selectors so the
+// two columns can diverge later if needed. Used by the Deployment Index
+// table's Summary and Description columns; reusable anywhere a prose column
+// needs readable line lengths instead of content-sizing.
+.description-cell,
+.summary-cell {
+  min-width: min(40ch, 80vw);
+  max-width: 90ch;
   white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
