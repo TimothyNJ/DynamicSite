@@ -12,10 +12,8 @@
 // ==============================================
 .table-outer {
   width: 100%;
-  height: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  align-items: center;
   justify-items: center;
   overflow: visible;
   position: relative;
@@ -45,10 +43,8 @@
 // ==============================================
 .table-body {
   width: 100%;
-  height: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  align-items: center;
   justify-items: center;
   overflow: visible;
   position: relative;
