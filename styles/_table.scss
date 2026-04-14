@@ -92,9 +92,14 @@
 }
 
 // Cells — centred content
+// container-type: inline-size makes each cell a query container so its own
+// inline width (set by table-layout:fixed / minmax(0,1fr)) becomes the unit
+// basis (cqi) for text inside it. This is the Sept 2025 logic applied one
+// level deeper: the column caps the cell, the cell caps the text.
 .table-header-cell {
   text-align: center;
   vertical-align: middle;
+  container-type: inline-size;
   overflow: visible;
   border: 1px solid cyan;
 }
@@ -102,6 +107,7 @@
 .table-body-cell {
   text-align: center;
   vertical-align: middle;
+  container-type: inline-size;
   overflow: visible;
   border: 1px solid dodgerblue;
 }
@@ -112,25 +118,12 @@
   border: 1px solid pink;
 }
 
-// Wrapper div inside each text cell — this is the query container.
-// Table cells (th/td) can't reliably host container-type per CSS spec,
-// so a plain block wrapper carries the containment instead.
-// Its inline width == the column's inline width (set by table-layout:fixed),
-// so cqi inside becomes 1% of column width — the Sept 2025 grid-boundary
-// logic expressed at the typography level.
-.cell-fit {
-  container-type: inline-size;
-  width: 100%;
-  display: block;
-}
-
-// Text shrinks with the column. Math for monospace bold ~0.65 char-width:
-// "testheader19" (12 chars) needs font ≤ 100cqi / (12 × 0.65) ≈ 12.8cqi.
-// Using 8cqi keeps ~12-char strings inside their column with headroom,
-// with clamp floor for legibility and ceiling = global component size.
-.cell-fit > h3,
-.cell-fit > p {
-  font-size: clamp(0.4rem, 8cqi, var(--component-font-size));
+// Text inside header/body cells — size scales with the cell's inline width.
+// clamp floor/ceiling keeps it readable at extremes; 15cqi is the mid-range
+// that fits ~12-char monospace strings inside their column.
+.table-header-cell > h3,
+.table-body-cell > p {
+  font-size: clamp(0.4rem, 15cqi, var(--component-font-size));
   margin: 0;
   padding: 0;
   white-space: nowrap;
