@@ -130,7 +130,7 @@
 // with clamp floor for legibility and ceiling = global component size.
 .cell-fit > h3,
 .cell-fit > p {
-  font-size: clamp(0.4rem, 8cqi, var(--component-font-size));
+  font-size: 8cqi; // TEST: no floor, no ceiling — shrink/grow purely with column width
   margin: 0;
   padding: 0;
   white-space: nowrap;
