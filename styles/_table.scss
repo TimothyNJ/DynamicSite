@@ -201,3 +201,22 @@ body[data-theme="dark"] .table-main tr > *:first-child {
 .table-button-cell .button-container {
   margin: 0;
 }
+
+// Description-cell modifier — wraps long prose inside a single cell instead of
+// letting it widen the column. Cap the cell, force normal wrapping, and allow
+// long tokens (URLs, SHAs joined to words) to break. Used by the Deployment
+// Index table's fourth column; reusable anywhere a column needs word-wrap
+// instead of content-sizing.
+.description-cell {
+  max-width: 40em;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  .cell-fit > p,
+  .cell-fit > h3 {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+}
