@@ -8,84 +8,60 @@
      Remove this whole block when the experiment is done. -->
 <div style="display: flex; flex-direction: column; gap: 0.8em; align-items: center; padding: 0.5em 0; color: #ffffff; font-family: var(--font-family-primary);">
 
+  <!-- Each tier is a 3-col x 2-row grid.
+       Row 1 = samples (baseline-aligned via align-items: baseline).
+       Row 2 = labels.
+       Samples are direct grid items (no wrapper div) so every cell's
+       baseline is computed from its own text, not from a container. -->
+
   <!-- h1 row -->
-  <div style="display: flex; align-items: baseline; justify-content: center; gap: 1.5em;">
-    <div style="text-align: center;">
-      <span style="font-size: 1.125rem; font-weight: bold;">H1</span>
-      <div style="font-size: 10px; opacity: 0.6;">MIN 1.125rem</div>
-    </div>
-    <div style="text-align: center;">
-      <h1 style="margin: 0;">H1</h1>
-      <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
-    </div>
-    <div style="text-align: center;">
-      <span style="font-size: 1.1vw; font-weight: bold;">H1</span>
-      <div style="font-size: 10px; opacity: 0.6;">PREF 1.1vw</div>
-    </div>
+  <div style="display: grid; grid-template-columns: repeat(3, auto); column-gap: 1.5em; row-gap: 0.1em; justify-items: center; align-items: baseline;">
+    <span style="font-size: 1.125rem; font-weight: bold;">H1</span>
+    <h1 style="margin: 0;">H1</h1>
+    <span style="font-size: 1.1vw; font-weight: bold;">H1</span>
+    <div style="font-size: 10px; opacity: 0.6;">MIN 1.125rem</div>
+    <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
+    <div style="font-size: 10px; opacity: 0.6;">PREF 1.1vw</div>
   </div>
 
   <!-- h2 row -->
-  <div style="display: flex; align-items: baseline; justify-content: center; gap: 1.5em;">
-    <div style="text-align: center;">
-      <span style="font-size: 0.875rem; font-weight: bold;">H2</span>
-      <div style="font-size: 10px; opacity: 0.6;">MIN 0.875rem</div>
-    </div>
-    <div style="text-align: center;">
-      <h2 style="margin: 0;">H2</h2>
-      <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
-    </div>
-    <div style="text-align: center;">
-      <span style="font-size: 0.95vw; font-weight: bold;">H2</span>
-      <div style="font-size: 10px; opacity: 0.6;">PREF 0.95vw</div>
-    </div>
+  <div style="display: grid; grid-template-columns: repeat(3, auto); column-gap: 1.5em; row-gap: 0.1em; justify-items: center; align-items: baseline;">
+    <span style="font-size: 0.875rem; font-weight: bold;">H2</span>
+    <h2 style="margin: 0;">H2</h2>
+    <span style="font-size: 0.95vw; font-weight: bold;">H2</span>
+    <div style="font-size: 10px; opacity: 0.6;">MIN 0.875rem</div>
+    <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
+    <div style="font-size: 10px; opacity: 0.6;">PREF 0.95vw</div>
   </div>
 
   <!-- h3 row -->
-  <div style="display: flex; align-items: baseline; justify-content: center; gap: 1.5em;">
-    <div style="text-align: center;">
-      <span style="font-size: 0.7rem; font-weight: bold;">H3</span>
-      <div style="font-size: 10px; opacity: 0.6;">MIN 0.7rem</div>
-    </div>
-    <div style="text-align: center;">
-      <h3 style="margin: 0;">H3</h3>
-      <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
-    </div>
-    <div style="text-align: center;">
-      <span style="font-size: 0.8vw; font-weight: bold;">H3</span>
-      <div style="font-size: 10px; opacity: 0.6;">PREF 0.8vw</div>
-    </div>
+  <div style="display: grid; grid-template-columns: repeat(3, auto); column-gap: 1.5em; row-gap: 0.1em; justify-items: center; align-items: baseline;">
+    <span style="font-size: 0.7rem; font-weight: bold;">H3</span>
+    <h3 style="margin: 0;">H3</h3>
+    <span style="font-size: 0.8vw; font-weight: bold;">H3</span>
+    <div style="font-size: 10px; opacity: 0.6;">MIN 0.7rem</div>
+    <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
+    <div style="font-size: 10px; opacity: 0.6;">PREF 0.8vw</div>
   </div>
 
   <!-- h4 row -->
-  <div style="display: flex; align-items: baseline; justify-content: center; gap: 1.5em;">
-    <div style="text-align: center;">
-      <span style="font-size: 0.6rem;">H4</span>
-      <div style="font-size: 10px; opacity: 0.6;">MIN 0.6rem</div>
-    </div>
-    <div style="text-align: center;">
-      <h4 style="margin: 0;">H4</h4>
-      <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
-    </div>
-    <div style="text-align: center;">
-      <span style="font-size: 0.75vw;">H4</span>
-      <div style="font-size: 10px; opacity: 0.6;">PREF 0.75vw</div>
-    </div>
+  <div style="display: grid; grid-template-columns: repeat(3, auto); column-gap: 1.5em; row-gap: 0.1em; justify-items: center; align-items: baseline;">
+    <span style="font-size: 0.6rem;">H4</span>
+    <h4 style="margin: 0;">H4</h4>
+    <span style="font-size: 0.75vw;">H4</span>
+    <div style="font-size: 10px; opacity: 0.6;">MIN 0.6rem</div>
+    <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
+    <div style="font-size: 10px; opacity: 0.6;">PREF 0.75vw</div>
   </div>
 
   <!-- p row -->
-  <div style="display: flex; align-items: baseline; justify-content: center; gap: 1.5em;">
-    <div style="text-align: center;">
-      <span style="font-size: 0.5rem;">P</span>
-      <div style="font-size: 10px; opacity: 0.6;">MIN 0.5rem</div>
-    </div>
-    <div style="text-align: center;">
-      <p style="margin: 0;">P</p>
-      <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
-    </div>
-    <div style="text-align: center;">
-      <span style="font-size: 0.7vw;">P</span>
-      <div style="font-size: 10px; opacity: 0.6;">PREF 0.7vw</div>
-    </div>
+  <div style="display: grid; grid-template-columns: repeat(3, auto); column-gap: 1.5em; row-gap: 0.1em; justify-items: center; align-items: baseline;">
+    <span style="font-size: 0.5rem;">P</span>
+    <p style="margin: 0;">P</p>
+    <span style="font-size: 0.7vw;">P</span>
+    <div style="font-size: 10px; opacity: 0.6;">MIN 0.5rem</div>
+    <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
+    <div style="font-size: 10px; opacity: 0.6;">PREF 0.7vw</div>
   </div>
 
   <!-- Browser minimum-font-size probe: if any of these render bigger than
