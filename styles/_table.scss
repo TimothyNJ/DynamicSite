@@ -98,16 +98,11 @@
 }
 
 // Header cells — inherit left alignment from .table-main
-// Height sized to contain the 60° rotated label (vertical projection =
-// label length × sin(60°)). Inner <h3> handles the rotation so the cell
-// itself stays un-transformed, preserving position: sticky and
-// background-attachment: fixed (both break inside a transform).
 .table-header-cell {
-  vertical-align: bottom;
+  vertical-align: middle;
   overflow: visible;
   padding: 2px;
   border: 1px solid cyan;
-  height: 7em;
 
   // Freeze header row — sticks to top of .table-body during vertical scroll.
   // Background matches the page's fixed gradient with `background-attachment:
@@ -122,29 +117,6 @@
     var(--light-page-end) 100%
   );
   background-attachment: fixed;
-}
-
-// Header-cell inner wrapper becomes a positioning anchor for the rotated h3.
-// width: 0 stops the rotated (absolute) label from reserving horizontal
-// space in the layout, so columns size to their button-cell content instead
-// of being pushed wide by the header text.
-.table-header-cell .cell-fit {
-  position: relative;
-  height: 100%;
-  width: 0;
-}
-
-// The rotated label itself: pivots around its bottom-left corner which is
-// pinned to the cell's bottom-left. Rotating -60° makes the text rise
-// up-and-to-the-right like a "/" slant. white-space: nowrap prevents the
-// label from wrapping into two lines before it rotates.
-.table-header-cell .cell-fit > h3 {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  transform-origin: left bottom;
-  transform: rotate(-60deg);
-  white-space: nowrap;
 }
 
 body[data-theme="dark"] .table-header-cell {
