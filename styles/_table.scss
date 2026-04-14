@@ -97,9 +97,9 @@
   border: 1px solid deepskyblue;
 }
 
-// Cells — centred content
+// Header cells — left-aligned content (overrides the table-main default)
 .table-header-cell {
-  text-align: center;
+  text-align: left;
   vertical-align: middle;
   overflow: visible;
   padding: 2px;
@@ -188,6 +188,12 @@ body[data-theme="dark"] .table-main tr > *:first-child {
 .cell-fit > p {
   margin: 0;
   padding: 0;
+}
+
+// Header-cell h3 text: override the global `h1,h2,h3,h4,p { text-align: center }`
+// rule from _base.scss so column header labels read left-aligned within their cells.
+.table-header-cell .cell-fit > h3 {
+  text-align: left;
 }
 
 // Button slot: the engine adds .button-container to this element at render time;
