@@ -203,22 +203,28 @@ body[data-theme="dark"] .table-main tr > *:first-child {
 }
 
 // Prose-column modifiers — .description-cell and .summary-cell share one
-// character-based rule: content up to ~40 chars never wraps; content past
-// ~90 chars must wrap. The unit is `ch` (width of the "0" glyph in the
+// character-based rule expressed in `ch` (width of the "0" glyph in the
 // current font), which tracks font size automatically and keeps the rule
-// expressed in reading terms rather than pixels.
+// in reading terms rather than pixels.
 //
-// min-width uses min(40ch, 80vw) so the floor never exceeds a narrow phone's
-// viewport — prevents the column from demanding more horizontal space than
-// the screen has on mobile.
+// Only a ceiling is set:
+//   max-width: 90ch — caps the column at ~90 characters; anything past that wraps.
+//
+// No min-width on purpose. The table uses `table-layout: auto` +
+// `width: max-content`, so each column sizes to max(min-content, content-width)
+// capped by max-width. That gives the behaviour we want:
+//   - short content (e.g. 12 chars)  → column shrinks to 12ch (fit-to-content)
+//   - medium content (up to 90 chars) → sits on one line at its natural width
+//   - long content (> 90 chars)       → caps at 90ch and wraps
+// A min-width floor would pad short cells out to the floor width, which is
+// the wrong behaviour for a mixed-length column like Summary.
 //
 // Both classes get the same rule today; kept as separate selectors so the
 // two columns can diverge later if needed. Used by the Deployment Index
 // table's Summary and Description columns; reusable anywhere a prose column
-// needs readable line lengths instead of content-sizing.
+// needs an upper readability bound without a lower floor.
 .description-cell,
 .summary-cell {
-  min-width: min(40ch, 80vw);
   max-width: 90ch;
   white-space: normal;
   overflow-wrap: break-word;
