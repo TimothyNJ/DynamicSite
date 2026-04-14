@@ -102,24 +102,13 @@
   padding: 2px;
   border: 1px solid cyan;
 
-  // Freeze header row — sticks to top of .table-body during vertical scroll
+  // Freeze header row — sticks to top of .table-body during vertical scroll.
+  // Background intentionally transparent per design request — be aware that
+  // scrolled rows will visually bleed through the frozen header band.
   position: sticky;
   top: 0;
   z-index: 2;
-  // Opaque background so scrolled rows don't bleed through the header band
-  background: linear-gradient(
-    -25deg,
-    var(--light-slider-start) 0%,
-    var(--light-slider-end) 100%
-  );
-}
-
-body[data-theme="dark"] .table-header-cell {
-  background: linear-gradient(
-    -25deg,
-    var(--dark-slider-start) 0%,
-    var(--dark-slider-end) 100%
-  );
+  background: transparent;
 }
 
 .table-body-cell {
@@ -138,23 +127,13 @@ body[data-theme="dark"] .table-header-cell {
 
 // Freeze first column — applies to whichever cell type is in column A
 // (header cell in thead row, body cell or button cell in data rows).
+// Background intentionally transparent per design request — scrolled columns
+// will visually bleed through the frozen column A band.
 .table-main tr > *:first-child {
   position: sticky;
   left: 0;
   z-index: 2;
-  background: linear-gradient(
-    -25deg,
-    var(--light-slider-start) 0%,
-    var(--light-slider-end) 100%
-  );
-}
-
-body[data-theme="dark"] .table-main tr > *:first-child {
-  background: linear-gradient(
-    -25deg,
-    var(--dark-slider-start) 0%,
-    var(--dark-slider-end) 100%
-  );
+  background: transparent;
 }
 
 // Intersection cell (top-left "User" header) — both sticky at once.
