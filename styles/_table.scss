@@ -138,6 +138,11 @@
 // pinned to the cell's bottom-left. Rotating -60° makes the text rise
 // up-and-to-the-right like a "/" slant. white-space: nowrap prevents the
 // label from wrapping into two lines before it rotates.
+//
+// max-width: none + overflow: visible override the global h1..h4/p rule in
+// _base.scss. That rule caps text width at 100% of the containing block and
+// hides overflow — which, combined with our `.cell-fit { width: 0 }`, would
+// clip the rotated label to zero pixels and make the headers invisible.
 .table-header-cell .cell-fit > h3 {
   position: absolute;
   bottom: 0;
@@ -145,6 +150,10 @@
   transform-origin: left bottom;
   transform: rotate(-60deg);
   white-space: nowrap;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 body[data-theme="dark"] .table-header-cell {
