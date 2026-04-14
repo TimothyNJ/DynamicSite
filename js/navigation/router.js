@@ -15,7 +15,6 @@ const pagePathMap = {
   logistics: "pages/logistics/index.html",
   reporting: "pages/reporting/index.html",
   development: "pages/development/index.html",
-  table: "pages/table/index.html",
   login: "pages/login/index.html",
 };
 
@@ -62,7 +61,7 @@ const sidenavConfig = {
   "development": {
     defaultSub: "site-settings",
     basePath: "pages/development",
-    subpages: ["site-settings", "engines", "infrastructure"]
+    subpages: ["site-settings", "table", "engines", "infrastructure"]
   }
 };
 

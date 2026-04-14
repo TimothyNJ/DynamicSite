@@ -734,16 +734,12 @@ window.initializePageComponents = function(pageName) {
     // Initialize vendor request components
     console.log('[main.js] Initializing vendor request components');
     initializeVendorRequestComponents();
-  } else if (pageName === 'table') {
-    // Isolated top-level Table page for working the overflow/shrink behaviour
-    console.log('[main.js] Initializing Table page');
-    requestAnimationFrame(() => initializeTablePage());
   }
 
   // Add other page-specific initialization as needed
 };
 
-// ─── Table (top-level display-only table for overflow testing) ───────────────
+// ─── Table (development/table subpage — display-only table for overflow testing) ───
 
 function initializeTablePage() {
   if (!window.componentFactory) {
@@ -857,6 +853,9 @@ document.addEventListener('subpageLoaded', (e) => {
       } else if (subpage === 'site-settings') {
         console.log('[main.js] Initializing site settings (development/site-settings)');
         initializeSiteSettingsComponents();
+      } else if (subpage === 'table') {
+        console.log('[main.js] Initializing Table page (development/table)');
+        initializeTablePage();
       }
     });
   }
