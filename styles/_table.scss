@@ -30,11 +30,14 @@
 .table-title {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   width: fit-content;
   max-width: 100%;
   flex: 0 1 auto;
   margin: 0;
+  // Override the parent grid's `justify-items: start` for just this row so
+  // the title centres horizontally while the table body stays left-aligned.
+  justify-self: center;
   box-sizing: border-box;
   border: 1px solid purple;
 }
