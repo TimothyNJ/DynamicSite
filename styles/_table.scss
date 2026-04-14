@@ -40,8 +40,8 @@
 
 // ==============================================
 // Body wrapper — holds the <table>
-// Same grid-boundary pattern as .table-outer — needed because it sits directly
-// above the <table>, which is the element that actually has intrinsic overflow.
+// Grid-boundary pattern caps the track at the content-area width; overflow-x: auto
+// lets the table scroll horizontally if its content-sized width exceeds the track.
 // ==============================================
 .table-body {
   width: 100%;
@@ -49,8 +49,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  justify-items: center;
-  overflow: visible;
+  justify-items: start; // Left-align the table within the track so scroll starts at col 1
+  overflow-x: auto;
+  overflow-y: visible;
   position: relative;
   box-sizing: border-box;
   border: 1px solid green;
@@ -58,15 +59,16 @@
 
 // ==============================================
 // The table element itself
+// Content-sized: each column grows to fit its widest cell (table-layout: auto),
+// and the table as a whole is only as wide as the sum of its columns need.
+// If that sum exceeds .table-body's track, .table-body scrolls horizontally.
 // ==============================================
 .table-main {
   border-collapse: separate;
   border-spacing: 0;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0; // Override grid-item default of min-content so the table honours the minmax(0,1fr) track
+  width: max-content;
   margin: 0 auto;
-  table-layout: fixed; // Fixed layout — columns divide track width instead of expanding to content
+  table-layout: auto; // Auto layout — columns size to their content
   text-align: center;
   border: 1px solid orange;
 }
