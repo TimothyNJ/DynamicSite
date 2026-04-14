@@ -1,8 +1,111 @@
-<h1>H1 Font</h1>
-<h2>H2 Font</h2>
-<h3>H3 Font</h3>
-<h4>H4 Font</h4>
-<p>P Font</p>
+<!-- Font-size calibration testers: MIN | LIVE | PREF for each tier.
+     LEFT cell forces the floor value of the tier's clamp().
+     CENTER cell uses the real tag so it renders whatever the clamp resolves to
+       at the current viewport — this is "LIVE".
+     RIGHT cell forces the preferred (vw) value, unclamped.
+     On phone: expect MIN == LIVE (MIN is winning).
+     On MBP/TV: expect LIVE == PREF (vw is winning).
+     Remove this whole block when the experiment is done. -->
+<div style="display: flex; flex-direction: column; gap: 0.8em; align-items: center; padding: 0.5em 0;">
+
+  <!-- h1 row -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 1.5em;">
+    <div style="text-align: center;">
+      <span style="font-size: 1.125rem; font-weight: bold;">H1</span>
+      <div style="font-size: 10px; opacity: 0.6;">MIN 1.125rem</div>
+    </div>
+    <div style="text-align: center;">
+      <h1 style="margin: 0;">H1</h1>
+      <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
+    </div>
+    <div style="text-align: center;">
+      <span style="font-size: 1.1vw; font-weight: bold;">H1</span>
+      <div style="font-size: 10px; opacity: 0.6;">PREF 1.1vw</div>
+    </div>
+  </div>
+
+  <!-- h2 row -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 1.5em;">
+    <div style="text-align: center;">
+      <span style="font-size: 1rem; font-weight: bold;">H2</span>
+      <div style="font-size: 10px; opacity: 0.6;">MIN 1rem</div>
+    </div>
+    <div style="text-align: center;">
+      <h2 style="margin: 0;">H2</h2>
+      <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
+    </div>
+    <div style="text-align: center;">
+      <span style="font-size: 1.0vw; font-weight: bold;">H2</span>
+      <div style="font-size: 10px; opacity: 0.6;">PREF 1.0vw</div>
+    </div>
+  </div>
+
+  <!-- h3 row -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 1.5em;">
+    <div style="text-align: center;">
+      <span style="font-size: 0.8rem; font-weight: bold;">H3</span>
+      <div style="font-size: 10px; opacity: 0.6;">MIN 0.8rem</div>
+    </div>
+    <div style="text-align: center;">
+      <h3 style="margin: 0;">H3</h3>
+      <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
+    </div>
+    <div style="text-align: center;">
+      <span style="font-size: 0.9vw; font-weight: bold;">H3</span>
+      <div style="font-size: 10px; opacity: 0.6;">PREF 0.9vw</div>
+    </div>
+  </div>
+
+  <!-- h4 row -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 1.5em;">
+    <div style="text-align: center;">
+      <span style="font-size: 0.7rem; font-weight: bold;">H4</span>
+      <div style="font-size: 10px; opacity: 0.6;">MIN 0.7rem</div>
+    </div>
+    <div style="text-align: center;">
+      <h4 style="margin: 0;">H4</h4>
+      <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
+    </div>
+    <div style="text-align: center;">
+      <span style="font-size: 0.8vw; font-weight: bold;">H4</span>
+      <div style="font-size: 10px; opacity: 0.6;">PREF 0.8vw</div>
+    </div>
+  </div>
+
+  <!-- p row -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 1.5em;">
+    <div style="text-align: center;">
+      <span style="font-size: 0.5rem;">P</span>
+      <div style="font-size: 10px; opacity: 0.6;">MIN 0.5rem</div>
+    </div>
+    <div style="text-align: center;">
+      <p style="margin: 0;">P</p>
+      <div style="font-size: 10px; opacity: 0.6;">LIVE</div>
+    </div>
+    <div style="text-align: center;">
+      <span style="font-size: 0.7vw;">P</span>
+      <div style="font-size: 10px; opacity: 0.6;">PREF 0.7vw</div>
+    </div>
+  </div>
+
+  <!-- Browser minimum-font-size probe: if any of these render bigger than
+       specified, the browser is enforcing a floor of its own. -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 1.5em; margin-top: 1em; padding-top: 0.8em; border-top: 1px dashed rgba(255,255,255,0.3);">
+    <div style="text-align: center;">
+      <span style="font-size: 4px;">probe</span>
+      <div style="font-size: 10px; opacity: 0.6;">4px forced</div>
+    </div>
+    <div style="text-align: center;">
+      <span style="font-size: 6px;">probe</span>
+      <div style="font-size: 10px; opacity: 0.6;">6px forced</div>
+    </div>
+    <div style="text-align: center;">
+      <span style="font-size: 8px;">probe</span>
+      <div style="font-size: 10px; opacity: 0.6;">8px forced</div>
+    </div>
+  </div>
+
+</div>
 
 <div class="dimension-container">
   <p id="home-dimensions"></p>
