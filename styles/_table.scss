@@ -62,10 +62,11 @@
 .table-main {
   border-collapse: separate;
   border-spacing: 0;
-  width: fit-content;
-  max-width: 100%; // Table cannot exceed its container; triggers column squeeze under pressure
+  width: 100%;
+  max-width: 100%;
+  min-width: 0; // Override grid-item default of min-content so the table honours the minmax(0,1fr) track
   margin: 0 auto;
-  table-layout: auto; // Each column sized to its own content (headers + buttons)
+  table-layout: fixed; // Fixed layout — columns divide track width instead of expanding to content
   text-align: center;
   border: 1px solid orange;
 }
