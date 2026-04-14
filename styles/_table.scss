@@ -186,3 +186,12 @@ body[data-theme="dark"] .table-main tr > *:first-child {
 .table-button-cell .button-container {
   margin: 0;
 }
+
+// Transparent background for circle buttons inside table cells — the cell's
+// sticky-column/row background provides the chrome; the button itself should
+// read as a bare dot against that surface. Overrides the gradient defined in
+// _buttons.scss for both light and dark themes.
+.table-button-cell .button-component,
+body[data-theme="dark"] .table-button-cell .button-component {
+  background: transparent;
+}
