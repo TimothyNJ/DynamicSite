@@ -11,7 +11,17 @@
   justify-content: center;
   align-items: center;
   gap: 0;
-  background-color: transparent;
+  // Paint the page gradient in viewport space so scrolled content doesn't
+  // bleed through the sticky navbar. Same trick as the sticky table header:
+  // background-attachment: fixed locks the gradient's coordinate system to
+  // the viewport, so the navbar renders the same pixels that would be behind
+  // it — visually seamless with the page chrome, no see-through during scroll.
+  background: linear-gradient(
+    -25deg,
+    var(--light-page-start) 0%,
+    var(--light-page-end) 100%
+  );
+  background-attachment: fixed;
   border: 2px solid yellow;
   color: white;
   position: sticky;
@@ -100,6 +110,17 @@
   > button.active + button::before {
     background-color: transparent !important;
   }
+}
+
+// Dark theme: swap the navbar gradient to the dark page palette, keep the
+// viewport-fixed attachment so it continues to match the body gradient.
+body[data-theme="dark"] .nav-bar {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-page-start) 0%,
+    var(--dark-page-end) 100%
+  );
+  background-attachment: fixed;
 }
 
 // ==============================================
