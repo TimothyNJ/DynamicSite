@@ -52,7 +52,7 @@ body {
 // ==============================================
 // Typography
 // ==============================================
-h1, h2, h3, p, button, span, a {
+h1, h2, h3, h4, p, button, span, a {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -61,7 +61,7 @@ h1, h2, h3, p, button, span, a {
   box-sizing: border-box;
 }
 
-h1, h2, h3, p {
+h1, h2, h3, h4, p {
   font-family: var(--font-family-primary);
   color: var(--text-color-dark);
   text-align: center; // Center all text elements by default
@@ -81,6 +81,12 @@ h2 {
 
 h3 {
   font-size: var(--h3-font-size);
+  margin: calc(0.03vw + 0.03vh);
+  font-weight: bold;
+}
+
+h4 {
+  font-size: var(--h4-font-size);
   margin: calc(0.03vw + 0.03vh);
   font-weight: bold;
 }
