@@ -92,15 +92,23 @@
 }
 
 // Cells — centred content
+// container-type: inline-size makes each cell a query container so its own
+// inline width (set by table-layout:fixed / minmax(0,1fr)) becomes the unit
+// basis (cqi) for text inside it. This is the Sept 2025 logic applied one
+// level deeper: the column caps the cell, the cell caps the text.
 .table-header-cell {
   text-align: center;
   vertical-align: middle;
+  container-type: inline-size;
+  overflow: visible;
   border: 1px solid cyan;
 }
 
 .table-body-cell {
   text-align: center;
   vertical-align: middle;
+  container-type: inline-size;
+  overflow: visible;
   border: 1px solid dodgerblue;
 }
 
@@ -108,6 +116,19 @@
   text-align: center;
   vertical-align: middle;
   border: 1px solid pink;
+}
+
+// Text inside header/body cells — size scales with the cell's inline width.
+// clamp floor/ceiling keeps it readable at extremes; 15cqi is the mid-range
+// that fits ~12-char monospace strings inside their column.
+.table-header-cell > h3,
+.table-body-cell > p {
+  font-size: clamp(0.4rem, 15cqi, var(--component-font-size));
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 // Button slot: the engine adds .button-container to this element at render time;
