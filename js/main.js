@@ -613,8 +613,23 @@ function initializeSettingsComponents() {
       }
     });
     
+    // Time Zone (placeholder dropdown — wires the User_Time_Zone module).
+    // Dynamic import so the module is only fetched when the Settings page renders.
+    const tzSelect = document.getElementById('user-time-zone-select');
+    if (tzSelect) {
+      import('./settings/userTimeZone.js')
+        .then(({ getUserTimeZone, setUserTimeZone }) => {
+          tzSelect.value = getUserTimeZone();
+          tzSelect.addEventListener('change', (e) => {
+            setUserTimeZone(e.target.value);
+            console.log('[Settings] User_Time_Zone changed to:', e.target.value);
+          });
+        })
+        .catch((err) => console.error('[Settings] Failed to wire Time Zone dropdown:', err));
+    }
+
     console.log('[Settings Page] All components initialized successfully');
-    
+
   } catch (error) {
     console.error('[Settings Page] Error initializing components:', error);
   }
@@ -758,6 +773,28 @@ function initializeTablePage() {
   console.log(`[Table] Rendered ${slots.length} circle buttons`);
 }
 
+// ─── Deployment Index (development/deployment-index subpage) ────────────────
+// Walks every .local-timestamp cell, reads its data-utc ISO instant, and
+// formats it into the user's chosen time zone via formatLocalTimestamp().
+// The User_Time_Zone module is dynamically imported so this branch carries
+// no cost on pages that don't render the Deployment Index.
+
+async function initializeDeploymentIndexPage() {
+  try {
+    const { formatLocalTimestamp } = await import('./settings/userTimeZone.js');
+    const cells = document.querySelectorAll('.local-timestamp');
+    cells.forEach((cell) => {
+      const iso = cell.dataset.utc;
+      if (!iso) return;
+      const p = cell.querySelector('.cell-fit > p');
+      if (p) p.textContent = formatLocalTimestamp(iso);
+    });
+    console.log(`[Deployment Index] Formatted ${cells.length} local timestamps`);
+  } catch (err) {
+    console.error('[Deployment Index] Failed to format local timestamps:', err);
+  }
+}
+
 // ─── System Roles (Zitadel) ──────────────────────────────────────────────────
 
 async function initializeSystemRoles() {
@@ -856,6 +893,9 @@ document.addEventListener('subpageLoaded', (e) => {
       } else if (subpage === 'table') {
         console.log('[main.js] Initializing Table page (development/table)');
         initializeTablePage();
+      } else if (subpage === 'deployment-index') {
+        console.log('[main.js] Initializing Deployment Index page (development/deployment-index)');
+        initializeDeploymentIndexPage();
       }
     });
   }

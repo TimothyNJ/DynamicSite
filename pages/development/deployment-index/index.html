@@ -7,6 +7,7 @@
       <thead>
         <tr class="table-header-row">
           <th class="table-header-cell"><div class="cell-fit"><h3>Time Stamp</h3></div></th>
+          <th class="table-header-cell"><div class="cell-fit"><h3>Local Time Stamp</h3></div></th>
           <th class="table-header-cell"><div class="cell-fit"><h3>Commit</h3></div></th>
           <th class="table-header-cell"><div class="cell-fit"><h3>Summary</h3></div></th>
           <th class="table-header-cell description-cell"><div class="cell-fit"><h3>Description</h3></div></th>
@@ -14,19 +15,22 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>14-Apr-2026 08:35 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>20260414 1535 UTC</p></div></td>
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-14T15:35:20Z"><div class="cell-fit"><p>20260414 0835 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>e11f797</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>Fix calibration tester baselines via CSS grid</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>Converted the home-page typography calibration tester from flex to CSS grid so each tier row (H1, H2, H3, H4, P) aligns MIN, LIVE, and PREF samples on a shared baseline. Labels render on row 2.</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>14-Apr-2026 08:29 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>20260414 1529 UTC</p></div></td>
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-14T15:29:15Z"><div class="cell-fit"><p>20260414 0829 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>964fb9d</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>Cap side-buffer at 5vw (was 30vw; inert ceiling now active)</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>Cap engages at approximately 1200px viewport. Beyond that, buffers stay flat at 5% of viewport instead of continuing the linear growth from the clamp's middle term.</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>14-Apr-2026 07:36 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>20260414 1436 UTC</p></div></td>
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-14T14:36:00Z"><div class="cell-fit"><p>20260414 0736 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>dd453ef</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>Soften side-buffer growth further: slope 0.10 -&gt; 0.08</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>Lowered the side-buffer clamp's linear-growth coefficient from 0.10 to 0.08 to reduce how aggressively the buffers widen as the viewport grows past the 600px collapse breakpoint.</p></div></td>

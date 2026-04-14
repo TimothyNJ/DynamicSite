@@ -14,6 +14,26 @@
   <!-- Session Timeout Slider (no title/label) -->
   <h3>Session Time Out</h3>
   <div id="session-timeout-slider-container"></div>
-  
+
+  <!--
+    Time Zone (placeholder).
+    Native <select> kept here so the User_Time_Zone variable is editable today;
+    a styled dropdown_menu_component_engine will replace this later.
+    Default = Portland, Oregon (America/Los_Angeles).
+  -->
+  <h3>Time Zone</h3>
+  <div id="user-time-zone-container">
+    <select id="user-time-zone-select">
+      <option value="UTC">UTC</option>
+      <option value="America/Los_Angeles">America/Los_Angeles (Portland, Oregon)</option>
+      <option value="America/Denver">America/Denver</option>
+      <option value="America/Chicago">America/Chicago</option>
+      <option value="America/New_York">America/New_York</option>
+      <option value="Europe/London">Europe/London</option>
+      <option value="Europe/Berlin">Europe/Berlin</option>
+      <option value="Asia/Tokyo">Asia/Tokyo</option>
+      <option value="Australia/Sydney">Australia/Sydney</option>
+    </select>
+  </div>
 
 </div>
