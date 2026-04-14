@@ -15,6 +15,7 @@
   height: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr; // Title is content-sized; body takes the remaining vertical space
   align-items: center;
   justify-items: center;
   overflow: visible;
