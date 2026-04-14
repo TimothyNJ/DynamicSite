@@ -50,7 +50,8 @@
   align-items: center;
   justify-items: center; // Centre the table horizontally within the track
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: auto;            // Enable vertical scroll so sticky header is functional
+  max-height: 60vh;            // Cap height so vertical scroll kicks in on big sheets
   position: relative;
   box-sizing: border-box;
   border: 1px solid green;
@@ -99,6 +100,25 @@
   overflow: visible;
   padding: 2px;
   border: 1px solid cyan;
+
+  // Freeze header row — sticks to top of .table-body during vertical scroll
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  // Opaque background so scrolled rows don't bleed through the header band
+  background: linear-gradient(
+    -25deg,
+    var(--light-slider-start) 0%,
+    var(--light-slider-end) 100%
+  );
+}
+
+body[data-theme="dark"] .table-header-cell {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-slider-start) 0%,
+    var(--dark-slider-end) 100%
+  );
 }
 
 .table-body-cell {
@@ -113,6 +133,34 @@
   text-align: center;
   vertical-align: middle;
   border: 1px solid pink;
+}
+
+// Freeze first column — applies to whichever cell type is in column A
+// (header cell in thead row, body cell or button cell in data rows).
+.table-main tr > *:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: linear-gradient(
+    -25deg,
+    var(--light-slider-start) 0%,
+    var(--light-slider-end) 100%
+  );
+}
+
+body[data-theme="dark"] .table-main tr > *:first-child {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-slider-start) 0%,
+    var(--dark-slider-end) 100%
+  );
+}
+
+// Intersection cell (top-left "User" header) — both sticky at once.
+// Needs z-index above both sticky bands so it paints over them.
+.table-main thead .table-header-cell:first-child {
+  left: 0;
+  z-index: 3;
 }
 
 // Wrapper div inside each text cell — kept in the HTML as a neutral passthrough.
