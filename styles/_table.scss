@@ -15,8 +15,8 @@
   height: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto 1fr; // Title is content-sized; body takes the remaining vertical space
-  align-items: center;
+  grid-template-rows: auto auto; // Title and body are both content-sized
+  align-content: center; // Centre the title+body block vertically as a group
   justify-items: center;
   overflow: visible;
   position: relative;
@@ -46,11 +46,10 @@
 // ==============================================
 .table-body {
   width: 100%;
-  height: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  justify-items: start; // Left-align the table within the track so scroll starts at col 1
+  justify-items: center; // Centre the table horizontally within the track
   overflow-x: auto;
   overflow-y: visible;
   position: relative;
