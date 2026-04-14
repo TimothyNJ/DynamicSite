@@ -73,7 +73,7 @@
   width: max-content;
   margin: 0;
   table-layout: auto; // Auto layout — columns size to their content
-  text-align: center;
+  text-align: left;   // Default cell alignment; title is the only centred element (via .table-title justify-self)
   border: 1px solid orange;
 }
 
@@ -88,18 +88,17 @@
 
 // Rows
 .table-header-row {
-  text-align: center;
+  text-align: left;
   border: 1px solid lime;
 }
 
 .table-body-row {
-  text-align: center;
+  text-align: left;
   border: 1px solid deepskyblue;
 }
 
-// Header cells — left-aligned content (overrides the table-main default)
+// Header cells — inherit left alignment from .table-main
 .table-header-cell {
-  text-align: left;
   vertical-align: middle;
   overflow: visible;
   padding: 2px;
@@ -184,15 +183,14 @@ body[data-theme="dark"] .table-main tr > *:first-child {
 
 // No local font-size override: h3 (headers), p (user names), and h2 (title)
 // use whatever _base.scss defines globally for those tags.
+// text-align: left here overrides the global `h1,h2,h3,h4,p { text-align: center }`
+// rule from _base.scss so both column headers (<h3>) and user names (<p>) in
+// data cells read left-aligned. The title <h2> lives in .table-title, not
+// .cell-fit, so it stays centred via the global rule + .table-title justify-self.
 .cell-fit > h3,
 .cell-fit > p {
   margin: 0;
   padding: 0;
-}
-
-// Header-cell h3 text: override the global `h1,h2,h3,h4,p { text-align: center }`
-// rule from _base.scss so column header labels read left-aligned within their cells.
-.table-header-cell .cell-fit > h3 {
   text-align: left;
 }
 
