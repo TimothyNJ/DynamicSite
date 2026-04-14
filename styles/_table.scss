@@ -106,12 +106,27 @@
   border: 1px solid cyan;
 
   // Freeze header row — sticks to top of .table-body during vertical scroll.
-  // Background intentionally transparent per design request — be aware that
-  // scrolled rows will visually bleed through the frozen header band.
+  // Background matches the page's fixed gradient with `background-attachment:
+  // fixed`, so each sticky cell paints the exact pixel of gradient that would
+  // be visible behind it — visually seamless with the page, no bleed-through.
   position: sticky;
   top: 0;
   z-index: 2;
-  background: transparent;
+  background: linear-gradient(
+    -25deg,
+    var(--light-page-start) 0%,
+    var(--light-page-end) 100%
+  );
+  background-attachment: fixed;
+}
+
+body[data-theme="dark"] .table-header-cell {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-page-start) 0%,
+    var(--dark-page-end) 100%
+  );
+  background-attachment: fixed;
 }
 
 .table-body-cell {
@@ -130,13 +145,27 @@
 
 // Freeze first column — applies to whichever cell type is in column A
 // (header cell in thead row, body cell or button cell in data rows).
-// Background intentionally transparent per design request — scrolled columns
-// will visually bleed through the frozen column A band.
+// Same viewport-fixed gradient trick as the header row: each sticky cell
+// paints the page gradient in viewport space, so it looks transparent.
 .table-main tr > *:first-child {
   position: sticky;
   left: 0;
   z-index: 2;
-  background: transparent;
+  background: linear-gradient(
+    -25deg,
+    var(--light-page-start) 0%,
+    var(--light-page-end) 100%
+  );
+  background-attachment: fixed;
+}
+
+body[data-theme="dark"] .table-main tr > *:first-child {
+  background: linear-gradient(
+    -25deg,
+    var(--dark-page-start) 0%,
+    var(--dark-page-end) 100%
+  );
+  background-attachment: fixed;
 }
 
 // Intersection cell (top-left "User" header) — both sticky at once.
