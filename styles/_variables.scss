@@ -90,7 +90,7 @@ $z-index-tooltip: 1070;
 // ==============================================
 :root {
   // Layout Variables
-  --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.12)), 30vw);
+  --side-buffer-width: clamp(1vw, calc(1vw + ((100vw - 600px) * 0.1)), 30vw);
   --collapse-breakpoint: 600px;
   --navbar-height: auto;
   
