@@ -12,7 +12,7 @@
 // ==============================================
 .table-outer {
   width: 100%;
-  max-width: 80%; // Constrain to 80% of content area; small tables can still shrink below
+  max-width: 90%; // Constrain to 90% of content area; small tables can still shrink below
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto; // Title and body are both content-sized
