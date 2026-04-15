@@ -462,6 +462,9 @@ async function loadSubpage(pageName, subpage, pushState = true, subsubpage = nul
     if (!response.ok) throw new Error(`Failed to load subpage: ${response.status}`);
 
     contentArea.innerHTML = await response.text();
+    contentArea.dataset.page = pageName;
+    contentArea.dataset.subpage = subpage;
+    delete contentArea.dataset.subsubpage;
     activeSubpage = subpage;
     activeSubSubpage = null;
     setActiveButton('data-subpage', subpage);
@@ -496,6 +499,9 @@ async function loadSubSubpage(pageName, subpage, subsubpage, pushState = true) {
     if (!response.ok) throw new Error(`Failed to load sub-subpage: ${response.status}`);
 
     contentArea.innerHTML = await response.text();
+    contentArea.dataset.page = pageName;
+    contentArea.dataset.subpage = subpage;
+    contentArea.dataset.subsubpage = subsubpage;
     activeSubSubpage = subsubpage;
     setActiveButton('data-subsubpage', subsubpage);
 

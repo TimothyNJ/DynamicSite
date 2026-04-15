@@ -179,3 +179,12 @@
   align-items: center;
   border: 2px solid rgb(0, 191, 255);
 }
+
+// Deployment Index pages: pin content to the top of the content area with a
+// 5% top gap. Mirrors the horizontal 5%/90%/5% treatment on .table-outer so
+// the tables read with symmetric gutters on all four sides. Scoped via the
+// data-subpage attribute set by router.js loadSubSubpage().
+.sidenav-content[data-subpage="deployment-index"] {
+  justify-content: flex-start;
+  padding-top: 5%;
+}
