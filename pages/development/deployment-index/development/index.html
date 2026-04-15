@@ -6,55 +6,55 @@
     <table class="table-main">
       <thead>
         <tr class="table-header-row">
-          <th class="table-header-cell"><div class="cell-fit"><h3>Time Stamp</h3></div></th>
           <th class="table-header-cell"><div class="cell-fit"><h3>Local Time Stamp</h3></div></th>
           <th class="table-header-cell"><div class="cell-fit"><h3>Commit</h3></div></th>
           <th class="table-header-cell summary-cell"><div class="cell-fit"><h3>Summary</h3></div></th>
           <th class="table-header-cell description-cell"><div class="cell-fit"><h3>Description</h3></div></th>
+          <th class="table-header-cell"><div class="cell-fit"><h3>UTC Time Stamps</h3></div></th>
         </tr>
       </thead>
       <tbody>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604141535 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-14T15:35:20Z"><div class="cell-fit"><p>202604140835 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>e11f797</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Fix calibration tester baselines via CSS grid</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>Converted the home-page typography calibration tester from flex to CSS grid so each tier row (H1, H2, H3, H4, P) aligns MIN, LIVE, and PREF samples on a shared baseline. Labels render on row 2.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604141535 UTC</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604141529 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-14T15:29:15Z"><div class="cell-fit"><p>202604140829 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>964fb9d</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Cap side-buffer at 5vw (was 30vw; inert ceiling now active)</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>Cap engages at approximately 1200px viewport. Beyond that, buffers stay flat at 5% of viewport instead of continuing the linear growth from the clamp's middle term.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604141529 UTC</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604141436 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-14T14:36:00Z"><div class="cell-fit"><p>202604140736 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>dd453ef</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Soften side-buffer growth further: slope 0.10 -&gt; 0.08</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>Lowered the side-buffer clamp's linear-growth coefficient from 0.10 to 0.08 to reduce how aggressively the buffers widen as the viewport grows past the 600px collapse breakpoint.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604141436 UTC</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604140412 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-14T04:12:45Z"><div class="cell-fit"><p>202604132112 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>3876c25</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Length-capped text input engine: 66-char pixel cap and left-orient</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>New sibling engine that caps text input width at the pixel width of the first 66 characters of the source text. Wrapper and element both carry inline text-align: left to defeat the global centre rule. Measured via a hidden helper element cloned from the real element's computed font.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604140412 UTC</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604132330 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-13T23:30:10Z"><div class="cell-fit"><p>202604131630 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>a7c1e42</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Display-only table rebuilt from scratch (Org Roles Above Admin)</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>Reverted the earlier dynamictable55 wholesale-port integration and rebuilt the Users to Org Roles Above Admin table around a fit-content flex pattern with debug border colours. Inherits global typography from _base.scss.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604132330 UTC</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604122012 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-12T20:12:05Z"><div class="cell-fit"><p>202604121312 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>b0f8d91</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Collapsible sidenav: 2000ms delay, 150ms fade, 1500ms shrink</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>Unified the page-load collapse sequence with the mouse-leave collapse sequence so both run through the same variables and transitions. Arrow indicator remains visible while panels shrink. Independent for primary and secondary sidenavs.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604122012 UTC</p></div></td>
         </tr>
       </tbody>
     </table>

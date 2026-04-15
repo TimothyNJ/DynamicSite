@@ -6,55 +6,55 @@
     <table class="table-main">
       <thead>
         <tr class="table-header-row">
-          <th class="table-header-cell"><div class="cell-fit"><h3>Time Stamp</h3></div></th>
           <th class="table-header-cell"><div class="cell-fit"><h3>Local Time Stamp</h3></div></th>
           <th class="table-header-cell"><div class="cell-fit"><h3>Commit</h3></div></th>
           <th class="table-header-cell summary-cell"><div class="cell-fit"><h3>Summary</h3></div></th>
           <th class="table-header-cell description-cell"><div class="cell-fit"><h3>Description</h3></div></th>
+          <th class="table-header-cell"><div class="cell-fit"><h3>UTC Time Stamps</h3></div></th>
         </tr>
       </thead>
       <tbody>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604131744 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-13T17:44:00Z"><div class="cell-fit"><p>202604131044 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>3876c25</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Promote 3876c25 from development to sandbox</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>Length-capped text input engine promoted after 24h of soak on development. Covers the 66-char pixel cap, left-orient, and the prose-column pixel-cap logic for the Deployment Index table.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604131744 UTC</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604110245 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-11T02:45:20Z"><div class="cell-fit"><p>202604101945 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>9e2b7f1</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Promote OAC lockdown and three-env infra to sandbox</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>CloudFront Origin Access Control finalised. S3 website endpoints retired; all three buckets now respond only to signed CloudFront requests. Dev and sandbox basic-auth CloudFront Functions active.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604110245 UTC</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604081822 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-08T18:22:50Z"><div class="cell-fit"><p>202604081122 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>5c314a8</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Zitadel role hierarchy — six-tier model in sandbox</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>Role chain system_admin to account_owner to org_super_admin to org_audit_admin to org_admin to guest_user now enforced by the route guard. Six seed users verified in sandbox Zitadel org.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604081822 UTC</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604052015 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-05T20:15:30Z"><div class="cell-fit"><p>202604051315 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>7d8a2c4</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Sandbox CloudFront wired to ACM wildcard</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>sandbox.dynamicsite.io now served over the shared dynamicsite.io wildcard cert. Redirect chain verified from http to https to apex-basic-auth. Cache TTLs set to 300s pending live traffic.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604052015 UTC</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202604031130 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-04-03T11:30:00Z"><div class="cell-fit"><p>202604030430 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>2f9e6b3</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>PKCE auth flow live in sandbox</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>js/auth/zitadel-auth.js callback handling moved inline to index.html for the hash-fragment parse. Route guard now blocks unauthenticated access to all non-home sections, with sandbox-specific client IDs.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604031130 UTC</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p>202603280940 UTC</p></div></td>
           <td class="table-body-cell local-timestamp" data-utc="2026-03-28T09:40:15Z"><div class="cell-fit"><p>202603280240 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>c4a1d58</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Initial sandbox bucket sync + first green pipeline</p></div></td>
           <td class="table-body-cell description-cell"><div class="cell-fit"><p>First successful run of aws-s3-deploy-sandbox.yml. Sandbox S3 bucket populated with current development snapshot. Verified index.html served via sandbox CloudFront distribution with basic auth prompt intact.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202603280940 UTC</p></div></td>
         </tr>
       </tbody>
     </table>
