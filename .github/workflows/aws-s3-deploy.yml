@@ -4,11 +4,41 @@ on:
   push:
     branches: [production]
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          # Full history so scripts/generate_deployment_index.py can read git log
+          # for this branch back to repo inception.
+          fetch-depth: 0
+          # Persist GITHUB_TOKEN so the regenerate step can push back.
+          persist-credentials: true
+
+      # ──────────────────────────────────────────────────────────────────────
+      # Regenerate Deployment Index for THIS branch from git log, then commit
+      # back with [skip ci] so the next deploy doesn't loop. Runs before the
+      # build/deploy steps so the freshly-regenerated HTML is what gets synced
+      # to S3 on this same workflow run.
+      # ──────────────────────────────────────────────────────────────────────
+      - name: Regenerate Deployment Index (production)
+        run: |
+          python3 scripts/generate_deployment_index.py \
+            --branch production \
+            --out pages/development/deployment-index/production/index.html
+          if git diff --quiet pages/development/deployment-index/production/index.html; then
+            echo "No changes to Deployment Index — skipping commit."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add pages/development/deployment-index/production/index.html
+            git commit -m "Auto-regenerate Deployment Index (production) [skip ci]"
+            git push origin HEAD:production
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
