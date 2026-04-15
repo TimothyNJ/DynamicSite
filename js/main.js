@@ -803,13 +803,13 @@ async function initializeDeploymentIndexPage(subsubpage) {
     console.error('[Deployment Index] Failed to format local timestamps:', err);
   }
 
-  // ─── Sandbox-only: live search bar ─────────────────────────────────────────
+  // ─── Live search bar (all three sub-subpages) ──────────────────────────────
   // Renders a text_input_component_engine into the page's search container,
   // then on every keystroke filters the table rows below to those whose text
   // contains the query (case-insensitive) and wraps each match in <mark> for
   // highlighting. Cleared input restores all rows and removes highlights.
-  if (subsubpage === 'sandbox') {
-    initializeDeploymentIndexSearch();
+  if (subsubpage) {
+    initializeDeploymentIndexSearch(subsubpage);
   }
 
   // ─── Prose-column pixel-cap measurement ──────────────────────────────────
@@ -841,20 +841,23 @@ async function initializeDeploymentIndexPage(subsubpage) {
   }
 }
 
-// ─── Deployment Index search bar (Sandbox sub-subpage) ──────────────────────
-// Renders a text_input_component_engine into #deployment-index-search-sandbox
-// and wires its live change handler to filter and highlight rows in the
-// adjacent .table-main. Idempotent: if the bar is already rendered (e.g. the
-// router fires subpageLoaded twice), we skip re-init.
-function initializeDeploymentIndexSearch() {
-  const container = document.getElementById('deployment-index-search-sandbox');
+// ─── Deployment Index search bar (any sub-subpage) ──────────────────────────
+// Renders a text_input_component_engine into the per-environment search slot
+// (#deployment-index-search-{development|sandbox|production}) and wires its
+// live change handler to filter and highlight rows in the adjacent .table-main.
+// Idempotent: if the bar is already rendered (e.g. router fires subpageLoaded
+// twice), we skip re-init.
+function initializeDeploymentIndexSearch(subsubpage) {
+  const container = document.getElementById(`deployment-index-search-${subsubpage}`);
   if (!container) return;
   if (container.dataset.initialized === 'true') return;
   container.dataset.initialized = 'true';
 
-  const tbody = document.querySelector('[data-search-scope="sandbox"] .table-main tbody');
+  const tbody = document.querySelector(
+    `[data-search-scope="${subsubpage}"] .table-main tbody`
+  );
   if (!tbody) {
-    console.warn('[Deployment Index] Sandbox tbody not found; search disabled');
+    console.warn(`[Deployment Index] ${subsubpage} tbody not found; search disabled`);
     return;
   }
 
@@ -907,8 +910,8 @@ function initializeDeploymentIndexSearch() {
   // Instantiate the engine. Second arg is the change handler — fires on input.
   const engine = new text_input_component_engine(
     {
-      id: 'deployment-index-search-input-sandbox',
-      name: 'deployment-index-search-sandbox',
+      id: `deployment-index-search-input-${subsubpage}`,
+      name: `deployment-index-search-${subsubpage}`,
       placeholder: 'Search',
       expandable: false,
       multiline: false,
@@ -916,7 +919,7 @@ function initializeDeploymentIndexSearch() {
     (value) => applyFilter(value),
   );
   engine.render(container);
-  console.log('[Deployment Index] Search bar initialised (sandbox)');
+  console.log(`[Deployment Index] Search bar initialised (${subsubpage})`);
 }
 
 // ─── Prose-cell pixel-cap helper ─────────────────────────────────────────────

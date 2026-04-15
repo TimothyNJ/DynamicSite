@@ -1,7 +1,8 @@
-<div class="table-outer">
+<div class="table-outer" data-search-scope="development">
   <div class="table-title">
     <h2>Deployment Index — Development</h2>
   </div>
+  <div class="deployment-index-search" id="deployment-index-search-development"></div>
   <div class="table-body">
     <table class="table-main">
       <thead>
@@ -14,6 +15,34 @@
         </tr>
       </thead>
       <tbody>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-15T05:43:12Z"><div class="cell-fit"><p>202604142243 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>a5f56fa</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Sandbox search: matched-row font bump -&gt; H4 (was H3)</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604150543 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-15T05:41:30Z"><div class="cell-fit"><p>202604142241 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>42fb04f</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Sandbox Deployment Index search: bump matched-row font-size to H3</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Matched rows now carry .search-matched (added by initializeDeploymentIndexSearch) which bumps their &lt;p&gt; text up to var(--h3-font-size) bold so hits read at the same weight as the column headers. Hidden rows drop the class and restore plain text so the next search starts clean.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604150541 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-15T05:36:25Z"><div class="cell-fit"><p>202604142236 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>26f96c0</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Sandbox Deployment Index: live-search bar with row filter + match highlighting</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Adds a text_input_component_engine search input directly below the title on the Sandbox sub-subpage. On every keystroke, rows whose combined text doesn&#x27;t contain the query (case-insensitive) are hidden, and matched substrings in visible rows are wrapped in &lt;mark class=&quot;search-hit&quot;&gt; for highlighting. Sandbox-only via subsubpage check in initializeDeploymentIndexPage. - pages/.../sandbox/index.html: added .deployment-index-search container - js/main.js: initializeDeploymentIndexSearch() — engine + filter + highlight - styles/_table.scss: .deployment-index-search slot + .search-hit highlight</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604150536 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-15T05:27:32Z"><div class="cell-fit"><p>202604142227 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>3f80ecb</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Deployment Index (Development): generate from git log</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Replaces the six hand-written sample rows with all 1237 commits on the development branch, generated from git log via scripts/generate_deployment_index.py. Sandbox and Production pages still hand-written; will swap on next pass.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>202604150527 UTC</p></div></td>
+        </tr>
         <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-15T04:58:29Z"><div class="cell-fit"><p>202604142158 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>5678a99</p></div></td>

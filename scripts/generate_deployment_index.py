@@ -157,11 +157,15 @@ def render_row(commit: dict) -> str:
 def render_page(branch: str, commits: list[dict]) -> str:
     title = TITLE_BY_BRANCH.get(branch, branch.capitalize())
     rows = "\n".join(render_row(c) for c in commits) if commits else ""
+    # Search bar: text_input_component_engine renders into the per-environment
+    # slot; main.js wires it up on subpageLoaded. data-search-scope tells the
+    # filter logic which .table-main this search is bound to.
     return (
-        f"<div class=\"table-outer\">\n"
+        f"<div class=\"table-outer\" data-search-scope=\"{branch}\">\n"
         f"  <div class=\"table-title\">\n"
         f"    <h2>Deployment Index — {title}</h2>\n"
         f"  </div>\n"
+        f"  <div class=\"deployment-index-search\" id=\"deployment-index-search-{branch}\"></div>\n"
         f"  <div class=\"table-body\">\n"
         f"    <table class=\"table-main\">\n"
         f"      <thead>\n"
