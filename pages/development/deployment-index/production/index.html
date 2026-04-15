@@ -1,0 +1,62 @@
+<div class="table-outer">
+  <div class="table-title">
+    <h2>Deployment Index — Production</h2>
+  </div>
+  <div class="table-body">
+    <table class="table-main">
+      <thead>
+        <tr class="table-header-row">
+          <th class="table-header-cell"><div class="cell-fit"><h3>Time Stamp</h3></div></th>
+          <th class="table-header-cell"><div class="cell-fit"><h3>Local Time Stamp</h3></div></th>
+          <th class="table-header-cell"><div class="cell-fit"><h3>Commit</h3></div></th>
+          <th class="table-header-cell summary-cell"><div class="cell-fit"><h3>Summary</h3></div></th>
+          <th class="table-header-cell description-cell"><div class="cell-fit"><h3>Description</h3></div></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="table-body-row">
+          <td class="table-body-cell"><div class="cell-fit"><p>202604101610 UTC</p></div></td>
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-10T16:10:00Z"><div class="cell-fit"><p>202604100910 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>9e2b7f1</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Pre-launch infrastructure lockdown — promote to production</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>After 48h of soak on sandbox, OAC lockdown and the three-env infra promoted to production. S3 website endpoints retired on the production bucket. All production reads now flow through CloudFront only.</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell"><div class="cell-fit"><p>202603221355 UTC</p></div></td>
+          <td class="table-body-cell local-timestamp" data-utc="2026-03-22T13:55:20Z"><div class="cell-fit"><p>202603220655 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>4e8b2d9</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>ACM wildcard issued for *.dynamicsite.io</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Production CloudFront now fronted by the ACM wildcard cert. dynamicsite.io and www.dynamicsite.io both resolve; www issues a 301 redirect to the apex. Intentionally noindex until launch.</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell"><div class="cell-fit"><p>202603140902 UTC</p></div></td>
+          <td class="table-body-cell local-timestamp" data-utc="2026-03-14T09:02:45Z"><div class="cell-fit"><p>202603140202 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>a6f04e7</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Domain dynamicsite.io live at the apex</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Cloudflare DNS cut over: A/AAAA on the apex pointing at the production CloudFront distribution. Propagation clean in all seven checked resolvers. TLS terminates at CloudFront.</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell"><div class="cell-fit"><p>202602281845 UTC</p></div></td>
+          <td class="table-body-cell local-timestamp" data-utc="2026-02-28T18:45:10Z"><div class="cell-fit"><p>202602281145 PST</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>d92c718</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Landing page: header, typography tier, footer</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Minimal holding page behind the production CloudFront with the site logo, the H1 through P typography tier on display, and footer with contact link. No navigation yet; users land and read.</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell"><div class="cell-fit"><p>202602101422 UTC</p></div></td>
+          <td class="table-body-cell local-timestamp" data-utc="2026-02-10T14:22:00Z"><div class="cell-fit"><p>202602100622 PST</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>1b3f5a2</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>First production deploy — bucket + distribution smoke test</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>First ever push to production. aws-s3-deploy-prod.yml syncs a single index.html reading "Coming soon" to the production bucket. CloudFront distribution returns 200 with correct headers and cache behaviour.</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell"><div class="cell-fit"><p>202601200750 UTC</p></div></td>
+          <td class="table-body-cell local-timestamp" data-utc="2026-01-20T07:50:30Z"><div class="cell-fit"><p>202601192350 PST</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>00e9a14</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Repository initialised — production branch created</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Genesis commit on the production branch. README, .gitignore, and an empty pages/ tree. No deploy workflow yet; this entry records the branch existing as the eventual target of the production deploy pipeline.</p></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
