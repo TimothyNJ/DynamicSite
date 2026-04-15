@@ -34,8 +34,8 @@ export function setUserTimeZone(zone) {
   }
 }
 
-// Format an ISO instant as "YYYYMMDD HHMM UTC".
-// Example: "2026-04-14T15:35:20Z" -> "20260414 1535 UTC"
+// Format an ISO instant as "YYYY-MM-DD HH:MM UTC".
+// Example: "2026-04-14T15:35:20Z" -> "2026-04-14 15:35 UTC"
 export function formatUtcTimestamp(iso) {
   const d = new Date(iso);
   const pad = (n) => String(n).padStart(2, '0');
@@ -44,11 +44,11 @@ export function formatUtcTimestamp(iso) {
   const dd = pad(d.getUTCDate());
   const hh = pad(d.getUTCHours());
   const mn = pad(d.getUTCMinutes());
-  return `${yyyy}${mm}${dd} ${hh}${mn} UTC`;
+  return `${yyyy}-${mm}-${dd} ${hh}:${mn} UTC`;
 }
 
-// Format an ISO instant as "YYYYMMDDHHMM <TZ_ABBR>" in the user's time zone.
-// Example: "2026-04-14T15:35:20Z" + "America/Los_Angeles" -> "202604140835 PDT"
+// Format an ISO instant as "YYYY-MM-DD HH:MM <TZ_ABBR>" in the user's time zone.
+// Example: "2026-04-14T15:35:20Z" + "America/Los_Angeles" -> "2026-04-14 08:35 PDT"
 // The abbreviation (PDT vs PST, BST vs GMT, etc.) is chosen by Intl based on
 // whether DST is active for the given date.
 export function formatLocalTimestamp(iso, zone = User_Time_Zone) {
@@ -68,5 +68,5 @@ export function formatLocalTimestamp(iso, zone = User_Time_Zone) {
   );
   // Some implementations return "24" for midnight under hour12:false — normalise.
   const hh = parts.hour === '24' ? '00' : parts.hour;
-  return `${parts.year}${parts.month}${parts.day}${hh}${parts.minute} ${parts.timeZoneName}`;
+  return `${parts.year}-${parts.month}-${parts.day} ${hh}:${parts.minute} ${parts.timeZoneName}`;
 }

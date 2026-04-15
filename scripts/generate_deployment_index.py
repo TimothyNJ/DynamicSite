@@ -101,19 +101,20 @@ def to_utc_iso_z(iso_in: str) -> str:
 
 
 def format_utc_compact(iso_in: str) -> str:
-    """'2026-04-14T15:35:20+00:00' → '202604141535 UTC'."""
+    """'2026-04-14T15:35:20+00:00' → '2026-04-14 15:35 UTC'."""
     dt = datetime.fromisoformat(iso_in).astimezone(timezone.utc)
-    return dt.strftime("%Y%m%d%H%M") + " UTC"
+    return dt.strftime("%Y-%m-%d %H:%M") + " UTC"
 
 
 def format_pdt_compact(iso_in: str, tz_name: str = "America/Los_Angeles") -> str:
     """Fallback local-timestamp text shown before JS rewrites it.
 
-    Format matches the hand-written historical rows: 'YYYYMMDDHHMM PDT/PST'.
+    Format: 'YYYY-MM-DD HH:MM PDT/PST'. JS overwrites this on page load
+    with the user's chosen time zone, in the same format.
     """
     dt = datetime.fromisoformat(iso_in).astimezone(ZoneInfo(tz_name))
     suffix = dt.tzname() or "LOCAL"  # "PDT" or "PST"
-    return dt.strftime("%Y%m%d%H%M") + " " + suffix
+    return dt.strftime("%Y-%m-%d %H:%M") + " " + suffix
 
 
 def esc(text: str) -> str:
