@@ -212,38 +212,26 @@ body[data-theme="dark"] .table-main tr > *:first-child {
   margin: 0;
 }
 
-// Prose-column modifiers — .description-cell and .summary-cell share one
-// character-based rule expressed in `ch` (width of the "0" glyph in the
-// current font), which tracks font size automatically and keeps the rule
-// in reading terms rather than pixels.
+// Prose-column modifiers — .description-cell and .summary-cell.
 //
-// Rule: width: fit-content(90ch) on the inner .cell-fit div.
+// Width is driven by JS (applyProseCellPixelCap in main.js), NOT by CSS.
+// Why: CSS `fit-content(Nch)` and `max-width: Nch` both failed under
+// `table-layout: auto` + `width: max-content` on the table element. The
+// column-width algorithm sizes columns by the cell's max-content preferred
+// width — "size of content if no wrapping is allowed" — and descendant
+// max-width / fit-content constraints do not reduce that figure. The prose
+// column kept growing past the cap.
 //
-// `fit-content(90ch)` is equivalent to min(max-content, max(min-content, 90ch)):
-//   - short content (max-content < 90ch)  → div = max-content (shrinks to fit)
-//   - long content  (max-content ≥ 90ch)  → div = 90ch (caps and wraps)
+// JS fix: measure the pixel width of the first N characters of each prose
+// cell's text, and set that width explicitly on the inner .cell-fit div.
+// An explicit pixel width IS a definite size that the auto-layout honours,
+// so the column cannot exceed the cap. Same 66-char measurement logic as
+// the sibling text_input_component_engine_length_capped engine, so wrapped
+// prose in cells and wrapped prose in text inputs read at the same visual
+// line length.
 //
-// Why NOT `max-width: 90ch`: in table-layout: auto with width: max-content on
-// the table, the column-width algorithm sizes columns to their max-content
-// preferred width — defined as "size of content if no wrapping is allowed" —
-// and max-width on cells or their children does not reduce this figure. The
-// prose column would keep growing past 90ch despite the cap. `fit-content(N)`
-// sets a DEFINITE width on the inner block, so the cell's max-content is
-// effectively capped at 90ch and the auto-layout honours it.
-//
-// Buttons, short tokens (commit hashes, timestamps) don't have wrap
-// opportunities inside them, so auto-layout leaves those columns at their
-// natural widths regardless — no special-casing needed for non-prose columns.
-//
-// Both classes get the same rule today; kept as separate selectors so the
-// two columns can diverge later if needed. Used by the Deployment Index
-// table's Summary and Description columns; reusable anywhere a prose column
-// needs an upper readability bound without a lower floor.
-.description-cell .cell-fit,
-.summary-cell .cell-fit {
-  width: fit-content(90ch);
-}
-
+// We still need the wrap-behaviour rules (white-space, overflow-wrap,
+// word-break) so the text wraps inside the JS-capped width.
 .description-cell,
 .summary-cell {
   white-space: normal;

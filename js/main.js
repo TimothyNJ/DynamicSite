@@ -802,6 +802,99 @@ async function initializeDeploymentIndexPage() {
   } catch (err) {
     console.error('[Deployment Index] Failed to format local timestamps:', err);
   }
+
+  // ─── Prose-column pixel-cap measurement ──────────────────────────────────
+  // Mirror the sibling text_input_component_engine_length_capped approach:
+  // measure the pixel width of the first N characters of each prose cell's
+  // text and set that explicit width on the .cell-fit div. This gives an
+  // exact character-based cap that `max-width: Nch` and `fit-content(Nch)`
+  // can't deliver under table-layout: auto + width: max-content, since the
+  // table's column-width algorithm uses cell max-content (no-wrap) widths
+  // and ignores max-width on cell descendants.
+  //
+  // Character cap = 66 — same as the length-capped text-input engine, so
+  // wrapped prose in cells reads at the same visual line length as wrapped
+  // text-input content.
+  applyProseCellPixelCap();
+  // Re-measure on viewport resize so font-size changes (zoom, responsive)
+  // still produce the right cap.
+  if (!window.__deploymentIndexResizeBound) {
+    window.addEventListener('resize', () => {
+      // Debounce with rAF — one measurement per paint is plenty
+      if (window.__deploymentIndexResizePending) return;
+      window.__deploymentIndexResizePending = true;
+      requestAnimationFrame(() => {
+        window.__deploymentIndexResizePending = false;
+        applyProseCellPixelCap();
+      });
+    });
+    window.__deploymentIndexResizeBound = true;
+  }
+}
+
+// ─── Prose-cell pixel-cap helper ─────────────────────────────────────────────
+// Measures the first CHAR_CAP characters of each prose cell's <p> text in
+// pixels, using a hidden element styled to match <p> inside .cell-fit, and
+// sets that width on the surrounding .cell-fit div so the column respects
+// the cap under table-layout: auto.
+function applyProseCellPixelCap() {
+  const CHAR_CAP = 66;
+  const cellFits = document.querySelectorAll(
+    '.description-cell .cell-fit, .summary-cell .cell-fit'
+  );
+  if (cellFits.length === 0) return;
+
+  // Hidden measurement helper. Positioned off-screen; white-space: pre so
+  // spaces aren't collapsed; visibility hidden so it never paints.
+  let helper = document.getElementById('prose-cell-measure-helper');
+  if (!helper) {
+    helper = document.createElement('span');
+    helper.id = 'prose-cell-measure-helper';
+    helper.style.position = 'absolute';
+    helper.style.visibility = 'hidden';
+    helper.style.whiteSpace = 'pre';
+    helper.style.left = '-99999px';
+    helper.style.top = '0';
+    helper.style.pointerEvents = 'none';
+    document.body.appendChild(helper);
+  }
+
+  cellFits.forEach((cellFit) => {
+    const p = cellFit.querySelector('p');
+    if (!p) return;
+    const text = p.textContent || '';
+    if (!text) return;
+
+    // Copy computed font properties from the real <p> so measurement
+    // matches exactly what's rendered.
+    const cs = window.getComputedStyle(p);
+    helper.style.fontFamily = cs.fontFamily;
+    helper.style.fontSize = cs.fontSize;
+    helper.style.fontWeight = cs.fontWeight;
+    helper.style.fontStyle = cs.fontStyle;
+    helper.style.letterSpacing = cs.letterSpacing;
+    helper.style.textTransform = cs.textTransform;
+
+    // Full-text width — this is what max-content would produce.
+    helper.textContent = text;
+    const fullWidth = helper.offsetWidth;
+
+    // Char-cap width — pixel width of first CHAR_CAP characters.
+    const sample = text.length >= CHAR_CAP ? text.substring(0, CHAR_CAP) : text;
+    helper.textContent = sample;
+    const capWidth = helper.offsetWidth;
+
+    // If text is shorter than the cap, let it shrink to its natural width;
+    // otherwise pin to the cap so the column can't grow past it.
+    const finalWidth = Math.min(fullWidth, capWidth);
+
+    // +1px margin to cover sub-pixel rounding on retina/fractional zooms.
+    cellFit.style.width = `${Math.ceil(finalWidth) + 1}px`;
+  });
+
+  console.log(
+    `[Deployment Index] Pixel-capped ${cellFits.length} prose cells at ${CHAR_CAP} chars`
+  );
 }
 
 // ─── System Roles (Zitadel) ──────────────────────────────────────────────────
