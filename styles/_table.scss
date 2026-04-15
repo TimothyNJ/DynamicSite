@@ -217,24 +217,23 @@ body[data-theme="dark"] .table-main tr > *:first-child {
 // current font), which tracks font size automatically and keeps the rule
 // in reading terms rather than pixels.
 //
-// Ceiling: max-width: 90ch — caps the column at ~90 characters; longer content wraps.
+// Rule: width: fit-content(90ch) on the inner .cell-fit div.
 //
-// IMPORTANT: the max-width lives on the INNER .cell-fit div, not on the <td>.
-// In `table-layout: auto` + `width: max-content`, browsers ignore max-width on
-// <td> — the column-width algorithm sizes columns to content preferred width
-// and treats max-width on cells as advisory at best. Putting the cap on a
-// block-level child of the cell (our .cell-fit div) gives it a definite
-// max-width that IS respected, and the <td> then sizes its column to match
-// its child's constrained width.
+// `fit-content(90ch)` is equivalent to min(max-content, max(min-content, 90ch)):
+//   - short content (max-content < 90ch)  → div = max-content (shrinks to fit)
+//   - long content  (max-content ≥ 90ch)  → div = 90ch (caps and wraps)
 //
-// No min-width on purpose. The table uses `table-layout: auto` +
-// `width: max-content`, so each column sizes to max(min-content, content-width)
-// capped by the inner div's max-width. That gives the behaviour we want:
-//   - short content (e.g. 12 chars)   → column shrinks to 12ch (fit-to-content)
-//   - medium content (up to 90 chars) → sits on one line at its natural width
-//   - long content (> 90 chars)       → caps at 90ch and wraps
-// A min-width floor would pad short cells out to the floor width, which is
-// the wrong behaviour for a mixed-length column like Summary.
+// Why NOT `max-width: 90ch`: in table-layout: auto with width: max-content on
+// the table, the column-width algorithm sizes columns to their max-content
+// preferred width — defined as "size of content if no wrapping is allowed" —
+// and max-width on cells or their children does not reduce this figure. The
+// prose column would keep growing past 90ch despite the cap. `fit-content(N)`
+// sets a DEFINITE width on the inner block, so the cell's max-content is
+// effectively capped at 90ch and the auto-layout honours it.
+//
+// Buttons, short tokens (commit hashes, timestamps) don't have wrap
+// opportunities inside them, so auto-layout leaves those columns at their
+// natural widths regardless — no special-casing needed for non-prose columns.
 //
 // Both classes get the same rule today; kept as separate selectors so the
 // two columns can diverge later if needed. Used by the Deployment Index
@@ -242,7 +241,7 @@ body[data-theme="dark"] .table-main tr > *:first-child {
 // needs an upper readability bound without a lower floor.
 .description-cell .cell-fit,
 .summary-cell .cell-fit {
-  max-width: 90ch;
+  width: fit-content(90ch);
 }
 
 .description-cell,
