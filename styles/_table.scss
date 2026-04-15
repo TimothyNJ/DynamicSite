@@ -106,7 +106,8 @@
 // meet the bold text visually. Right padding is 4px on both so column gaps
 // stay adequate under border-collapse: separate + border-spacing: 0.
 .table-header-cell {
-  vertical-align: middle;
+  text-align: left;
+  vertical-align: top;
   overflow: visible;
   padding: 2px 4px 2px 2px;
   border: 1px solid cyan;
@@ -136,8 +137,8 @@ body[data-theme="dark"] .table-header-cell {
 }
 
 .table-body-cell {
-  text-align: center;
-  vertical-align: middle;
+  text-align: left;
+  vertical-align: top;
   overflow: visible;
   // 4px left/4px right — wider left padding than headers (2px) to shift
   // regular-weight text rightward so it aligns optically with the bold
@@ -147,8 +148,8 @@ body[data-theme="dark"] .table-header-cell {
 }
 
 .table-button-cell {
-  text-align: center;
-  vertical-align: middle;
+  text-align: left;
+  vertical-align: top;
   border: 1px solid pink;
 }
 
