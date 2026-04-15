@@ -157,7 +157,7 @@ class ComponentFactory {
       
       console.log(`[ComponentFactory] Theme selected: ${themeName}`);
       
-      // Apply theme (simplified version of main branch logic)
+      // Apply theme (simplified version of production branch logic)
       this.applyTheme(themeName);
       
       // Save to localStorage
@@ -220,7 +220,7 @@ class ComponentFactory {
   }
 
   /**
-   * Format current time (from main branch time-format-slider.js)
+   * Format current time (from production branch time-format-slider.js)
    */
   formatCurrentTime(use24Hour = false) {
     const now = new Date();
@@ -265,7 +265,7 @@ class ComponentFactory {
   }
 
   /**
-   * Apply theme (simplified from main branch theme-slider.js)
+   * Apply theme (simplified from production branch theme-slider.js)
    */
   applyTheme(themeName) {
     console.log(`[ComponentFactory] Applying theme: ${themeName}`);
@@ -284,7 +284,7 @@ class ComponentFactory {
   }
 
   /**
-   * Apply time format (simplified from main branch time-format-slider.js)
+   * Apply time format (simplified from production branch time-format-slider.js)
    */
   applyTimeFormat(formatName) {
     console.log(`[ComponentFactory] Applying time format: ${formatName}`);

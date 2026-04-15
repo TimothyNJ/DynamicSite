@@ -1,18 +1,18 @@
 /**
  * slider_component_engine - Component-Type-Specific Engine for Sliders
  * 
- * Hybrid approach: Uses proven animation logic from main branch slider-buttons.js
+ * Hybrid approach: Uses proven animation logic from production branch slider-buttons.js
  * wrapped in modern class-based architecture for dynamic component creation.
  * 
- * Replicates exact main branch slider behavior while providing configuration-driven
+ * Replicates exact production branch slider behavior while providing configuration-driven
  * component creation that meets master plan requirements.
  * 
  * Date: 26-May-2025
  * Updates: 
- * - Added complete border hover animations from main branch
+ * - Added complete border hover animations from production branch
  * - Added MutationObserver for dynamic text changes
  * - Added getCSSVariable utility function
- * - Full feature parity with main branch achieved
+ * - Full feature parity with production branch achieved
  * - Refactored to use global mouse tracker for performance
  */
 
@@ -41,7 +41,7 @@ class slider_component_engine {
       buttonJustSelected: false,
     };
     
-    // Animation constants (from main branch)
+    // Animation constants (from production branch)
     this.ANIMATION_DURATION = 800;
     this.MONITOR_INTERVAL = 100;
     
@@ -70,7 +70,7 @@ class slider_component_engine {
 
   /**
    * Generate HTML structure for slider based on configuration
-   * Replicates exact main branch HTML structure
+   * Replicates exact production branch HTML structure
    */
   generateHTML() {
     const optionsHTML = this.options.options.map((option, index) => {
@@ -125,7 +125,7 @@ class slider_component_engine {
   }
 
   /**
-   * Initialize slider engine with proven main branch logic
+   * Initialize slider engine with proven production branch logic
    */
   init() {
     
@@ -149,7 +149,7 @@ class slider_component_engine {
     }
 
     try {
-      // Apply main branch initialization logic
+      // Apply production branch initialization logic
       this.equalizeButtonWidths();
       this.initializeSelector();
       this.setupMouseEvents();

@@ -1,13 +1,13 @@
-# Main Branch Slider Specifications - Reference for slider_component_engine
+# Production Branch Slider Specifications - Reference for slider_component_engine
 
 **Date**: 21-May-2025 23:31  
 **Purpose**: Exact specifications for implementing slider_component_engine  
-**Source**: Main branch sliders (theme-slider.js, time-format-slider.js, slider-buttons.js)  
+**Source**: Production branch sliders (theme-slider.js, time-format-slider.js, slider-buttons.js)  
 **Deployment Timestamp**: 20250521233132  
 
 ## Overview
 
-This document provides the complete specification for main branch sliders that must be replicated exactly by the slider_component_engine. Every visual detail, behavioral pattern, and animation characteristic documented here represents the exact standard that the engine must achieve.
+This document provides the complete specification for production branch sliders that must be replicated exactly by the slider_component_engine. Every visual detail, behavioral pattern, and animation characteristic documented here represents the exact standard that the engine must achieve.
 
 ## Visual Specifications
 
@@ -39,7 +39,7 @@ This document provides the complete specification for main branch sliders that m
 - **Professional Styling**: Elegant, polished appearance matching screenshot
 
 ### Color Specifications
-Based on main branch CSS and visual reference:
+Based on production branch CSS and visual reference:
 - **Active Button**: Purple-to-blue gradient (`linear-gradient(135deg, #6366f1 0%, #3b82f6 100%)`)
 - **Container Background**: Sophisticated dark background with subtle gradient
 - **Text Color**: White text on active button, muted text on inactive buttons
@@ -203,7 +203,7 @@ setInterval(updateTimeDisplay, 1000);
   position: relative;
   display: flex;
   align-items: center;
-  /* Additional styling from main branch */
+  /* Additional styling from production branch */
 }
 ```
 
@@ -333,7 +333,7 @@ class slider_component_engine {
     this.sliderClass = options.sliderClass;
   }
   
-  // Must replicate exact main branch behavior
+  // Must replicate exact production branch behavior
   init() { /* Implementation */ }
   setActiveOption(option, skipAnimation) { /* Implementation */ }
   destroy() { /* Cleanup */ }
@@ -373,7 +373,7 @@ const timeEngine = new slider_component_engine({
 ## Success Criteria
 
 ### Visual Match Requirements
-1. **Exact Visual Replication**: Engine sliders must be visually indistinguishable from main branch
+1. **Exact Visual Replication**: Engine sliders must be visually indistinguishable from production branch
 2. **Screenshot Comparison**: Side-by-side comparison must show identical appearance
 3. **All States Match**: Default, hover, active, and transition states identical
 4. **Responsive Behavior**: Identical behavior at all screen sizes
@@ -392,7 +392,7 @@ const timeEngine = new slider_component_engine({
 
 ## Reference Files
 
-### Main Branch Implementation Files
+### Production Branch Implementation Files
 - `/js/settings/slider-buttons.js` - Core slider functionality and animations
 - `/js/settings/theme-slider.js` - Theme-specific logic and handlers
 - `/js/navigation/time-format-slider.js` - Time format logic and live updates
@@ -405,14 +405,14 @@ const timeEngine = new slider_component_engine({
 ## Implementation Priority
 
 ### Phase 1 Focus
-**ONLY** implement slider_component_engine to replicate these exact specifications. No other component types should be developed until the slider engine achieves perfect main branch replication.
+**ONLY** implement slider_component_engine to replicate these exact specifications. No other component types should be developed until the slider engine achieves perfect production branch replication.
 
 ### Verification Requirements
-1. **Visual Verification**: Screenshot comparison with main branch
+1. **Visual Verification**: Screenshot comparison with production branch
 2. **Behavioral Verification**: All interactions work identically
 3. **Code Verification**: Engine creates sliders with minimal configuration
 4. **Performance Verification**: Animations smooth and responsive
 
-This specification document provides the complete blueprint for implementing slider_component_engine to exactly match main branch slider behavior and appearance.
+This specification document provides the complete blueprint for implementing slider_component_engine to exactly match production branch slider behavior and appearance.
 
 Last Updated: 21-May-2025 23:31

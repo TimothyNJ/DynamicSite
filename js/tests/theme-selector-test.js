@@ -2,7 +2,7 @@
  * Theme Selector Test Script
  *
  * This script tests the GenericSelector component configured as a theme selector
- * to ensure it properly replaces the hardcoded theme selector from main branch.
+ * to ensure it properly replaces the hardcoded theme selector from production branch.
  */
 
 // Wait for all components to be loaded

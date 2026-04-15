@@ -3,7 +3,7 @@
  *
  * This class extends SelectorBase to create a universal selector component
  * that can be configured to replace any hardcoded slider-type selector
- * from the main branch (theme, time format, etc.)
+ * from the production branch (theme, time format, etc.)
  */
 class GenericSelector extends SelectorBase {
   /**
