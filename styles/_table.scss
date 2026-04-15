@@ -98,15 +98,17 @@
 }
 
 // Header cells — inherit left alignment from .table-main.
-// Asymmetric padding: zero on the left so bold <h3> headers align flush with
-// the regular-weight <p> text below them (bold glyphs have a slightly wider
-// left side-bearing, which was visibly pushing headers further left than
-// body text when both had 2px of left padding). Right padding is doubled to
-// 4px so there's still adequate horizontal separation between columns.
+// Asymmetric padding to optically align bold <h3> headers with regular-weight
+// <p> body text. Bold glyphs have a slightly wider left side-bearing, so with
+// equal left padding on both rows, headers read as pushed further left than
+// body text below them. Fix: give headers less left padding (2px) and body
+// cells more left padding (4px) so the regular-weight text shifts right to
+// meet the bold text visually. Right padding is 4px on both so column gaps
+// stay adequate under border-collapse: separate + border-spacing: 0.
 .table-header-cell {
   vertical-align: middle;
   overflow: visible;
-  padding: 2px 4px 2px 0;
+  padding: 2px 4px 2px 2px;
   border: 1px solid cyan;
 
   // Freeze header row — sticks to top of .table-body during vertical scroll.
@@ -137,8 +139,10 @@ body[data-theme="dark"] .table-header-cell {
   text-align: center;
   vertical-align: middle;
   overflow: visible;
-  // Same asymmetric padding as .table-header-cell — see comment there.
-  padding: 2px 4px 2px 0;
+  // 4px left/4px right — wider left padding than headers (2px) to shift
+  // regular-weight text rightward so it aligns optically with the bold
+  // header text above. See comment on .table-header-cell.
+  padding: 2px 4px 2px 4px;
   border: 1px solid dodgerblue;
 }
 
