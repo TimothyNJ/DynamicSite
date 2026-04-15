@@ -125,7 +125,16 @@ function initializeComponentEnginesDemos() {
     expandable: true,
     onChange: (value) => console.log('[Demo] Text input:', value)
   });
-  
+
+  // 2b. Text Input Length Capped demo (sibling engine, identical behaviour for now)
+  componentFactory.createTextInputLengthCapped('demo-text-input-length-capped-container', {
+    id: 'demo-text-input-length-capped',
+    label: 'Text Input Length Capped',
+    placeholder: 'Text Input Length Capped',
+    expandable: true,
+    onChange: (value) => console.log('[Demo] Text input length capped:', value)
+  });
+
   // 3. Base Button Engine demos (Text Mode)
   componentFactory.createButton('demo-base-button-text-container', {
     id: 'demo-base-button-text',
