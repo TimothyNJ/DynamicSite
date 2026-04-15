@@ -788,7 +788,7 @@ function initializeTablePage() {
 // The User_Time_Zone module is dynamically imported so this branch carries
 // no cost on pages that don't render the Deployment Index.
 
-async function initializeDeploymentIndexPage() {
+async function initializeDeploymentIndexPage(subsubpage) {
   try {
     const { formatLocalTimestamp } = await import('./settings/userTimeZone.js');
     const cells = document.querySelectorAll('.local-timestamp');
@@ -801,6 +801,15 @@ async function initializeDeploymentIndexPage() {
     console.log(`[Deployment Index] Formatted ${cells.length} local timestamps`);
   } catch (err) {
     console.error('[Deployment Index] Failed to format local timestamps:', err);
+  }
+
+  // ─── Sandbox-only: live search bar ─────────────────────────────────────────
+  // Renders a text_input_component_engine into the page's search container,
+  // then on every keystroke filters the table rows below to those whose text
+  // contains the query (case-insensitive) and wraps each match in <mark> for
+  // highlighting. Cleared input restores all rows and removes highlights.
+  if (subsubpage === 'sandbox') {
+    initializeDeploymentIndexSearch();
   }
 
   // ─── Prose-column pixel-cap measurement ──────────────────────────────────
@@ -830,6 +839,79 @@ async function initializeDeploymentIndexPage() {
     });
     window.__deploymentIndexResizeBound = true;
   }
+}
+
+// ─── Deployment Index search bar (Sandbox sub-subpage) ──────────────────────
+// Renders a text_input_component_engine into #deployment-index-search-sandbox
+// and wires its live change handler to filter and highlight rows in the
+// adjacent .table-main. Idempotent: if the bar is already rendered (e.g. the
+// router fires subpageLoaded twice), we skip re-init.
+function initializeDeploymentIndexSearch() {
+  const container = document.getElementById('deployment-index-search-sandbox');
+  if (!container) return;
+  if (container.dataset.initialized === 'true') return;
+  container.dataset.initialized = 'true';
+
+  const tbody = document.querySelector('[data-search-scope="sandbox"] .table-main tbody');
+  if (!tbody) {
+    console.warn('[Deployment Index] Sandbox tbody not found; search disabled');
+    return;
+  }
+
+  // Cache each row's original cell text so we can rebuild .cell-fit > p contents
+  // (with or without <mark> wrapping) on every keystroke without losing the source.
+  const rows = Array.from(tbody.querySelectorAll('tr.table-body-row'));
+  const rowOriginals = rows.map((row) => {
+    const proseTargets = row.querySelectorAll('.cell-fit > p, .cell-fit > h3');
+    return Array.from(proseTargets).map((el) => ({ el, text: el.textContent }));
+  });
+
+  const escRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escHtml = (s) => s.replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+
+  const applyFilter = (query) => {
+    const q = (query || '').trim();
+    if (!q) {
+      // Reset: show every row, restore original text content (no highlight).
+      rows.forEach((row, i) => {
+        row.style.display = '';
+        rowOriginals[i].forEach(({ el, text }) => { el.textContent = text; });
+      });
+      return;
+    }
+    const re = new RegExp(escRegex(q), 'gi');
+    rows.forEach((row, i) => {
+      const haystack = rowOriginals[i].map((o) => o.text).join(' ');
+      const matches = re.test(haystack);
+      re.lastIndex = 0; // reset after the test() call
+      row.style.display = matches ? '' : 'none';
+      if (!matches) {
+        // Restore plain text on hidden rows so a subsequent search starts clean.
+        rowOriginals[i].forEach(({ el, text }) => { el.textContent = text; });
+        return;
+      }
+      // Visible row: rewrite each prose element with <mark>-wrapped matches.
+      rowOriginals[i].forEach(({ el, text }) => {
+        el.innerHTML = escHtml(text).replace(re, (m) => `<mark class="search-hit">${escHtml(m)}</mark>`);
+      });
+    });
+  };
+
+  // Instantiate the engine. Second arg is the change handler — fires on input.
+  const engine = new text_input_component_engine(
+    {
+      id: 'deployment-index-search-input-sandbox',
+      name: 'deployment-index-search-sandbox',
+      placeholder: 'Search',
+      expandable: false,
+      multiline: false,
+    },
+    (value) => applyFilter(value),
+  );
+  engine.render(container);
+  console.log('[Deployment Index] Search bar initialised (sandbox)');
 }
 
 // ─── Prose-cell pixel-cap helper ─────────────────────────────────────────────
@@ -997,7 +1079,7 @@ document.addEventListener('subpageLoaded', (e) => {
         initializeTablePage();
       } else if (subpage === 'deployment-index') {
         console.log('[main.js] Initializing Deployment Index page (development/deployment-index)');
-        initializeDeploymentIndexPage();
+        initializeDeploymentIndexPage(e.detail.subsubpage);
       }
     });
   }

@@ -246,3 +246,32 @@ body[data-theme="dark"] .table-main tr > *:first-child {
     word-break: break-word;
   }
 }
+
+// ==============================================
+// Deployment Index search bar (sandbox sub-subpage)
+// ==============================================
+// Container that holds the text_input_component_engine's wrapper. Sits
+// directly below the .table-title in the sandbox page, left-aligned to
+// match the title above and the table below within the .table-outer.
+// The engine renders its own .dynamic-input-wrapper inside this slot;
+// we only control the slot's outer rhythm.
+.deployment-index-search {
+  display: flex;
+  width: 100%;
+  margin: var(--component-spacing, 5px) 0;
+}
+
+// Search-hit highlight — applied to <mark> elements wrapped around matched
+// substrings inside .cell-fit > p / h3 by initializeDeploymentIndexSearch.
+// Subtle yellow band, inherits text colour so dark-mode stays readable.
+.search-hit {
+  background-color: rgba(255, 235, 59, 0.45);
+  color: inherit;
+  padding: 0;
+  border-radius: 2px;
+}
+
+body[data-theme="dark"] .search-hit {
+  background-color: rgba(255, 213, 79, 0.55);
+  color: black;
+}
