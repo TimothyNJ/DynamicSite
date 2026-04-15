@@ -1012,6 +1012,7 @@ class text_input_component_engine_length_capped {
       minHeight: options.minHeight || 'auto', // Start at natural single-line height
       maxHeight: options.maxHeight || null, // No height restriction
       storageKey: options.storageKey || null,
+      charCap: options.charCap || 66,
       ...options
     };
 
@@ -1135,17 +1136,28 @@ class text_input_component_engine_length_capped {
     // Split text by lines and find widest line
     const lines = text.split('\n');
     let maxLineWidth = 0;
+    let longestLine = '';
 
     // Measure each line to find the widest
     lines.forEach(line => {
       // Use a space for empty lines to ensure measurement
       this.widthState.measureElement.textContent = line || ' ';
       const lineWidth = this.widthState.measureElement.offsetWidth;
-      maxLineWidth = Math.max(maxLineWidth, lineWidth);
+      if (lineWidth > maxLineWidth) {
+        maxLineWidth = lineWidth;
+        longestLine = line || ' ';
+      }
     });
 
     // Calculate needed width (with padding and cursor buffer)
     const neededWidth = maxLineWidth + totalPadding + cursorBuffer;
+
+    // Calculate character-cap width using first N chars of longest line
+    const charCap = this.options.charCap || 66;
+    const capSample = longestLine.length >= charCap ? longestLine.substring(0, charCap) : longestLine;
+    this.widthState.measureElement.textContent = capSample;
+    const charCapContentWidth = this.widthState.measureElement.offsetWidth;
+    const charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
 
     // Calculate minimum width - only use placeholder width when empty
     let minWidth;
@@ -1159,8 +1171,9 @@ class text_input_component_engine_length_capped {
       minWidth = 4;  // Minimal width
     }
 
-    // Get container constraints
-    const maxWidth = Math.min(neededWidth, containerWidth);
+    // Get container constraints - cap at both container width and char cap
+    const effectiveCap = Math.min(containerWidth, charCapWidth);
+    const maxWidth = Math.min(neededWidth, effectiveCap);
     const finalWidth = Math.max(minWidth, maxWidth);
 
     // Set the calculated width
@@ -1175,7 +1188,7 @@ class text_input_component_engine_length_capped {
     this.element.style.height = 'auto';
     this.element.style.height = this.element.scrollHeight + 'px';
 
-    console.log(`[handleLineBreakMode] Lines: ${lines.length}, Width: ${finalWidth}px, Using hybrid flex approach`);
+    console.log(`[handleLineBreakMode] Lines: ${lines.length}, Width: ${finalWidth}px, CharCap(${charCap}): ${charCapWidth}px, Using hybrid flex approach`);
   }
 
   /**
@@ -1189,10 +1202,18 @@ class text_input_component_engine_length_capped {
     // Calculate desired width
     const desiredWidth = straightLineWidth + totalPadding + cursorBuffer;
 
+    // Calculate character-cap width: measure first N chars of actual text
+    // If text is shorter than cap, cap width equals text width (no cap triggered)
+    const charCap = this.options.charCap || 66;
+    const capSample = text && text.length >= charCap ? text.substring(0, charCap) : (text || '');
+    this.widthState.measureElement.textContent = capSample;
+    const charCapContentWidth = this.widthState.measureElement.offsetWidth;
+    const charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
+
     // DEBUG: Log measurement details
     const measuredFontSize = window.getComputedStyle(this.widthState.measureElement).fontSize;
     const actualFontSize = window.getComputedStyle(this.element).fontSize;
-    console.log(`[DEBUG handleUnwrappedMode] Text: "${text.substring(0, 20)}...", Measured font: ${measuredFontSize}, Actual font: ${actualFontSize}, Text width: ${straightLineWidth}px`);
+    console.log(`[DEBUG handleUnwrappedMode] Text: "${text.substring(0, 20)}...", Measured font: ${measuredFontSize}, Actual font: ${actualFontSize}, Text width: ${straightLineWidth}px, CharCap(${charCap}) width: ${charCapWidth}px`);
 
     // Calculate minimum width - only use placeholder width when empty
     let minWidth;
@@ -1206,13 +1227,16 @@ class text_input_component_engine_length_capped {
       minWidth = 4;  // Minimal width
     }
 
-    // Determine if we need to wrap
-    const willWrap = desiredWidth > containerWidth;
-    const finalWidth = willWrap ? containerWidth : Math.max(minWidth, desiredWidth);
+    // Effective cap is the smaller of container width and char-cap width
+    const effectiveCap = Math.min(containerWidth, charCapWidth);
+
+    // Determine if we need to wrap (exceeds either container or char-cap)
+    const willWrap = desiredWidth > effectiveCap;
+    const finalWidth = willWrap ? effectiveCap : Math.max(minWidth, desiredWidth);
 
     // DEBUG: Log width calculations
     const oldWidth = this.wrapper.style.width;
-    console.log(`[DEBUG handleUnwrappedMode] Old width: ${oldWidth}, Desired: ${desiredWidth}px, Final: ${finalWidth}px, Will wrap: ${willWrap}`);
+    console.log(`[DEBUG handleUnwrappedMode] Old width: ${oldWidth}, Desired: ${desiredWidth}px, EffectiveCap: ${effectiveCap}px, Final: ${finalWidth}px, Will wrap: ${willWrap}`);
 
     // Set the calculated width
     this.wrapper.style.width = `${finalWidth}px`;
@@ -1452,6 +1476,13 @@ class text_input_component_engine_length_capped {
     // Get container constraints
     const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
 
+    // Calculate character-cap width based on first N chars of singleLineText
+    const charCap = this.options.charCap || 66;
+    const capSample = singleLineText.length >= charCap ? singleLineText.substring(0, charCap) : singleLineText;
+    this.widthState.measureElement.textContent = capSample;
+    const charCapContentWidth = this.widthState.measureElement.offsetWidth;
+    const charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
+
     // Calculate minimum width based on content
     // Only use placeholder width as minimum when input is empty (placeholder visible)
     let minWidth;
@@ -1461,8 +1492,11 @@ class text_input_component_engine_length_capped {
       minWidth = 4;  // Minimal width for empty input without placeholder
     }
 
-    // Set width to exactly what's needed, respecting minimum and container constraints
-    const finalWidth = Math.max(minWidth, Math.min(desiredWidth, containerWidth));
+    // Effective cap is the smaller of container width and char-cap width
+    const effectiveCap = Math.min(containerWidth, charCapWidth);
+
+    // Set width to exactly what's needed, respecting minimum and effective cap
+    const finalWidth = Math.max(minWidth, Math.min(desiredWidth, effectiveCap));
 
     // Set the calculated width
     this.wrapper.style.width = `${finalWidth}px`;
@@ -1474,8 +1508,8 @@ class text_input_component_engine_length_capped {
 
     // Debug logging
     console.log(`[updateWidth] Text: "${singleLineText}" (${singleLineText.length} chars)`);
-    console.log(`[updateWidth] Text width: ${textWidth}px, Final width: ${finalWidth}px`);
-    console.log(`[updateWidth] Using hybrid approach with flex properties`);
+    console.log(`[updateWidth] Text width: ${textWidth}px, CharCap(${charCap}): ${charCapWidth}px, Final width: ${finalWidth}px`);
+    console.log(`[updateWidth] Using hybrid approach with flex properties + char cap`);
   }
 
   /**
