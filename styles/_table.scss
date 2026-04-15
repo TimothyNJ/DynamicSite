@@ -97,11 +97,16 @@
   border: 1px solid deepskyblue;
 }
 
-// Header cells — inherit left alignment from .table-main
+// Header cells — inherit left alignment from .table-main.
+// Asymmetric padding: zero on the left so bold <h3> headers align flush with
+// the regular-weight <p> text below them (bold glyphs have a slightly wider
+// left side-bearing, which was visibly pushing headers further left than
+// body text when both had 2px of left padding). Right padding is doubled to
+// 4px so there's still adequate horizontal separation between columns.
 .table-header-cell {
   vertical-align: middle;
   overflow: visible;
-  padding: 2px;
+  padding: 2px 4px 2px 0;
   border: 1px solid cyan;
 
   // Freeze header row — sticks to top of .table-body during vertical scroll.
@@ -132,7 +137,8 @@ body[data-theme="dark"] .table-header-cell {
   text-align: center;
   vertical-align: middle;
   overflow: visible;
-  padding: 2px;
+  // Same asymmetric padding as .table-header-cell — see comment there.
+  padding: 2px 4px 2px 0;
   border: 1px solid dodgerblue;
 }
 
