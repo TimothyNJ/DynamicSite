@@ -277,11 +277,9 @@ body[data-theme="dark"] .search-hit {
 }
 
 // Matched-row size bump — when a row matches the active search, JS adds
-// .search-matched. Bump <p> text up to the H3 size used by the column
-// headers so hits read at a stronger visual weight than the surrounding
-// (now hidden) body rows. Inherits the global h3 size variable so this
-// stays in sync with any typography retune.
+// .search-matched. Bump <p> text up one step to H4 so hits read slightly
+// larger than the default body size. H4 is normal-weight in _base.scss,
+// so we don't override font-weight here.
 .table-body-row.search-matched .cell-fit > p {
-  font-size: var(--h3-font-size);
-  font-weight: bold;
+  font-size: var(--h4-font-size);
 }
