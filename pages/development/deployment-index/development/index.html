@@ -16,6 +16,13 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-15T19:55:47Z"><div class="cell-fit"><p>2026-04-15 12:55 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>f126e46</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Format Deployment Index timestamps as &#x27;YYYY-MM-DD HH:MM&#x27; instead of &#x27;YYYYMMDDHHMM&#x27;</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Before: &quot;202604151252 UTC&quot; / &quot;202604150552 PDT&quot; After: &quot;2026-04-15 12:52 UTC&quot; / &quot;2026-04-15 05:52 PDT&quot; - scripts/generate_deployment_index.py: format_utc_compact and format_pdt_compact now emit the dashed/colon format. Only the fallback text changes; the data-utc ISO attribute on local-timestamp cells is unchanged, so the JS rewrite path still works. - js/settings/userTimeZone.js: formatUtcTimestamp and formatLocalTimestamp updated to emit the matching format so JS-rendered cells agree with the pre-JS fallback. - Regenerated all three Deployment Index HTML files so the shipped fallback text matches the new format immediately (no visible format gap during the first post-push render).</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-15 19:55 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-15T05:58:30Z"><div class="cell-fit"><p>2026-04-14 22:58 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>e8d85dd</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index in deploy workflows for all three branches</p></div></td>
