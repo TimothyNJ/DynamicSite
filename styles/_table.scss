@@ -217,13 +217,20 @@ body[data-theme="dark"] .table-main tr > *:first-child {
 // current font), which tracks font size automatically and keeps the rule
 // in reading terms rather than pixels.
 //
-// Only a ceiling is set:
-//   max-width: 90ch — caps the column at ~90 characters; anything past that wraps.
+// Ceiling: max-width: 90ch — caps the column at ~90 characters; longer content wraps.
+//
+// IMPORTANT: the max-width lives on the INNER .cell-fit div, not on the <td>.
+// In `table-layout: auto` + `width: max-content`, browsers ignore max-width on
+// <td> — the column-width algorithm sizes columns to content preferred width
+// and treats max-width on cells as advisory at best. Putting the cap on a
+// block-level child of the cell (our .cell-fit div) gives it a definite
+// max-width that IS respected, and the <td> then sizes its column to match
+// its child's constrained width.
 //
 // No min-width on purpose. The table uses `table-layout: auto` +
 // `width: max-content`, so each column sizes to max(min-content, content-width)
-// capped by max-width. That gives the behaviour we want:
-//   - short content (e.g. 12 chars)  → column shrinks to 12ch (fit-to-content)
+// capped by the inner div's max-width. That gives the behaviour we want:
+//   - short content (e.g. 12 chars)   → column shrinks to 12ch (fit-to-content)
 //   - medium content (up to 90 chars) → sits on one line at its natural width
 //   - long content (> 90 chars)       → caps at 90ch and wraps
 // A min-width floor would pad short cells out to the floor width, which is
@@ -233,9 +240,13 @@ body[data-theme="dark"] .table-main tr > *:first-child {
 // two columns can diverge later if needed. Used by the Deployment Index
 // table's Summary and Description columns; reusable anywhere a prose column
 // needs an upper readability bound without a lower floor.
+.description-cell .cell-fit,
+.summary-cell .cell-fit {
+  max-width: 90ch;
+}
+
 .description-cell,
 .summary-cell {
-  max-width: 90ch;
   white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
