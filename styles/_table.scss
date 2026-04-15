@@ -275,3 +275,13 @@ body[data-theme="dark"] .search-hit {
   background-color: rgba(255, 213, 79, 0.55);
   color: black;
 }
+
+// Matched-row size bump — when a row matches the active search, JS adds
+// .search-matched. Bump <p> text up to the H3 size used by the column
+// headers so hits read at a stronger visual weight than the surrounding
+// (now hidden) body rows. Inherits the global h3 size variable so this
+// stays in sync with any typography retune.
+.table-body-row.search-matched .cell-fit > p {
+  font-size: var(--h3-font-size);
+  font-weight: bold;
+}

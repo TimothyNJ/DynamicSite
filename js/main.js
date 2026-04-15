@@ -874,9 +874,10 @@ function initializeDeploymentIndexSearch() {
   const applyFilter = (query) => {
     const q = (query || '').trim();
     if (!q) {
-      // Reset: show every row, restore original text content (no highlight).
+      // Reset: show every row, drop the matched class, restore plain text.
       rows.forEach((row, i) => {
         row.style.display = '';
+        row.classList.remove('search-matched');
         rowOriginals[i].forEach(({ el, text }) => { el.textContent = text; });
       });
       return;
@@ -888,11 +889,15 @@ function initializeDeploymentIndexSearch() {
       re.lastIndex = 0; // reset after the test() call
       row.style.display = matches ? '' : 'none';
       if (!matches) {
-        // Restore plain text on hidden rows so a subsequent search starts clean.
+        // Hidden row: drop the matched class, restore plain text so a future
+        // search starts clean.
+        row.classList.remove('search-matched');
         rowOriginals[i].forEach(({ el, text }) => { el.textContent = text; });
         return;
       }
-      // Visible row: rewrite each prose element with <mark>-wrapped matches.
+      // Visible row: tag it for the size bump and rewrite each prose element
+      // with <mark>-wrapped matches.
+      row.classList.add('search-matched');
       rowOriginals[i].forEach(({ el, text }) => {
         el.innerHTML = escHtml(text).replace(re, (m) => `<mark class="search-hit">${escHtml(m)}</mark>`);
       });
