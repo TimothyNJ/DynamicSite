@@ -188,3 +188,11 @@
   justify-content: flex-start;
   padding-top: 5%;
 }
+
+// Site Settings: same top-aligned treatment as the Deployment Index so
+// the page reads from the top, not vertically centered. Gives the page
+// symmetric 5% top/bottom padding behavior matching the rest of the site.
+.sidenav-content[data-subpage="site-settings"] {
+  justify-content: flex-start;
+  padding-top: 5%;
+}

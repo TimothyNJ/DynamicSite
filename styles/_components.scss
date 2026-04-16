@@ -190,9 +190,11 @@
   align-items: baseline;   // samples in the same row share a baseline
   padding: 0.5em 0;
   font-family: var(--font-family-primary);
+  color: var(--text-color, #fff);  // force light on dark theme
 
   .fe-sample {
     margin: 0;
+    color: inherit;        // override global h1/h2/h3/h4/p color rules
   }
 
   .fe-label {
@@ -205,14 +207,16 @@
 }
 
 // Browser-minimum-font-size probe strip, shown with the font examples grid.
+// Spacing matches the inter-tier row-gap of .font-examples-grid so the
+// probe reads as one more tier rather than a distant afterthought.
 .font-min-probe {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: center;
   gap: 1.5em;
-  margin-top: 1em;
-  padding-top: 0.8em;
-  border-top: 1px dashed rgba(128, 128, 128, 0.4);
+  margin-top: 0;
+  padding-top: 0.3em;
+  color: var(--text-color, #fff);
 
   .fe-probe {
     text-align: center;
@@ -220,6 +224,7 @@
     .fe-label {
       font-size: 10px;
       opacity: 0.6;
+      margin-top: 0;
     }
   }
 }
