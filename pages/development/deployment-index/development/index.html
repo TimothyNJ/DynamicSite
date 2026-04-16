@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T00:39:06Z"><div class="cell-fit"><p>2026-04-15 17:39 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>3b950d1</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Move font examples grid from home page to Site Settings</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Before: 5 separate per-tier grids inline on pages/home/index.html. After: a single CSS grid on the Site Settings page below the &quot;Size Guides and Borders&quot; button. Why one grid (not five): with a single grid, the MIN / LIVE / PREF columns share widths across all tiers (H1..P), so the columns line up visually. Baseline alignment within each row (align-items: baseline) keeps the three samples of a single tier on a shared baseline, which is what &quot;same baseline as its counterparts&quot; means in this context. - styles/_components.scss: new .font-examples-grid, .fe-sample, .fe-label, .font-min-probe classes. row-gap: 0.8em for tier breathing room; labels use margin-top: -0.7em to tuck under their sample without losing the inter-tier gap. - pages/development/site-settings/index.html: block inserted below #borders-toggle-button-container. Also moved the 4px/6px/8px browser-minimum-font probe strip. - pages/home/index.html: font examples block removed, dimension container kept.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 00:39 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-15T19:56:05Z"><div class="cell-fit"><p>2026-04-15 12:56 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>cce0d52</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-15 19:56 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-15T19:55:47Z"><div class="cell-fit"><p>2026-04-15 12:55 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>f126e46</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Format Deployment Index timestamps as &#x27;YYYY-MM-DD HH:MM&#x27; instead of &#x27;YYYYMMDDHHMM&#x27;</p></div></td>
