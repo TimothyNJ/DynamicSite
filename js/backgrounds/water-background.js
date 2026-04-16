@@ -491,7 +491,7 @@ export async function init() {
 
   // ── Sailboat ────────────────────────────────────────────────────────
   sailboatMesh = sailboatGLTF.scene;
-  sailboatMesh.scale.setScalar( 0.15 );  // scale to fit pool
+  sailboatMesh.scale.setScalar( 0.008 );  // roughly 2× duck size
   sailboatMesh.traverse( ( child ) => {
     if ( child.isMesh ) {
       child.castShadow = true;
