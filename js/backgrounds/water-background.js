@@ -59,6 +59,15 @@ const readFromA = uniform( 1 );
 let duckModel = null;
 let duckMesh = null;
 
+let sailboatMesh = null;
+let sailboatEnabled = true;
+const sailboatState = {
+  x: 0, z: 0,            // current position
+  targetX: 0, targetZ: 0, // where it's heading
+  speed: 0.008,           // movement speed per frame
+  bobPhase: 0,            // for gentle rocking
+};
+
 const NUM_DUCKS = 100;
 const simplex = new SimplexNoise();
 
@@ -73,6 +82,87 @@ const effectController = {
   wireframe: false,
   speed: 5,
 };
+
+// ─── Sailboat helpers ─────────────────────────────────────────────────────
+function pickNewSailboatTarget() {
+  sailboatState.targetX = ( Math.random() - 0.5 ) * BOUNDS * 0.55;
+  sailboatState.targetZ = ( Math.random() - 0.5 ) * BOUNDS * 0.55;
+}
+
+function updateSailboat() {
+  if ( ! sailboatMesh || ! sailboatEnabled ) {
+    if ( sailboatMesh ) sailboatMesh.visible = false;
+    return;
+  }
+  sailboatMesh.visible = true;
+
+  const st = sailboatState;
+  const dx = st.targetX - st.x;
+  const dz = st.targetZ - st.z;
+  const dist = Math.sqrt( dx * dx + dz * dz );
+
+  // Pick a new target when close enough
+  if ( dist < 0.15 ) {
+    pickNewSailboatTarget();
+    return;
+  }
+
+  // Move toward target
+  const moveX = ( dx / dist ) * st.speed;
+  const moveZ = ( dz / dist ) * st.speed;
+  st.x += moveX;
+  st.z += moveZ;
+
+  // Sample water height from the heightfield (CPU-side approximation)
+  // The water mesh is a WIDTH×WIDTH grid mapped to BOUNDS×BOUNDS
+  const gridX = Math.floor( ( st.x / BOUNDS + 0.5 ) * WIDTH );
+  const gridZ = Math.floor( ( st.z / BOUNDS + 0.5 ) * WIDTH );
+  const clampedX = Math.max( 0, Math.min( WIDTH - 1, gridX ) );
+  const clampedZ = Math.max( 0, Math.min( WIDTH - 1, gridZ ) );
+
+  // Read height from the water mesh geometry position attribute
+  const posAttr = waterMesh ? waterMesh.geometry.getAttribute( 'position' ) : null;
+  let waterY = 0;
+  if ( posAttr ) {
+    const idx = clampedZ * WIDTH + clampedX;
+    if ( idx < posAttr.count ) {
+      waterY = posAttr.getZ( idx );  // z because mesh is rotated -90° on x
+    }
+  }
+
+  // Gentle bobbing on top of the water
+  st.bobPhase += 0.03;
+  const bob = Math.sin( st.bobPhase ) * 0.01;
+
+  sailboatMesh.position.set( st.x, waterY + bob + 0.02, st.z );
+
+  // Face the direction of travel with gentle interpolation
+  const targetAngle = Math.atan2( dx, dz );
+  let currentAngle = sailboatMesh.rotation.y;
+  // Smooth rotation
+  let angleDiff = targetAngle - currentAngle;
+  // Normalize to -PI..PI
+  while ( angleDiff > Math.PI ) angleDiff -= Math.PI * 2;
+  while ( angleDiff < -Math.PI ) angleDiff += Math.PI * 2;
+  sailboatMesh.rotation.y += angleDiff * 0.05;
+
+  // Gentle tilt based on water slope (roll)
+  if ( posAttr ) {
+    const eastIdx = clampedZ * WIDTH + Math.min( WIDTH - 1, clampedX + 1 );
+    const westIdx = clampedZ * WIDTH + Math.max( 0, clampedX - 1 );
+    const eastH = eastIdx < posAttr.count ? posAttr.getZ( eastIdx ) : 0;
+    const westH = westIdx < posAttr.count ? posAttr.getZ( westIdx ) : 0;
+    const northIdx = Math.max( 0, clampedZ - 1 ) * WIDTH + clampedX;
+    const southIdx = Math.min( WIDTH - 1, clampedZ + 1 ) * WIDTH + clampedX;
+    const northH = northIdx < posAttr.count ? posAttr.getZ( northIdx ) : 0;
+    const southH = southIdx < posAttr.count ? posAttr.getZ( southIdx ) : 0;
+    // Pitch (fore-aft tilt) and roll (side tilt)
+    const pitch = ( northH - southH ) * 0.5;
+    const roll = ( eastH - westH ) * 0.5;
+    sailboatMesh.rotation.x += ( pitch - sailboatMesh.rotation.x ) * 0.1;
+    sailboatMesh.rotation.z += ( roll - sailboatMesh.rotation.z ) * 0.1;
+  }
+}
 
 // ─── Noise helper ──────────────────────────────────────────────────────────
 function noise( x, y ) {
@@ -372,9 +462,13 @@ export async function init() {
   const glbloader = new GLTFLoader().setPath( ASSETS_BASE + 'models/gltf/' );
   glbloader.setDRACOLoader( new DRACOLoader().setDecoderPath( ASSETS_BASE + 'jsm/libs/draco/gltf/' ) );
 
-  const [ env, model ] = await Promise.all( [
+  // Separate loader for the sailboat (different base path — our own assets folder)
+  const sailboatLoader = new GLTFLoader();
+
+  const [ env, model, sailboatGLTF ] = await Promise.all( [
     hdrLoader.loadAsync( 'blouberg_sunrise_2_1k.hdr' ),
-    glbloader.loadAsync( 'duck.glb' )
+    glbloader.loadAsync( 'duck.glb' ),
+    sailboatLoader.loadAsync( 'assets/models/sailboat.glb' )
   ] );
 
   env.mapping = THREE.EquirectangularReflectionMapping;
@@ -394,6 +488,20 @@ export async function init() {
 
   duckMesh = new THREE.InstancedMesh( duckModel.geometry, duckModel.material, NUM_DUCKS );
   scene.add( duckMesh );
+
+  // ── Sailboat ────────────────────────────────────────────────────────
+  sailboatMesh = sailboatGLTF.scene;
+  sailboatMesh.scale.setScalar( 0.15 );  // scale to fit pool
+  sailboatMesh.traverse( ( child ) => {
+    if ( child.isMesh ) {
+      child.castShadow = true;
+    }
+  } );
+  // Start at a random position within the pool
+  sailboatState.x = ( Math.random() - 0.5 ) * BOUNDS * 0.5;
+  sailboatState.z = ( Math.random() - 0.5 ) * BOUNDS * 0.5;
+  pickNewSailboatTarget();
+  scene.add( sailboatMesh );
 
   // ── Renderer ─────────────────────────────────────────────────────────
   renderer = new THREE.WebGPURenderer( { antialias: true, requiredLimits: { maxStorageBuffersInVertexStage: 2 } } );
@@ -462,6 +570,10 @@ export function setSpeed( v ) { effectController.speed = v; }
 export function setDucksEnabled( v ) {
   effectController.ducksEnabled = v;
   if ( duckMesh ) duckMesh.visible = v;
+}
+export function setSailboatEnabled( v ) {
+  sailboatEnabled = v;
+  if ( sailboatMesh ) sailboatMesh.visible = v;
 }
 export function setWireframe( v ) {
   effectController.wireframe = v;
@@ -615,6 +727,7 @@ function render() {
     frame = 0;
   }
 
+  updateSailboat();
   renderer.render( scene, camera );
   updateDebugHUD();
 }

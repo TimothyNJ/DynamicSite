@@ -826,6 +826,19 @@ function initializeBackgroundsPage() {
     WaterBackground.setDucksEnabled(v);
   });
 
+  // Sailboat toggle
+  componentFactory.createSlider({
+    containerId: 'water-sailboat-slider-container',
+    sliderClass: 'water-sailboat-slider',
+    options: [
+      { text: 'On', value: 'on', position: 1, active: true, dataAttributes: 'data-value="true"' },
+      { text: 'Off', value: 'off', position: 2, dataAttributes: 'data-value="false"' }
+    ]
+  }, (selectedOption) => {
+    const v = selectedOption.getAttribute('data-value') === 'true';
+    WaterBackground.setSailboatEnabled(v);
+  });
+
   // Wireframe toggle
   componentFactory.createSlider({
     containerId: 'water-wireframe-slider-container',
