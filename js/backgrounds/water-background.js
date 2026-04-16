@@ -582,13 +582,17 @@ export function toggleDebugHUD( show ) {
 
 function updateDebugHUD() {
   if ( ! debugHUD || ! camera ) return;
+  // Only show on the home page
+  const isHome = document.body.classList.contains( 'water-bg-active' );
+  if ( ! isHome ) { debugHUD.style.display = 'none'; return; }
+  const sc = document.querySelector( '.site-container' );
+  const bordersHidden = sc && sc.classList.contains( 'borders-hidden' );
+  debugHUD.style.display = bordersHidden ? 'none' : '';
   const p = camera.position;
   const r = camera.rotation;
   const toDeg = ( rad ) => ( rad * 180 / Math.PI ).toFixed( 1 );
   debugHUD.textContent =
-    `pos:  x=${p.x.toFixed(2)}  y=${p.y.toFixed(2)}  z=${p.z.toFixed(2)}\n` +
-    `rot:  x=${toDeg(r.x)}°  y=${toDeg(r.y)}°  z=${toDeg(r.z)}°\n` +
-    `fov:  ${camera.fov}   aspect: ${camera.aspect.toFixed(2)}`;
+    `pos: x=${p.x.toFixed(2)} y=${p.y.toFixed(2)} z=${p.z.toFixed(2)}  |  rot: x=${toDeg(r.x)}° y=${toDeg(r.y)}° z=${toDeg(r.z)}°  |  fov: ${camera.fov}  aspect: ${camera.aspect.toFixed(2)}`;
 }
 
 function render() {
