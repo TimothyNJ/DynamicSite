@@ -2,3 +2,76 @@
 
 <!-- Size Guides and Borders Button -->
 <div id="borders-toggle-button-container"></div>
+
+<!-- ──────────────────────────────────────────────────────────────────────
+     Font Examples — typography calibration grid (H1..P, plus min-px probes).
+     Single CSS grid so MIN / LIVE / PREF columns align vertically across
+     tiers; baseline alignment within each row keeps the three samples of
+     one tier on a shared baseline.
+       LEFT   = MIN  (clamp floor, forced via hard-coded rem)
+       CENTER = LIVE (real tag; renders whatever the clamp() resolves to
+                      at the current viewport)
+       RIGHT  = PREF (preferred vw value, unclamped)
+     On phone: expect MIN == LIVE (MIN is winning).
+     On MBP/TV: expect LIVE == PREF (vw is winning).
+     ────────────────────────────────────────────────────────────────────── -->
+<div class="font-examples-grid">
+
+  <!-- h1 row -->
+  <span class="fe-sample" style="font-size: 1.125rem; font-weight: bold;">H1</span>
+  <h1 class="fe-sample">H1</h1>
+  <span class="fe-sample" style="font-size: 1.1vw; font-weight: bold;">H1</span>
+  <div class="fe-label">MIN 1.125rem</div>
+  <div class="fe-label">LIVE</div>
+  <div class="fe-label">PREF 1.1vw</div>
+
+  <!-- h2 row -->
+  <span class="fe-sample" style="font-size: 0.875rem; font-weight: bold;">H2</span>
+  <h2 class="fe-sample">H2</h2>
+  <span class="fe-sample" style="font-size: 0.95vw; font-weight: bold;">H2</span>
+  <div class="fe-label">MIN 0.875rem</div>
+  <div class="fe-label">LIVE</div>
+  <div class="fe-label">PREF 0.95vw</div>
+
+  <!-- h3 row -->
+  <span class="fe-sample" style="font-size: 0.7rem; font-weight: bold;">H3</span>
+  <h3 class="fe-sample">H3</h3>
+  <span class="fe-sample" style="font-size: 0.8vw; font-weight: bold;">H3</span>
+  <div class="fe-label">MIN 0.7rem</div>
+  <div class="fe-label">LIVE</div>
+  <div class="fe-label">PREF 0.8vw</div>
+
+  <!-- h4 row -->
+  <span class="fe-sample" style="font-size: 0.6rem;">H4</span>
+  <h4 class="fe-sample">H4</h4>
+  <span class="fe-sample" style="font-size: 0.75vw;">H4</span>
+  <div class="fe-label">MIN 0.6rem</div>
+  <div class="fe-label">LIVE</div>
+  <div class="fe-label">PREF 0.75vw</div>
+
+  <!-- p row -->
+  <span class="fe-sample" style="font-size: 0.5rem;">P</span>
+  <p class="fe-sample">P</p>
+  <span class="fe-sample" style="font-size: 0.7vw;">P</span>
+  <div class="fe-label">MIN 0.5rem</div>
+  <div class="fe-label">LIVE</div>
+  <div class="fe-label">PREF 0.7vw</div>
+
+</div>
+
+<!-- Browser minimum-font-size probe: if any of these render bigger than
+     specified, the browser is enforcing a floor of its own. -->
+<div class="font-min-probe">
+  <div class="fe-probe">
+    <span style="font-size: 4px;">probe</span>
+    <div class="fe-label">4px forced</div>
+  </div>
+  <div class="fe-probe">
+    <span style="font-size: 6px;">probe</span>
+    <div class="fe-label">6px forced</div>
+  </div>
+  <div class="fe-probe">
+    <span style="font-size: 8px;">probe</span>
+    <div class="fe-label">8px forced</div>
+  </div>
+</div>

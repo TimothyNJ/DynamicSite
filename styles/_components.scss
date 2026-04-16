@@ -170,3 +170,56 @@
     }
   }
 }
+
+// ==============================================
+// Font Examples Grid — typography calibration block
+// ==============================================
+// Single CSS grid (not 5 separate grids) so the MIN / LIVE / PREF columns
+// line up vertically across all tiers (H1..P). Baseline alignment within
+// each row is what keeps the three samples on a shared baseline per tier.
+//
+//   row-gap: 0.8em gives visual breathing room between tiers;
+//   .fe-label has a negative margin-top that re-tightens the gap between
+//   a sample cell and its label directly below.
+.font-examples-grid {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  column-gap: 1.5em;
+  row-gap: 0.8em;
+  justify-items: center;
+  align-items: baseline;   // samples in the same row share a baseline
+  padding: 0.5em 0;
+  font-family: var(--font-family-primary);
+
+  .fe-sample {
+    margin: 0;
+  }
+
+  .fe-label {
+    font-size: 10px;
+    opacity: 0.6;
+    // Pull labels up so they sit close under their sample without losing
+    // the larger inter-tier row-gap.
+    margin-top: -0.7em;
+  }
+}
+
+// Browser-minimum-font-size probe strip, shown with the font examples grid.
+.font-min-probe {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5em;
+  margin-top: 1em;
+  padding-top: 0.8em;
+  border-top: 1px dashed rgba(128, 128, 128, 0.4);
+
+  .fe-probe {
+    text-align: center;
+
+    .fe-label {
+      font-size: 10px;
+      opacity: 0.6;
+    }
+  }
+}
