@@ -65,7 +65,7 @@ const sailboatState = {
   x: 0, z: 0,            // current position
   targetX: 0, targetZ: 0, // where it's heading
   vx: 0, vz: 0,          // velocity (for water push + steering combined)
-  speed: 0.002,           // movement speed per frame (1/4 of original)
+  speed: 0.0005,          // gentle cruising speed
   bobPhase: 0,            // for gentle rocking
 };
 
@@ -535,7 +535,7 @@ export async function init() {
 
   // ── Sailboat ────────────────────────────────────────────────────────
   sailboatMesh = sailboatGLTF.scene;
-  sailboatMesh.scale.setScalar( 0.0016 );  // roughly 2× duck size
+  sailboatMesh.scale.setScalar( 0.02 );  // roughly 2× duck size
   sailboatMesh.traverse( ( child ) => {
     if ( child.isMesh ) {
       child.castShadow = true;
