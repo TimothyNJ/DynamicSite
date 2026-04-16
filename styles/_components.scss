@@ -195,6 +195,16 @@
   .fe-sample {
     margin: 0;
     color: inherit;        // override global h1/h2/h3/h4/p color rules
+    // 1px royal-blue line drawn exactly at each sample's baseline.
+    // text-underline-offset:0 pins the line to the baseline;
+    // text-decoration-skip-ink:none keeps it continuous through descenders.
+    // Since the three samples in a tier share a baseline (align-items:
+    // baseline on the grid), their underlines align at the same y-coord
+    // and read as one baseline per tier.
+    text-decoration: underline royalblue;
+    text-decoration-thickness: 1px;
+    text-decoration-skip-ink: none;
+    text-underline-offset: 0;
   }
 
   .fe-label {
