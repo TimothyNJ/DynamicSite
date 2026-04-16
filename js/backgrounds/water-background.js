@@ -64,7 +64,8 @@ let sailboatEnabled = true;
 const sailboatState = {
   x: 0, z: 0,            // current position
   targetX: 0, targetZ: 0, // where it's heading
-  speed: 0.008,           // movement speed per frame
+  vx: 0, vz: 0,          // velocity (for water push + steering combined)
+  speed: 0.002,           // movement speed per frame (1/4 of original)
   bobPhase: 0,            // for gentle rocking
 };
 
@@ -78,6 +79,11 @@ const effectController = {
   mouseDeep: uniform( 0.5 ).setName( 'mouseDeep' ),
   mouseSize: uniform( 0.12 ).setName( 'mouseSize' ),
   viscosity: uniform( 0.96 ).setName( 'viscosity' ),
+  // Boat displacement uniforms (same math as mouse, independent channel)
+  boatPos: uniform( new THREE.Vector2() ).setName( 'boatPos' ),
+  boatSpeed: uniform( new THREE.Vector2() ).setName( 'boatSpeed' ),
+  boatSize: uniform( 0.18 ).setName( 'boatSize' ),
+  boatDeep: uniform( 0.3 ).setName( 'boatDeep' ),
   ducksEnabled: true,
   wireframe: false,
   speed: 5,
@@ -92,73 +98,103 @@ function pickNewSailboatTarget() {
 function updateSailboat() {
   if ( ! sailboatMesh || ! sailboatEnabled ) {
     if ( sailboatMesh ) sailboatMesh.visible = false;
+    // Zero out boat displacement when disabled
+    effectController.boatSpeed.value.set( 0, 0 );
     return;
   }
   sailboatMesh.visible = true;
 
   const st = sailboatState;
-  const dx = st.targetX - st.x;
-  const dz = st.targetZ - st.z;
-  const dist = Math.sqrt( dx * dx + dz * dz );
 
-  // Pick a new target when close enough
-  if ( dist < 0.15 ) {
-    pickNewSailboatTarget();
-    return;
-  }
-
-  // Move toward target
-  const moveX = ( dx / dist ) * st.speed;
-  const moveZ = ( dz / dist ) * st.speed;
-  st.x += moveX;
-  st.z += moveZ;
-
-  // Sample water height from the heightfield (CPU-side approximation)
-  // The water mesh is a WIDTH×WIDTH grid mapped to BOUNDS×BOUNDS
+  // ── Sample water heightfield at boat position ──────────────────────
   const gridX = Math.floor( ( st.x / BOUNDS + 0.5 ) * WIDTH );
   const gridZ = Math.floor( ( st.z / BOUNDS + 0.5 ) * WIDTH );
   const clampedX = Math.max( 0, Math.min( WIDTH - 1, gridX ) );
   const clampedZ = Math.max( 0, Math.min( WIDTH - 1, gridZ ) );
 
-  // Read height from the water mesh geometry position attribute
   const posAttr = waterMesh ? waterMesh.geometry.getAttribute( 'position' ) : null;
   let waterY = 0;
+  let normalX = 0, normalZ = 0;
+
   if ( posAttr ) {
     const idx = clampedZ * WIDTH + clampedX;
     if ( idx < posAttr.count ) {
-      waterY = posAttr.getZ( idx );  // z because mesh is rotated -90° on x
+      waterY = posAttr.getZ( idx );
     }
-  }
-
-  // Gentle bobbing on top of the water
-  st.bobPhase += 0.03;
-  const bob = Math.sin( st.bobPhase ) * 0.01;
-
-  sailboatMesh.position.set( st.x, waterY + bob + 0.02, st.z );
-
-  // Face the direction of travel with gentle interpolation
-  const targetAngle = Math.atan2( dx, dz );
-  let currentAngle = sailboatMesh.rotation.y;
-  // Smooth rotation
-  let angleDiff = targetAngle - currentAngle;
-  // Normalize to -PI..PI
-  while ( angleDiff > Math.PI ) angleDiff -= Math.PI * 2;
-  while ( angleDiff < -Math.PI ) angleDiff += Math.PI * 2;
-  sailboatMesh.rotation.y += angleDiff * 0.05;
-
-  // Gentle tilt based on water slope (roll)
-  if ( posAttr ) {
+    // Sample neighbors for water normal (same approach as duck compute shader)
     const eastIdx = clampedZ * WIDTH + Math.min( WIDTH - 1, clampedX + 1 );
     const westIdx = clampedZ * WIDTH + Math.max( 0, clampedX - 1 );
-    const eastH = eastIdx < posAttr.count ? posAttr.getZ( eastIdx ) : 0;
-    const westH = westIdx < posAttr.count ? posAttr.getZ( westIdx ) : 0;
-    const northIdx = Math.max( 0, clampedZ - 1 ) * WIDTH + clampedX;
-    const southIdx = Math.min( WIDTH - 1, clampedZ + 1 ) * WIDTH + clampedX;
+    const northIdx = Math.min( WIDTH - 1, clampedZ + 1 ) * WIDTH + clampedX;
+    const southIdx = Math.max( 0, clampedZ - 1 ) * WIDTH + clampedX;
+    const eastH  = eastIdx  < posAttr.count ? posAttr.getZ( eastIdx )  : 0;
+    const westH  = westIdx  < posAttr.count ? posAttr.getZ( westIdx )  : 0;
     const northH = northIdx < posAttr.count ? posAttr.getZ( northIdx ) : 0;
     const southH = southIdx < posAttr.count ? posAttr.getZ( southIdx ) : 0;
-    // Pitch (fore-aft tilt) and roll (side tilt)
-    const pitch = ( northH - southH ) * 0.5;
-    const roll = ( eastH - westH ) * 0.5;
+    // Water slope → push direction (same as ducks: waterPushFactor)
+    normalX = ( westH - eastH ) * ( WIDTH / BOUNDS );
+    normalZ = ( southH - northH ) * ( WIDTH / BOUNDS );
+  }
+
+  // ── Water push force (like ducks) ──────────────────────────────────
+  const waterPushFactor = 0.012;
+  const linearDamping = 0.94;
+  const bounceDamping = -0.4;
+
+  st.vx *= linearDamping;
+  st.vz *= linearDamping;
+  st.vx += normalX * waterPushFactor;
+  st.vz += normalZ * waterPushFactor;
+
+  // ── Self-steering toward target ────────────────────────────────────
+  const dx = st.targetX - st.x;
+  const dz = st.targetZ - st.z;
+  const dist = Math.sqrt( dx * dx + dz * dz );
+
+  if ( dist < 0.15 ) {
+    pickNewSailboatTarget();
+  } else {
+    // Gentle steering force blended with water push
+    st.vx += ( dx / dist ) * st.speed;
+    st.vz += ( dz / dist ) * st.speed;
+  }
+
+  // ── Apply velocity ─────────────────────────────────────────────────
+  const prevX = st.x;
+  const prevZ = st.z;
+  st.x += st.vx;
+  st.z += st.vz;
+
+  // Bounce off pool edges (like ducks)
+  if ( st.x < -limit ) { st.x = -limit; st.vx *= bounceDamping; }
+  if ( st.x >  limit ) { st.x =  limit; st.vx *= bounceDamping; }
+  if ( st.z < -limit ) { st.z = -limit; st.vz *= bounceDamping; }
+  if ( st.z >  limit ) { st.z =  limit; st.vz *= bounceDamping; }
+
+  // ── Feed boat position + velocity into displacement uniforms ───────
+  effectController.boatPos.value.set( st.x, st.z );
+  effectController.boatSpeed.value.set( st.x - prevX, st.z - prevZ );
+
+  // ── Position on water surface ──────────────────────────────────────
+  st.bobPhase += 0.03;
+  const bob = Math.sin( st.bobPhase ) * 0.008;
+  sailboatMesh.position.set( st.x, waterY + bob - 0.02, st.z );
+
+  // ── Face direction of travel ───────────────────────────────────────
+  const travelDx = st.vx;
+  const travelDz = st.vz;
+  const travelDist = Math.sqrt( travelDx * travelDx + travelDz * travelDz );
+  if ( travelDist > 0.0001 ) {
+    const targetAngle = Math.atan2( travelDx, travelDz );
+    let angleDiff = targetAngle - sailboatMesh.rotation.y;
+    while ( angleDiff > Math.PI ) angleDiff -= Math.PI * 2;
+    while ( angleDiff < -Math.PI ) angleDiff += Math.PI * 2;
+    sailboatMesh.rotation.y += angleDiff * 0.05;
+  }
+
+  // ── Tilt with water slope ──────────────────────────────────────────
+  if ( posAttr ) {
+    const pitch = normalZ * 0.03;
+    const roll = normalX * 0.03;
     sailboatMesh.rotation.x += ( pitch - sailboatMesh.rotation.x ) * 0.1;
     sailboatMesh.rotation.z += ( roll - sailboatMesh.rotation.z ) * 0.1;
   }
@@ -300,7 +336,8 @@ export async function init() {
 
   // ── Compute height kernel ────────────────────────────────────────────
   const createComputeHeight = ( readBuffer, writeBuffer ) => Fn( () => {
-    const { viscosity, mousePos, mouseSize, mouseDeep, mouseSpeed } = effectController;
+    const { viscosity, mousePos, mouseSize, mouseDeep, mouseSpeed,
+            boatPos, boatSize, boatDeep, boatSpeed } = effectController;
     const height = readBuffer.element( instanceIndex ).toVar();
     const prevHeight = prevHeightStorage.element( instanceIndex ).toVar();
     const { north, south, east, west } = getNeighborValuesTSL( instanceIndex, readBuffer );
@@ -311,11 +348,18 @@ export async function init() {
     const x = float( globalId.x ).mul( 1 / WIDTH );
     const y = float( globalId.y ).mul( 1 / WIDTH );
     const centerVec = vec2( 0.5 );
+    // Mouse displacement
     const mousePhase = clamp(
       length( ( vec2( x, y ).sub( centerVec ) ).mul( BOUNDS ).sub( mousePos ) ).mul( Math.PI ).div( mouseSize ),
       0.0, Math.PI
     );
     newHeight.addAssign( cos( mousePhase ).add( 1.0 ).mul( mouseDeep ).mul( mouseSpeed.length() ) );
+    // Boat displacement — same cosine bump, independent channel
+    const boatPhase = clamp(
+      length( ( vec2( x, y ).sub( centerVec ) ).mul( BOUNDS ).sub( boatPos ) ).mul( Math.PI ).div( boatSize ),
+      0.0, Math.PI
+    );
+    newHeight.addAssign( cos( boatPhase ).add( 1.0 ).mul( boatDeep ).mul( boatSpeed.length() ) );
     prevHeightStorage.element( instanceIndex ).assign( height );
     writeBuffer.element( instanceIndex ).assign( newHeight );
   } )().compute( WIDTH * WIDTH, [ 16, 16 ] );
@@ -491,7 +535,7 @@ export async function init() {
 
   // ── Sailboat ────────────────────────────────────────────────────────
   sailboatMesh = sailboatGLTF.scene;
-  sailboatMesh.scale.setScalar( 0.008 );  // roughly 2× duck size
+  sailboatMesh.scale.setScalar( 0.0016 );  // roughly 2× duck size
   sailboatMesh.traverse( ( child ) => {
     if ( child.isMesh ) {
       child.castShadow = true;
