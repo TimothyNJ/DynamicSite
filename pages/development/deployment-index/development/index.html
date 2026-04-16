@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T00:47:44Z"><div class="cell-fit"><p>2026-04-15 17:47 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>06204a2</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Site Settings: top-align page, add FONTS header, force white text, tighten probe spacing</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>- _sidenav.scss: mirror the deployment-index top-alignment pattern for site-settings via .sidenav-content[data-subpage=&quot;site-settings&quot;] (justify-content: flex-start; padding-top: 5%). Page now reads from the top instead of vertically centered. - _components.scss: .font-examples-grid and .font-min-probe now force color: var(--text-color, #fff) so the samples are legible on dark theme (they were inheriting a darker color from the page default). .fe-sample explicitly `color: inherit` so it overrides the global h1/h2/h3/h4/p color rules from _base.scss. - _components.scss: .font-min-probe lost its large gap — margin-top dropped from 1em to 0, padding-top tightened to 0.3em, align-items changed to baseline so the probe row reads as &quot;one more tier&quot; rather than a distant afterthought. - site-settings/index.html: 1-line gap inserted below &quot;Site Settings&quot; h1; new &lt;h1&gt;FONTS&lt;/h1&gt; section header added above the font examples grid with 1em top margin so it sits clearly below the borders button.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 00:47 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T00:39:19Z"><div class="cell-fit"><p>2026-04-15 17:39 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>4e83009</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 00:39 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-16T00:39:06Z"><div class="cell-fit"><p>2026-04-15 17:39 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>3b950d1</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Move font examples grid from home page to Site Settings</p></div></td>
