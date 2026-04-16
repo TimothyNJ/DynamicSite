@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T04:57:45Z"><div class="cell-fit"><p>2026-04-15 21:57 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>8742403</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>feat: sailboat interacts with water — push forces + wake displacement</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>- Scale doubled to 0.0016, speed quartered to 0.002 - Sailboat now receives water-push forces from the heightfield normals (same physics as ducks: waterPushFactor, linearDamping, bounceDamping) - Self-steering toward random targets blended with water push so waves buffet the boat while it still navigates - Boat creates a wake: new boatPos/boatSpeed/boatSize/boatDeep uniforms feed a second cosine displacement term in the compute shader, identical to the mouse displacement but driven by the boat&#x27;s position + velocity - Bounces off pool edges like ducks</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 04:57 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T04:47:14Z"><div class="cell-fit"><p>2026-04-15 21:47 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>161a5e6</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 04:47 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-16T04:47:06Z"><div class="cell-fit"><p>2026-04-15 21:47 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>a572eef</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>fix: scale sailboat down to ~2x duck size (0.008)</p></div></td>
