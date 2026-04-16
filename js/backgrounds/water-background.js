@@ -86,6 +86,49 @@ function noise( x, y ) {
   return r;
 }
 
+// ─── Theme-aware gradient background ──────────────────────────────────────
+// Paints the site's -25deg page gradient onto a small canvas and uses it as
+// the Three.js scene background so the 3D scene blends with the page chrome.
+// Theme colours:  dark  #000000 → #96b7c4   light  #4b5b62 → #ffffff
+const THEME_COLOURS = {
+  dark:  { start: '#000000', end: '#96b7c4' },
+  light: { start: '#4b5b62', end: '#ffffff' }
+};
+let bgTexture = null;
+
+function applyThemeBackground() {
+  if ( ! scene ) return;
+  const theme = document.body.getAttribute( 'data-theme' ) || 'dark';
+  const colours = THEME_COLOURS[ theme ] || THEME_COLOURS.dark;
+
+  // 256×256 offscreen canvas — small but enough for a smooth gradient
+  const size = 256;
+  const cvs = document.createElement( 'canvas' );
+  cvs.width = size;
+  cvs.height = size;
+  const ctx = cvs.getContext( '2d' );
+
+  // CSS uses -25deg (clockwise from top).  Canvas angle: 90 - (-25) = 115°.
+  const angle = 115 * Math.PI / 180;
+  const cx = size / 2, cy = size / 2;
+  const reach = size / 2 * 1.42; // √2 to cover corners
+  const x0 = cx - Math.cos( angle ) * reach;
+  const y0 = cy + Math.sin( angle ) * reach;
+  const x1 = cx + Math.cos( angle ) * reach;
+  const y1 = cy - Math.sin( angle ) * reach;
+
+  const grad = ctx.createLinearGradient( x0, y0, x1, y1 );
+  grad.addColorStop( 0, colours.start );
+  grad.addColorStop( 1, colours.end );
+  ctx.fillStyle = grad;
+  ctx.fillRect( 0, 0, size, size );
+
+  if ( bgTexture ) bgTexture.dispose();
+  bgTexture = new THREE.CanvasTexture( cvs );
+  bgTexture.colorSpace = THREE.SRGBColorSpace;
+  scene.background = bgTexture;
+}
+
 // ─── Public API ────────────────────────────────────────────────────────────
 
 export function isAvailable() {
@@ -235,7 +278,12 @@ export async function init() {
   const borderGeom = new THREE.TorusGeometry( 4.2, 0.1, 12, 4 );
   borderGeom.rotateX( Math.PI * 0.5 );
   borderGeom.rotateY( Math.PI * 0.25 );
-  poolBorder = new THREE.Mesh( borderGeom, new THREE.MeshStandardMaterial( { color: 0x908877, roughness: 0.2 } ) );
+  poolBorder = new THREE.Mesh( borderGeom, new THREE.MeshStandardMaterial( {
+    color: 0x0a0a12,
+    roughness: 0.03,
+    metalness: 0.95,
+    envMapIntensity: 2.5
+  } ) );
   scene.add( poolBorder );
 
   // ── Raycast plane ────────────────────────────────────────────────────
@@ -330,9 +378,11 @@ export async function init() {
 
   env.mapping = THREE.EquirectangularReflectionMapping;
   scene.environment = env;
-  scene.background = env;
-  scene.backgroundBlurriness = 0.3;
   scene.environmentIntensity = 1.25;
+
+  // Use the site's theme gradient as the visible background instead of the
+  // HDR map (which looked brownish).  HDR stays as environment for reflections.
+  applyThemeBackground();
 
   duckModel = model.scene.children[ 0 ];
   duckModel.material.positionNode = Fn( () => {
@@ -361,6 +411,10 @@ export async function init() {
   container.addEventListener( 'pointerdown', onPointerDown );
   container.addEventListener( 'pointerup', onPointerUp );
   window.addEventListener( 'resize', onWindowResize );
+
+  // Re-apply scene background when the user switches theme
+  new MutationObserver( () => applyThemeBackground() )
+    .observe( document.body, { attributes: true, attributeFilter: [ 'data-theme' ] } );
 
   isInitialised = true;
   console.log( '[WaterBackground] Initialised' );
