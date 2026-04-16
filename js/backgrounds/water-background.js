@@ -152,8 +152,8 @@ export async function init() {
   container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;pointer-events:none;';
   document.body.appendChild( container );
 
-  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
-  camera.position.set( 0, 2.00, 4 );
+  camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 1, 3000 );
+  camera.position.set( 0, 5.5, 3.5 );
   camera.lookAt( 0, 0, 0 );
 
   scene = new THREE.Scene();
