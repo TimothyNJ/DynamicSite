@@ -494,27 +494,15 @@ export async function init() {
   duckMesh = new THREE.InstancedMesh( duckModel.geometry, duckModel.material, NUM_DUCKS );
   scene.add( duckMesh );
 
-  // ── Sailboat — same pattern as ducks ─────────────────────────────────
+  // ── Sailboat — DIAGNOSTIC: plain Mesh at fixed position, no GPU pipeline ──
   const boatModel = sailboatGLTF.scene.children[ 0 ];
-  boatModel.geometry.scale( 0.02, 0.02, 0.02 );           // native model is ~45 units tall; shrink to ~0.9
-  boatModel.geometry.computeVertexNormals();                // GLB has no NORMAL attribute — generate them
-  console.log( '[WaterBackground] boatModel:', boatModel );
-  console.log( '[WaterBackground] boatModel.isMesh:', boatModel?.isMesh );
-  console.log( '[WaterBackground] boatModel.geometry:', boatModel?.geometry );
-  console.log( '[WaterBackground] boatModel.geometry.attributes:', boatModel?.geometry?.attributes );
-  console.log( '[WaterBackground] boatModel.material:', boatModel?.material );
-  console.log( '[WaterBackground] boatDataStorage:', boatDataStorage );
-  boatModel.material.positionNode = Fn( () => {
-    const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' );
-    const newPosition = positionLocal.add( instancePosition );
-    return newPosition;
-  } )();
-
-  sailboatMesh = new THREE.InstancedMesh( boatModel.geometry, boatModel.material, 1 );
-  sailboatMesh.frustumCulled = false;                       // GPU positionNode moves verts — Three.js can't track the bounding sphere
-  console.log( '[WaterBackground] sailboatMesh (InstancedMesh):', sailboatMesh );
-  console.log( '[WaterBackground] sailboatMesh.count:', sailboatMesh.count );
-  scene.add( sailboatMesh );
+  boatModel.geometry.scale( 0.02, 0.02, 0.02 );
+  boatModel.geometry.computeVertexNormals();
+  boatModel.position.set( 0, 0.3, 0 );
+  boatModel.frustumCulled = false;
+  scene.add( boatModel );
+  sailboatMesh = boatModel;  // so toggle still works
+  console.log( '[WaterBackground] DIAGNOSTIC: boat added as plain Mesh at (0, 0.3, 0)' );
 
   // ── Renderer ─────────────────────────────────────────────────────────
   renderer = new THREE.WebGPURenderer( { antialias: true, requiredLimits: { maxStorageBuffersInVertexStage: 2 } } );
