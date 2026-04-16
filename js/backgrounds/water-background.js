@@ -89,39 +89,8 @@ const effectController = {
 // ─── Sailboat helpers ─────────────────────────────────────────────────────
 
 function updateSailboat() {
-  if ( ! sailboatMesh || ! sailboatEnabled || ! boatDataArray ) {
-    if ( sailboatMesh ) sailboatMesh.visible = false;
-    effectController.boatSpeed.value.set( 0, 0 );
-    return;
-  }
-  sailboatMesh.visible = true;
-
-  // ── Read position + velocity written by the GPU compute shader ─────
-  // boatDataArray layout matches DuckStruct: [ posX, posY, posZ, pad, velX, velY, pad, pad ]
-  const px = boatDataArray[ 0 ];
-  const py = boatDataArray[ 1 ];
-  const pz = boatDataArray[ 2 ];
-  const vx = boatDataArray[ 4 ];
-  const vy = boatDataArray[ 5 ];
-
-  // ── Feed boat position + velocity into wake displacement uniforms ──
-  effectController.boatPos.value.set( px, pz );
-  effectController.boatSpeed.value.set( vx, vy );
-
-  // ── Position mesh on water surface ─────────────────────────────────
-  sailboatState.bobPhase += 0.03;
-  const bob = Math.sin( sailboatState.bobPhase ) * 0.008;
-  sailboatMesh.position.set( px, py + bob - 0.12, pz );
-
-  // ── Face direction of travel ───────────────────────────────────────
-  const speed = Math.sqrt( vx * vx + vy * vy );
-  if ( speed > 0.0001 ) {
-    const targetAngle = Math.atan2( vx, vy );
-    let angleDiff = targetAngle - sailboatMesh.rotation.y;
-    while ( angleDiff > Math.PI ) angleDiff -= Math.PI * 2;
-    while ( angleDiff < -Math.PI ) angleDiff += Math.PI * 2;
-    sailboatMesh.rotation.y += angleDiff * 0.05;
-  }
+  if ( ! sailboatMesh ) return;
+  sailboatMesh.visible = sailboatEnabled;
 }
 
 // ─── Noise helper ──────────────────────────────────────────────────────────
@@ -439,7 +408,7 @@ export async function init() {
   boatDataStorage = instancedArray( boatDataArray, BoatStruct ).setName( 'BoatInstanceData' );
 
   computeBoat = Fn( () => {
-    const yOffset = float( - 0.04 );
+    const yOffset = float( - 0.12 );
     const verticalResponseFactor = float( 0.98 );
     const waterPushFactor = float( 0.015 );
     const linearDamping = float( 0.92 );
@@ -527,10 +496,18 @@ export async function init() {
 
   // ── Sailboat ────────────────────────────────────────────────────────
   sailboatMesh = sailboatGLTF.scene;
-  sailboatMesh.scale.setScalar( 0.02 );  // roughly 2× duck size
+  // Bake the 0.02 scale into every geometry so the scene-graph scale
+  // stays at 1.  This lets positionNode add world-space offsets from
+  // the GPU compute buffer — exactly the same pattern the ducks use.
   sailboatMesh.traverse( ( child ) => {
     if ( child.isMesh ) {
+      child.geometry.scale( 0.02, 0.02, 0.02 );
       child.castShadow = true;
+      // GPU-driven positioning — identical to ducks
+      child.material.positionNode = Fn( () => {
+        const boatPosition = boatDataStorage.element( 0 ).get( 'position' );
+        return positionLocal.add( boatPosition );
+      } )();
     }
   } );
   scene.add( sailboatMesh );
