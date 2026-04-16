@@ -496,6 +496,8 @@ export async function init() {
 
   // ── Sailboat — same pattern as ducks ─────────────────────────────────
   const boatModel = sailboatGLTF.scene.children[ 0 ];
+  boatModel.geometry.scale( 0.02, 0.02, 0.02 );           // native model is ~45 units tall; shrink to ~0.9
+  boatModel.geometry.computeVertexNormals();                // GLB has no NORMAL attribute — generate them
   console.log( '[WaterBackground] boatModel:', boatModel );
   console.log( '[WaterBackground] boatModel.isMesh:', boatModel?.isMesh );
   console.log( '[WaterBackground] boatModel.geometry:', boatModel?.geometry );
