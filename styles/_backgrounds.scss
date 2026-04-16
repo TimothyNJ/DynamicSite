@@ -6,8 +6,14 @@
 // ==============================================
 
 // When water background is active, hide the CSS gradient pseudo-element
+// and make the navbar transparent so water shows through
 body.water-bg-active::before {
   display: none !important;
+}
+
+body.water-bg-active .nav-bar {
+  background: transparent !important;
+  background-attachment: unset !important;
 }
 
 #water-background-container {
