@@ -47,6 +47,7 @@ const raycaster = new THREE.Raycaster();
 let frame = 0;
 let animationRunning = false;
 let isInitialised = false;
+let debugHUD = null;
 
 let sun;
 let waterMesh;
@@ -417,6 +418,7 @@ export async function init() {
     .observe( document.body, { attributes: true, attributeFilter: [ 'data-theme' ] } );
 
   isInitialised = true;
+  createDebugHUD();
   console.log( '[WaterBackground] Initialised' );
 }
 
@@ -544,6 +546,41 @@ function raycast() {
   }
 }
 
+// ─── Debug HUD (temporary) ────────────────────────────────────────────────
+function createDebugHUD() {
+  debugHUD = document.createElement( 'div' );
+  debugHUD.id = 'water-debug-hud';
+  debugHUD.style.cssText = [
+    'position: fixed',
+    'top: 50px',
+    'left: 50%',
+    'transform: translateX(-50%)',
+    'z-index: 10000',
+    'background: rgba(0,0,0,0.75)',
+    'color: #0f0',
+    'font-family: monospace',
+    'font-size: 14px',
+    'padding: 12px 20px',
+    'border-radius: 8px',
+    'pointer-events: none',
+    'white-space: pre',
+    'text-align: left',
+    'line-height: 1.6'
+  ].join(';');
+  document.body.appendChild( debugHUD );
+}
+
+function updateDebugHUD() {
+  if ( ! debugHUD || ! camera ) return;
+  const p = camera.position;
+  const r = camera.rotation;
+  const toDeg = ( rad ) => ( rad * 180 / Math.PI ).toFixed( 1 );
+  debugHUD.textContent =
+    `pos:  x=${p.x.toFixed(2)}  y=${p.y.toFixed(2)}  z=${p.z.toFixed(2)}\n` +
+    `rot:  x=${toDeg(r.x)}°  y=${toDeg(r.y)}°  z=${toDeg(r.z)}°\n` +
+    `fov:  ${camera.fov}   aspect: ${camera.aspect.toFixed(2)}`;
+}
+
 function render() {
   raycast();
   frame ++;
@@ -565,4 +602,5 @@ function render() {
   }
 
   renderer.render( scene, camera );
+  updateDebugHUD();
 }
