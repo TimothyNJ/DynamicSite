@@ -86,6 +86,20 @@ function noise( x, y ) {
   return r;
 }
 
+// ─── Theme-aware background ───────────────────────────────────────────────
+// Reads the site's current theme from body[data-theme] and sets the Three.js
+// scene background to the matching gradient start colour so the 3D scene
+// blends with the page chrome.  Dark = #000000, Light = #4b5b62.
+function applyThemeBackground() {
+  if ( ! scene ) return;
+  const theme = document.body.getAttribute( 'data-theme' ) || 'dark';
+  if ( theme === 'light' ) {
+    scene.background = new THREE.Color( 0x4b5b62 );
+  } else {
+    scene.background = new THREE.Color( 0x000000 );
+  }
+}
+
 // ─── Public API ────────────────────────────────────────────────────────────
 
 export function isAvailable() {
@@ -235,7 +249,12 @@ export async function init() {
   const borderGeom = new THREE.TorusGeometry( 4.2, 0.1, 12, 4 );
   borderGeom.rotateX( Math.PI * 0.5 );
   borderGeom.rotateY( Math.PI * 0.25 );
-  poolBorder = new THREE.Mesh( borderGeom, new THREE.MeshStandardMaterial( { color: 0x908877, roughness: 0.2 } ) );
+  poolBorder = new THREE.Mesh( borderGeom, new THREE.MeshStandardMaterial( {
+    color: 0x1a1a2e,
+    roughness: 0.05,
+    metalness: 0.9,
+    envMapIntensity: 2.0
+  } ) );
   scene.add( poolBorder );
 
   // ── Raycast plane ────────────────────────────────────────────────────
@@ -330,9 +349,11 @@ export async function init() {
 
   env.mapping = THREE.EquirectangularReflectionMapping;
   scene.environment = env;
-  scene.background = env;
-  scene.backgroundBlurriness = 0.3;
   scene.environmentIntensity = 1.25;
+
+  // Use the site's theme gradient colours as the scene background
+  // instead of the HDR environment map (which looked brownish).
+  applyThemeBackground();
 
   duckModel = model.scene.children[ 0 ];
   duckModel.material.positionNode = Fn( () => {
@@ -361,6 +382,10 @@ export async function init() {
   container.addEventListener( 'pointerdown', onPointerDown );
   container.addEventListener( 'pointerup', onPointerUp );
   window.addEventListener( 'resize', onWindowResize );
+
+  // Re-apply scene background when the user switches theme
+  new MutationObserver( () => applyThemeBackground() )
+    .observe( document.body, { attributes: true, attributeFilter: [ 'data-theme' ] } );
 
   isInitialised = true;
   console.log( '[WaterBackground] Initialised' );
