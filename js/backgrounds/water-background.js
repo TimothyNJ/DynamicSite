@@ -177,7 +177,7 @@ function updateSailboat() {
   // ── Position on water surface ──────────────────────────────────────
   st.bobPhase += 0.03;
   const bob = Math.sin( st.bobPhase ) * 0.008;
-  sailboatMesh.position.set( st.x, waterY + bob - 0.02, st.z );
+  sailboatMesh.position.set( st.x, waterY + bob - 0.12, st.z );
 
   // ── Face direction of travel ───────────────────────────────────────
   const travelDx = st.vx;
