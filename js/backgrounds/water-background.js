@@ -494,22 +494,16 @@ export async function init() {
   duckMesh = new THREE.InstancedMesh( duckModel.geometry, duckModel.material, NUM_DUCKS );
   scene.add( duckMesh );
 
-  // ── Sailboat ────────────────────────────────────────────────────────
-  sailboatMesh = sailboatGLTF.scene;
-  // Bake the 0.02 scale into every geometry so the scene-graph scale
-  // stays at 1.  This lets positionNode add world-space offsets from
-  // the GPU compute buffer — exactly the same pattern the ducks use.
-  sailboatMesh.traverse( ( child ) => {
-    if ( child.isMesh ) {
-      child.geometry.scale( 0.02, 0.02, 0.02 );
-      child.castShadow = true;
-      // GPU-driven positioning — identical to ducks
-      child.material.positionNode = Fn( () => {
-        const boatPosition = boatDataStorage.element( 0 ).get( 'position' );
-        return positionLocal.add( boatPosition );
-      } )();
-    }
-  } );
+  // ── Sailboat — same pattern as ducks ─────────────────────────────────
+  const boatModel = sailboatGLTF.scene.children[ 0 ];
+  boatModel.geometry.scale( 0.02, 0.02, 0.02 );
+  boatModel.material.positionNode = Fn( () => {
+    const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' );
+    const newPosition = positionLocal.add( instancePosition );
+    return newPosition;
+  } )();
+
+  sailboatMesh = new THREE.InstancedMesh( boatModel.geometry, boatModel.material, 1 );
   scene.add( sailboatMesh );
 
   // ── Renderer ─────────────────────────────────────────────────────────
