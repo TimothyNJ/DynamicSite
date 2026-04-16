@@ -511,6 +511,7 @@ export async function init() {
   } )();
 
   sailboatMesh = new THREE.InstancedMesh( boatModel.geometry, boatModel.material, 1 );
+  sailboatMesh.frustumCulled = false;                       // GPU positionNode moves verts — Three.js can't track the bounding sphere
   console.log( '[WaterBackground] sailboatMesh (InstancedMesh):', sailboatMesh );
   console.log( '[WaterBackground] sailboatMesh.count:', sailboatMesh.count );
   scene.add( sailboatMesh );
