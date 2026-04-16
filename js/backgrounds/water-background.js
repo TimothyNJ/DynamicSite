@@ -396,7 +396,8 @@ export async function init() {
 
   // ── Boat compute — exact same physics as ducks, 1 instance ──────────
   const boatStride = 8; // same layout as DuckStruct: vec3 pos + vec2 vel
-  boatDataArray = new Float32Array( boatStride );
+  const BOAT_PAD = 16; // allocate 16 elements — tiny buffers fail in WebGPU vertex stage
+  boatDataArray = new Float32Array( boatStride * BOAT_PAD );
   boatDataArray[ 0 ] = ( Math.random() - 0.5 ) * BOUNDS * 0.5; // posX
   boatDataArray[ 2 ] = ( Math.random() - 0.5 ) * BOUNDS * 0.5; // posZ
 
@@ -494,19 +495,18 @@ export async function init() {
   duckMesh = new THREE.InstancedMesh( duckModel.geometry, duckModel.material, NUM_DUCKS );
   scene.add( duckMesh );
 
-  // ── Sailboat — DIAGNOSTIC: read from DUCK storage instead of boat storage ──
+  // ── Sailboat — same pattern as ducks ─────────────────────────────────
   const boatModel = sailboatGLTF.scene.children[ 0 ];
   boatModel.geometry.scale( 0.02, 0.02, 0.02 );
   boatModel.geometry.computeVertexNormals();
   boatModel.material.positionNode = Fn( () => {
-    const instancePosition = duckInstanceDataStorage.element( uint( 0 ) ).get( 'position' );
+    const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' );
     const newPosition = positionLocal.add( instancePosition );
     return newPosition;
   } )();
   sailboatMesh = new THREE.InstancedMesh( boatModel.geometry, boatModel.material, 1 );
   sailboatMesh.frustumCulled = false;
   scene.add( sailboatMesh );
-  console.log( '[WaterBackground] DIAGNOSTIC: boat reading from DUCK storage element 0' );
 
   // ── Renderer ─────────────────────────────────────────────────────────
   renderer = new THREE.WebGPURenderer( { antialias: true, requiredLimits: { maxStorageBuffersInVertexStage: 2 } } );
@@ -738,10 +738,9 @@ function render() {
     if ( effectController.ducksEnabled ) {
       renderer.compute( computeDucks );
     }
-    // DIAGNOSTIC: compute disabled — boat uses initial CPU position from boatDataArray
-    // if ( sailboatEnabled && computeBoat ) {
-    //   renderer.compute( computeBoat );
-    // }
+    if ( sailboatEnabled && computeBoat ) {
+      renderer.compute( computeBoat );
+    }
     frame = 0;
   }
 
