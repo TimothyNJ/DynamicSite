@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T05:40:02Z"><div class="cell-fit"><p>2026-04-15 22:40 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>4c28146</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>fix: sailboat now actually responds to mouse waves</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>The old approach tried to read the GPU heightfield from the CPU via waterMesh.geometry.getAttribute(&#x27;position&#x27;), but those positions are set by positionNode on the GPU and never written back — so the boat was reading flat zeros and ignoring all waves. New approach: replicate the cosine displacement math from the compute shader on the CPU using the same mousePos/mouseSpeed/mouseSize/mouseDeep uniforms. Compute the analytical gradient at the boat&#x27;s position to get wave push direction and magnitude. This exactly mirrors what the GPU does, so the boat now feels waves the same way the ducks do. - linearDamping lowered to 0.92 (matches ducks) - waterPushFactor raised to 0.15 for visible response - Thrust still scales down under wave force - Tilt uses the analytical wave gradient instead of dead posAttr</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 05:40 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T05:36:18Z"><div class="cell-fit"><p>2026-04-15 22:36 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>5ca2181</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 05:36 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-16T05:36:09Z"><div class="cell-fit"><p>2026-04-15 22:36 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>e9b70b2</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>feat: sailboat yields to waves — thrust scales down under wave force</p></div></td>
