@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T05:48:28Z"><div class="cell-fit"><p>2026-04-15 22:48 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>0f5422b</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>refactor: sailboat physics moved to GPU — exact same code as ducks</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Replaced all CPU-side boat physics (analytical wave estimation, thrust, heading, bow collision) with a GPU compute shader that is a direct copy of the duck compute shader running on 1 instance. The boat now reads from the same heightStorageA/B buffers as the ducks, gets the same water normals, same waterPushFactor (0.015), same linearDamping (0.92), same bounceDamping (-0.4), same wall bouncing. No propulsion, no steering — the boat is just another duck for now. CPU-side updateSailboat() only reads the GPU storage to position and rotate the mesh.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 05:48 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T05:40:11Z"><div class="cell-fit"><p>2026-04-15 22:40 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>70b9bee</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 05:40 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-16T05:40:02Z"><div class="cell-fit"><p>2026-04-15 22:40 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>4c28146</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>fix: sailboat now actually responds to mouse waves</p></div></td>
