@@ -575,6 +575,15 @@ export function dispose() {
   isInitialised = false;
 }
 
+// ─── Control getters (read current state for UI sync) ──────────────────────
+export function getMouseSize() { return effectController.mouseSize.value; }
+export function getMouseDeep() { return effectController.mouseDeep.value; }
+export function getViscosity() { return effectController.viscosity.value; }
+export function getSpeed() { return effectController.speed; }
+export function getDucksEnabled() { return effectController.ducksEnabled; }
+export function getSailboatEnabled() { return sailboatEnabled; }
+export function getWireframe() { return effectController.wireframe; }
+
 // ─── Control setters (called from Backgrounds page) ────────────────────────
 export function setMouseSize( v ) { effectController.mouseSize.value = v; }
 export function setMouseDeep( v ) { effectController.mouseDeep.value = v; }

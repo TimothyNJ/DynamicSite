@@ -754,15 +754,16 @@ function initializeBackgroundsPage() {
     BackgroundManager.setMode(mode);
   });
 
-  // Mouse Size slider
+  // Mouse Size slider — read live state
+  const curMouseSize = WaterBackground.getMouseSize();
   componentFactory.createSlider({
     containerId: 'water-mouse-size-slider-container',
     sliderClass: 'water-mouse-size-slider',
     options: [
-      { text: '0.1', value: '0.1', position: 1, dataAttributes: 'data-value="0.1"' },
-      { text: '0.12', value: '0.12', position: 2, active: true, dataAttributes: 'data-value="0.12"' },
-      { text: '0.2', value: '0.2', position: 3, dataAttributes: 'data-value="0.2"' },
-      { text: '0.3', value: '0.3', position: 4, dataAttributes: 'data-value="0.3"' }
+      { text: '0.1', value: '0.1', position: 1, active: curMouseSize === 0.1, dataAttributes: 'data-value="0.1"' },
+      { text: '0.12', value: '0.12', position: 2, active: curMouseSize === 0.12, dataAttributes: 'data-value="0.12"' },
+      { text: '0.2', value: '0.2', position: 3, active: curMouseSize === 0.2, dataAttributes: 'data-value="0.2"' },
+      { text: '0.3', value: '0.3', position: 4, active: curMouseSize === 0.3, dataAttributes: 'data-value="0.3"' }
     ]
   }, (selectedOption) => {
     const v = parseFloat(selectedOption.getAttribute('data-value'));
@@ -770,14 +771,15 @@ function initializeBackgroundsPage() {
   });
 
   // Mouse Depth slider
+  const curMouseDeep = WaterBackground.getMouseDeep();
   componentFactory.createSlider({
     containerId: 'water-mouse-deep-slider-container',
     sliderClass: 'water-mouse-deep-slider',
     options: [
-      { text: '0.1', value: '0.1', position: 1, dataAttributes: 'data-value="0.1"' },
-      { text: '0.3', value: '0.3', position: 2, dataAttributes: 'data-value="0.3"' },
-      { text: '0.5', value: '0.5', position: 3, active: true, dataAttributes: 'data-value="0.5"' },
-      { text: '1.0', value: '1.0', position: 4, dataAttributes: 'data-value="1.0"' }
+      { text: '0.1', value: '0.1', position: 1, active: curMouseDeep === 0.1, dataAttributes: 'data-value="0.1"' },
+      { text: '0.3', value: '0.3', position: 2, active: curMouseDeep === 0.3, dataAttributes: 'data-value="0.3"' },
+      { text: '0.5', value: '0.5', position: 3, active: curMouseDeep === 0.5, dataAttributes: 'data-value="0.5"' },
+      { text: '1.0', value: '1.0', position: 4, active: curMouseDeep === 1.0, dataAttributes: 'data-value="1.0"' }
     ]
   }, (selectedOption) => {
     const v = parseFloat(selectedOption.getAttribute('data-value'));
@@ -785,13 +787,14 @@ function initializeBackgroundsPage() {
   });
 
   // Viscosity slider
+  const curViscosity = WaterBackground.getViscosity();
   componentFactory.createSlider({
     containerId: 'water-viscosity-slider-container',
     sliderClass: 'water-viscosity-slider',
     options: [
-      { text: '0.90', value: '0.90', position: 1, dataAttributes: 'data-value="0.90"' },
-      { text: '0.93', value: '0.93', position: 2, dataAttributes: 'data-value="0.93"' },
-      { text: '0.96', value: '0.96', position: 3, active: true, dataAttributes: 'data-value="0.96"' }
+      { text: '0.90', value: '0.90', position: 1, active: curViscosity === 0.90, dataAttributes: 'data-value="0.90"' },
+      { text: '0.93', value: '0.93', position: 2, active: curViscosity === 0.93, dataAttributes: 'data-value="0.93"' },
+      { text: '0.96', value: '0.96', position: 3, active: curViscosity === 0.96, dataAttributes: 'data-value="0.96"' }
     ]
   }, (selectedOption) => {
     const v = parseFloat(selectedOption.getAttribute('data-value'));
@@ -799,27 +802,29 @@ function initializeBackgroundsPage() {
   });
 
   // Speed slider
+  const curSpeed = WaterBackground.getSpeed();
   componentFactory.createSlider({
     containerId: 'water-speed-slider-container',
     sliderClass: 'water-speed-slider',
     options: [
-      { text: '1', value: '1', position: 1, dataAttributes: 'data-value="1"' },
-      { text: '3', value: '3', position: 2, dataAttributes: 'data-value="3"' },
-      { text: '5', value: '5', position: 3, active: true, dataAttributes: 'data-value="5"' },
-      { text: '6', value: '6', position: 4, dataAttributes: 'data-value="6"' }
+      { text: '1', value: '1', position: 1, active: curSpeed === 1, dataAttributes: 'data-value="1"' },
+      { text: '3', value: '3', position: 2, active: curSpeed === 3, dataAttributes: 'data-value="3"' },
+      { text: '5', value: '5', position: 3, active: curSpeed === 5, dataAttributes: 'data-value="5"' },
+      { text: '6', value: '6', position: 4, active: curSpeed === 6, dataAttributes: 'data-value="6"' }
     ]
   }, (selectedOption) => {
     const v = parseInt(selectedOption.getAttribute('data-value'));
     WaterBackground.setSpeed(v);
   });
 
-  // Ducks toggle
+  // Ducks toggle — read live state so it persists across page navigation
+  const ducksOn = WaterBackground.getDucksEnabled();
   componentFactory.createSlider({
     containerId: 'water-ducks-slider-container',
     sliderClass: 'water-ducks-slider',
     options: [
-      { text: 'On', value: 'on', position: 1, active: true, dataAttributes: 'data-value="true"' },
-      { text: 'Off', value: 'off', position: 2, dataAttributes: 'data-value="false"' }
+      { text: 'On', value: 'on', position: 1, active: ducksOn, dataAttributes: 'data-value="true"' },
+      { text: 'Off', value: 'off', position: 2, active: !ducksOn, dataAttributes: 'data-value="false"' }
     ]
   }, (selectedOption) => {
     const v = selectedOption.getAttribute('data-value') === 'true';
@@ -827,12 +832,13 @@ function initializeBackgroundsPage() {
   });
 
   // Sailboat toggle
+  const sailboatOn = WaterBackground.getSailboatEnabled();
   componentFactory.createSlider({
     containerId: 'water-sailboat-slider-container',
     sliderClass: 'water-sailboat-slider',
     options: [
-      { text: 'On', value: 'on', position: 1, active: true, dataAttributes: 'data-value="true"' },
-      { text: 'Off', value: 'off', position: 2, dataAttributes: 'data-value="false"' }
+      { text: 'On', value: 'on', position: 1, active: sailboatOn, dataAttributes: 'data-value="true"' },
+      { text: 'Off', value: 'off', position: 2, active: !sailboatOn, dataAttributes: 'data-value="false"' }
     ]
   }, (selectedOption) => {
     const v = selectedOption.getAttribute('data-value') === 'true';
@@ -840,12 +846,13 @@ function initializeBackgroundsPage() {
   });
 
   // Wireframe toggle
+  const wireframeOn = WaterBackground.getWireframe();
   componentFactory.createSlider({
     containerId: 'water-wireframe-slider-container',
     sliderClass: 'water-wireframe-slider',
     options: [
-      { text: 'Off', value: 'off', position: 1, active: true, dataAttributes: 'data-value="false"' },
-      { text: 'On', value: 'on', position: 2, dataAttributes: 'data-value="true"' }
+      { text: 'Off', value: 'off', position: 1, active: !wireframeOn, dataAttributes: 'data-value="false"' },
+      { text: 'On', value: 'on', position: 2, active: wireframeOn, dataAttributes: 'data-value="true"' }
     ]
   }, (selectedOption) => {
     const v = selectedOption.getAttribute('data-value') === 'true';
