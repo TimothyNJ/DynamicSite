@@ -350,8 +350,9 @@ export async function init() {
     const linearDamping = float( 0.92 );
     const bounceDamping = float( - 0.4 );
 
-    const duckTorqueStrength = float( 0.15 );  // responsive — ducks turn freely with waves
-    const duckAngularDamping = float( 0.90 );  // friction slowing spin
+    const duckTorqueStrength = float( 0.25 );   // strong — ducks spin freely with waves
+    const duckAngularDamping = float( 0.88 );   // less friction — let them spin more
+    const duckVelAlignTorque = float( 0.03 );   // gentle tendency to face movement direction
 
     const instancePosition = duckInstanceDataStorage.element( instanceIndex ).get( 'position' ).toVar();
     const velocity = duckInstanceDataStorage.element( instanceIndex ).get( 'velocity' ).toVar();
@@ -380,8 +381,14 @@ export async function init() {
     // cross = facing.x * push.z - facing.z * push.x = sin(angle_diff) → signed torque
     const facingX = cos( rotation );
     const facingZ = sin( rotation );
-    const torque = facingX.mul( pushZ ).sub( facingZ.mul( pushX ) );
-    angularVelocity.addAssign( torque.mul( duckTorqueStrength ) );
+    const waveTorque = facingX.mul( pushZ ).sub( facingZ.mul( pushX ) );
+    angularVelocity.addAssign( waveTorque.mul( duckTorqueStrength ) );
+
+    // Gentle tendency to face movement direction (drag on irregular shape)
+    const duckSpeed = length( velocity );
+    const velAlignCross = facingX.mul( velocity.y ).sub( facingZ.mul( velocity.x ) );
+    angularVelocity.addAssign( velAlignCross.mul( duckVelAlignTorque ).mul( min( duckSpeed.mul( 10.0 ), float( 1.0 ) ) ) );
+
     angularVelocity.mulAssign( duckAngularDamping );
     rotation.addAssign( angularVelocity );
 
