@@ -568,6 +568,16 @@ function createDebugHUD() {
     'line-height: 1.6'
   ].join(';');
   document.body.appendChild( debugHUD );
+
+  // Match initial border-guide visibility
+  const sc = document.querySelector( '.site-container' );
+  const hidden = sc && sc.classList.contains( 'borders-hidden' );
+  debugHUD.style.display = hidden ? 'none' : '';
+}
+
+// Called by the global toggleBorders function in script.js
+export function toggleDebugHUD( show ) {
+  if ( debugHUD ) debugHUD.style.display = show ? '' : 'none';
 }
 
 function updateDebugHUD() {

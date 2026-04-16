@@ -52,6 +52,12 @@ function toggleBorders() {
   document.querySelectorAll(".dimension-container").forEach((el) => {
     el.style.display = isHidden ? "none" : "";
   });
+
+  // Toggle water debug HUD
+  const waterDebugHud = document.getElementById('water-debug-hud');
+  if (waterDebugHud) {
+    waterDebugHud.style.display = isHidden ? 'none' : '';
+  }
 }
 
 // Function to update corner rounding based on screen width
