@@ -102,47 +102,50 @@ function updateSailboat() {
 
   const st = sailboatState;
 
-  // ── Sample water heightfield at boat position ──────────────────────
-  const gridX = Math.floor( ( st.x / BOUNDS + 0.5 ) * WIDTH );
-  const gridZ = Math.floor( ( st.z / BOUNDS + 0.5 ) * WIDTH );
-  const clampedX = Math.max( 0, Math.min( WIDTH - 1, gridX ) );
-  const clampedZ = Math.max( 0, Math.min( WIDTH - 1, gridZ ) );
+  // ── Analytical wave force at boat position ─────────────────────────
+  // The GPU heightfield isn't readable from the CPU, so we replicate
+  // the cosine displacement math the compute shader uses: a radial
+  // wave centered on mousePos whose strength = mouseSpeed.length().
+  // We compute the gradient of that displacement to get push direction.
+  const mPos = effectController.mousePos.value;       // THREE.Vector2
+  const mSpd = effectController.mouseSpeed.value;     // THREE.Vector2
+  const mSize = effectController.mouseSize.value;     // scalar
+  const mDeep = effectController.mouseDeep.value;     // scalar
+  const mSpeedLen = Math.sqrt( mSpd.x * mSpd.x + mSpd.y * mSpd.y );
 
-  const posAttr = waterMesh ? waterMesh.geometry.getAttribute( 'position' ) : null;
+  let wavePushX = 0, wavePushZ = 0;
   let waterY = 0;
-  let normalX = 0, normalZ = 0;
 
-  if ( posAttr ) {
-    const idx = clampedZ * WIDTH + clampedX;
-    if ( idx < posAttr.count ) {
-      waterY = posAttr.getZ( idx );
+  if ( mSpeedLen > 0.0001 ) {
+    const dx = st.x - mPos.x;
+    const dz = st.z - mPos.y;
+    const dist = Math.sqrt( dx * dx + dz * dz );
+    const phase = Math.min( dist * Math.PI / mSize, Math.PI );
+
+    // Height at boat = cos(phase)+1  × deep × speed  (same as GPU)
+    waterY = ( Math.cos( phase ) + 1.0 ) * mDeep * mSpeedLen;
+
+    // Gradient of the cosine → push direction (derivative of height w.r.t. position)
+    if ( dist > 0.001 && phase < Math.PI ) {
+      const dHeightDr = - Math.sin( phase ) * ( Math.PI / mSize ) * mDeep * mSpeedLen;
+      // gradient points radially outward from mouse
+      wavePushX = ( dx / dist ) * dHeightDr;
+      wavePushZ = ( dz / dist ) * dHeightDr;
     }
-    // Sample neighbors for water normal (same approach as duck compute shader)
-    const eastIdx = clampedZ * WIDTH + Math.min( WIDTH - 1, clampedX + 1 );
-    const westIdx = clampedZ * WIDTH + Math.max( 0, clampedX - 1 );
-    const northIdx = Math.min( WIDTH - 1, clampedZ + 1 ) * WIDTH + clampedX;
-    const southIdx = Math.max( 0, clampedZ - 1 ) * WIDTH + clampedX;
-    const eastH  = eastIdx  < posAttr.count ? posAttr.getZ( eastIdx )  : 0;
-    const westH  = westIdx  < posAttr.count ? posAttr.getZ( westIdx )  : 0;
-    const northH = northIdx < posAttr.count ? posAttr.getZ( northIdx ) : 0;
-    const southH = southIdx < posAttr.count ? posAttr.getZ( southIdx ) : 0;
-    // Water slope → push direction (same as ducks: waterPushFactor)
-    normalX = ( westH - eastH ) * ( WIDTH / BOUNDS );
-    normalZ = ( southH - northH ) * ( WIDTH / BOUNDS );
   }
 
-  // ── Water push force (like ducks) ──────────────────────────────────
-  const waterPushFactor = 0.06;
-  const linearDamping = 0.94;
+  // ── Apply wave + damping ───────────────────────────────────────────
+  const waterPushFactor = 0.15;
+  const linearDamping = 0.92;
   const bounceDamping = -0.5;
 
   st.vx *= linearDamping;
   st.vz *= linearDamping;
-  st.vx += normalX * waterPushFactor;
-  st.vz += normalZ * waterPushFactor;
+  st.vx += wavePushX * waterPushFactor;
+  st.vz += wavePushZ * waterPushFactor;
 
   // ── Forward thrust — scaled down when waves are strong ─────────────
-  const waveStrength = Math.sqrt( normalX * normalX + normalZ * normalZ );
+  const waveStrength = Math.sqrt( wavePushX * wavePushX + wavePushZ * wavePushZ );
   const thrustScale = 1.0 / ( 1.0 + waveStrength * 8.0 );
   st.vx += Math.sin( st.heading ) * st.thrust * thrustScale;
   st.vz += Math.cos( st.heading ) * st.thrust * thrustScale;
@@ -189,12 +192,11 @@ function updateSailboat() {
   sailboatMesh.rotation.y += rotDiff * 0.05;
 
   // ── Tilt with water slope ──────────────────────────────────────────
-  if ( posAttr ) {
-    const pitch = normalZ * 0.03;
-    const roll = normalX * 0.03;
-    sailboatMesh.rotation.x += ( pitch - sailboatMesh.rotation.x ) * 0.1;
-    sailboatMesh.rotation.z += ( roll - sailboatMesh.rotation.z ) * 0.1;
-  }
+  // ── Tilt with wave slope ────────────────────────────────────────────
+  const pitch = wavePushZ * 0.03;
+  const roll = wavePushX * 0.03;
+  sailboatMesh.rotation.x += ( pitch - sailboatMesh.rotation.x ) * 0.1;
+  sailboatMesh.rotation.z += ( roll - sailboatMesh.rotation.z ) * 0.1;
 }
 
 // ─── Noise helper ──────────────────────────────────────────────────────────
