@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T05:54:29Z"><div class="cell-fit"><p>2026-04-15 22:54 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>f22bffa</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>fix: boat positioning via GPU positionNode — same pattern as ducks</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>The boat wasn&#x27;t responding to waves because boatDataArray (CPU) never receives writes from the GPU compute shader. The ducks don&#x27;t have this problem — they use positionNode to read positions directly on the GPU. Now the boat does the same: - Bake 0.02 scale into each geometry (so scene-graph scale stays 1) - Set material.positionNode on each child mesh to read from boatDataStorage element 0 — identical to how ducks read from duckInstanceDataStorage - GPU compute writes position, positionNode reads it, no CPU involved - updateSailboat() reduced to just visibility toggling - yOffset set to -0.12 for hull depth</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 05:54 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T05:48:39Z"><div class="cell-fit"><p>2026-04-15 22:48 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>af20da7</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 05:48 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-16T05:48:28Z"><div class="cell-fit"><p>2026-04-15 22:48 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>0f5422b</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>refactor: sailboat physics moved to GPU — exact same code as ducks</p></div></td>
