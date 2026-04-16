@@ -494,17 +494,19 @@ export async function init() {
   duckMesh = new THREE.InstancedMesh( duckModel.geometry, duckModel.material, NUM_DUCKS );
   scene.add( duckMesh );
 
-  // ── Sailboat — DIAGNOSTIC: InstancedMesh + positionNode with hardcoded pos ──
+  // ── Sailboat — DIAGNOSTIC: InstancedMesh + positionNode reading storage (no compute) ──
   const boatModel = sailboatGLTF.scene.children[ 0 ];
   boatModel.geometry.scale( 0.02, 0.02, 0.02 );
   boatModel.geometry.computeVertexNormals();
   boatModel.material.positionNode = Fn( () => {
-    return positionLocal.add( vec3( 0, 0.3, 0 ) );
+    const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' );
+    const newPosition = positionLocal.add( instancePosition );
+    return newPosition;
   } )();
   sailboatMesh = new THREE.InstancedMesh( boatModel.geometry, boatModel.material, 1 );
   sailboatMesh.frustumCulled = false;
   scene.add( sailboatMesh );
-  console.log( '[WaterBackground] DIAGNOSTIC: boat as InstancedMesh with hardcoded positionNode' );
+  console.log( '[WaterBackground] DIAGNOSTIC: boat reading from storage, compute DISABLED' );
 
   // ── Renderer ─────────────────────────────────────────────────────────
   renderer = new THREE.WebGPURenderer( { antialias: true, requiredLimits: { maxStorageBuffersInVertexStage: 2 } } );
@@ -736,9 +738,10 @@ function render() {
     if ( effectController.ducksEnabled ) {
       renderer.compute( computeDucks );
     }
-    if ( sailboatEnabled && computeBoat ) {
-      renderer.compute( computeBoat );
-    }
+    // DIAGNOSTIC: compute disabled — boat uses initial CPU position from boatDataArray
+    // if ( sailboatEnabled && computeBoat ) {
+    //   renderer.compute( computeBoat );
+    // }
     frame = 0;
   }
 
