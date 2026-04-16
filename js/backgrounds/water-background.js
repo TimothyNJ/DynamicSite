@@ -63,9 +63,9 @@ let sailboatMesh = null;
 let sailboatEnabled = true;
 const sailboatState = {
   x: 0, z: 0,            // current position
-  targetX: 0, targetZ: 0, // where it's heading
-  vx: 0, vz: 0,          // velocity (for water push + steering combined)
-  speed: 0.0005,          // gentle cruising speed
+  vx: 0, vz: 0,          // velocity
+  heading: 0,             // current facing angle (radians)
+  thrust: 0.0004,         // forward propulsion strength
   bobPhase: 0,            // for gentle rocking
 };
 
@@ -90,10 +90,6 @@ const effectController = {
 };
 
 // ─── Sailboat helpers ─────────────────────────────────────────────────────
-function pickNewSailboatTarget() {
-  sailboatState.targetX = ( Math.random() - 0.5 ) * BOUNDS * 0.55;
-  sailboatState.targetZ = ( Math.random() - 0.5 ) * BOUNDS * 0.55;
-}
 
 function updateSailboat() {
   if ( ! sailboatMesh || ! sailboatEnabled ) {
@@ -138,25 +134,16 @@ function updateSailboat() {
   // ── Water push force (like ducks) ──────────────────────────────────
   const waterPushFactor = 0.012;
   const linearDamping = 0.94;
-  const bounceDamping = -0.4;
+  const bounceDamping = -0.5;
 
   st.vx *= linearDamping;
   st.vz *= linearDamping;
   st.vx += normalX * waterPushFactor;
   st.vz += normalZ * waterPushFactor;
 
-  // ── Self-steering toward target ────────────────────────────────────
-  const dx = st.targetX - st.x;
-  const dz = st.targetZ - st.z;
-  const dist = Math.sqrt( dx * dx + dz * dz );
-
-  if ( dist < 0.15 ) {
-    pickNewSailboatTarget();
-  } else {
-    // Gentle steering force blended with water push
-    st.vx += ( dx / dist ) * st.speed;
-    st.vz += ( dz / dist ) * st.speed;
-  }
+  // ── Forward thrust along current heading (no self-steering) ────────
+  st.vx += Math.sin( st.heading ) * st.thrust;
+  st.vz += Math.cos( st.heading ) * st.thrust;
 
   // ── Apply velocity ─────────────────────────────────────────────────
   const prevX = st.x;
@@ -164,11 +151,11 @@ function updateSailboat() {
   st.x += st.vx;
   st.z += st.vz;
 
-  // Bounce off pool edges (like ducks)
-  if ( st.x < -limit ) { st.x = -limit; st.vx *= bounceDamping; }
-  if ( st.x >  limit ) { st.x =  limit; st.vx *= bounceDamping; }
-  if ( st.z < -limit ) { st.z = -limit; st.vz *= bounceDamping; }
-  if ( st.z >  limit ) { st.z =  limit; st.vz *= bounceDamping; }
+  // Bounce off pool edges — reflect heading on impact (like ducks)
+  if ( st.x < -limit ) { st.x = -limit; st.vx *= bounceDamping; st.heading = -st.heading; }
+  if ( st.x >  limit ) { st.x =  limit; st.vx *= bounceDamping; st.heading = -st.heading; }
+  if ( st.z < -limit ) { st.z = -limit; st.vz *= bounceDamping; st.heading = Math.PI - st.heading; }
+  if ( st.z >  limit ) { st.z =  limit; st.vz *= bounceDamping; st.heading = Math.PI - st.heading; }
 
   // ── Feed boat position + velocity into displacement uniforms ───────
   effectController.boatPos.value.set( st.x, st.z );
@@ -179,17 +166,21 @@ function updateSailboat() {
   const bob = Math.sin( st.bobPhase ) * 0.008;
   sailboatMesh.position.set( st.x, waterY + bob - 0.12, st.z );
 
-  // ── Face direction of travel ───────────────────────────────────────
-  const travelDx = st.vx;
-  const travelDz = st.vz;
-  const travelDist = Math.sqrt( travelDx * travelDx + travelDz * travelDz );
-  if ( travelDist > 0.0001 ) {
-    const targetAngle = Math.atan2( travelDx, travelDz );
-    let angleDiff = targetAngle - sailboatMesh.rotation.y;
+  // ── Gradually align heading toward actual velocity (waves nudge course) ──
+  const speed = Math.sqrt( st.vx * st.vx + st.vz * st.vz );
+  if ( speed > 0.0001 ) {
+    const velAngle = Math.atan2( st.vx, st.vz );
+    let angleDiff = velAngle - st.heading;
     while ( angleDiff > Math.PI ) angleDiff -= Math.PI * 2;
     while ( angleDiff < -Math.PI ) angleDiff += Math.PI * 2;
-    sailboatMesh.rotation.y += angleDiff * 0.05;
+    st.heading += angleDiff * 0.02; // slow course correction from water forces
   }
+
+  // ── Face direction of heading ─────────────────────────────────────
+  let rotDiff = st.heading - sailboatMesh.rotation.y;
+  while ( rotDiff > Math.PI ) rotDiff -= Math.PI * 2;
+  while ( rotDiff < -Math.PI ) rotDiff += Math.PI * 2;
+  sailboatMesh.rotation.y += rotDiff * 0.05;
 
   // ── Tilt with water slope ──────────────────────────────────────────
   if ( posAttr ) {
@@ -541,10 +532,10 @@ export async function init() {
       child.castShadow = true;
     }
   } );
-  // Start at a random position within the pool
+  // Start at a random position and heading within the pool
   sailboatState.x = ( Math.random() - 0.5 ) * BOUNDS * 0.5;
   sailboatState.z = ( Math.random() - 0.5 ) * BOUNDS * 0.5;
-  pickNewSailboatTarget();
+  sailboatState.heading = Math.random() * Math.PI * 2;
   scene.add( sailboatMesh );
 
   // ── Renderer ─────────────────────────────────────────────────────────
