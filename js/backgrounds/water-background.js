@@ -350,7 +350,7 @@ export async function init() {
     const linearDamping = float( 0.92 );
     const bounceDamping = float( - 0.4 );
 
-    const duckTorqueStrength = float( 0.06 );  // moderate — ducks turn somewhat freely
+    const duckTorqueStrength = float( 0.15 );  // responsive — ducks turn freely with waves
     const duckAngularDamping = float( 0.90 );  // friction slowing spin
 
     const instancePosition = duckInstanceDataStorage.element( instanceIndex ).get( 'position' ).toVar();
