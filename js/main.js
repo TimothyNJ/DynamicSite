@@ -84,6 +84,10 @@ import { initializeComponents } from './loader/component-loader.js';
 import { initializeNavbar } from './navigation/navbar.js';
 import { initRouter, registerPageCleanup } from './navigation/router.js';
 
+// Background system
+import * as BackgroundManager from './backgrounds/background-manager.js';
+import * as WaterBackground from './backgrounds/water-background.js';
+
 // Make factory and cleanup registration available for pages that need it
 window.componentFactory = componentFactory;
 window.registerPageCleanup = registerPageCleanup;
@@ -724,6 +728,120 @@ function initializeSiteSettingsComponents() {
   });
 }
 
+// ─── Backgrounds Page (development/backgrounds) ─────────────────────────────
+function initializeBackgroundsPage() {
+  if (!window.componentFactory) {
+    console.error('[Backgrounds] ComponentFactory not available');
+    return;
+  }
+
+  console.log('[Backgrounds] Initializing backgrounds page controls...');
+
+  const currentMode = BackgroundManager.getMode();
+
+  // Background mode slider: Water | Water Gradient | Gradient
+  componentFactory.createSlider({
+    containerId: 'background-mode-slider-container',
+    sliderClass: 'background-mode-slider',
+    options: [
+      { text: 'Water', value: 'water', position: 1, active: currentMode === 'water', dataAttributes: 'data-mode="water"' },
+      { text: 'Water Gradient', value: 'water-gradient', position: 2, active: currentMode === 'water-gradient', dataAttributes: 'data-mode="water-gradient"' },
+      { text: 'Gradient', value: 'gradient', position: 3, active: currentMode === 'gradient', dataAttributes: 'data-mode="gradient"' }
+    ]
+  }, (selectedOption) => {
+    const mode = selectedOption.getAttribute('data-mode');
+    console.log('[Backgrounds] Mode selected:', mode);
+    BackgroundManager.setMode(mode);
+  });
+
+  // Mouse Size slider
+  componentFactory.createSlider({
+    containerId: 'water-mouse-size-slider-container',
+    sliderClass: 'water-mouse-size-slider',
+    options: [
+      { text: '0.1', value: '0.1', position: 1, dataAttributes: 'data-value="0.1"' },
+      { text: '0.12', value: '0.12', position: 2, active: true, dataAttributes: 'data-value="0.12"' },
+      { text: '0.2', value: '0.2', position: 3, dataAttributes: 'data-value="0.2"' },
+      { text: '0.3', value: '0.3', position: 4, dataAttributes: 'data-value="0.3"' }
+    ]
+  }, (selectedOption) => {
+    const v = parseFloat(selectedOption.getAttribute('data-value'));
+    WaterBackground.setMouseSize(v);
+  });
+
+  // Mouse Depth slider
+  componentFactory.createSlider({
+    containerId: 'water-mouse-deep-slider-container',
+    sliderClass: 'water-mouse-deep-slider',
+    options: [
+      { text: '0.1', value: '0.1', position: 1, dataAttributes: 'data-value="0.1"' },
+      { text: '0.3', value: '0.3', position: 2, dataAttributes: 'data-value="0.3"' },
+      { text: '0.5', value: '0.5', position: 3, active: true, dataAttributes: 'data-value="0.5"' },
+      { text: '1.0', value: '1.0', position: 4, dataAttributes: 'data-value="1.0"' }
+    ]
+  }, (selectedOption) => {
+    const v = parseFloat(selectedOption.getAttribute('data-value'));
+    WaterBackground.setMouseDeep(v);
+  });
+
+  // Viscosity slider
+  componentFactory.createSlider({
+    containerId: 'water-viscosity-slider-container',
+    sliderClass: 'water-viscosity-slider',
+    options: [
+      { text: '0.90', value: '0.90', position: 1, dataAttributes: 'data-value="0.90"' },
+      { text: '0.93', value: '0.93', position: 2, dataAttributes: 'data-value="0.93"' },
+      { text: '0.96', value: '0.96', position: 3, active: true, dataAttributes: 'data-value="0.96"' }
+    ]
+  }, (selectedOption) => {
+    const v = parseFloat(selectedOption.getAttribute('data-value'));
+    WaterBackground.setViscosity(v);
+  });
+
+  // Speed slider
+  componentFactory.createSlider({
+    containerId: 'water-speed-slider-container',
+    sliderClass: 'water-speed-slider',
+    options: [
+      { text: '1', value: '1', position: 1, dataAttributes: 'data-value="1"' },
+      { text: '3', value: '3', position: 2, dataAttributes: 'data-value="3"' },
+      { text: '5', value: '5', position: 3, active: true, dataAttributes: 'data-value="5"' },
+      { text: '6', value: '6', position: 4, dataAttributes: 'data-value="6"' }
+    ]
+  }, (selectedOption) => {
+    const v = parseInt(selectedOption.getAttribute('data-value'));
+    WaterBackground.setSpeed(v);
+  });
+
+  // Ducks toggle
+  componentFactory.createSlider({
+    containerId: 'water-ducks-slider-container',
+    sliderClass: 'water-ducks-slider',
+    options: [
+      { text: 'On', value: 'on', position: 1, active: true, dataAttributes: 'data-value="true"' },
+      { text: 'Off', value: 'off', position: 2, dataAttributes: 'data-value="false"' }
+    ]
+  }, (selectedOption) => {
+    const v = selectedOption.getAttribute('data-value') === 'true';
+    WaterBackground.setDucksEnabled(v);
+  });
+
+  // Wireframe toggle
+  componentFactory.createSlider({
+    containerId: 'water-wireframe-slider-container',
+    sliderClass: 'water-wireframe-slider',
+    options: [
+      { text: 'Off', value: 'off', position: 1, active: true, dataAttributes: 'data-value="false"' },
+      { text: 'On', value: 'on', position: 2, dataAttributes: 'data-value="true"' }
+    ]
+  }, (selectedOption) => {
+    const v = selectedOption.getAttribute('data-value') === 'true';
+    WaterBackground.setWireframe(v);
+  });
+
+  console.log('[Backgrounds] Controls initialized');
+}
+
 // Component initialization function for router
 window.initializePageComponents = function(pageName) {
   console.log(`[main.js] Initializing components for page: ${pageName}`);
@@ -731,12 +849,12 @@ window.initializePageComponents = function(pageName) {
   if (pageName === 'home') {
     // Initialize home page with build timestamp
     console.log('[main.js] Initializing home page');
-    
+
     // Add build timestamp above H1 Font
     const h1Element = document.querySelector('.content-flex-container h1');
     console.log('[main.js] Found h1 element:', h1Element);
     console.log('[main.js] h1 text content:', h1Element ? h1Element.textContent : 'null');
-    
+
     if (h1Element) {
       const timestampElement = document.createElement('h1');
       timestampElement.textContent = DEPLOYMENT_TIMESTAMP;
@@ -746,7 +864,15 @@ window.initializePageComponents = function(pageName) {
     } else {
       console.error('[main.js] No h1 element found on home page');
     }
-  } else if (pageName === 'settings') {
+
+    // Activate water background if selected
+    BackgroundManager.onEnterHome();
+  } else {
+    // Leaving home — hide water, restore gradient
+    BackgroundManager.onLeaveHome();
+  }
+
+  if (pageName === 'settings') {
     // Call the settings initialization directly
     console.log('[main.js] Initializing settings components');
     initializeSettingsComponents();
@@ -1085,6 +1211,9 @@ document.addEventListener('subpageLoaded', (e) => {
       } else if (subpage === 'table') {
         console.log('[main.js] Initializing Table page (development/table)');
         initializeTablePage();
+      } else if (subpage === 'backgrounds') {
+        console.log('[main.js] Initializing Backgrounds page (development/backgrounds)');
+        initializeBackgroundsPage();
       } else if (subpage === 'deployment-index') {
         console.log('[main.js] Initializing Deployment Index page (development/deployment-index)');
         initializeDeploymentIndexPage(e.detail.subsubpage);
@@ -1322,6 +1451,9 @@ function initializeApp() {
     updateDividers();
   });
   
+  // Initialize background system
+  BackgroundManager.initBackgroundSystem();
+
   // Router will handle page loading and component initialization
   console.log('[main.js] Application initialized');
   
