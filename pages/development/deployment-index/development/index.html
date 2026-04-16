@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T03:00:44Z"><div class="cell-fit"><p>2026-04-15 20:00 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>e898eee</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>fix: raise water container z-index so pointer events reach canvas</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>The water container was at z-index:-1 behind the page content layer, so pointer events (trackpad drag to create ripples) never reached it even though pointer-events:auto was set on show(). Raised to z-index:1 which sits above the body gradient but below the nav (z-index:999+). Home page has no interactive content that would be blocked.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 03:00 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-16T02:51:18Z"><div class="cell-fit"><p>2026-04-15 19:51 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>e4494f5</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-16 02:51 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-16T02:51:05Z"><div class="cell-fit"><p>2026-04-15 19:51 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>2decd0b</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>feat: add WebGPU water simulation as Home page background</p></div></td>
