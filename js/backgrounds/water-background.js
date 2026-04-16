@@ -106,7 +106,7 @@ export async function init() {
   // Container — fixed full-screen behind everything
   container = document.createElement( 'div' );
   container.id = 'water-background-container';
-  container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;';
+  container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;pointer-events:none;';
   document.body.appendChild( container );
 
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
