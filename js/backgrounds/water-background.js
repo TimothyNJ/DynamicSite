@@ -494,15 +494,17 @@ export async function init() {
   duckMesh = new THREE.InstancedMesh( duckModel.geometry, duckModel.material, NUM_DUCKS );
   scene.add( duckMesh );
 
-  // ── Sailboat — DIAGNOSTIC: plain Mesh at fixed position, no GPU pipeline ──
+  // ── Sailboat — DIAGNOSTIC: InstancedMesh + positionNode with hardcoded pos ──
   const boatModel = sailboatGLTF.scene.children[ 0 ];
   boatModel.geometry.scale( 0.02, 0.02, 0.02 );
   boatModel.geometry.computeVertexNormals();
-  boatModel.position.set( 0, 0.3, 0 );
-  boatModel.frustumCulled = false;
-  scene.add( boatModel );
-  sailboatMesh = boatModel;  // so toggle still works
-  console.log( '[WaterBackground] DIAGNOSTIC: boat added as plain Mesh at (0, 0.3, 0)' );
+  boatModel.material.positionNode = Fn( () => {
+    return positionLocal.add( vec3( 0, 0.3, 0 ) );
+  } )();
+  sailboatMesh = new THREE.InstancedMesh( boatModel.geometry, boatModel.material, 1 );
+  sailboatMesh.frustumCulled = false;
+  scene.add( sailboatMesh );
+  console.log( '[WaterBackground] DIAGNOSTIC: boat as InstancedMesh with hardcoded positionNode' );
 
   // ── Renderer ─────────────────────────────────────────────────────────
   renderer = new THREE.WebGPURenderer( { antialias: true, requiredLimits: { maxStorageBuffersInVertexStage: 2 } } );
