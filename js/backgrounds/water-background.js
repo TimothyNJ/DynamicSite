@@ -132,7 +132,7 @@ function updateSailboat() {
   }
 
   // ── Water push force (like ducks) ──────────────────────────────────
-  const waterPushFactor = 0.012;
+  const waterPushFactor = 0.06;
   const linearDamping = 0.94;
   const bounceDamping = -0.5;
 
@@ -152,7 +152,7 @@ function updateSailboat() {
   st.z += st.vz;
 
   // Bounce off pool edges — check bow tip, not center
-  const hl = st.halfLength || 0.15;
+  const hl = ( st.halfLength || 0.15 ) * 0.7;  // pull buffer in a bit
   const bowX = st.x + Math.sin( st.heading ) * hl;
   const bowZ = st.z + Math.cos( st.heading ) * hl;
 
