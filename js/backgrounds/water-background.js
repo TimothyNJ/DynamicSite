@@ -154,7 +154,7 @@ export async function init() {
   document.body.appendChild( container );
 
   camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 1, 3000 );
-  camera.position.set( 0, 5.5, 3.5 );
+  camera.position.set( 0, 2.5, 8 );
   camera.lookAt( 0, 0, 0 );
 
   scene = new THREE.Scene();
