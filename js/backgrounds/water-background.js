@@ -141,9 +141,11 @@ function updateSailboat() {
   st.vx += normalX * waterPushFactor;
   st.vz += normalZ * waterPushFactor;
 
-  // ── Forward thrust along current heading (no self-steering) ────────
-  st.vx += Math.sin( st.heading ) * st.thrust;
-  st.vz += Math.cos( st.heading ) * st.thrust;
+  // ── Forward thrust — scaled down when waves are strong ─────────────
+  const waveStrength = Math.sqrt( normalX * normalX + normalZ * normalZ );
+  const thrustScale = 1.0 / ( 1.0 + waveStrength * 8.0 );
+  st.vx += Math.sin( st.heading ) * st.thrust * thrustScale;
+  st.vz += Math.cos( st.heading ) * st.thrust * thrustScale;
 
   // ── Apply velocity ─────────────────────────────────────────────────
   const prevX = st.x;
