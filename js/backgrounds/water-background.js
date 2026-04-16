@@ -496,6 +496,12 @@ export async function init() {
 
   // ── Sailboat — same pattern as ducks ─────────────────────────────────
   const boatModel = sailboatGLTF.scene.children[ 0 ];
+  console.log( '[WaterBackground] boatModel:', boatModel );
+  console.log( '[WaterBackground] boatModel.isMesh:', boatModel?.isMesh );
+  console.log( '[WaterBackground] boatModel.geometry:', boatModel?.geometry );
+  console.log( '[WaterBackground] boatModel.geometry.attributes:', boatModel?.geometry?.attributes );
+  console.log( '[WaterBackground] boatModel.material:', boatModel?.material );
+  console.log( '[WaterBackground] boatDataStorage:', boatDataStorage );
   boatModel.material.positionNode = Fn( () => {
     const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' );
     const newPosition = positionLocal.add( instancePosition );
@@ -503,6 +509,8 @@ export async function init() {
   } )();
 
   sailboatMesh = new THREE.InstancedMesh( boatModel.geometry, boatModel.material, 1 );
+  console.log( '[WaterBackground] sailboatMesh (InstancedMesh):', sailboatMesh );
+  console.log( '[WaterBackground] sailboatMesh.count:', sailboatMesh.count );
   scene.add( sailboatMesh );
 
   // ── Renderer ─────────────────────────────────────────────────────────
