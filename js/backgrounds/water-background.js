@@ -494,19 +494,19 @@ export async function init() {
   duckMesh = new THREE.InstancedMesh( duckModel.geometry, duckModel.material, NUM_DUCKS );
   scene.add( duckMesh );
 
-  // ── Sailboat — DIAGNOSTIC: storage read with hardcoded index 0 (no instanceIndex) ──
+  // ── Sailboat — DIAGNOSTIC: read from DUCK storage instead of boat storage ──
   const boatModel = sailboatGLTF.scene.children[ 0 ];
   boatModel.geometry.scale( 0.02, 0.02, 0.02 );
   boatModel.geometry.computeVertexNormals();
   boatModel.material.positionNode = Fn( () => {
-    const instancePosition = boatDataStorage.element( uint( 0 ) ).get( 'position' );
+    const instancePosition = duckInstanceDataStorage.element( uint( 0 ) ).get( 'position' );
     const newPosition = positionLocal.add( instancePosition );
     return newPosition;
   } )();
   sailboatMesh = new THREE.InstancedMesh( boatModel.geometry, boatModel.material, 1 );
   sailboatMesh.frustumCulled = false;
   scene.add( sailboatMesh );
-  console.log( '[WaterBackground] DIAGNOSTIC: boat storage read with hardcoded index 0' );
+  console.log( '[WaterBackground] DIAGNOSTIC: boat reading from DUCK storage element 0' );
 
   // ── Renderer ─────────────────────────────────────────────────────────
   renderer = new THREE.WebGPURenderer( { antialias: true, requiredLimits: { maxStorageBuffersInVertexStage: 2 } } );
