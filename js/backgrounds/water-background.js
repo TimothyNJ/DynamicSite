@@ -151,11 +151,15 @@ function updateSailboat() {
   st.x += st.vx;
   st.z += st.vz;
 
-  // Bounce off pool edges — reflect heading on impact (like ducks)
-  if ( st.x < -limit ) { st.x = -limit; st.vx *= bounceDamping; st.heading = -st.heading; }
-  if ( st.x >  limit ) { st.x =  limit; st.vx *= bounceDamping; st.heading = -st.heading; }
-  if ( st.z < -limit ) { st.z = -limit; st.vz *= bounceDamping; st.heading = Math.PI - st.heading; }
-  if ( st.z >  limit ) { st.z =  limit; st.vz *= bounceDamping; st.heading = Math.PI - st.heading; }
+  // Bounce off pool edges — check bow tip, not center
+  const hl = st.halfLength || 0.15;
+  const bowX = st.x + Math.sin( st.heading ) * hl;
+  const bowZ = st.z + Math.cos( st.heading ) * hl;
+
+  if ( bowX < -limit ) { st.x += ( -limit - bowX ); st.vx *= bounceDamping; st.heading = -st.heading; }
+  if ( bowX >  limit ) { st.x -= ( bowX - limit );  st.vx *= bounceDamping; st.heading = -st.heading; }
+  if ( bowZ < -limit ) { st.z += ( -limit - bowZ ); st.vz *= bounceDamping; st.heading = Math.PI - st.heading; }
+  if ( bowZ >  limit ) { st.z -= ( bowZ - limit );  st.vz *= bounceDamping; st.heading = Math.PI - st.heading; }
 
   // ── Feed boat position + velocity into displacement uniforms ───────
   effectController.boatPos.value.set( st.x, st.z );
@@ -532,6 +536,12 @@ export async function init() {
       child.castShadow = true;
     }
   } );
+  // Measure the boat so we can keep its bow inside the pool
+  const boatBox = new THREE.Box3().setFromObject( sailboatMesh );
+  const boatSize = new THREE.Vector3();
+  boatBox.getSize( boatSize );
+  // halfLength = the longer horizontal extent (x or z) at current scale
+  sailboatState.halfLength = Math.max( boatSize.x, boatSize.z ) * 0.5;
   // Start at a random position and heading within the pool
   sailboatState.x = ( Math.random() - 0.5 ) * BOUNDS * 0.5;
   sailboatState.z = ( Math.random() - 0.5 ) * BOUNDS * 0.5;
