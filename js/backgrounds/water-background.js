@@ -496,7 +496,6 @@ export async function init() {
 
   // ── Sailboat — same pattern as ducks ─────────────────────────────────
   const boatModel = sailboatGLTF.scene.children[ 0 ];
-  boatModel.geometry.scale( 0.02, 0.02, 0.02 );
   boatModel.material.positionNode = Fn( () => {
     const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' );
     const newPosition = positionLocal.add( instancePosition );
