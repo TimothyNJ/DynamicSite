@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-17T05:29:10Z"><div class="cell-fit"><p>2026-04-16 22:29 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>bfd5ba6</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>feat: live deployment notification — polls version.json, shows &quot;Site Update Available&quot; modal</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>- New update-notifier.js: polls /version.json every 30s, compares against BUILD_TIMESTAMP baked into bundle. Shows overlay modal when mismatch detected. - Modal: H1 &quot;Site Update Available.&quot;, H2 warning about unsaved data, &quot;Refresh Now.&quot; and &quot;Refresh in 30 Seconds.&quot; buttons. - &quot;Refresh in 30 Seconds.&quot; dismisses modal, re-shows after 30s (repeats). - Styled via _update_notifier.scss, mirrors session-timeout overlay pattern. - All three GitHub Actions workflows (dev/sandbox/production) now generate version.json after webpack build and deploy it to S3 with no-cache headers.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-17 05:29 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-17T04:37:50Z"><div class="cell-fit"><p>2026-04-16 21:37 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>c9219f1</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-17 04:37 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-17T04:37:38Z"><div class="cell-fit"><p>2026-04-16 21:37 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>37501bb</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>perf: stop animation loop when leaving home page, guard GPU readbacks against pileup</p></div></td>
