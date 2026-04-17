@@ -793,7 +793,7 @@ function initializeBackgroundsPage() {
     sliderClass: 'water-viscosity-slider',
     options: [
       { text: 'Calm', value: '0.96', position: 1, active: curViscosity <= 0.96, dataAttributes: 'data-value="0.96"' },
-      { text: 'Choppy', value: '0.999', position: 2, active: curViscosity > 0.96, dataAttributes: 'data-value="0.999"' }
+      { text: 'Choppy', value: '0.98', position: 2, active: curViscosity > 0.96, dataAttributes: 'data-value="0.98"' }
     ]
   }, (selectedOption) => {
     const v = parseFloat(selectedOption.getAttribute('data-value'));
