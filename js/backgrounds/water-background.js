@@ -76,6 +76,8 @@ const NUM_DUCKS = 100;
 const simplex = new SimplexNoise();
 let tiltedDuckCount = 0;
 let tiltReadbackFrame = 0;
+let tiltReadbackInFlight = false;
+let dcReadbackInFlight = false;
 const duckRadiusUniform = uniform( 0.1 ).setName( 'duckRadius' );
 const boatRadiusUniform = uniform( 0.3 ).setName( 'boatRadius' );
 
@@ -819,8 +821,9 @@ export function hide() {
   if ( ! container ) return;
   container.style.display = 'none';
   container.style.pointerEvents = 'none';
-  // Keep animation loop running so water state persists,
-  // but we could pause to save GPU if desired.
+  // Stop the animation loop to free GPU resources
+  if ( renderer ) renderer.setAnimationLoop( null );
+  animationRunning = false;
 }
 
 export function dispose() {
@@ -1019,8 +1022,9 @@ function render() {
 
   // Periodic tilt readback for debug counter (every ~30 frames, only when visible)
   tiltReadbackFrame ++;
-  if ( tiltIndicatorMesh && tiltIndicatorMesh.visible && duckInstanceDataStorage && tiltReadbackFrame >= 30 ) {
+  if ( tiltIndicatorMesh && tiltIndicatorMesh.visible && duckInstanceDataStorage && tiltReadbackFrame >= 30 && ! tiltReadbackInFlight ) {
     tiltReadbackFrame = 0;
+    tiltReadbackInFlight = true;
     const duckStride = 8;
     renderer.getArrayBufferAsync( duckInstanceDataStorage.value ).then( ( buffer ) => {
       const data = new Float32Array( buffer );
@@ -1032,13 +1036,15 @@ function render() {
         if ( tiltDeg >= 0.5 ) count ++;
       }
       tiltedDuckCount = count;
-    } ).catch( ( e ) => { console.warn( 'tilt readback failed:', e ); } );
+      tiltReadbackInFlight = false;
+    } ).catch( ( e ) => { console.warn( 'tilt readback failed:', e ); tiltReadbackInFlight = false; } );
   }
 
   // DC offset correction — readback active height buffer, compute mean, subtract from all cells
   dcCorrectionFrame ++;
-  if ( computeDCCorrection && dcCorrectionFrame >= 60 ) {
+  if ( computeDCCorrection && dcCorrectionFrame >= 60 && ! dcReadbackInFlight ) {
     dcCorrectionFrame = 0;
+    dcReadbackInFlight = true;
     const activeStorage = readFromA.value === 1 ? heightStorageARef : heightStorageBRef;
     renderer.getArrayBufferAsync( activeStorage.value ).then( ( buffer ) => {
       const data = new Float32Array( buffer );
@@ -1051,7 +1057,8 @@ function render() {
         renderer.compute( computeDCCorrection.b );
         renderer.compute( computeDCCorrection.prev );
       }
-    } ).catch( ( e ) => { console.warn( 'DC readback failed:', e ); } );
+      dcReadbackInFlight = false;
+    } ).catch( ( e ) => { console.warn( 'DC readback failed:', e ); dcReadbackInFlight = false; } );
   }
 
   updateSailboat();
