@@ -1,9 +1,17 @@
 const path = require('path');
+const fs = require('fs');
 const webpack = require('webpack');
 const moment = require('moment-timezone');
 
 // Generate timestamp in YYYYMMDDHHMM format using Pacific time
 const buildTimestamp = moment().tz('America/Los_Angeles').format('YYYYMMDDHHmm');
+
+// Write version.json so the update notifier has the exact same timestamp
+fs.writeFileSync(
+  path.resolve(__dirname, 'version.json'),
+  JSON.stringify({ timestamp: buildTimestamp }) + '\n'
+);
+console.log(`[webpack] Wrote version.json with timestamp: ${buildTimestamp}`);
 
 module.exports = {
   entry: './js/main.js',

@@ -51,13 +51,6 @@ jobs:
       - name: Build webpack bundle
         run: npm run build
 
-      - name: Generate version.json for update notifier
-        run: |
-          HASH=$(git rev-parse --short HEAD)
-          TS=$(TZ=America/Los_Angeles date +%Y%m%d%H%M)
-          echo "{\"hash\":\"${HASH}\",\"timestamp\":\"${TS}\"}" > version.json
-          echo "Generated version.json: hash=${HASH} timestamp=${TS}"
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
