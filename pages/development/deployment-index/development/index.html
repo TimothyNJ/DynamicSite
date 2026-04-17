@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-17T05:41:45Z"><div class="cell-fit"><p>2026-04-16 22:41 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>30d2845</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>feat: background page prefetch system — all pages cached during idle time</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>- New page-prefetch.js: enumerates all page/subpage/sub-subpage URLs from router config, fetches them in batches of 4 during requestIdleCallback, stores HTML in an in-memory Map. - Router checks prefetch cache before every fetch (navigateToPage, loadSubpage, loadSubSubpage). Cache hit = instant render, miss = normal network fetch as fallback. - Prefetch starts after initializeApp completes, using idle time so it never interferes with the current page&#x27;s rendering or interactions.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-17 05:41 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-17T05:29:21Z"><div class="cell-fit"><p>2026-04-16 22:29 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>f35d30b</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-17 05:29 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-17T05:29:10Z"><div class="cell-fit"><p>2026-04-16 22:29 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>bfd5ba6</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>feat: live deployment notification — polls version.json, shows &quot;Site Update Available&quot; modal</p></div></td>
