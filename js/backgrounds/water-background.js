@@ -985,6 +985,7 @@ function updateDebugHUD() {
   const sc = document.querySelector( '.site-container' );
   const bordersHidden = sc && sc.classList.contains( 'borders-hidden' );
   debugHUD.style.display = bordersHidden ? 'none' : '';
+  if ( tiltIndicatorMesh ) tiltIndicatorMesh.visible = ! bordersHidden;
   const p = camera.position;
   const r = camera.rotation;
   const toDeg = ( rad ) => ( rad * 180 / Math.PI ).toFixed( 1 );
