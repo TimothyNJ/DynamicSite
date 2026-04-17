@@ -397,8 +397,8 @@ export async function init() {
     } );
 
     // Store smoothed surface tilt for the positionNode to use
-    const tiltSmooth = float( 0.3 );  // blend toward current surface slope
-    const tiltScale = float( 0.05 );  // scale gradient to reasonable lean angle
+    const tiltSmooth = float( 0.7 );  // blend toward current surface slope
+    const tiltScale = float( 0.5 );   // scale gradient to visible lean angle
     const oldTiltX = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltX' ).toVar();
     const oldTiltZ = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltZ' ).toVar();
     const targetTiltX = normalX.mul( tiltScale );
@@ -480,8 +480,8 @@ export async function init() {
     } );
 
     // Store smoothed surface tilt
-    const tiltSmooth = float( 0.3 );
-    const tiltScale = float( 0.05 );
+    const tiltSmooth = float( 0.7 );
+    const tiltScale = float( 0.5 );
     const oldTiltX = boatDataStorage.element( instanceIndex ).get( 'tiltX' ).toVar();
     const oldTiltZ = boatDataStorage.element( instanceIndex ).get( 'tiltZ' ).toVar();
     const targetTiltX = normalX.mul( tiltScale );
@@ -859,7 +859,7 @@ function render() {
         if ( tiltDeg >= 0.5 ) count ++;
       }
       tiltedDuckCount = count;
-    } ).catch( () => {} );
+    } ).catch( ( e ) => { console.warn( 'tilt readback failed:', e ); } );
   }
 
   updateSailboat();
