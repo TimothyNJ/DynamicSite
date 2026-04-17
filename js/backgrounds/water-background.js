@@ -445,6 +445,12 @@ export async function init() {
       const minDist = duckRadiusUniform.add( boatRadiusUniform );
       If( dist.lessThan( minDist ), () => {
         const overlap = minDist.sub( dist );
+        // Hard position correction — push duck out of overlap immediately
+        const corrX = dx.div( dist ).mul( overlap );
+        const corrZ = dz.div( dist ).mul( overlap );
+        instancePosition.x.addAssign( corrX );
+        instancePosition.z.addAssign( corrZ );
+        // Soft velocity nudge on top
         const pushForce = overlap.mul( repulsionStrength ).div( dist );
         velocity.x.addAssign( dx.mul( pushForce ) );
         velocity.y.addAssign( dz.mul( pushForce ) );
@@ -466,6 +472,12 @@ export async function init() {
           const dist = sqrt( dx.mul( dx ).add( dz.mul( dz ) ) ).max( 0.001 );
           If( dist.lessThan( minDist ), () => {
             const overlap = minDist.sub( dist );
+            // Hard position correction — each duck gets half the separation
+            const corrX = dx.div( dist ).mul( overlap.mul( 0.5 ) );
+            const corrZ = dz.div( dist ).mul( overlap.mul( 0.5 ) );
+            instancePosition.x.addAssign( corrX );
+            instancePosition.z.addAssign( corrZ );
+            // Soft velocity nudge on top
             const pushForce = overlap.mul( repulsionStrength ).div( dist );
             repelX.addAssign( dx.mul( pushForce ) );
             repelZ.addAssign( dz.mul( pushForce ) );
@@ -602,6 +614,12 @@ export async function init() {
         const dist = sqrt( dx.mul( dx ).add( dz.mul( dz ) ) ).max( 0.001 );
         If( dist.lessThan( minDist ), () => {
           const overlap = minDist.sub( dist );
+          // Hard position correction — boat gets 20% of push (heavier)
+          const corrX = dx.div( dist ).mul( overlap.mul( 0.2 ) );
+          const corrZ = dz.div( dist ).mul( overlap.mul( 0.2 ) );
+          instancePosition.x.addAssign( corrX );
+          instancePosition.z.addAssign( corrZ );
+          // Soft velocity nudge on top
           const pushForce = overlap.mul( repulsionStrength ).div( dist );
           repelX.addAssign( dx.mul( pushForce ) );
           repelZ.addAssign( dz.mul( pushForce ) );
