@@ -365,7 +365,7 @@ export async function init() {
   duckInstanceDataStorage = instancedArray( duckInstanceDataArray, DuckStruct ).setName( 'DuckInstanceData' );
 
   computeDucks = Fn( () => {
-    const yOffset = float( - 0.04 );
+    const yOffset = float( - 0.013 );
     const waterPushFactor = float( 0.015 );
     const linearDamping = float( 0.92 );
     const bounceDamping = float( - 0.4 );
@@ -519,7 +519,7 @@ export async function init() {
   boatDataStorage = instancedArray( boatDataArray, BoatStruct ).setName( 'BoatInstanceData' );
 
   computeBoat = Fn( () => {
-    const yOffset = float( - 0.15 );  // waterline at Y≈7.5 in native model × 0.02 scale
+    const yOffset = float( - 0.123 );  // waterline adjusted for gravity/buoyancy equilibrium
     const waterPushFactor = float( 0.015 );
     const linearDamping = float( 0.92 );
     const bounceDamping = float( - 0.4 );
