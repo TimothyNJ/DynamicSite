@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-17T03:55:56Z"><div class="cell-fit"><p>2026-04-16 20:55 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>4ec92ec</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>fix: sync tilt indicator sticks visibility with borders toggle via per-frame updateDebugHUD</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>Instead of bridging script.js → bundle.js via window global (which had deployment timing issues), manage tiltIndicatorMesh.visible directly in updateDebugHUD() which already runs every frame and checks borders-hidden. Eliminates race condition where init timing determined initial visibility.</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-17 03:55 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-17T03:34:15Z"><div class="cell-fit"><p>2026-04-16 20:34 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>3547b18</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-17 03:34 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-17T03:34:06Z"><div class="cell-fit"><p>2026-04-16 20:34 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>b9a8c2a</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Revert &quot;fix: wire up tilt indicator visibility to borders toggle via window.toggleWaterDebug&quot;</p></div></td>
