@@ -14,8 +14,8 @@
 
 import * as THREE from 'three/webgpu';
 import {
-  instanceIndex, struct, If, uint, int, floor, float, length, clamp,
-  vec2, cos, sin, vec3, vertexIndex, Fn, uniform, instancedArray, min, max,
+  instanceIndex, struct, If, uint, int, floor, float, length, clamp, sqrt, abs,
+  vec2, cos, sin, vec3, vec4, vertexIndex, Fn, uniform, instancedArray, min, max,
   positionLocal, transformNormalToView, select, globalId
 } from 'three/tsl';
 
@@ -62,6 +62,7 @@ let duckMesh = null;
 
 let sailboatMesh = null;
 let sailboatEnabled = true;
+let tiltIndicatorMesh = null;
 const sailboatState = {
   bobPhase: 0,            // for gentle rocking
 };
@@ -537,6 +538,44 @@ export async function init() {
   duckMesh = new THREE.InstancedMesh( duckModel.geometry, duckModel.material, NUM_DUCKS );
   scene.add( duckMesh );
 
+  // ── Tilt indicator sticks — one per duck ─────────────────────────────
+  {
+    const stickGeo = new THREE.BoxGeometry( 0.01, 0.15, 0.01 ); // thin vertical stick
+    stickGeo.translate( 0, 0.12, 0 ); // raise so base sits at duck position
+
+    const stickMat = new THREE.MeshBasicNodeMaterial( { transparent: true, opacity: 0.9 } );
+
+    // Position: read duck position, offset upward
+    stickMat.positionNode = Fn( () => {
+      const ip = duckInstanceDataStorage.element( instanceIndex ).get( 'position' );
+      return vec3(
+        positionLocal.x.add( ip.x ),
+        positionLocal.y.add( ip.y ).add( float( 0.06 ) ),
+        positionLocal.z.add( ip.z )
+      );
+    } )();
+
+    // Color: based on tilt magnitude in degrees
+    stickMat.colorNode = Fn( () => {
+      const tx = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltX' );
+      const tz = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltZ' );
+      const tiltRad = sqrt( tx.mul( tx ).add( tz.mul( tz ) ) );
+      const tiltDeg = tiltRad.mul( 180.0 / Math.PI );
+
+      // green(0,0.8,0) → orange(1,0.6,0) → dark orange(0.9,0.3,0) → red(1,0,0)
+      const r = clamp( tiltDeg.mul( 0.1 ), 0.0, 1.0 );
+      const g = clamp( float( 0.8 ).sub( tiltDeg.mul( 0.07 ) ), 0.0, 0.8 );
+      return vec4( r, g, float( 0.0 ), float( 0.9 ) );
+    } )();
+
+    tiltIndicatorMesh = new THREE.InstancedMesh( stickGeo, stickMat, NUM_DUCKS );
+    tiltIndicatorMesh.frustumCulled = false;
+    // Start hidden — shown when borders are toggled on
+    const sc = document.querySelector( '.site-container' );
+    tiltIndicatorMesh.visible = ! ( sc && sc.classList.contains( 'borders-hidden' ) );
+    scene.add( tiltIndicatorMesh );
+  }
+
   // ── Sailboat — same pattern as ducks ─────────────────────────────────
   const boatModel = sailboatGLTF.scene.children[ 0 ];
   boatModel.geometry.scale( 0.02, 0.02, 0.02 );
@@ -760,6 +799,7 @@ function createDebugHUD() {
 // Called by the global toggleBorders function in script.js
 export function toggleDebugHUD( show ) {
   if ( debugHUD ) debugHUD.style.display = show ? '' : 'none';
+  if ( tiltIndicatorMesh ) tiltIndicatorMesh.visible = show;
 }
 
 function updateDebugHUD() {
