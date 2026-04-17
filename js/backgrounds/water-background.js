@@ -15,7 +15,7 @@
 import * as THREE from 'three/webgpu';
 import {
   instanceIndex, struct, If, uint, int, floor, float, length, clamp,
-  vec2, cos, sin, vec3, vertexIndex, Fn, uniform, instancedArray, min, max,
+  vec2, cos, vec3, vertexIndex, Fn, uniform, instancedArray, min, max,
   positionLocal, transformNormalToView, select, globalId
 } from 'three/tsl';
 
@@ -330,15 +330,11 @@ export async function init() {
     duckInstanceDataArray[ i * duckStride + 0 ] = ( Math.random() - 0.5 ) * BOUNDS * 0.7;
     duckInstanceDataArray[ i * duckStride + 1 ] = 0;
     duckInstanceDataArray[ i * duckStride + 2 ] = ( Math.random() - 0.5 ) * BOUNDS * 0.7;
-    duckInstanceDataArray[ i * duckStride + 6 ] = Math.random() * Math.PI * 2; // rotation (yaw)
-    // [7] = angularVelocity, starts at 0
   }
 
   const DuckStruct = struct( {
     position: 'vec3',
-    velocity: 'vec2',
-    rotation: 'float',
-    angularVelocity: 'float'
+    velocity: 'vec2'
   } );
 
   const duckInstanceDataStorage = instancedArray( duckInstanceDataArray, DuckStruct ).setName( 'DuckInstanceData' );
@@ -350,13 +346,8 @@ export async function init() {
     const linearDamping = float( 0.92 );
     const bounceDamping = float( - 0.4 );
 
-    const duckTorqueStrength = float( 0.06 );  // moderate — ducks turn somewhat freely
-    const duckAngularDamping = float( 0.90 );  // friction slowing spin
-
     const instancePosition = duckInstanceDataStorage.element( instanceIndex ).get( 'position' ).toVar();
     const velocity = duckInstanceDataStorage.element( instanceIndex ).get( 'velocity' ).toVar();
-    const rotation = duckInstanceDataStorage.element( instanceIndex ).get( 'rotation' ).toVar();
-    const angularVelocity = duckInstanceDataStorage.element( instanceIndex ).get( 'angularVelocity' ).toVar();
 
     const gridCoordX = instancePosition.x.div( BOUNDS ).add( 0.5 ).mul( WIDTH );
     const gridCoordZ = instancePosition.z.div( BOUNDS ).add( 0.5 ).mul( WIDTH );
@@ -374,16 +365,6 @@ export async function init() {
 
     const pushX = normalX.mul( waterPushFactor );
     const pushZ = normalY.mul( waterPushFactor );
-
-    // ── Yaw torque: cross product of facing direction and push direction ──
-    // facing = ( cos(rotation), sin(rotation) ), push = ( pushX, pushZ )
-    // cross = facing.x * push.z - facing.z * push.x = sin(angle_diff) → signed torque
-    const facingX = cos( rotation );
-    const facingZ = sin( rotation );
-    const torque = facingX.mul( pushZ ).sub( facingZ.mul( pushX ) );
-    angularVelocity.addAssign( torque.mul( duckTorqueStrength ) );
-    angularVelocity.mulAssign( duckAngularDamping );
-    rotation.addAssign( angularVelocity );
 
     velocity.x.mulAssign( linearDamping );
     velocity.y.mulAssign( linearDamping );
@@ -411,8 +392,6 @@ export async function init() {
 
     duckInstanceDataStorage.element( instanceIndex ).get( 'position' ).assign( instancePosition );
     duckInstanceDataStorage.element( instanceIndex ).get( 'velocity' ).assign( velocity );
-    duckInstanceDataStorage.element( instanceIndex ).get( 'rotation' ).assign( rotation );
-    duckInstanceDataStorage.element( instanceIndex ).get( 'angularVelocity' ).assign( angularVelocity );
   } )().compute( NUM_DUCKS ).setName( 'Update Ducks' );
 
   // ── Boat compute — exact same physics as ducks, 1 instance ──────────
@@ -421,13 +400,10 @@ export async function init() {
   boatDataArray = new Float32Array( boatStride * BOAT_PAD );
   boatDataArray[ 0 ] = ( Math.random() - 0.5 ) * BOUNDS * 0.5; // posX
   boatDataArray[ 2 ] = ( Math.random() - 0.5 ) * BOUNDS * 0.5; // posZ
-  boatDataArray[ 6 ] = Math.random() * Math.PI * 2;              // rotation (yaw)
 
   const BoatStruct = struct( {
     position: 'vec3',
-    velocity: 'vec2',
-    rotation: 'float',
-    angularVelocity: 'float'
+    velocity: 'vec2'
   } );
 
   boatDataStorage = instancedArray( boatDataArray, BoatStruct ).setName( 'BoatInstanceData' );
@@ -439,14 +415,8 @@ export async function init() {
     const linearDamping = float( 0.92 );
     const bounceDamping = float( - 0.4 );
 
-    const boatWaveTorque = float( 0.02 );       // weak — hull resists wave rotation
-    const boatVelAlignTorque = float( 0.04 );   // hull drag tends to align with velocity
-    const boatAngularDamping = float( 0.95 );    // high — resists spinning
-
     const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' ).toVar();
     const velocity = boatDataStorage.element( instanceIndex ).get( 'velocity' ).toVar();
-    const rotation = boatDataStorage.element( instanceIndex ).get( 'rotation' ).toVar();
-    const angularVelocity = boatDataStorage.element( instanceIndex ).get( 'angularVelocity' ).toVar();
 
     const gridCoordX = instancePosition.x.div( BOUNDS ).add( 0.5 ).mul( WIDTH );
     const gridCoordZ = instancePosition.z.div( BOUNDS ).add( 0.5 ).mul( WIDTH );
@@ -464,21 +434,6 @@ export async function init() {
 
     const pushX = normalX.mul( waterPushFactor );
     const pushZ = normalY.mul( waterPushFactor );
-
-    // ── Yaw torque from waves (weak — hull resists) ──
-    const facingX = cos( rotation );
-    const facingZ = sin( rotation );
-    const waveTorque = facingX.mul( pushZ ).sub( facingZ.mul( pushX ) );
-    angularVelocity.addAssign( waveTorque.mul( boatWaveTorque ) );
-
-    // ── Hull drag alignment: torque toward velocity direction ──
-    // Only applies when the boat has meaningful speed
-    const speed = length( velocity );
-    const velAlignCross = facingX.mul( velocity.y ).sub( facingZ.mul( velocity.x ) );
-    angularVelocity.addAssign( velAlignCross.mul( boatVelAlignTorque ).mul( min( speed.mul( 10.0 ), float( 1.0 ) ) ) );
-
-    angularVelocity.mulAssign( boatAngularDamping );
-    rotation.addAssign( angularVelocity );
 
     velocity.x.mulAssign( linearDamping );
     velocity.y.mulAssign( linearDamping );
@@ -506,8 +461,6 @@ export async function init() {
 
     boatDataStorage.element( instanceIndex ).get( 'position' ).assign( instancePosition );
     boatDataStorage.element( instanceIndex ).get( 'velocity' ).assign( velocity );
-    boatDataStorage.element( instanceIndex ).get( 'rotation' ).assign( rotation );
-    boatDataStorage.element( instanceIndex ).get( 'angularVelocity' ).assign( angularVelocity );
   } )().compute( 1 ).setName( 'Update Boat' );
 
   // ── Load assets ──────────────────────────────────────────────────────
@@ -535,13 +488,8 @@ export async function init() {
   duckModel = model.scene.children[ 0 ];
   duckModel.material.positionNode = Fn( () => {
     const instancePosition = duckInstanceDataStorage.element( instanceIndex ).get( 'position' );
-    const rot = duckInstanceDataStorage.element( instanceIndex ).get( 'rotation' );
-    const c = cos( rot );
-    const s = sin( rot );
-    // Rotate local X/Z around Y axis, keep Y unchanged
-    const rotatedX = positionLocal.x.mul( c ).sub( positionLocal.z.mul( s ) );
-    const rotatedZ = positionLocal.x.mul( s ).add( positionLocal.z.mul( c ) );
-    return vec3( rotatedX.add( instancePosition.x ), positionLocal.y.add( instancePosition.y ), rotatedZ.add( instancePosition.z ) );
+    const newPosition = positionLocal.add( instancePosition );
+    return newPosition;
   } )();
 
   duckMesh = new THREE.InstancedMesh( duckModel.geometry, duckModel.material, NUM_DUCKS );
@@ -553,12 +501,8 @@ export async function init() {
   boatModel.geometry.computeVertexNormals();
   boatModel.material.positionNode = Fn( () => {
     const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' );
-    const rot = boatDataStorage.element( instanceIndex ).get( 'rotation' );
-    const c = cos( rot );
-    const s = sin( rot );
-    const rotatedX = positionLocal.x.mul( c ).sub( positionLocal.z.mul( s ) );
-    const rotatedZ = positionLocal.x.mul( s ).add( positionLocal.z.mul( c ) );
-    return vec3( rotatedX.add( instancePosition.x ), positionLocal.y.add( instancePosition.y ), rotatedZ.add( instancePosition.z ) );
+    const newPosition = positionLocal.add( instancePosition );
+    return newPosition;
   } )();
   sailboatMesh = new THREE.InstancedMesh( boatModel.geometry, boatModel.material, 1 );
   sailboatMesh.frustumCulled = false;
