@@ -32,6 +32,7 @@ import {
 } from './auth/zitadel-auth.js';
 
 import { start as startSessionTimeout, stop as stopSessionTimeout, restart as restartSessionTimeout } from './auth/session-timeout.js';
+import { start as startUpdateNotifier, stop as stopUpdateNotifier } from './update-notifier.js';
 
 // Zitadel Management API
 import { fetchProjectRoles } from './api/zitadel-api.js';
@@ -56,6 +57,9 @@ if (isAuthenticated()) {
   startTokenRefreshTimer();
   startSessionTimeout();
 }
+
+// Start update notifier — polls version.json to detect new deployments
+startUpdateNotifier();
 
 // Import Three.js subdivision library for better cube symmetry
 import { LoopSubdivision } from 'three-subdivide';

@@ -1,0 +1,38 @@
+// _update_notifier.scss - "Site Update Available" modal
+// Mirrors _session_timeout.scss — same overlay + centered box pattern.
+// Buttons are rendered by componentFactory; we only own layout here.
+// Created: 17-Apr-2026
+
+// ─── Overlay ─────────────────────────────────────────────────────────────────
+
+.update-notifier-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: #{$z-index-modal};
+
+  body[data-theme="light"] & {
+    background: linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%);
+  }
+}
+
+// ─── Box — transparent, stacks children centered ─────────────────────────────
+
+.update-notifier-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+// ─── Buttons — side by side ──────────────────────────────────────────────────
+
+.update-notifier-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
