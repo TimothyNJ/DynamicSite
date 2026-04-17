@@ -1,5 +1,7 @@
 // js/navigation/router.js
 
+import { getCached } from './page-prefetch.js';
+
 // Track cleanup function for current page
 let currentPageCleanup = null;
 
@@ -204,10 +206,14 @@ export async function navigateToPage(pageName, pushState = true, subpage = null,
     const pagePath = pagePathMap[pageName];
     if (!pagePath) return;
 
-    const response = await fetch(pagePath);
-    if (!response.ok) throw new Error(`Failed to load page: ${response.status}`);
+    let html = getCached(pagePath);
+    if (!html) {
+      const response = await fetch(pagePath);
+      if (!response.ok) throw new Error(`Failed to load page: ${response.status}`);
+      html = await response.text();
+    }
 
-    contentContainer.innerHTML = `<div class="content-isolation-container"><div class="content-flex-container">${await response.text()}</div></div>`;
+    contentContainer.innerHTML = `<div class="content-isolation-container"><div class="content-flex-container">${html}</div></div>`;
     activePage = pageName;
     activeSubpage = null;
 
@@ -458,10 +464,15 @@ async function loadSubpage(pageName, subpage, pushState = true, subsubpage = nul
   if (!contentArea) return;
 
   try {
-    const response = await fetch(`${config.basePath}/${subpage}/index.html`);
-    if (!response.ok) throw new Error(`Failed to load subpage: ${response.status}`);
+    const subUrl = `${config.basePath}/${subpage}/index.html`;
+    let html = getCached(subUrl);
+    if (!html) {
+      const response = await fetch(subUrl);
+      if (!response.ok) throw new Error(`Failed to load subpage: ${response.status}`);
+      html = await response.text();
+    }
 
-    contentArea.innerHTML = await response.text();
+    contentArea.innerHTML = html;
     contentArea.dataset.page = pageName;
     contentArea.dataset.subpage = subpage;
     delete contentArea.dataset.subsubpage;
@@ -495,10 +506,15 @@ async function loadSubSubpage(pageName, subpage, subsubpage, pushState = true) {
   if (!contentArea) return;
 
   try {
-    const response = await fetch(`${config.basePath}/${subpage}/${subsubpage}/index.html`);
-    if (!response.ok) throw new Error(`Failed to load sub-subpage: ${response.status}`);
+    const subSubUrl = `${config.basePath}/${subpage}/${subsubpage}/index.html`;
+    let html = getCached(subSubUrl);
+    if (!html) {
+      const response = await fetch(subSubUrl);
+      if (!response.ok) throw new Error(`Failed to load sub-subpage: ${response.status}`);
+      html = await response.text();
+    }
 
-    contentArea.innerHTML = await response.text();
+    contentArea.innerHTML = html;
     contentArea.dataset.page = pageName;
     contentArea.dataset.subpage = subpage;
     contentArea.dataset.subsubpage = subsubpage;
@@ -529,3 +545,6 @@ async function loadSubSubpage(pageName, subpage, subsubpage, pushState = true) {
 export function registerPageCleanup(cleanupFn) {
   currentPageCleanup = cleanupFn;
 }
+
+// Expose route config for the prefetch system
+export { pagePathMap, sidenavConfig };

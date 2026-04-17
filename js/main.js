@@ -86,7 +86,8 @@ import { ThreeD_component_engine } from './engines/threed_component_engine.js';
 import { ComponentFactory, componentFactory } from './factory/ComponentFactory.js';
 import { initializeComponents } from './loader/component-loader.js';
 import { initializeNavbar } from './navigation/navbar.js';
-import { initRouter, registerPageCleanup } from './navigation/router.js';
+import { initRouter, registerPageCleanup, pagePathMap, sidenavConfig } from './navigation/router.js';
+import { startPrefetch } from './navigation/page-prefetch.js';
 
 // Background system
 import * as BackgroundManager from './backgrounds/background-manager.js';
@@ -1479,10 +1480,13 @@ function initializeApp() {
 
   // Router will handle page loading and component initialization
   console.log('[main.js] Application initialized');
-  
+
   // Show the body now that styles are loaded (prevent FOUC)
   document.body.style.visibility = 'visible';
   document.body.style.opacity = '1';
+
+  // Start background prefetch of all pages during idle time
+  startPrefetch( pagePathMap, sidenavConfig );
 }
 
 // Set up initialization
