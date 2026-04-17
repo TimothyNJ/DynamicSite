@@ -16,6 +16,20 @@
       </thead>
       <tbody>
         <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-17T04:37:38Z"><div class="cell-fit"><p>2026-04-16 21:37 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>37501bb</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>perf: stop animation loop when leaving home page, guard GPU readbacks against pileup</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p>- hide() now stops the render loop instead of running simulation in background - show() already restarts it when returning to home page - Added in-flight flags to tilt readback and DC correction readback to prevent async GPU→CPU transfers from queuing up when previous ones haven&#x27;t resolved</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-17 04:37 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
+          <td class="table-body-cell local-timestamp" data-utc="2026-04-17T04:07:37Z"><div class="cell-fit"><p>2026-04-16 21:07 PDT</p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>287ff5b</p></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Auto-regenerate Deployment Index (development) [skip ci]</p></div></td>
+          <td class="table-body-cell description-cell"><div class="cell-fit"><p></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p>2026-04-17 04:07 UTC</p></div></td>
+        </tr>
+        <tr class="table-body-row">
           <td class="table-body-cell local-timestamp" data-utc="2026-04-17T04:07:28Z"><div class="cell-fit"><p>2026-04-16 21:07 PDT</p></div></td>
           <td class="table-body-cell"><div class="cell-fit"><p>6b814b0</p></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>fix: raise float level — ducks yOffset to +0.015, boat yOffset to -0.095</p></div></td>
