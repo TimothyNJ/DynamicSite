@@ -3,6 +3,7 @@ name: Deploy Development to S3
 on:
   push:
     branches: [development]
+  workflow_dispatch:
 
 permissions:
   contents: write
