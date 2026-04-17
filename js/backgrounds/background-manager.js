@@ -18,6 +18,7 @@ const VALID_MODES = [ 'water', 'water-gradient', 'gradient' ];
 let currentMode = null;
 let waterInitPromise = null;
 let isOnHomePage = false;
+let isOnPoolPage = false;
 
 // ─── Public API ────────────────────────────────────────────────────────────
 
@@ -49,10 +50,32 @@ export async function onEnterHome() {
  */
 export function onLeaveHome() {
   isOnHomePage = false;
-  // Hide water canvas — keeps running in memory
-  WaterBackground.hide();
-  // Restore gradient so other pages have a background
-  showGradient();
+  // Only hide water if the pool page isn't also showing it
+  if ( ! isOnPoolPage ) {
+    WaterBackground.hide();
+    showGradient();
+  }
+}
+
+/**
+ * Called when the router navigates to the backgrounds/pool sub-subpage.
+ * Shows the water simulation so users can view the pool on its own page.
+ */
+export async function onEnterPool() {
+  isOnPoolPage = true;
+  await applyMode();
+}
+
+/**
+ * Called when the router navigates away from the backgrounds/pool sub-subpage.
+ * Hides the water canvas unless we're heading to the home page.
+ */
+export function onLeavePool() {
+  isOnPoolPage = false;
+  if ( ! isOnHomePage ) {
+    WaterBackground.hide();
+    showGradient();
+  }
 }
 
 /**
@@ -68,7 +91,7 @@ export async function initBackgroundSystem() {
 async function applyMode() {
   const mode = getMode();
 
-  if ( mode === 'water' && isOnHomePage ) {
+  if ( mode === 'water' && ( isOnHomePage || isOnPoolPage ) ) {
     // Ensure water is initialised (one-time)
     if ( WaterBackground.isAvailable() && ! WaterBackground.isReady() ) {
       if ( ! waterInitPromise ) {

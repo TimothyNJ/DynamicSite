@@ -65,6 +65,10 @@ const sidenavConfig = {
     basePath: "pages/development",
     subpages: ["site-settings", "table", "engines", "infrastructure", "backgrounds", "deployment-index"],
     subSubpages: {
+      "backgrounds": {
+        defaultSub: "pool",
+        items: ["pool", "pool-settings"]
+      },
       "deployment-index": {
         defaultSub: "development",
         items: ["development", "sandbox", "production"]

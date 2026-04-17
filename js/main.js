@@ -894,6 +894,7 @@ window.initializePageComponents = function(pageName) {
   } else {
     // Leaving home — hide water, restore gradient
     BackgroundManager.onLeaveHome();
+    BackgroundManager.onLeavePool();
   }
 
   if (pageName === 'settings') {
@@ -1225,6 +1226,10 @@ document.addEventListener('subpageLoaded', (e) => {
 
   // Development subpages
   if (page === 'development') {
+    // Clean up pool water when switching to a non-pool subpage
+    if (subpage !== 'backgrounds') {
+      BackgroundManager.onLeavePool();
+    }
     requestAnimationFrame(() => {
       if (subpage === 'engines') {
         console.log('[main.js] Initializing engines components (development/engines)');
@@ -1236,8 +1241,17 @@ document.addEventListener('subpageLoaded', (e) => {
         console.log('[main.js] Initializing Table page (development/table)');
         initializeTablePage();
       } else if (subpage === 'backgrounds') {
-        console.log('[main.js] Initializing Backgrounds page (development/backgrounds)');
-        initializeBackgroundsPage();
+        const subSub = e.detail.subsubpage;
+        if (subSub === 'pool') {
+          console.log('[main.js] Showing water background on Pool page (development/backgrounds/pool)');
+          BackgroundManager.onEnterPool();
+        } else if (subSub === 'pool-settings') {
+          console.log('[main.js] Initializing Pool Settings (development/backgrounds/pool-settings)');
+          BackgroundManager.onLeavePool();
+          initializeBackgroundsPage();
+        } else {
+          BackgroundManager.onLeavePool();
+        }
       } else if (subpage === 'deployment-index') {
         console.log('[main.js] Initializing Deployment Index page (development/deployment-index)');
         initializeDeploymentIndexPage(e.detail.subsubpage);
