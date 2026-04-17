@@ -15,7 +15,7 @@
 import * as THREE from 'three/webgpu';
 import {
   instanceIndex, struct, If, uint, int, floor, float, length, clamp,
-  vec2, cos, vec3, vertexIndex, Fn, uniform, instancedArray, min, max,
+  vec2, cos, sin, vec3, vertexIndex, Fn, uniform, instancedArray, min, max,
   positionLocal, transformNormalToView, select, globalId
 } from 'three/tsl';
 
@@ -334,7 +334,9 @@ export async function init() {
 
   const DuckStruct = struct( {
     position: 'vec3',
-    velocity: 'vec2'
+    velocity: 'vec2',
+    tiltX: 'float',
+    tiltZ: 'float'
   } );
 
   const duckInstanceDataStorage = instancedArray( duckInstanceDataArray, DuckStruct ).setName( 'DuckInstanceData' );
@@ -390,8 +392,20 @@ export async function init() {
       velocity.y.mulAssign( bounceDamping );
     } );
 
+    // Store smoothed surface tilt for the positionNode to use
+    const tiltSmooth = float( 0.3 );  // blend toward current surface slope
+    const tiltScale = float( 0.05 );  // scale gradient to reasonable lean angle
+    const oldTiltX = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltX' ).toVar();
+    const oldTiltZ = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltZ' ).toVar();
+    const targetTiltX = normalX.mul( tiltScale );
+    const targetTiltZ = normalY.mul( tiltScale );
+    oldTiltX.addAssign( targetTiltX.sub( oldTiltX ).mul( tiltSmooth ) );
+    oldTiltZ.addAssign( targetTiltZ.sub( oldTiltZ ).mul( tiltSmooth ) );
+
     duckInstanceDataStorage.element( instanceIndex ).get( 'position' ).assign( instancePosition );
     duckInstanceDataStorage.element( instanceIndex ).get( 'velocity' ).assign( velocity );
+    duckInstanceDataStorage.element( instanceIndex ).get( 'tiltX' ).assign( oldTiltX );
+    duckInstanceDataStorage.element( instanceIndex ).get( 'tiltZ' ).assign( oldTiltZ );
   } )().compute( NUM_DUCKS ).setName( 'Update Ducks' );
 
   // ── Boat compute — exact same physics as ducks, 1 instance ──────────
@@ -403,7 +417,9 @@ export async function init() {
 
   const BoatStruct = struct( {
     position: 'vec3',
-    velocity: 'vec2'
+    velocity: 'vec2',
+    tiltX: 'float',
+    tiltZ: 'float'
   } );
 
   boatDataStorage = instancedArray( boatDataArray, BoatStruct ).setName( 'BoatInstanceData' );
@@ -459,8 +475,20 @@ export async function init() {
       velocity.y.mulAssign( bounceDamping );
     } );
 
+    // Store smoothed surface tilt
+    const tiltSmooth = float( 0.3 );
+    const tiltScale = float( 0.05 );
+    const oldTiltX = boatDataStorage.element( instanceIndex ).get( 'tiltX' ).toVar();
+    const oldTiltZ = boatDataStorage.element( instanceIndex ).get( 'tiltZ' ).toVar();
+    const targetTiltX = normalX.mul( tiltScale );
+    const targetTiltZ = normalY.mul( tiltScale );
+    oldTiltX.addAssign( targetTiltX.sub( oldTiltX ).mul( tiltSmooth ) );
+    oldTiltZ.addAssign( targetTiltZ.sub( oldTiltZ ).mul( tiltSmooth ) );
+
     boatDataStorage.element( instanceIndex ).get( 'position' ).assign( instancePosition );
     boatDataStorage.element( instanceIndex ).get( 'velocity' ).assign( velocity );
+    boatDataStorage.element( instanceIndex ).get( 'tiltX' ).assign( oldTiltX );
+    boatDataStorage.element( instanceIndex ).get( 'tiltZ' ).assign( oldTiltZ );
   } )().compute( 1 ).setName( 'Update Boat' );
 
   // ── Load assets ──────────────────────────────────────────────────────
@@ -488,8 +516,22 @@ export async function init() {
   duckModel = model.scene.children[ 0 ];
   duckModel.material.positionNode = Fn( () => {
     const instancePosition = duckInstanceDataStorage.element( instanceIndex ).get( 'position' );
-    const newPosition = positionLocal.add( instancePosition );
-    return newPosition;
+    const tx = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltX' );
+    const tz = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltZ' );
+
+    // Rotate around Z axis by tiltX (lean in X direction)
+    const cz = cos( tx ), sz = sin( tx );
+    const x1 = positionLocal.x.mul( cz ).sub( positionLocal.y.mul( sz ) );
+    const y1 = positionLocal.x.mul( sz ).add( positionLocal.y.mul( cz ) );
+    const z1 = positionLocal.z;
+
+    // Rotate around X axis by tiltZ (lean in Z direction)
+    const cx = cos( tz ), sx = sin( tz );
+    const x2 = x1;
+    const y2 = y1.mul( cx ).sub( z1.mul( sx ) );
+    const z2 = y1.mul( sx ).add( z1.mul( cx ) );
+
+    return vec3( x2.add( instancePosition.x ), y2.add( instancePosition.y ), z2.add( instancePosition.z ) );
   } )();
 
   duckMesh = new THREE.InstancedMesh( duckModel.geometry, duckModel.material, NUM_DUCKS );
@@ -501,8 +543,22 @@ export async function init() {
   boatModel.geometry.computeVertexNormals();
   boatModel.material.positionNode = Fn( () => {
     const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' );
-    const newPosition = positionLocal.add( instancePosition );
-    return newPosition;
+    const tx = boatDataStorage.element( instanceIndex ).get( 'tiltX' );
+    const tz = boatDataStorage.element( instanceIndex ).get( 'tiltZ' );
+
+    // Rotate around Z axis by tiltX (lean in X direction)
+    const cz = cos( tx ), sz = sin( tx );
+    const x1 = positionLocal.x.mul( cz ).sub( positionLocal.y.mul( sz ) );
+    const y1 = positionLocal.x.mul( sz ).add( positionLocal.y.mul( cz ) );
+    const z1 = positionLocal.z;
+
+    // Rotate around X axis by tiltZ (lean in Z direction)
+    const cx = cos( tz ), sx = sin( tz );
+    const x2 = x1;
+    const y2 = y1.mul( cx ).sub( z1.mul( sx ) );
+    const z2 = y1.mul( sx ).add( z1.mul( cx ) );
+
+    return vec3( x2.add( instancePosition.x ), y2.add( instancePosition.y ), z2.add( instancePosition.z ) );
   } )();
   sailboatMesh = new THREE.InstancedMesh( boatModel.geometry, boatModel.material, 1 );
   sailboatMesh.frustumCulled = false;
