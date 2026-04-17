@@ -849,7 +849,7 @@ function render() {
   if ( tiltIndicatorMesh && tiltIndicatorMesh.visible && duckInstanceDataStorage && tiltReadbackFrame >= 30 ) {
     tiltReadbackFrame = 0;
     const duckStride = 8;
-    renderer.readStorageBufferAsync( duckInstanceDataStorage.value ).then( ( buffer ) => {
+    renderer.getArrayBufferAsync( duckInstanceDataStorage.value ).then( ( buffer ) => {
       const data = new Float32Array( buffer );
       let count = 0;
       for ( let i = 0; i < NUM_DUCKS; i ++ ) {
