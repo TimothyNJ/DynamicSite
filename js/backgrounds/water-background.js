@@ -64,6 +64,10 @@ let duckInstanceDataStorage = null;
 let sailboatMesh = null;
 let sailboatEnabled = true;
 let tiltIndicatorMesh = null;
+let computeDCCorrection = null;
+let heightStorageARef = null, heightStorageBRef = null;
+let dcCorrectionFrame = 0;
+const dcOffset = uniform( 0 ).setName( 'dcOffset' );
 const sailboatState = {
   bobPhase: 0,            // for gentle rocking
 };
@@ -205,6 +209,8 @@ export async function init() {
   const heightStorageA = instancedArray( heightArray ).setName( 'HeightA' );
   const heightStorageB = instancedArray( new Float32Array( heightArray ) ).setName( 'HeightB' );
   const prevHeightStorage = instancedArray( prevHeightArray ).setName( 'PrevHeight' );
+  heightStorageARef = heightStorageA;
+  heightStorageBRef = heightStorageB;
 
   // ── Neighbour helpers ────────────────────────────────────────────────
   const getNeighborIndicesTSL = ( index ) => {
@@ -263,6 +269,16 @@ export async function init() {
 
   computeHeightAtoB = createComputeHeight( heightStorageA, heightStorageB ).setName( 'Update Height A→B' );
   computeHeightBtoA = createComputeHeight( heightStorageB, heightStorageA ).setName( 'Update Height B→A' );
+
+  // ── DC offset correction — subtract mean height from every cell ──────
+  const createDCCorrection = ( buffer ) => Fn( () => {
+    buffer.element( instanceIndex ).subAssign( dcOffset );
+  } )().compute( WIDTH * WIDTH, [ 16, 16 ] );
+
+  const dcCorrectionA = createDCCorrection( heightStorageA ).setName( 'DC Correct A' );
+  const dcCorrectionB = createDCCorrection( heightStorageB ).setName( 'DC Correct B' );
+  const dcCorrectionPrev = createDCCorrection( prevHeightStorage ).setName( 'DC Correct Prev' );
+  computeDCCorrection = { a: dcCorrectionA, b: dcCorrectionB, prev: dcCorrectionPrev };
 
   // ── Water mesh ───────────────────────────────────────────────────────
   const waterGeometry = new THREE.PlaneGeometry( BOUNDS, BOUNDS, WIDTH - 1, WIDTH - 1 );
@@ -860,6 +876,25 @@ function render() {
       }
       tiltedDuckCount = count;
     } ).catch( ( e ) => { console.warn( 'tilt readback failed:', e ); } );
+  }
+
+  // DC offset correction — readback active height buffer, compute mean, subtract from all cells
+  dcCorrectionFrame ++;
+  if ( computeDCCorrection && dcCorrectionFrame >= 60 ) {
+    dcCorrectionFrame = 0;
+    const activeStorage = readFromA.value === 1 ? heightStorageARef : heightStorageBRef;
+    renderer.getArrayBufferAsync( activeStorage.value ).then( ( buffer ) => {
+      const data = new Float32Array( buffer );
+      let sum = 0;
+      for ( let i = 0; i < data.length; i ++ ) sum += data[ i ];
+      const mean = sum / data.length;
+      if ( Math.abs( mean ) > 0.001 ) {
+        dcOffset.value = mean;
+        renderer.compute( computeDCCorrection.a );
+        renderer.compute( computeDCCorrection.b );
+        renderer.compute( computeDCCorrection.prev );
+      }
+    } ).catch( ( e ) => { console.warn( 'DC readback failed:', e ); } );
   }
 
   updateSailboat();
