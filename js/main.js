@@ -786,15 +786,14 @@ function initializeBackgroundsPage() {
     WaterBackground.setMouseDeep(v);
   });
 
-  // Viscosity slider
+  // Waves slider (wave retention / viscosity)
   const curViscosity = WaterBackground.getViscosity();
   componentFactory.createSlider({
     containerId: 'water-viscosity-slider-container',
     sliderClass: 'water-viscosity-slider',
     options: [
-      { text: '0.90', value: '0.90', position: 1, active: curViscosity === 0.90, dataAttributes: 'data-value="0.90"' },
-      { text: '0.93', value: '0.93', position: 2, active: curViscosity === 0.93, dataAttributes: 'data-value="0.93"' },
-      { text: '0.96', value: '0.96', position: 3, active: curViscosity === 0.96, dataAttributes: 'data-value="0.96"' }
+      { text: 'Calm', value: '0.96', position: 1, active: curViscosity <= 0.96, dataAttributes: 'data-value="0.96"' },
+      { text: 'Choppy', value: '1.0', position: 2, active: curViscosity > 0.96, dataAttributes: 'data-value="1.0"' }
     ]
   }, (selectedOption) => {
     const v = parseFloat(selectedOption.getAttribute('data-value'));
