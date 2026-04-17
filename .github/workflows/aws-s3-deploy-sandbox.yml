@@ -20,25 +20,14 @@ jobs:
           persist-credentials: true
 
       # ──────────────────────────────────────────────────────────────────────
-      # Regenerate Deployment Index for THIS branch from git log, then commit
-      # back with [skip ci] so the next deploy doesn't loop. Runs before the
-      # build/deploy steps so the freshly-regenerated HTML is what gets synced
-      # to S3 on this same workflow run.
+      # Generate Deployment Index JSON from git log. Deployed to S3 only.
       # ──────────────────────────────────────────────────────────────────────
-      - name: Regenerate Deployment Index (sandbox)
+      - name: Generate Deployment Index JSON (sandbox)
         run: |
           python3 scripts/generate_deployment_index.py \
             --branch sandbox \
-            --out pages/development/deployment-index/sandbox/index.html
-          if git diff --quiet pages/development/deployment-index/sandbox/index.html; then
-            echo "No changes to Deployment Index — skipping commit."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add pages/development/deployment-index/sandbox/index.html
-            git commit -m "Auto-regenerate Deployment Index (sandbox) [skip ci]"
-            git push origin HEAD:sandbox
-          fi
+            --out pages/development/deployment-index/sandbox/index.html \
+            --json-out pages/development/deployment-index/sandbox/index.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -70,9 +59,10 @@ jobs:
         run: |
           aws s3 sync dist/ s3://tnjdynamicsite-sandbox/dist/ --cache-control="no-cache,no-store,must-revalidate" --content-type="application/javascript"
 
-      - name: Deploy version.json to S3 with no-cache
+      - name: Deploy JSON files to S3 with no-cache (version.json + deployment index)
         run: |
           aws s3 cp version.json s3://tnjdynamicsite-sandbox/version.json --cache-control="no-cache,no-store,must-revalidate" --content-type="application/json"
+          aws s3 sync pages/development/deployment-index/ s3://tnjdynamicsite-sandbox/pages/development/deployment-index/ --exclude "*" --include "*.json" --cache-control="no-cache,no-store,must-revalidate" --content-type="application/json"
 
       - name: Deploy remaining files to S3
         run: |

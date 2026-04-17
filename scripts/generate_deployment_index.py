@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -187,6 +188,26 @@ def render_page(branch: str, commits: list[dict]) -> str:
     )
 
 
+def render_json(commits: list[dict]) -> str:
+    """Render commit data as a compact JSON array for client-side rendering.
+
+    Each entry: { sha, iso, subject, body }
+    - sha: 7-char short SHA
+    - iso: UTC ISO 8601 timestamp ending in Z
+    - subject: commit subject line
+    - body: commit body collapsed to single paragraph (may be empty string)
+    """
+    records = []
+    for c in commits:
+        records.append({
+            "sha": c["short_sha"],
+            "iso": to_utc_iso_z(c["iso"]),
+            "subject": c["subject"],
+            "body": body_as_paragraph(c["body"]),
+        })
+    return json.dumps(records, separators=(",", ":"))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--branch", required=True,
@@ -194,6 +215,9 @@ def main() -> int:
     ap.add_argument("--out", default=None,
                     help="Output HTML path, relative to repo root or absolute. "
                          "Required unless --dry-run is given.")
+    ap.add_argument("--json-out", default=None,
+                    help="Output JSON path for client-side rendering. "
+                         "If omitted, derived from --out by replacing extension.")
     ap.add_argument("--repo-root", default=None,
                     help="Repo root. Defaults to git rev-parse --show-toplevel.")
     ap.add_argument("--dry-run", action="store_true",
@@ -212,6 +236,7 @@ def main() -> int:
     raw = run_git_log(args.branch, repo_root)
     commits = parse_log(raw)
     html_out = render_page(args.branch, commits)
+    json_out = render_json(commits)
 
     if args.dry_run:
         sys.stdout.write(html_out)
@@ -226,7 +251,16 @@ def main() -> int:
         out_path = (repo_root / out_path).resolve()
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(html_out, encoding="utf-8")
-    print(f"[deployment-index] Wrote {len(commits)} rows → {out_path}",
+    print(f"[deployment-index] Wrote {len(commits)} HTML rows → {out_path}",
+          file=sys.stderr)
+
+    # Write JSON alongside HTML
+    json_path = Path(args.json_out) if args.json_out else out_path.with_suffix(".json")
+    if not json_path.is_absolute():
+        json_path = (repo_root / json_path).resolve()
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    json_path.write_text(json_out, encoding="utf-8")
+    print(f"[deployment-index] Wrote {len(commits)} JSON records → {json_path}",
           file=sys.stderr)
     return 0
 

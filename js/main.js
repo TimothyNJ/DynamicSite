@@ -93,6 +93,9 @@ import { startPrefetch } from './navigation/page-prefetch.js';
 import * as BackgroundManager from './backgrounds/background-manager.js';
 import * as WaterBackground from './backgrounds/water-background.js';
 
+// Deployment Index — JSON-driven client-side renderer
+import { renderDeploymentIndex } from './deployment-index-renderer.js';
+
 // Make factory and cleanup registration available for pages that need it
 window.componentFactory = componentFactory;
 window.registerPageCleanup = registerPageCleanup;
@@ -1253,8 +1256,11 @@ document.addEventListener('subpageLoaded', (e) => {
           BackgroundManager.onLeavePool();
         }
       } else if (subpage === 'deployment-index') {
-        console.log('[main.js] Initializing Deployment Index page (development/deployment-index)');
-        initializeDeploymentIndexPage(e.detail.subsubpage);
+        const env = e.detail.subsubpage;
+        console.log(`[main.js] Rendering Deployment Index (${ env }) from JSON`);
+        renderDeploymentIndex( env ).then( () => {
+          initializeDeploymentIndexSearch( env );
+        } );
       }
     });
   }
