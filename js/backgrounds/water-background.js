@@ -844,6 +844,70 @@ export function hide() {
   animationRunning = false;
 }
 
+/**
+ * Reparent the water container into a target DOM element so the simulation
+ * renders inline (e.g. inside the sidenav content area) instead of as a
+ * fixed fullscreen overlay.
+ */
+let embeddedIn = null;
+let embeddedResizeObserver = null;
+
+export function embedIn( targetEl ) {
+  if ( ! isInitialised || ! container || ! targetEl ) return;
+
+  embeddedIn = targetEl;
+
+  // Move container into target
+  targetEl.appendChild( container );
+
+  // Switch from fixed fullscreen to filling the parent
+  container.style.cssText = 'position:relative;width:100%;height:100%;pointer-events:auto;';
+
+  // Resize renderer to fit the target element
+  resizeToContainer();
+
+  // Watch for target element size changes
+  embeddedResizeObserver = new ResizeObserver( resizeToContainer );
+  embeddedResizeObserver.observe( targetEl );
+
+  // Show + start loop if not already running
+  container.style.display = '';
+  if ( ! animationRunning ) {
+    animationRunning = true;
+    renderer.setAnimationLoop( render );
+  }
+}
+
+export function unembed() {
+  if ( ! embeddedIn ) return;
+
+  // Disconnect observer
+  if ( embeddedResizeObserver ) {
+    embeddedResizeObserver.disconnect();
+    embeddedResizeObserver = null;
+  }
+  embeddedIn = null;
+
+  // Move container back to body with original fullscreen styling
+  document.body.appendChild( container );
+  container.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;pointer-events:none;';
+
+  // Restore fullscreen renderer size
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize( window.innerWidth, window.innerHeight );
+}
+
+function resizeToContainer() {
+  const target = embeddedIn || container;
+  const w = target.clientWidth;
+  const h = target.clientHeight;
+  if ( w === 0 || h === 0 || ! camera || ! renderer ) return;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize( w, h );
+}
+
 export function dispose() {
   if ( ! isInitialised ) return;
   animationRunning = false;
@@ -904,6 +968,8 @@ export function getEffectController() {
 
 function onWindowResize() {
   if ( ! camera || ! renderer ) return;
+  // When embedded, the ResizeObserver handles sizing
+  if ( embeddedIn ) return;
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize( window.innerWidth, window.innerHeight );

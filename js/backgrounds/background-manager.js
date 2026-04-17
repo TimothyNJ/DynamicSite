@@ -59,19 +59,40 @@ export function onLeaveHome() {
 
 /**
  * Called when the router navigates to the backgrounds/pool sub-subpage.
- * Shows the water simulation so users can view the pool on its own page.
+ * Embeds the water simulation inside the pool page's content area.
  */
 export async function onEnterPool() {
   isOnPoolPage = true;
-  await applyMode();
+
+  const mode = getMode();
+  if ( mode !== 'water' ) return;
+
+  // Ensure water is initialised (one-time)
+  if ( WaterBackground.isAvailable() && ! WaterBackground.isReady() ) {
+    if ( ! waterInitPromise ) {
+      waterInitPromise = WaterBackground.init();
+    }
+    await waterInitPromise;
+  }
+
+  if ( WaterBackground.isReady() ) {
+    const target = document.getElementById( 'pool-embed-container' );
+    if ( target ) {
+      WaterBackground.embedIn( target );
+    }
+  }
 }
 
 /**
  * Called when the router navigates away from the backgrounds/pool sub-subpage.
- * Hides the water canvas unless we're heading to the home page.
+ * Unembeds the simulation and restores fullscreen mode.
  */
 export function onLeavePool() {
+  if ( ! isOnPoolPage ) return;
   isOnPoolPage = false;
+
+  WaterBackground.unembed();
+
   if ( ! isOnHomePage ) {
     WaterBackground.hide();
     showGradient();
@@ -91,7 +112,7 @@ export async function initBackgroundSystem() {
 async function applyMode() {
   const mode = getMode();
 
-  if ( mode === 'water' && ( isOnHomePage || isOnPoolPage ) ) {
+  if ( mode === 'water' && isOnHomePage ) {
     // Ensure water is initialised (one-time)
     if ( WaterBackground.isAvailable() && ! WaterBackground.isReady() ) {
       if ( ! waterInitPromise ) {
