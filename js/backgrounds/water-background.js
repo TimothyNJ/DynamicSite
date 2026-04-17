@@ -59,6 +59,7 @@ let pingPong = 0;
 const readFromA = uniform( 1 );
 let duckModel = null;
 let duckMesh = null;
+let duckInstanceDataStorage = null;
 
 let sailboatMesh = null;
 let sailboatEnabled = true;
@@ -69,6 +70,8 @@ const sailboatState = {
 
 const NUM_DUCKS = 100;
 const simplex = new SimplexNoise();
+let tiltedDuckCount = 0;
+let tiltReadbackFrame = 0;
 
 // ─── Effect controller (uniforms exposed as controls) ──────────────────────
 const effectController = {
@@ -340,7 +343,7 @@ export async function init() {
     tiltZ: 'float'
   } );
 
-  const duckInstanceDataStorage = instancedArray( duckInstanceDataArray, DuckStruct ).setName( 'DuckInstanceData' );
+  duckInstanceDataStorage = instancedArray( duckInstanceDataArray, DuckStruct ).setName( 'DuckInstanceData' );
 
   computeDucks = Fn( () => {
     const yOffset = float( - 0.04 );
@@ -540,8 +543,8 @@ export async function init() {
 
   // ── Tilt indicator sticks — one per duck ─────────────────────────────
   {
-    const stickGeo = new THREE.BoxGeometry( 0.01, 0.15, 0.01 ); // thin vertical stick
-    stickGeo.translate( 0, 0.12, 0 ); // raise so base sits at duck position
+    const stickGeo = new THREE.BoxGeometry( 0.01, 0.75, 0.01 ); // thin vertical stick
+    stickGeo.translate( 0, 0.44, 0 ); // raise so base sits at duck position
 
     const stickMat = new THREE.MeshBasicNodeMaterial( { transparent: true, opacity: 0.9 } );
 
@@ -814,7 +817,8 @@ function updateDebugHUD() {
   const r = camera.rotation;
   const toDeg = ( rad ) => ( rad * 180 / Math.PI ).toFixed( 1 );
   debugHUD.textContent =
-    `pos: x=${p.x.toFixed(2)} y=${p.y.toFixed(2)} z=${p.z.toFixed(2)}  |  rot: x=${toDeg(r.x)}° y=${toDeg(r.y)}° z=${toDeg(r.z)}°  |  fov: ${camera.fov}  aspect: ${camera.aspect.toFixed(2)}`;
+    `pos: x=${p.x.toFixed(2)} y=${p.y.toFixed(2)} z=${p.z.toFixed(2)}  |  rot: x=${toDeg(r.x)}° y=${toDeg(r.y)}° z=${toDeg(r.z)}°  |  fov: ${camera.fov}  aspect: ${camera.aspect.toFixed(2)}\n` +
+    `tilted ducks: ${tiltedDuckCount} / ${NUM_DUCKS}`;
 }
 
 function render() {
@@ -838,6 +842,24 @@ function render() {
       renderer.compute( computeBoat );
     }
     frame = 0;
+  }
+
+  // Periodic tilt readback for debug counter (every ~30 frames, only when visible)
+  tiltReadbackFrame ++;
+  if ( tiltIndicatorMesh && tiltIndicatorMesh.visible && duckInstanceDataStorage && tiltReadbackFrame >= 30 ) {
+    tiltReadbackFrame = 0;
+    const duckStride = 8;
+    renderer.readStorageBufferAsync( duckInstanceDataStorage.value ).then( ( buffer ) => {
+      const data = new Float32Array( buffer.buffer );
+      let count = 0;
+      for ( let i = 0; i < NUM_DUCKS; i ++ ) {
+        const tx = data[ i * duckStride + 6 ];
+        const tz = data[ i * duckStride + 7 ];
+        const tiltDeg = Math.sqrt( tx * tx + tz * tz ) * ( 180 / Math.PI );
+        if ( tiltDeg >= 1.0 ) count ++;
+      }
+      tiltedDuckCount = count;
+    } ).catch( () => {} );
   }
 
   updateSailboat();
