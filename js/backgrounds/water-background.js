@@ -409,7 +409,7 @@ export async function init() {
   boatDataStorage = instancedArray( boatDataArray, BoatStruct ).setName( 'BoatInstanceData' );
 
   computeBoat = Fn( () => {
-    const yOffset = float( - 0.12 );
+    const yOffset = float( - 0.15 );  // waterline at Y≈7.5 in native model × 0.02 scale
     const verticalResponseFactor = float( 0.98 );
     const waterPushFactor = float( 0.015 );
     const linearDamping = float( 0.92 );
