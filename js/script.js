@@ -53,13 +53,10 @@ function toggleBorders() {
     el.style.display = isHidden ? "none" : "";
   });
 
-  // Toggle water debug HUD and tilt indicators
+  // Toggle water debug HUD
   const waterDebugHud = document.getElementById('water-debug-hud');
   if (waterDebugHud) {
     waterDebugHud.style.display = isHidden ? 'none' : '';
-  }
-  if (window.toggleWaterDebug) {
-    window.toggleWaterDebug(!isHidden);
   }
 }
 

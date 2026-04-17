@@ -91,7 +91,6 @@ import * as WaterBackground from './backgrounds/water-background.js';
 // Make factory and cleanup registration available for pages that need it
 window.componentFactory = componentFactory;
 window.registerPageCleanup = registerPageCleanup;
-window.toggleWaterDebug = ( show ) => WaterBackground.toggleDebugHUD( show );
 
 // Ensure global mouse tracker is initialized
 console.log('[main.js] Global mouse tracker ready');
