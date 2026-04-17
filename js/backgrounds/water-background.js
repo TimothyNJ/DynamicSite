@@ -354,6 +354,7 @@ export async function init() {
 
   const DuckStruct = struct( {
     position: 'vec3',
+    velocityY: 'float',
     velocity: 'vec2',
     tiltX: 'float',
     tiltZ: 'float'
@@ -363,12 +364,15 @@ export async function init() {
 
   computeDucks = Fn( () => {
     const yOffset = float( - 0.04 );
-    const verticalResponseFactor = float( 0.98 );
     const waterPushFactor = float( 0.015 );
     const linearDamping = float( 0.92 );
     const bounceDamping = float( - 0.4 );
+    const gravity = float( - 0.004 );
+    const buoyancyFactor = float( 0.15 );
+    const waterDrag = float( 0.85 );
 
     const instancePosition = duckInstanceDataStorage.element( instanceIndex ).get( 'position' ).toVar();
+    const velocityY = duckInstanceDataStorage.element( instanceIndex ).get( 'velocityY' ).toVar();
     const velocity = duckInstanceDataStorage.element( instanceIndex ).get( 'velocity' ).toVar();
 
     const gridCoordX = instancePosition.x.div( BOUNDS ).add( 0.5 ).mul( WIDTH );
@@ -381,21 +385,36 @@ export async function init() {
     const waterHeight = getCurrentHeight( heightInstanceIndex );
     const { normalX, normalY } = getCurrentNormals( heightInstanceIndex );
 
-    const targetY = waterHeight.add( yOffset );
-    const deltaY = targetY.sub( instancePosition.y );
-    instancePosition.y.addAssign( deltaY.mul( verticalResponseFactor ) );
+    const surfaceY = waterHeight.add( yOffset );
 
-    const pushX = normalX.mul( waterPushFactor );
-    const pushZ = normalY.mul( waterPushFactor );
+    // Gravity always applies
+    velocityY.addAssign( gravity );
 
+    // Buoyancy: if at or below water surface, push up toward surface
+    If( instancePosition.y.lessThanEqual( surfaceY ), () => {
+      const submergedDelta = surfaceY.sub( instancePosition.y );
+      velocityY.addAssign( submergedDelta.mul( buoyancyFactor ) );
+      velocityY.mulAssign( waterDrag );
+
+      // Water push only applies when in contact with water
+      const pushX = normalX.mul( waterPushFactor );
+      const pushZ = normalY.mul( waterPushFactor );
+      velocity.x.addAssign( pushX );
+      velocity.y.addAssign( pushZ );
+    } );
+    // When airborne: only gravity, no water interaction
+
+    // Apply vertical velocity
+    instancePosition.y.addAssign( velocityY );
+
+    // Horizontal movement and damping
     velocity.x.mulAssign( linearDamping );
     velocity.y.mulAssign( linearDamping );
-    velocity.x.addAssign( pushX );
-    velocity.y.addAssign( pushZ );
 
     instancePosition.x.addAssign( velocity.x );
     instancePosition.z.addAssign( velocity.y );
 
+    // Wall bouncing
     If( instancePosition.x.lessThan( - limit ), () => {
       instancePosition.x = - limit;
       velocity.x.mulAssign( bounceDamping );
@@ -415,14 +434,24 @@ export async function init() {
     // Store smoothed surface tilt for the positionNode to use
     const tiltSmooth = float( 0.7 );  // blend toward current surface slope
     const tiltScale = float( 0.5 );   // scale gradient to visible lean angle
+    const airborneDecay = float( 0.9 ); // when airborne, tilt decays toward level
     const oldTiltX = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltX' ).toVar();
     const oldTiltZ = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltZ' ).toVar();
-    const targetTiltX = normalX.mul( tiltScale );
-    const targetTiltZ = normalY.mul( tiltScale );
-    oldTiltX.addAssign( targetTiltX.sub( oldTiltX ).mul( tiltSmooth ) );
-    oldTiltZ.addAssign( targetTiltZ.sub( oldTiltZ ).mul( tiltSmooth ) );
+
+    If( instancePosition.y.lessThanEqual( surfaceY.add( 0.01 ) ), () => {
+      // On water: tilt toward surface slope
+      const targetTiltX = normalX.mul( tiltScale );
+      const targetTiltZ = normalY.mul( tiltScale );
+      oldTiltX.addAssign( targetTiltX.sub( oldTiltX ).mul( tiltSmooth ) );
+      oldTiltZ.addAssign( targetTiltZ.sub( oldTiltZ ).mul( tiltSmooth ) );
+    } ).Else( () => {
+      // Airborne: gradually level out
+      oldTiltX.mulAssign( airborneDecay );
+      oldTiltZ.mulAssign( airborneDecay );
+    } );
 
     duckInstanceDataStorage.element( instanceIndex ).get( 'position' ).assign( instancePosition );
+    duckInstanceDataStorage.element( instanceIndex ).get( 'velocityY' ).assign( velocityY );
     duckInstanceDataStorage.element( instanceIndex ).get( 'velocity' ).assign( velocity );
     duckInstanceDataStorage.element( instanceIndex ).get( 'tiltX' ).assign( oldTiltX );
     duckInstanceDataStorage.element( instanceIndex ).get( 'tiltZ' ).assign( oldTiltZ );
@@ -437,6 +466,7 @@ export async function init() {
 
   const BoatStruct = struct( {
     position: 'vec3',
+    velocityY: 'float',
     velocity: 'vec2',
     tiltX: 'float',
     tiltZ: 'float'
@@ -446,12 +476,15 @@ export async function init() {
 
   computeBoat = Fn( () => {
     const yOffset = float( - 0.15 );  // waterline at Y≈7.5 in native model × 0.02 scale
-    const verticalResponseFactor = float( 0.98 );
     const waterPushFactor = float( 0.015 );
     const linearDamping = float( 0.92 );
     const bounceDamping = float( - 0.4 );
+    const gravity = float( - 0.004 );
+    const buoyancyFactor = float( 0.15 );
+    const waterDrag = float( 0.85 );
 
     const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' ).toVar();
+    const velocityY = boatDataStorage.element( instanceIndex ).get( 'velocityY' ).toVar();
     const velocity = boatDataStorage.element( instanceIndex ).get( 'velocity' ).toVar();
 
     const gridCoordX = instancePosition.x.div( BOUNDS ).add( 0.5 ).mul( WIDTH );
@@ -464,21 +497,35 @@ export async function init() {
     const waterHeight = getCurrentHeight( heightInstanceIndex );
     const { normalX, normalY } = getCurrentNormals( heightInstanceIndex );
 
-    const targetY = waterHeight.add( yOffset );
-    const deltaY = targetY.sub( instancePosition.y );
-    instancePosition.y.addAssign( deltaY.mul( verticalResponseFactor ) );
+    const surfaceY = waterHeight.add( yOffset );
 
-    const pushX = normalX.mul( waterPushFactor );
-    const pushZ = normalY.mul( waterPushFactor );
+    // Gravity always applies
+    velocityY.addAssign( gravity );
 
+    // Buoyancy: if at or below water surface, push up toward surface
+    If( instancePosition.y.lessThanEqual( surfaceY ), () => {
+      const submergedDelta = surfaceY.sub( instancePosition.y );
+      velocityY.addAssign( submergedDelta.mul( buoyancyFactor ) );
+      velocityY.mulAssign( waterDrag );
+
+      // Water push only applies when in contact with water
+      const pushX = normalX.mul( waterPushFactor );
+      const pushZ = normalY.mul( waterPushFactor );
+      velocity.x.addAssign( pushX );
+      velocity.y.addAssign( pushZ );
+    } );
+
+    // Apply vertical velocity
+    instancePosition.y.addAssign( velocityY );
+
+    // Horizontal movement and damping
     velocity.x.mulAssign( linearDamping );
     velocity.y.mulAssign( linearDamping );
-    velocity.x.addAssign( pushX );
-    velocity.y.addAssign( pushZ );
 
     instancePosition.x.addAssign( velocity.x );
     instancePosition.z.addAssign( velocity.y );
 
+    // Wall bouncing
     If( instancePosition.x.lessThan( - limit ), () => {
       instancePosition.x = - limit;
       velocity.x.mulAssign( bounceDamping );
@@ -498,14 +545,22 @@ export async function init() {
     // Store smoothed surface tilt
     const tiltSmooth = float( 0.7 );
     const tiltScale = float( 0.5 );
+    const airborneDecay = float( 0.9 );
     const oldTiltX = boatDataStorage.element( instanceIndex ).get( 'tiltX' ).toVar();
     const oldTiltZ = boatDataStorage.element( instanceIndex ).get( 'tiltZ' ).toVar();
-    const targetTiltX = normalX.mul( tiltScale );
-    const targetTiltZ = normalY.mul( tiltScale );
-    oldTiltX.addAssign( targetTiltX.sub( oldTiltX ).mul( tiltSmooth ) );
-    oldTiltZ.addAssign( targetTiltZ.sub( oldTiltZ ).mul( tiltSmooth ) );
+
+    If( instancePosition.y.lessThanEqual( surfaceY.add( 0.01 ) ), () => {
+      const targetTiltX = normalX.mul( tiltScale );
+      const targetTiltZ = normalY.mul( tiltScale );
+      oldTiltX.addAssign( targetTiltX.sub( oldTiltX ).mul( tiltSmooth ) );
+      oldTiltZ.addAssign( targetTiltZ.sub( oldTiltZ ).mul( tiltSmooth ) );
+    } ).Else( () => {
+      oldTiltX.mulAssign( airborneDecay );
+      oldTiltZ.mulAssign( airborneDecay );
+    } );
 
     boatDataStorage.element( instanceIndex ).get( 'position' ).assign( instancePosition );
+    boatDataStorage.element( instanceIndex ).get( 'velocityY' ).assign( velocityY );
     boatDataStorage.element( instanceIndex ).get( 'velocity' ).assign( velocity );
     boatDataStorage.element( instanceIndex ).get( 'tiltX' ).assign( oldTiltX );
     boatDataStorage.element( instanceIndex ).get( 'tiltZ' ).assign( oldTiltZ );
