@@ -850,13 +850,13 @@ function render() {
     tiltReadbackFrame = 0;
     const duckStride = 8;
     renderer.readStorageBufferAsync( duckInstanceDataStorage.value ).then( ( buffer ) => {
-      const data = new Float32Array( buffer.buffer );
+      const data = new Float32Array( buffer );
       let count = 0;
       for ( let i = 0; i < NUM_DUCKS; i ++ ) {
         const tx = data[ i * duckStride + 6 ];
         const tz = data[ i * duckStride + 7 ];
         const tiltDeg = Math.sqrt( tx * tx + tz * tz ) * ( 180 / Math.PI );
-        if ( tiltDeg >= 1.0 ) count ++;
+        if ( tiltDeg >= 0.5 ) count ++;
       }
       tiltedDuckCount = count;
     } ).catch( () => {} );
