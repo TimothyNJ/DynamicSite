@@ -16,7 +16,7 @@ import * as THREE from 'three/webgpu';
 import {
   instanceIndex, struct, If, uint, int, floor, float, length, clamp, sqrt, abs,
   vec2, cos, sin, vec3, vec4, vertexIndex, Fn, uniform, instancedArray, min, max,
-  positionLocal, transformNormalToView, select, globalId
+  positionLocal, transformNormalToView, select, globalId, Loop, Break
 } from 'three/tsl';
 
 import { SimplexNoise } from 'three/addons/math/SimplexNoise.js';
@@ -76,6 +76,8 @@ const NUM_DUCKS = 100;
 const simplex = new SimplexNoise();
 let tiltedDuckCount = 0;
 let tiltReadbackFrame = 0;
+const duckRadiusUniform = uniform( 0.1 ).setName( 'duckRadius' );
+const boatRadiusUniform = uniform( 0.3 ).setName( 'boatRadius' );
 
 // ─── Effect controller (uniforms exposed as controls) ──────────────────────
 const effectController = {
@@ -431,6 +433,48 @@ export async function init() {
       velocity.y.mulAssign( bounceDamping );
     } );
 
+    // ── Repulsion: duck vs boat ──────────────────────────────────────
+    {
+      const repulsionStrength = float( 0.02 );
+      const boatPos = boatDataStorage.element( uint( 0 ) ).get( 'position' );
+      const dx = instancePosition.x.sub( boatPos.x );
+      const dz = instancePosition.z.sub( boatPos.z );
+      const dist = sqrt( dx.mul( dx ).add( dz.mul( dz ) ) ).max( 0.001 );
+      const minDist = duckRadiusUniform.add( boatRadiusUniform );
+      If( dist.lessThan( minDist ), () => {
+        const overlap = minDist.sub( dist );
+        const pushForce = overlap.mul( repulsionStrength ).div( dist );
+        velocity.x.addAssign( dx.mul( pushForce ) );
+        velocity.y.addAssign( dz.mul( pushForce ) );
+      } );
+    }
+
+    // ── Repulsion: duck vs other ducks ─────────────────────────────────
+    {
+      const repulsionStrength = float( 0.01 );
+      const minDist = duckRadiusUniform.mul( 2.0 );
+      const repelX = float( 0 ).toVar();
+      const repelZ = float( 0 ).toVar();
+
+      Loop( NUM_DUCKS, ( { i: other } ) => {
+        If( other.notEqual( instanceIndex ), () => {
+          const otherPos = duckInstanceDataStorage.element( other ).get( 'position' );
+          const dx = instancePosition.x.sub( otherPos.x );
+          const dz = instancePosition.z.sub( otherPos.z );
+          const dist = sqrt( dx.mul( dx ).add( dz.mul( dz ) ) ).max( 0.001 );
+          If( dist.lessThan( minDist ), () => {
+            const overlap = minDist.sub( dist );
+            const pushForce = overlap.mul( repulsionStrength ).div( dist );
+            repelX.addAssign( dx.mul( pushForce ) );
+            repelZ.addAssign( dz.mul( pushForce ) );
+          } );
+        } );
+      } );
+
+      velocity.x.addAssign( repelX );
+      velocity.y.addAssign( repelZ );
+    }
+
     // Store smoothed surface tilt for the positionNode to use
     const tiltSmooth = float( 0.7 );  // blend toward current surface slope
     const tiltScale = float( 0.5 );   // scale gradient to visible lean angle
@@ -542,6 +586,30 @@ export async function init() {
       velocity.y.mulAssign( bounceDamping );
     } );
 
+    // ── Repulsion: boat vs all ducks ─────────────────────────────────
+    {
+      const repulsionStrength = float( 0.005 ); // lighter — boat is heavier
+      const minDist = duckRadiusUniform.add( boatRadiusUniform );
+      const repelX = float( 0 ).toVar();
+      const repelZ = float( 0 ).toVar();
+
+      Loop( NUM_DUCKS, ( { i: other } ) => {
+        const otherPos = duckInstanceDataStorage.element( other ).get( 'position' );
+        const dx = instancePosition.x.sub( otherPos.x );
+        const dz = instancePosition.z.sub( otherPos.z );
+        const dist = sqrt( dx.mul( dx ).add( dz.mul( dz ) ) ).max( 0.001 );
+        If( dist.lessThan( minDist ), () => {
+          const overlap = minDist.sub( dist );
+          const pushForce = overlap.mul( repulsionStrength ).div( dist );
+          repelX.addAssign( dx.mul( pushForce ) );
+          repelZ.addAssign( dz.mul( pushForce ) );
+        } );
+      } );
+
+      velocity.x.addAssign( repelX );
+      velocity.y.addAssign( repelZ );
+    }
+
     // Store smoothed surface tilt
     const tiltSmooth = float( 0.7 );
     const tiltScale = float( 0.5 );
@@ -589,6 +657,22 @@ export async function init() {
   applyThemeBackground();
 
   duckModel = model.scene.children[ 0 ];
+
+  // Compute XZ bounding radius from geometry for collision
+  duckModel.geometry.computeBoundingSphere();
+  const duckBounds = duckModel.geometry.boundingSphere;
+  // Use XZ extent: scan position attribute for max XZ distance from center
+  {
+    const pos = duckModel.geometry.getAttribute( 'position' );
+    let maxR2 = 0;
+    for ( let i = 0; i < pos.count; i ++ ) {
+      const dx = pos.getX( i ) - duckBounds.center.x;
+      const dz = pos.getZ( i ) - duckBounds.center.z;
+      maxR2 = Math.max( maxR2, dx * dx + dz * dz );
+    }
+    var duckRadius = Math.sqrt( maxR2 );
+  }
+
   duckModel.material.positionNode = Fn( () => {
     const instancePosition = duckInstanceDataStorage.element( instanceIndex ).get( 'position' );
     const tx = duckInstanceDataStorage.element( instanceIndex ).get( 'tiltX' );
@@ -654,6 +738,23 @@ export async function init() {
   const boatModel = sailboatGLTF.scene.children[ 0 ];
   boatModel.geometry.scale( 0.02, 0.02, 0.02 );
   boatModel.geometry.computeVertexNormals();
+
+  // Compute XZ bounding radius from scaled geometry for collision
+  {
+    const pos = boatModel.geometry.getAttribute( 'position' );
+    let maxR2 = 0;
+    for ( let i = 0; i < pos.count; i ++ ) {
+      const dx = pos.getX( i );
+      const dz = pos.getZ( i );
+      maxR2 = Math.max( maxR2, dx * dx + dz * dz );
+    }
+    var boatRadius = Math.sqrt( maxR2 );
+  }
+
+  duckRadiusUniform.value = duckRadius;
+  boatRadiusUniform.value = boatRadius;
+  console.log( 'Collision radii — duck:', duckRadius.toFixed( 4 ), 'boat:', boatRadius.toFixed( 4 ) );
+
   boatModel.material.positionNode = Fn( () => {
     const instancePosition = boatDataStorage.element( instanceIndex ).get( 'position' );
     const tx = boatDataStorage.element( instanceIndex ).get( 'tiltX' );
