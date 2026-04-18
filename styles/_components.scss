@@ -182,37 +182,41 @@
 //   .fe-label has a negative margin-top that re-tightens the gap between
 //   a sample cell and its label directly below.
 .font-examples-grid {
-  display: grid;
-  grid-template-columns: repeat(3, auto);
-  column-gap: 1.5em;
-  row-gap: 0.8em;
-  justify-items: center;
-  align-items: baseline;   // samples in the same row share a baseline
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
   padding: 0.5em 0;
   font-family: var(--font-family-primary);
-  color: var(--text-color, #fff);  // force light on dark theme
+  color: var(--text-color, #fff);
+
+  // Each tier's 3 samples sit in a flex row with baseline alignment.
+  // A single border-bottom on the row draws one continuous line across
+  // all 3 samples — toggles off with .borders-hidden.
+  .fe-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 1.5em;
+    border-bottom: 1px solid royalblue;
+    padding-bottom: 0.15em;
+  }
 
   .fe-sample {
     margin: 0;
     color: inherit;        // override global h1/h2/h3/h4/p color rules
-    // 1px royal-blue line drawn exactly at each sample's baseline.
-    // text-underline-offset:0 pins the line to the baseline;
-    // text-decoration-skip-ink:none keeps it continuous through descenders.
-    // Since the three samples in a tier share a baseline (align-items:
-    // baseline on the grid), their underlines align at the same y-coord
-    // and read as one baseline per tier.
-    text-decoration: underline royalblue;
-    text-decoration-thickness: 1px;
-    text-decoration-skip-ink: none;
-    text-underline-offset: 0;
+  }
+
+  // Labels row sits directly under its sample row
+  .fe-labels {
+    display: flex;
+    justify-content: center;
+    gap: 1.5em;
+    margin-top: -0.5em;
   }
 
   .fe-label {
     font-size: 10px;
     opacity: 0.6;
-    // Pull labels up so they sit close under their sample without losing
-    // the larger inter-tier row-gap.
-    margin-top: -0.7em;
   }
 }
 
