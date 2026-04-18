@@ -147,9 +147,14 @@
       transition: opacity 0s ease 0s, top 150ms ease;
     }
 
-    // Arrow stays visible in expanded state when secondary nav is showing
+    // Arrow stays visible in expanded state when secondary nav is showing.
+    // Horizontal position set by JS via --sidenav-arrow-left (measured from
+    // the widest button) so the arrow sits at a consistent right edge
+    // regardless of which button is active.
     &.has-secondary::after {
       opacity: var(--sidenav-arrow-opacity);
+      right: auto;
+      left: var(--sidenav-arrow-left);
     }
   }
 }

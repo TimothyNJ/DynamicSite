@@ -251,6 +251,20 @@ function positionArrowAt(container, button) {
   container.style.setProperty('--sidenav-arrow-top', top + 'px');
 }
 
+// Set the arrow's horizontal position to the right edge of the widest button.
+// Uses --sidenav-arrow-left so the arrow stays at a fixed x regardless of
+// which button is active or hovered.
+function setArrowHorizontal(container) {
+  if (!container) return;
+  const buttons = container.querySelectorAll('.sidenav-button');
+  let maxRight = 0;
+  for (const btn of buttons) {
+    const right = btn.offsetLeft + btn.offsetWidth;
+    if (right > maxRight) maxRight = right;
+  }
+  container.style.setProperty('--sidenav-arrow-left', (maxRight + 6) + 'px');
+}
+
 // Align the secondary nav's padding-top so its first button lines up with
 // the parent button in the primary nav.
 function alignSecondaryTo(secondary, button) {
@@ -268,6 +282,7 @@ function initSidenav(pageName) {
   // If the default subpage has sub-subpages, sidenav2 is visible + expanded.
   // Collapse is scheduled after --sidenav-collapse-delay by initSidenavHover.
   sidenav.classList.add('collapsible', 'expanded');
+  setArrowHorizontal(sidenav);
   if (secondary) {
     secondary.classList.add('collapsible');
     if (config?.subSubpages?.[config.defaultSub]) {
@@ -337,6 +352,7 @@ function renderSecondaryNav(pageName, forSubpage) {
 
   secondary.classList.add('visible');
   if (sidenav) sidenav.classList.add('has-secondary');
+  setArrowHorizontal(secondary);
 
   // Align primary arrow and secondary nav to the parent button
   const parentBtn = sidenav?.querySelector(`.sidenav-button[data-subpage="${forSubpage}"]`);
