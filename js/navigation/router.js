@@ -306,7 +306,7 @@ function initSidenav(pageName) {
 // Preserves active state on the current sub-subpage button.
 // If the subpage has no sub-subpages, sidenav2 is cleared and hidden.
 
-function renderSecondaryNav(pageName, forSubpage) {
+function renderSecondaryNav(pageName, forSubpage, opts = {}) {
   const sidenav = document.querySelector('.sidenav');
   const secondary = document.querySelector('.sidenav-secondary');
   const config = sidenavConfig[pageName];
@@ -343,13 +343,16 @@ function renderSecondaryNav(pageName, forSubpage) {
   if (sidenav) sidenav.classList.add('has-secondary');
 
   // Align primary arrow and secondary nav to the parent button
-  const parentBtn = sidenav?.querySelector(`.sidenav-button[data-subpage="${forSubpage}"]`);
-  positionArrowAt(sidenav, parentBtn);
-  alignSecondaryTo(secondary, parentBtn);
+  // (skipped during collapse — arrows are easing to their resting position)
+  if (!opts.skipArrowPosition) {
+    const parentBtn = sidenav?.querySelector(`.sidenav-button[data-subpage="${forSubpage}"]`);
+    positionArrowAt(sidenav, parentBtn);
+    alignSecondaryTo(secondary, parentBtn);
 
-  // Position secondary nav's own arrow at its active button (for collapsed state)
-  const activeSecBtn = secondary.querySelector('.sidenav-button.active');
-  if (activeSecBtn) positionArrowAt(secondary, activeSecBtn);
+    // Position secondary nav's own arrow at its active button (for collapsed state)
+    const activeSecBtn = secondary.querySelector('.sidenav-button.active');
+    if (activeSecBtn) positionArrowAt(secondary, activeSecBtn);
+  }
 }
 
 // ==============================================
@@ -414,7 +417,7 @@ function initSidenavHover(pageName) {
       if (secondary) {
         secondary.classList.remove('expanded');
         if (config?.subSubpages?.[activeSubpage]) {
-          renderSecondaryNav(pageName, activeSubpage);
+          renderSecondaryNav(pageName, activeSubpage, { skipArrowPosition: true });
         } else {
           secondary.innerHTML = '';
           secondary.classList.remove('visible');
