@@ -46,6 +46,9 @@ const UNITS = { min: 'rem', pref: 'vw', max: 'rem' };
 // Live state — current values as the user edits them
 const liveValues = {};
 
+// Current environment — set during initialisation
+let currentEnv = 'development';
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function buildClamp(tier) {
@@ -115,11 +118,13 @@ function resetFontValues() {
 
 // ─── Initialisation ─────────────────────────────────────────────────────────
 
-export function initializeFontEditor() {
+export function initializeFontEditor(env) {
   if (!window.componentFactory) {
     console.error('[FontEditor] ComponentFactory not available');
     return;
   }
+
+  currentEnv = env || 'development';
 
   // Seed live state from defaults
   for (const t of TIERS) {
@@ -212,7 +217,7 @@ async function authenticatedFetch(path, options = {}) {
 // ─── Push ───────────────────────────────────────────────────────────────────
 
 async function pushFontChanges() {
-  console.log('[FontEditor] Push requested');
+  console.log(`[FontEditor] Push requested for env: ${currentEnv}`);
 
   // Build the payload — each tier's three values
   const payload = {};
@@ -223,7 +228,7 @@ async function pushFontChanges() {
   try {
     const result = await authenticatedFetch('/push-font-variables', {
       method: 'POST',
-      body: JSON.stringify({ fontVariables: payload })
+      body: JSON.stringify({ fontVariables: payload, environment: currentEnv })
     });
     console.log('[FontEditor] Push result:', result);
   } catch (err) {
@@ -234,11 +239,12 @@ async function pushFontChanges() {
 // ─── Revert Push ────────────────────────────────────────────────────────────
 
 async function revertPush() {
-  console.log('[FontEditor] Revert Push requested');
+  console.log(`[FontEditor] Revert Push requested for env: ${currentEnv}`);
 
   try {
     const result = await authenticatedFetch('/revert-font-variables', {
-      method: 'POST'
+      method: 'POST',
+      body: JSON.stringify({ environment: currentEnv })
     });
     console.log('[FontEditor] Revert result:', result);
 

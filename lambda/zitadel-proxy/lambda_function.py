@@ -304,8 +304,21 @@ def handle_push_client_config(env, body):
 
 GITHUB_SECRET_NAME = os.environ.get('GITHUB_SECRET_NAME', 'dynamicsite/github-token')
 GITHUB_REPO = 'TimothyNJ/DynamicSite'
-GITHUB_BRANCH = 'development'
 GITHUB_FILE_PATH = 'styles/_variables.scss'
+
+# Environment → Git branch mapping
+ENV_BRANCHES = {
+    'development': 'development',
+    'sandbox': 'sandbox',
+    'production': 'main'
+}
+
+# Environment → S3 bucket for font state history
+ENV_FONT_BUCKETS = {
+    'development': 'tnjdynamicsite-dev',
+    'sandbox': 'tnjdynamicsite-sandbox',
+    'production': 'tnjdynamicsite'
+}
 
 _github_token_cache = {'token': None}
 
@@ -345,27 +358,28 @@ def github_api(method, endpoint, body=None):
         raise RuntimeError(f'GitHub API {method} {endpoint}: {e.code} {error_body}')
 
 
-FONT_STATE_BUCKET = os.environ.get('FONT_STATE_BUCKET', 'tnjdynamicsite-dev')
 FONT_STATE_KEY = 'font-state-history.json'
 
 
-def get_font_state_history():
+def get_font_state_history(env='development'):
     """Read the font state history from S3. Returns dict or empty default."""
+    bucket = ENV_FONT_BUCKETS.get(env, ENV_FONT_BUCKETS['development'])
     s3 = boto3.client('s3', region_name='us-west-2')
     try:
-        resp = s3.get_object(Bucket=FONT_STATE_BUCKET, Key=FONT_STATE_KEY)
+        resp = s3.get_object(Bucket=bucket, Key=FONT_STATE_KEY)
         return json.loads(resp['Body'].read().decode('utf-8'))
     except ClientError as e:
         if e.response['Error']['Code'] == 'NoSuchKey':
-            return {'previous': None, 'current': None}
+            return {'previous': None, 'current': None, 'environment': env}
         raise
 
 
-def save_font_state_history(state):
+def save_font_state_history(state, env='development'):
     """Write the font state history to S3."""
+    bucket = ENV_FONT_BUCKETS.get(env, ENV_FONT_BUCKETS['development'])
     s3 = boto3.client('s3', region_name='us-west-2')
     s3.put_object(
-        Bucket=FONT_STATE_BUCKET,
+        Bucket=bucket,
         Key=FONT_STATE_KEY,
         Body=json.dumps(state, indent=2).encode('utf-8'),
         ContentType='application/json'
@@ -395,17 +409,22 @@ def extract_current_font_values(scss_content):
 def handle_push_font_variables(body):
     """Update font clamp() variables in _variables.scss via GitHub API.
     Stores before/after state in S3 for revert support.
-    Expects body: { fontVariables: { h1: {min, pref, max}, h2: {...}, ... } }
+    Expects body: { fontVariables: { h1: {min, pref, max}, ... }, environment: "development" }
     """
     import base64
     import re
 
     font_vars = body.get('fontVariables', {})
+    env = body.get('environment', 'development')
     if not font_vars:
         raise ValueError('No fontVariables in request body')
 
+    branch = ENV_BRANCHES.get(env)
+    if not branch:
+        raise ValueError(f'Invalid environment: {env}')
+
     # 1. Fetch current file content + SHA from GitHub
-    file_info = github_api('GET', f'/repos/{GITHUB_REPO}/contents/{GITHUB_FILE_PATH}?ref={GITHUB_BRANCH}')
+    file_info = github_api('GET', f'/repos/{GITHUB_REPO}/contents/{GITHUB_FILE_PATH}?ref={branch}')
     current_sha = file_info['sha']
     content = base64.b64decode(file_info['content']).decode('utf-8')
 
@@ -431,10 +450,10 @@ def handle_push_font_variables(body):
     # 4. Commit the updated file back to GitHub
     encoded = base64.b64encode(content.encode('utf-8')).decode('utf-8')
     commit_body = {
-        'message': f'Update font variables via Display Settings push',
+        'message': f'Update font variables via Display Settings push ({env})',
         'content': encoded,
         'sha': current_sha,
-        'branch': GITHUB_BRANCH
+        'branch': branch
     }
     result = github_api('PUT', f'/repos/{GITHUB_REPO}/contents/{GITHUB_FILE_PATH}', commit_body)
 
@@ -443,38 +462,45 @@ def handle_push_font_variables(body):
     state = {
         'previous': before_values,
         'current': font_vars,
+        'environment': env,
         'timestamp': datetime.datetime.utcnow().isoformat() + 'Z',
         'commit': result.get('commit', {}).get('sha', 'unknown')
     }
-    save_font_state_history(state)
+    save_font_state_history(state, env)
 
     return {
         'status': 'ok',
+        'environment': env,
+        'branch': branch,
         'commit': result.get('commit', {}).get('sha', 'unknown'),
         'fontVariables': font_vars
     }
 
 
-def handle_revert_font_variables():
+def handle_revert_font_variables(body=None):
     """Revert font variables to the previous state.
     Reads the stored before/after from S3, pushes the 'previous' values
     as the new state, then updates the history so the current values
     become the new 'previous'.
     """
+    body = body or {}
+    env = body.get('environment', 'development')
+
     # 1. Read stored state history
-    history = get_font_state_history()
+    history = get_font_state_history(env)
     previous = history.get('previous')
     if not previous:
-        raise ValueError('No previous font state to revert to')
+        raise ValueError(f'No previous font state to revert to for {env}')
 
     # 2. Push the previous values as new (reuses handle_push_font_variables)
-    result = handle_push_font_variables({'fontVariables': previous})
+    result = handle_push_font_variables({'fontVariables': previous, 'environment': env})
 
     # The push handler already saved the new state history with
     # current values as 'previous' and the reverted values as 'current'
 
     return {
         'status': 'ok',
+        'environment': env,
         'revertedTo': previous,
         'commit': result.get('commit', 'unknown')
     }
@@ -563,12 +589,16 @@ def lambda_handler(event, context):
 
         # POST /revert-font-variables
         if path == '/revert-font-variables' and http_method == 'POST':
-            data = handle_revert_font_variables()
+            body = json.loads(event.get('body') or '{}')
+            data = handle_revert_font_variables(body)
             return respond(200, data, origin)
 
-        # GET /font-state-history
-        if path == '/font-state-history' and http_method == 'GET':
-            data = get_font_state_history()
+        # GET /font-state-history/<env>
+        if path.startswith('/font-state-history') and http_method == 'GET':
+            env = path.split('/')[-1] if '/' in path[1:] else 'development'
+            if env == 'font-state-history':
+                env = 'development'
+            data = get_font_state_history(env)
             return respond(200, data, origin)
 
         return respond(404, {'error': f'Unknown route: {route_key}',
@@ -578,7 +608,7 @@ def lambda_handler(event, context):
                                  'POST /push-client-config/<env>',
                                  'POST /push-font-variables',
                                  'POST /revert-font-variables',
-                                 'GET /font-state-history'
+                                 'GET /font-state-history/<env>'
                              ]}, origin)
 
     except RuntimeError as e:

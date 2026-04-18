@@ -717,8 +717,8 @@ function initializeEnginesViewComponents() {
   }
 }
 
-// Display Settings page initialization (development/display-settings)
-function initializeDisplaySettingsComponents() {
+// Display Settings page initialization (development/display-settings/<env>)
+function initializeDisplaySettingsComponents(env) {
   if (!window.componentFactory) {
     console.error('[Display Settings] ComponentFactory not available');
     return;
@@ -742,7 +742,7 @@ function initializeDisplaySettingsComponents() {
   });
 
   // Font editor — text inputs for live clamp() editing + push button
-  initializeFontEditor();
+  initializeFontEditor(env);
 }
 
 // ─── Backgrounds Page (development/backgrounds) ─────────────────────────────
@@ -1247,8 +1247,9 @@ document.addEventListener('subpageLoaded', (e) => {
         console.log('[main.js] Initializing engines components (development/engines)');
         initializeEnginesViewComponents();
       } else if (subpage === 'display-settings') {
-        console.log('[main.js] Initializing display settings (development/display-settings)');
-        initializeDisplaySettingsComponents();
+        const env = e.detail.subsubpage;
+        console.log(`[main.js] Initializing Display Settings (${ env })`);
+        initializeDisplaySettingsComponents(env);
       } else if (subpage === 'table') {
         console.log('[main.js] Initializing Table page (development/table)');
         initializeTablePage();
