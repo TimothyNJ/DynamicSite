@@ -1,22 +1,26 @@
 /**
  * deployment-index-renderer.js
  *
- * Client-side renderer for the Deployment Index pages. Replaces the old
- * approach of injecting a 9,000+ line HTML table and post-processing it.
+ * Client-side renderer for the Deployment Index pages.
  *
  * Flow:
  *   1. Check localStorage for cached JSON data for this environment.
- *   2. If cached, build the table immediately from cache (chunked via rAF).
- *   3. Fetch fresh JSON from the server.
+ *   2. If cached, build the table synchronously from cache — caps applied
+ *      inline so the table enters the DOM in its final wrapped state.
+ *   3. Fetch fresh JSON from the server in the background.
  *   4. If the data changed, update the cache and rebuild.
  *
- * Rows are built with formatting applied inline — no second-pass rewrite.
- * Chunks of CHUNK_SIZE rows per animation frame keep the main thread free.
+ * Pixel-cap strategy (zero layout thrashing):
+ *   Before building any rows, scan the data for the first summary and
+ *   description text that exceeds CHAR_CAP (66) characters. If found,
+ *   measure the pixel width of 66 characters ONCE per column, then apply
+ *   that width inline to every cell whose text exceeds the cap during row
+ *   construction. Result: one measurement per column instead of two per
+ *   cell — eliminates the ~2,800 forced-layout loop that caused the freeze.
  *
  * Created: 17-Apr-2026
  */
 
-const CHUNK_SIZE = 50;
 const CACHE_PREFIX = 'deploymentIndex_';
 const CHAR_CAP = 66;
 
@@ -41,50 +45,129 @@ function setCachedData( env, data ) {
   }
 }
 
-// ─── Row builder ────────────────────────────────────────────────────────────
+// ─── Pixel-cap measurement (called at most twice — once per prose column) ──
 
-function escHtml( text ) {
-  return text
-    .replace( /&/g, '&amp;' )
-    .replace( /</g, '&lt;' )
-    .replace( />/g, '&gt;' )
-    .replace( /"/g, '&quot;' );
+function ensureHelper() {
+  let helper = document.getElementById( 'prose-cell-measure-helper' );
+  if ( ! helper ) {
+    helper = document.createElement( 'span' );
+    helper.id = 'prose-cell-measure-helper';
+    helper.style.cssText =
+      'position:absolute;visibility:hidden;white-space:pre;' +
+      'left:-99999px;top:0;pointer-events:none;';
+    document.body.appendChild( helper );
+  }
+  return helper;
 }
 
-function buildRow( commit ) {
+/**
+ * Measure the pixel width of the first CHAR_CAP characters of `sampleText`
+ * using the font properties of a <p> inside a table body cell.
+ *
+ * A temporary row is appended to `tbody` just long enough to read
+ * getComputedStyle, then removed. This triggers ONE forced layout.
+ */
+function measureCapWidth( sampleText, tbody, helperFontReady ) {
+  const helper = ensureHelper();
+
+  // If we haven't copied font properties yet, create a temp cell to read them.
+  if ( ! helperFontReady ) {
+    const tempTr = document.createElement( 'tr' );
+    tempTr.className = 'table-body-row';
+    const tempTd = document.createElement( 'td' );
+    tempTd.className = 'table-body-cell summary-cell';
+    const tempDiv = document.createElement( 'div' );
+    tempDiv.className = 'cell-fit';
+    const tempP = document.createElement( 'p' );
+    tempP.textContent = 'X';
+    tempDiv.appendChild( tempP );
+    tempTd.appendChild( tempDiv );
+    tempTr.appendChild( tempTd );
+    tbody.appendChild( tempTr );
+
+    const cs = window.getComputedStyle( tempP );
+    helper.style.fontFamily = cs.fontFamily;
+    helper.style.fontSize = cs.fontSize;
+    helper.style.fontWeight = cs.fontWeight;
+    helper.style.fontStyle = cs.fontStyle;
+    helper.style.letterSpacing = cs.letterSpacing;
+    helper.style.textTransform = cs.textTransform;
+
+    tbody.removeChild( tempTr );
+  }
+
+  helper.textContent = sampleText.substring( 0, CHAR_CAP );
+  return Math.ceil( helper.offsetWidth ) + 1;
+}
+
+// ─── Row builder ────────────────────────────────────────────────────────────
+
+function buildRow( commit, summaryCapPx, descCapPx ) {
   const tr = document.createElement( 'tr' );
   tr.className = 'table-body-row';
 
-  // Local timestamp cell
+  // ── Local timestamp ──
   const tdLocal = document.createElement( 'td' );
   tdLocal.className = 'table-body-cell local-timestamp';
   tdLocal.dataset.utc = commit.iso;
-  const localText = formatLocalTimestamp
+  const localDiv = document.createElement( 'div' );
+  localDiv.className = 'cell-fit';
+  const localP = document.createElement( 'p' );
+  localP.textContent = formatLocalTimestamp
     ? formatLocalTimestamp( commit.iso )
     : commit.iso.replace( 'T', ' ' ).replace( 'Z', ' UTC' );
-  tdLocal.innerHTML = `<div class="cell-fit"><p>${ escHtml( localText ) }</p></div>`;
+  localDiv.appendChild( localP );
+  tdLocal.appendChild( localDiv );
 
-  // Commit SHA cell
+  // ── Commit SHA ──
   const tdSha = document.createElement( 'td' );
   tdSha.className = 'table-body-cell';
-  tdSha.innerHTML = `<div class="cell-fit"><p>${ escHtml( commit.sha ) }</p></div>`;
+  const shaDiv = document.createElement( 'div' );
+  shaDiv.className = 'cell-fit';
+  const shaP = document.createElement( 'p' );
+  shaP.textContent = commit.sha;
+  shaDiv.appendChild( shaP );
+  tdSha.appendChild( shaDiv );
 
-  // Summary cell
+  // ── Summary ──
   const tdSummary = document.createElement( 'td' );
   tdSummary.className = 'table-body-cell summary-cell';
-  tdSummary.innerHTML = `<div class="cell-fit"><p>${ escHtml( commit.subject ) }</p></div>`;
+  const summaryDiv = document.createElement( 'div' );
+  summaryDiv.className = 'cell-fit';
+  if ( summaryCapPx && commit.subject.length > CHAR_CAP ) {
+    summaryDiv.style.width = summaryCapPx + 'px';
+  }
+  const summaryP = document.createElement( 'p' );
+  summaryP.textContent = commit.subject;
+  summaryDiv.appendChild( summaryP );
+  tdSummary.appendChild( summaryDiv );
 
-  // Description cell
+  // ── Description ──
   const tdDesc = document.createElement( 'td' );
   tdDesc.className = 'table-body-cell description-cell';
-  tdDesc.innerHTML = `<div class="cell-fit"><p>${ escHtml( commit.body || '' ) }</p></div>`;
+  const descDiv = document.createElement( 'div' );
+  descDiv.className = 'cell-fit';
+  const body = commit.body || '';
+  if ( descCapPx && body.length > CHAR_CAP ) {
+    descDiv.style.width = descCapPx + 'px';
+  }
+  const descP = document.createElement( 'p' );
+  descP.textContent = body;
+  descDiv.appendChild( descP );
+  tdDesc.appendChild( descDiv );
 
-  // UTC timestamp cell
+  // ── UTC timestamp ──
   const d = new Date( commit.iso );
-  const utcText = `${ d.getUTCFullYear() }-${ String( d.getUTCMonth() + 1 ).padStart( 2, '0' ) }-${ String( d.getUTCDate() ).padStart( 2, '0' ) } ${ String( d.getUTCHours() ).padStart( 2, '0' ) }:${ String( d.getUTCMinutes() ).padStart( 2, '0' ) } UTC`;
+  const pad = ( n ) => String( n ).padStart( 2, '0' );
+  const utcText = `${ d.getUTCFullYear() }-${ pad( d.getUTCMonth() + 1 ) }-${ pad( d.getUTCDate() ) } ${ pad( d.getUTCHours() ) }:${ pad( d.getUTCMinutes() ) } UTC`;
   const tdUtc = document.createElement( 'td' );
   tdUtc.className = 'table-body-cell';
-  tdUtc.innerHTML = `<div class="cell-fit"><p>${ utcText }</p></div>`;
+  const utcDiv = document.createElement( 'div' );
+  utcDiv.className = 'cell-fit';
+  const utcP = document.createElement( 'p' );
+  utcP.textContent = utcText;
+  utcDiv.appendChild( utcP );
+  tdUtc.appendChild( utcDiv );
 
   tr.appendChild( tdLocal );
   tr.appendChild( tdSha );
@@ -94,81 +177,44 @@ function buildRow( commit ) {
   return tr;
 }
 
-// ─── Chunked renderer ───────────────────────────────────────────────────────
+// ─── Table renderer ────────────────────────────────────────────────────────
 
-function renderChunked( tbody, commits ) {
-  return new Promise( ( resolve ) => {
-    let index = 0;
+function renderTable( tbody, commits ) {
+  // 1. Scan data for the first text exceeding CHAR_CAP in each prose column.
+  //    Once found, measure the cap width and stop scanning that column.
+  let summaryCapPx = null;
+  let descCapPx = null;
+  let helperFontReady = false;
 
-    function nextChunk() {
-      const end = Math.min( index + CHUNK_SIZE, commits.length );
-      const fragment = document.createDocumentFragment();
-
-      for ( let i = index; i < end; i++ ) {
-        fragment.appendChild( buildRow( commits[ i ] ) );
-      }
-      tbody.appendChild( fragment );
-      index = end;
-
-      if ( index < commits.length ) {
-        requestAnimationFrame( nextChunk );
-      } else {
-        resolve();
-      }
+  for ( const c of commits ) {
+    if ( summaryCapPx === null && c.subject.length > CHAR_CAP ) {
+      summaryCapPx = measureCapWidth( c.subject, tbody, helperFontReady );
+      helperFontReady = true;  // font properties now copied to helper
     }
-
-    requestAnimationFrame( nextChunk );
-  } );
-}
-
-// ─── Pixel cap (applied once after first chunk renders) ─────────────────────
-
-function applyPixelCaps( container ) {
-  // Query only BODY cells (td), not header cells (th) which contain <h3>.
-  const cellFits = container.querySelectorAll(
-    'td.description-cell .cell-fit, td.summary-cell .cell-fit'
-  );
-  if ( cellFits.length === 0 ) return;
-
-  let helper = document.getElementById( 'prose-cell-measure-helper' );
-  if ( ! helper ) {
-    helper = document.createElement( 'span' );
-    helper.id = 'prose-cell-measure-helper';
-    helper.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;left:-99999px;top:0;pointer-events:none;';
-    document.body.appendChild( helper );
+    if ( descCapPx === null && c.body && c.body.length > CHAR_CAP ) {
+      descCapPx = measureCapWidth( c.body, tbody, helperFontReady );
+      helperFontReady = true;
+    }
+    if ( summaryCapPx !== null && descCapPx !== null ) break;
   }
 
-  // Copy font properties from the first body-cell <p> for measurement.
-  const firstP = cellFits[ 0 ]?.querySelector( 'p' );
-  if ( ! firstP ) return;
-  const cs = window.getComputedStyle( firstP );
-  helper.style.fontFamily = cs.fontFamily;
-  helper.style.fontSize = cs.fontSize;
-  helper.style.fontWeight = cs.fontWeight;
-  helper.style.fontStyle = cs.fontStyle;
-  helper.style.letterSpacing = cs.letterSpacing;
-  helper.style.textTransform = cs.textTransform;
+  // 2. Build every row with cap widths applied inline — no post-render pass.
+  const fragment = document.createDocumentFragment();
+  for ( const commit of commits ) {
+    fragment.appendChild( buildRow( commit, summaryCapPx, descCapPx ) );
+  }
 
-  cellFits.forEach( ( cellFit ) => {
-    const p = cellFit.querySelector( 'p' );
-    if ( ! p ) return;
-    const text = p.textContent || '';
-    if ( ! text ) return;
+  // 3. Single DOM append — one layout computation with correct widths.
+  tbody.appendChild( fragment );
 
-    helper.textContent = text;
-    const fullWidth = helper.offsetWidth;
-
-    const sample = text.length >= CHAR_CAP ? text.substring( 0, CHAR_CAP ) : text;
-    helper.textContent = sample;
-    const capWidth = helper.offsetWidth;
-
-    cellFit.style.width = `${ Math.ceil( Math.min( fullWidth, capWidth ) ) + 1 }px`;
-  } );
-
-  console.log( `[DeploymentIndex] Pixel-capped ${ cellFits.length } prose cells at ${ CHAR_CAP } chars` );
+  console.log(
+    `[DeploymentIndex] Rendered ${ commits.length } rows` +
+    ( summaryCapPx ? ` (summary cap: ${ summaryCapPx }px)` : '' ) +
+    ( descCapPx ? ` (desc cap: ${ descCapPx }px)` : '' )
+  );
 }
 
-// ─── Fetch JSON from server ─────────────────────────────────────────────────
+// ─── Fetch JSON from server ────────────────────────────────────────────────
 
 async function fetchFreshData( env ) {
   const url = `pages/development/deployment-index/${ env }/index.json`;
@@ -181,7 +227,7 @@ async function fetchFreshData( env ) {
   }
 }
 
-// ─── Public API ─────────────────────────────────────────────────────────────
+// ─── Public API ────────────────────────────────────────────────────────────
 
 /**
  * Render the deployment index for the given environment.
@@ -208,20 +254,15 @@ export async function renderDeploymentIndex( env ) {
     return;
   }
 
-  const tableOuter = tbody.closest( '.table-outer' );
-
-  // 1. Check cache — render immediately if available
+  // 1. Render from cache immediately if available
   const cached = getCachedData( env );
-  let cacheRendered = false;
   if ( cached && cached.length > 0 ) {
     console.log( `[DeploymentIndex] Rendering ${ cached.length } cached rows (${ env })` );
     tbody.innerHTML = '';
-    await renderChunked( tbody, cached );
-    applyPixelCaps( tableOuter );
-    cacheRendered = true;
+    renderTable( tbody, cached );
   }
 
-  // 2. Fetch fresh data from server
+  // 2. Fetch fresh data in background
   const fresh = await fetchFreshData( env );
   if ( ! fresh ) {
     if ( ! cached ) {
@@ -230,7 +271,7 @@ export async function renderDeploymentIndex( env ) {
     return;
   }
 
-  // 3. Compare with cache — only re-render if data changed
+  // 3. Only re-render if data actually changed
   const cacheStr = cached ? JSON.stringify( cached ) : '';
   const freshStr = JSON.stringify( fresh );
   if ( cacheStr === freshStr ) {
@@ -242,6 +283,5 @@ export async function renderDeploymentIndex( env ) {
   console.log( `[DeploymentIndex] New data detected (${ env }) — ${ fresh.length } rows, re-rendering` );
   setCachedData( env, fresh );
   tbody.innerHTML = '';
-  await renderChunked( tbody, fresh );
-  applyPixelCaps( tableOuter );
+  renderTable( tbody, fresh );
 }
