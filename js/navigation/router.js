@@ -251,20 +251,6 @@ function positionArrowAt(container, button) {
   container.style.setProperty('--sidenav-arrow-top', top + 'px');
 }
 
-// Set the arrow's horizontal position to the right edge of the widest button.
-// Uses --sidenav-arrow-left so the arrow stays at a fixed x regardless of
-// which button is active or hovered.
-function setArrowHorizontal(container) {
-  if (!container) return;
-  const buttons = container.querySelectorAll('.sidenav-button');
-  let maxRight = 0;
-  for (const btn of buttons) {
-    const right = btn.offsetLeft + btn.offsetWidth;
-    if (right > maxRight) maxRight = right;
-  }
-  container.style.setProperty('--sidenav-arrow-left', (maxRight + 6) + 'px');
-}
-
 // Align the secondary nav's padding-top so its first button lines up with
 // the parent button in the primary nav.
 function alignSecondaryTo(secondary, button) {
@@ -282,7 +268,6 @@ function initSidenav(pageName) {
   // If the default subpage has sub-subpages, sidenav2 is visible + expanded.
   // Collapse is scheduled after --sidenav-collapse-delay by initSidenavHover.
   sidenav.classList.add('collapsible', 'expanded');
-  setArrowHorizontal(sidenav);
   if (secondary) {
     secondary.classList.add('collapsible');
     if (config?.subSubpages?.[config.defaultSub]) {
@@ -352,7 +337,6 @@ function renderSecondaryNav(pageName, forSubpage) {
 
   secondary.classList.add('visible');
   if (sidenav) sidenav.classList.add('has-secondary');
-  setArrowHorizontal(secondary);
 
   // Align primary arrow and secondary nav to the parent button
   const parentBtn = sidenav?.querySelector(`.sidenav-button[data-subpage="${forSubpage}"]`);
@@ -391,9 +375,11 @@ function initSidenavHover(pageName) {
   const config = sidenavConfig[pageName];
   if (!sidenav) return;
 
+  const rootStyle = getComputedStyle(document.documentElement);
   const collapseDelay = parseInt(
-    getComputedStyle(document.documentElement).getPropertyValue('--sidenav-collapse-delay'), 10
+    rootStyle.getPropertyValue('--sidenav-collapse-delay'), 10
   ) || 1200;
+  const arrowRestingTop = rootStyle.getPropertyValue('--sidenav-arrow-default-top').trim();
 
   let collapseTimerId = null;
 
@@ -411,9 +397,12 @@ function initSidenavHover(pageName) {
     collapseTimerId = setTimeout(() => {
       collapseTimerId = null;
       hoveredSubpage = null;
-      // Position arrow at the active button before collapsing
-      const activeBtn = sidenav.querySelector('.sidenav-button.active');
-      positionArrowAt(sidenav, activeBtn);
+      // Ease arrow to default resting position — the CSS top transition
+      // animates the movement while the sidenav collapses.
+      sidenav.style.setProperty('--sidenav-arrow-top', arrowRestingTop);
+      if (secondary) {
+        secondary.style.setProperty('--sidenav-arrow-top', arrowRestingTop);
+      }
       sidenav.classList.remove('expanded');
       if (secondary) {
         secondary.classList.remove('expanded');

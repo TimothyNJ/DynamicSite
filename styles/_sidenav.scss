@@ -101,8 +101,10 @@
   width: var(--sidenav-collapsed-width);
   min-width: var(--sidenav-collapsed-width);
   overflow: hidden;
-  transition: width var(--sidenav-shrink-duration) ease,
-              min-width var(--sidenav-shrink-duration) ease;
+  // No width/min-width transition — fit-content ↔ 2em is not interpolable,
+  // so the browser can't animate it. Declaring the transition prevented
+  // fit-content from resolving correctly. Width snaps; buttons and arrow
+  // handle the visual continuity via opacity and top transitions.
   position: relative;
   cursor: pointer;
 
@@ -114,6 +116,10 @@
 
   // Arrow visible when collapsed — appears instantly (no fade-in delay).
   // Vertical position set dynamically by JS via --sidenav-arrow-top.
+  // Horizontal position is always right: 0.4em from the container edge.
+  // When collapsed the container is 2em; when expanded it's fit-content
+  // (= widest button), so the arrow naturally sits at the right of the
+  // longest label without any JS measurement.
   &::after {
     content: '▶';
     position: absolute;
@@ -124,7 +130,7 @@
     color: white;
     opacity: var(--sidenav-arrow-opacity);
     pointer-events: none;
-    transition: opacity 0s ease 0s, top 150ms ease;
+    transition: opacity 0s ease 0s, top 300ms ease;
   }
 
   // Expanded state set by JS
@@ -132,8 +138,6 @@
     width: fit-content;
     min-width: fit-content;
     overflow: visible;
-    transition: width var(--sidenav-expand-duration) ease,
-                min-width var(--sidenav-expand-duration) ease;
 
     // Buttons fade in immediately on expand (no delay)
     .sidenav-button {
@@ -144,17 +148,12 @@
     // Arrow hidden by default when expanded
     &::after {
       opacity: 0;
-      transition: opacity 0s ease 0s, top 150ms ease;
+      transition: opacity 0s ease 0s, top 300ms ease;
     }
 
-    // Arrow stays visible in expanded state when secondary nav is showing.
-    // Horizontal position set by JS via --sidenav-arrow-left (measured from
-    // the widest button) so the arrow sits at a consistent right edge
-    // regardless of which button is active.
+    // Arrow stays visible in expanded state when secondary nav is showing
     &.has-secondary::after {
       opacity: var(--sidenav-arrow-opacity);
-      right: auto;
-      left: var(--sidenav-arrow-left);
     }
   }
 }
@@ -170,7 +169,6 @@
   // Vertical offset set dynamically by JS so the first button aligns
   // with the parent primary-nav button that spawned it.
   padding-top: var(--sidenav-secondary-offset, var(--sidenav-arrow-default-top));
-  margin-left: 1.5em;
   width: fit-content;
   flex: 0 1 auto;
   background-color: transparent;
