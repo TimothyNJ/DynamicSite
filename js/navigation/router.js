@@ -319,9 +319,22 @@ function renderSecondaryNav(pageName, forSubpage, opts = {}) {
   const subSubConfig = config.subSubpages?.[forSubpage];
 
   if (!subSubConfig) {
-    secondary.innerHTML = '';
-    secondary.classList.remove('visible', 'expanded');
+    // Ease the secondary nav closed instead of snapping display: none.
+    // Remove .expanded so the CSS width transition eases to collapsed width,
+    // then remove .visible (display: none) after the transition finishes.
+    secondary.classList.remove('expanded');
     if (sidenav) sidenav.classList.remove('has-secondary');
+    const duration = parseFloat(
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--sidenav-expand-duration')
+    ) || 300;
+    setTimeout(() => {
+      // Only hide if still not expanded (user may have re-hovered)
+      if (!secondary.classList.contains('expanded')) {
+        secondary.innerHTML = '';
+        secondary.classList.remove('visible');
+      }
+    }, duration);
     return;
   }
 
