@@ -154,11 +154,14 @@
     // When secondary nav is showing, push the arrow outside the container
     // and add margin to create space between the two sidenavs.
     &.has-secondary {
-      margin-right: 1.2em;
+      --sidenav-arrow-gap: 1.8em;
+      margin-right: var(--sidenav-arrow-gap);
 
       &::after {
         opacity: var(--sidenav-arrow-opacity);
-        right: -1.3em;
+        right: auto;
+        left: calc(100% + var(--sidenav-arrow-gap) / 2);
+        transform: translate(-50%, -50%);
       }
     }
   }
