@@ -87,6 +87,17 @@ function onVisibilityChange() {
 
 function resetInactivityTimer() {
   if (isSessionTimeOutVisible) return;
+
+  // Wall-clock check: if the session expired while the OS was asleep (or the
+  // tab was backgrounded for hours), the first mouse movement / keypress
+  // after wake must NOT silently restart the timer. Check real elapsed time
+  // first — if expired, log out immediately.
+  if (hasSessionExpired()) {
+    console.log('[SessionTimeout] Activity detected but session already expired (sleep/wake) — logging out');
+    performLogout();
+    return;
+  }
+
   stampActivity();
   clearTimeout(inactivityTimer);
   inactivityTimer = setTimeout(showSessionTimeOutWarning, getInactivityLimit());

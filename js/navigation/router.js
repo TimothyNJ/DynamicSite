@@ -61,15 +61,19 @@ const sidenavConfig = {
     subpages: ["individual-metrics", "team-metrics", "organisation-metrics"]
   },
   "development": {
-    defaultSub: "site-settings",
+    defaultSub: "display-settings",
     basePath: "pages/development",
-    subpages: ["site-settings", "table", "engines", "infrastructure", "backgrounds", "deployment-index"],
+    subpages: ["display-settings", "table", "engines", "infrastructure", "backgrounds", "deployment-index", "security-settings"],
     subSubpages: {
       "backgrounds": {
         defaultSub: "pool",
         items: ["pool", "pool-settings"]
       },
       "deployment-index": {
+        defaultSub: "development",
+        items: ["development", "sandbox", "production"]
+      },
+      "security-settings": {
         defaultSub: "development",
         items: ["development", "sandbox", "production"]
       }

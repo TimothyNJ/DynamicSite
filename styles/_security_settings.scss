@@ -1,0 +1,82 @@
+// _security_settings.scss - Security Settings page layout
+// Created: 18-Apr-2026
+
+// ==============================================
+// Session Management Panel
+// ==============================================
+.session-management-panel {
+  width: 90%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+// ==============================================
+// Security Section Headers
+// ==============================================
+.security-section {
+  margin-bottom: 3%;
+
+  h4 {
+    margin-bottom: 1.5%;
+    opacity: 0.7;
+  }
+}
+
+// ==============================================
+// Security Row — label | value | description
+// ==============================================
+.security-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr;
+  align-items: center;
+  gap: 1em;
+  padding: 0.6em 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.security-label p {
+  opacity: 0.8;
+}
+
+.security-value p {
+  font-weight: bold;
+}
+
+.security-desc p {
+  opacity: 0.5;
+  font-style: italic;
+}
+
+// ==============================================
+// Bug Status Indicators
+// ==============================================
+.security-status-broken {
+  color: #e74c3c;
+}
+
+.security-status-fixed {
+  color: #2ecc71;
+}
+
+// ==============================================
+// Security Row — bug highlight
+// ==============================================
+.security-row-bug {
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 5px;
+  padding: 0.6em;
+}
+
+// ==============================================
+// Responsive — stack on small screens
+// ==============================================
+@media (max-width: 600px) {
+  .security-row {
+    grid-template-columns: 1fr;
+    gap: 0.3em;
+  }
+}

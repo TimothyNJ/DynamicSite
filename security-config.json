@@ -1,0 +1,10 @@
+{
+  "sessionTimeoutOptions": [
+    { "text": "30 sec", "value": 0.5 },
+    { "text": "10 min", "value": 10 },
+    { "text": "20 min", "value": 20 }
+  ],
+  "defaultTimeoutMinutes": 0.5,
+  "countdownSeconds": 30,
+  "tokenRefreshBufferMs": 300000
+}

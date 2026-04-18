@@ -1,0 +1,85 @@
+<h2>Security Settings — Development</h2>
+
+<div class="session-management-panel" data-env="development">
+
+  <!-- Session Management -->
+  <h3>Session Management</h3>
+
+  <!-- Zitadel Server-Side Settings -->
+  <div class="security-section" id="sec-zitadel-development">
+    <h4>Token &amp; Auth Lifetimes (Zitadel)</h4>
+
+    <div class="security-row" id="sec-token-lifetime-development">
+      <div class="security-label"><p>Access Token Lifetime</p></div>
+      <div class="security-value" id="sec-token-lifetime-value-development"></div>
+      <div class="security-desc"><p>How long a login token lasts before the browser must get a new one</p></div>
+    </div>
+
+    <div class="security-row" id="sec-refresh-idle-development">
+      <div class="security-label"><p>Refresh Token Idle Expiry</p></div>
+      <div class="security-value" id="sec-refresh-idle-value-development"></div>
+      <div class="security-desc"><p>How long a refresh token survives without being used</p></div>
+    </div>
+
+    <div class="security-row" id="sec-refresh-absolute-development">
+      <div class="security-label"><p>Refresh Token Hard Limit</p></div>
+      <div class="security-value" id="sec-refresh-absolute-value-development"></div>
+      <div class="security-desc"><p>Maximum lifetime of a refresh token regardless of activity</p></div>
+    </div>
+
+    <div class="security-row" id="sec-id-token-lifetime-development">
+      <div class="security-label"><p>ID Token Lifetime</p></div>
+      <div class="security-value" id="sec-id-token-lifetime-value-development"></div>
+      <div class="security-desc"><p>How long the ID token (identity proof) lasts</p></div>
+    </div>
+
+    <div class="security-row" id="sec-password-check-development">
+      <div class="security-label"><p>Password Re-Check Lifetime</p></div>
+      <div class="security-value" id="sec-password-check-value-development"></div>
+      <div class="security-desc"><p>How long before Zitadel forces the user to re-enter their password</p></div>
+    </div>
+  </div>
+
+  <!-- Client-Side Session Settings -->
+  <div class="security-section" id="sec-client-development">
+    <h4>Client-Side Session Settings</h4>
+
+    <div class="security-row" id="sec-inactivity-timeout-development">
+      <div class="security-label"><p>Inactivity Timeout</p></div>
+      <div class="security-value" id="sec-inactivity-timeout-value-development"></div>
+      <div class="security-desc"><p>How long with no mouse/keyboard activity before the warning popup appears</p></div>
+    </div>
+
+    <div class="security-row" id="sec-countdown-duration-development">
+      <div class="security-label"><p>Warning Countdown</p></div>
+      <div class="security-value" id="sec-countdown-duration-value-development"></div>
+      <div class="security-desc"><p>Seconds the user has to click Continue before auto-logout</p></div>
+    </div>
+
+    <div class="security-row" id="sec-timeout-options-development">
+      <div class="security-label"><p>User Timeout Options</p></div>
+      <div class="security-value" id="sec-timeout-options-value-development"></div>
+      <div class="security-desc"><p>The choices shown to users on their Settings page for session timeout</p></div>
+    </div>
+
+    <div class="security-row" id="sec-token-refresh-buffer-development">
+      <div class="security-label"><p>Token Refresh Buffer</p></div>
+      <div class="security-value" id="sec-token-refresh-buffer-value-development"></div>
+      <div class="security-desc"><p>How early before token expiry the background refresh fires</p></div>
+    </div>
+  </div>
+
+  <!-- Known Issues -->
+  <div class="security-section" id="sec-issues-development">
+    <h4>Known Issues</h4>
+
+    <div class="security-row security-row-bug" id="sec-sleep-bug-development">
+      <div class="security-label"><p>Sleep Wake Bug</p></div>
+      <div class="security-value" id="sec-sleep-bug-value-development"></div>
+      <div class="security-desc"><p>Mouse movement after OS sleep restarts session without checking elapsed time</p></div>
+    </div>
+  </div>
+
+  <!-- Push Button -->
+  <div id="sec-push-button-development"></div>
+</div>

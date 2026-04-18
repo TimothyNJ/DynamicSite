@@ -197,6 +197,109 @@ def handle_get_user_grants():
     )
 
 
+# ─── Security Settings Handlers ──────────────────────────────────────────────
+
+def handle_get_security_settings(env):
+    """Fetch OIDC settings and login policy from Zitadel Admin API.
+    The env parameter is accepted for future per-environment Zitadel instances,
+    but currently all environments share the same Zitadel instance."""
+    oidc_settings = call_zitadel_management('GET', '/admin/v1/settings/oidc')
+    login_policy = call_zitadel_management('GET', '/admin/v1/policies/login')
+    return {
+        'environment': env,
+        'oidcSettings': oidc_settings.get('settings', {}),
+        'loginPolicy': login_policy.get('policy', {})
+    }
+
+
+def handle_update_security_settings(env, body):
+    """Update Zitadel OIDC settings and/or login policy.
+    Accepts a JSON body with optional 'oidcSettings' and 'loginPolicy' keys.
+    Each key contains only the fields to update."""
+    results = {}
+
+    if 'oidcSettings' in body:
+        oidc = body['oidcSettings']
+        update_payload = {}
+        if 'accessTokenLifetime' in oidc:
+            update_payload['accessTokenLifetime'] = oidc['accessTokenLifetime']
+        if 'idTokenLifetime' in oidc:
+            update_payload['idTokenLifetime'] = oidc['idTokenLifetime']
+        if 'refreshTokenIdleExpiration' in oidc:
+            update_payload['refreshTokenIdleExpiration'] = oidc['refreshTokenIdleExpiration']
+        if 'refreshTokenExpiration' in oidc:
+            update_payload['refreshTokenExpiration'] = oidc['refreshTokenExpiration']
+        if update_payload:
+            results['oidc'] = call_zitadel_management('PUT', '/admin/v1/settings/oidc', update_payload)
+
+    if 'loginPolicy' in body:
+        lp = body['loginPolicy']
+        update_payload = {}
+        if 'passwordCheckLifetime' in lp:
+            update_payload['passwordCheckLifetime'] = lp['passwordCheckLifetime']
+        if update_payload:
+            # Login policy update requires the full policy object; fetch current
+            # and merge in the changes.
+            current = call_zitadel_management('GET', '/admin/v1/policies/login')
+            merged = {**current.get('policy', {}), **update_payload}
+            # Remove read-only fields
+            for key in ['details', 'isDefault']:
+                merged.pop(key, None)
+            results['loginPolicy'] = call_zitadel_management('PUT', '/admin/v1/policies/login', merged)
+
+    results['environment'] = env
+    return results
+
+
+# S3 bucket map per environment for client-side security config
+ENV_S3_BUCKETS = {
+    'development': 'tnjdynamicsite-dev',
+    'sandbox': 'tnjdynamicsite-sandbox',
+    'production': 'tnjdynamicsite'
+}
+
+ENV_CLOUDFRONT_IDS = {
+    'development': 'E3OWX0O17FJNHI',
+    'sandbox': '',  # TODO: Add sandbox CloudFront distribution ID
+    'production': ''  # TODO: Add production CloudFront distribution ID
+}
+
+
+def handle_push_client_config(env, body):
+    """Write client-side security config JSON to the target environment's S3 bucket
+    and invalidate CloudFront cache so the site picks it up."""
+    import boto3
+
+    bucket = ENV_S3_BUCKETS.get(env)
+    if not bucket:
+        raise ValueError(f'Unknown environment: {env}')
+
+    config_json = json.dumps(body.get('clientConfig', {}), indent=2)
+
+    s3 = boto3.client('s3', region_name='us-west-2')
+    s3.put_object(
+        Bucket=bucket,
+        Key='security-config.json',
+        Body=config_json.encode('utf-8'),
+        ContentType='application/json',
+        CacheControl='no-cache,no-store,must-revalidate'
+    )
+
+    # Invalidate CloudFront if distribution ID is configured
+    cf_id = ENV_CLOUDFRONT_IDS.get(env)
+    if cf_id:
+        cf = boto3.client('cloudfront', region_name='us-west-2')
+        cf.create_invalidation(
+            DistributionId=cf_id,
+            InvalidationBatch={
+                'Paths': {'Quantity': 1, 'Items': ['/security-config.json']},
+                'CallerReference': str(int(time.time()))
+            }
+        )
+
+    return {'status': 'ok', 'environment': env, 'bucket': bucket}
+
+
 # ─── Route Map ───────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -204,6 +307,11 @@ ROUTES = {
     'GET /users': handle_get_users,
     'GET /user-grants': handle_get_user_grants,
 }
+
+# Dynamic routes handled in lambda_handler:
+# GET  /security-settings/<env>  → handle_get_security_settings
+# POST /security-settings/<env>  → handle_update_security_settings
+# POST /push-client-config/<env> → handle_push_client_config
 
 # ─── Lambda Entry Point ──────────────────────────────────────────────────────
 
@@ -236,18 +344,47 @@ def lambda_handler(event, context):
     except ValueError as e:
         return respond(401, {'error': str(e)}, origin)
 
-    # Route to handler
+    # Route to handler — check static routes first, then dynamic patterns
     route_key = f'{http_method} {path}'
     handler = ROUTES.get(route_key)
 
-    if not handler:
-        return respond(404, {'error': f'Unknown route: {route_key}',
-                             'available_routes': list(ROUTES.keys())}, origin)
-
     try:
-        data = handler()
-        return respond(200, data, origin)
+        if handler:
+            data = handler()
+            return respond(200, data, origin)
+
+        # Dynamic routes: /security-settings/<env>
+        if path.startswith('/security-settings/'):
+            env = path.split('/')[-1]
+            if env not in ('development', 'sandbox', 'production'):
+                return respond(400, {'error': f'Invalid environment: {env}'}, origin)
+            if http_method == 'GET':
+                data = handle_get_security_settings(env)
+                return respond(200, data, origin)
+            elif http_method == 'POST':
+                body = json.loads(event.get('body') or '{}')
+                data = handle_update_security_settings(env, body)
+                return respond(200, data, origin)
+
+        # Dynamic routes: /push-client-config/<env>
+        if path.startswith('/push-client-config/') and http_method == 'POST':
+            env = path.split('/')[-1]
+            if env not in ('development', 'sandbox', 'production'):
+                return respond(400, {'error': f'Invalid environment: {env}'}, origin)
+            body = json.loads(event.get('body') or '{}')
+            data = handle_push_client_config(env, body)
+            return respond(200, data, origin)
+
+        return respond(404, {'error': f'Unknown route: {route_key}',
+                             'available_routes': list(ROUTES.keys()) + [
+                                 'GET /security-settings/<env>',
+                                 'POST /security-settings/<env>',
+                                 'POST /push-client-config/<env>'
+                             ]}, origin)
+
     except RuntimeError as e:
         return respond(502, {'error': str(e)}, origin)
+    except ValueError as e:
+        return respond(400, {'error': str(e)}, origin)
     except Exception as e:
         return respond(500, {'error': f'Internal error: {str(e)}'}, origin)

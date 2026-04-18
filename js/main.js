@@ -37,6 +37,9 @@ import { start as startUpdateNotifier, stop as stopUpdateNotifier } from './upda
 // Zitadel Management API
 import { fetchProjectRoles } from './api/zitadel-api.js';
 
+// Security Settings
+import { initializeSecuritySettings } from './security/security-settings.js';
+
 function isUserAuthenticated() {
   return isAuthenticated();
 }
@@ -711,10 +714,10 @@ function initializeEnginesViewComponents() {
   }
 }
 
-// Site Settings page initialization (development/site-settings)
-function initializeSiteSettingsComponents() {
+// Display Settings page initialization (development/display-settings)
+function initializeDisplaySettingsComponents() {
   if (!window.componentFactory) {
-    console.error('[Site Settings] ComponentFactory not available');
+    console.error('[Display Settings] ComponentFactory not available');
     return;
   }
 
@@ -1237,9 +1240,9 @@ document.addEventListener('subpageLoaded', (e) => {
       if (subpage === 'engines') {
         console.log('[main.js] Initializing engines components (development/engines)');
         initializeEnginesViewComponents();
-      } else if (subpage === 'site-settings') {
-        console.log('[main.js] Initializing site settings (development/site-settings)');
-        initializeSiteSettingsComponents();
+      } else if (subpage === 'display-settings') {
+        console.log('[main.js] Initializing display settings (development/display-settings)');
+        initializeDisplaySettingsComponents();
       } else if (subpage === 'table') {
         console.log('[main.js] Initializing Table page (development/table)');
         initializeTablePage();
@@ -1261,6 +1264,10 @@ document.addEventListener('subpageLoaded', (e) => {
         renderDeploymentIndex( env ).then( () => {
           initializeDeploymentIndexSearch( env );
         } );
+      } else if (subpage === 'security-settings') {
+        const env = e.detail.subsubpage;
+        console.log(`[main.js] Initializing Security Settings (${ env })`);
+        initializeSecuritySettings( env );
       }
     });
   }
