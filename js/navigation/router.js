@@ -383,7 +383,6 @@ function initSidenavHover(pageName) {
   const collapseDelay = parseInt(
     rootStyle.getPropertyValue('--sidenav-collapse-delay'), 10
   ) || 1200;
-  const arrowRestingTop = rootStyle.getPropertyValue('--sidenav-arrow-default-top').trim();
 
   let collapseTimerId = null;
 
@@ -401,11 +400,15 @@ function initSidenavHover(pageName) {
     collapseTimerId = setTimeout(() => {
       collapseTimerId = null;
       hoveredSubpage = null;
-      // Ease arrow to default resting position — the CSS top transition
-      // animates the movement while the sidenav collapses.
-      sidenav.style.setProperty('--sidenav-arrow-top', arrowRestingTop);
-      if (secondary) {
-        secondary.style.setProperty('--sidenav-arrow-top', arrowRestingTop);
+      // Ease both arrows to the first button of sidenav 1 — the CSS top
+      // transition animates the movement while the sidenavs collapse.
+      const firstBtn = sidenav.querySelector('.sidenav-button');
+      if (firstBtn) {
+        const restingTop = firstBtn.offsetTop + firstBtn.offsetHeight / 2;
+        sidenav.style.setProperty('--sidenav-arrow-top', restingTop + 'px');
+        if (secondary) {
+          secondary.style.setProperty('--sidenav-arrow-top', restingTop + 'px');
+        }
       }
       sidenav.classList.remove('expanded');
       if (secondary) {
