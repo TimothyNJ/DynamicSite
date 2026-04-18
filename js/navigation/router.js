@@ -243,6 +243,21 @@ export async function navigateToPage(pageName, pushState = true, subpage = null,
 // Sidenav Initialization
 // ==============================================
 
+// ─── Arrow & secondary-nav positioning helpers ─────────────────────────────
+// Position the sidenav arrow (::after) at the vertical centre of a button.
+function positionArrowAt(container, button) {
+  if (!container || !button) return;
+  const top = button.offsetTop + button.offsetHeight / 2;
+  container.style.setProperty('--sidenav-arrow-top', top + 'px');
+}
+
+// Align the secondary nav's padding-top so its first button lines up with
+// the parent button in the primary nav.
+function alignSecondaryTo(secondary, button) {
+  if (!secondary || !button) return;
+  secondary.style.setProperty('--sidenav-secondary-offset', button.offsetTop + 'px');
+}
+
 function initSidenav(pageName) {
   const sidenav = document.querySelector('.sidenav');
   const secondary = document.querySelector('.sidenav-secondary');
@@ -258,6 +273,15 @@ function initSidenav(pageName) {
     if (config?.subSubpages?.[config.defaultSub]) {
       renderSecondaryNav(pageName, config.defaultSub);
       secondary.classList.add('visible', 'expanded');
+      sidenav.classList.add('has-secondary');
+      // Align arrow and secondary nav to the default subpage button
+      const defaultBtn = sidenav.querySelector(`.sidenav-button[data-subpage="${config.defaultSub}"]`);
+      positionArrowAt(sidenav, defaultBtn);
+      alignSecondaryTo(secondary, defaultBtn);
+    } else {
+      // No sub-subpages — position arrow at the active button for collapsed state
+      const activeBtn = sidenav.querySelector('.sidenav-button.active');
+      positionArrowAt(sidenav, activeBtn);
     }
   }
 
@@ -279,6 +303,7 @@ function initSidenav(pageName) {
 // If the subpage has no sub-subpages, sidenav2 is cleared and hidden.
 
 function renderSecondaryNav(pageName, forSubpage) {
+  const sidenav = document.querySelector('.sidenav');
   const secondary = document.querySelector('.sidenav-secondary');
   const config = sidenavConfig[pageName];
   if (!secondary || !config) return;
@@ -288,6 +313,7 @@ function renderSecondaryNav(pageName, forSubpage) {
   if (!subSubConfig) {
     secondary.innerHTML = '';
     secondary.classList.remove('visible', 'expanded');
+    if (sidenav) sidenav.classList.remove('has-secondary');
     return;
   }
 
@@ -310,6 +336,16 @@ function renderSecondaryNav(pageName, forSubpage) {
   });
 
   secondary.classList.add('visible');
+  if (sidenav) sidenav.classList.add('has-secondary');
+
+  // Align primary arrow and secondary nav to the parent button
+  const parentBtn = sidenav?.querySelector(`.sidenav-button[data-subpage="${forSubpage}"]`);
+  positionArrowAt(sidenav, parentBtn);
+  alignSecondaryTo(secondary, parentBtn);
+
+  // Position secondary nav's own arrow at its active button (for collapsed state)
+  const activeSecBtn = secondary.querySelector('.sidenav-button.active');
+  if (activeSecBtn) positionArrowAt(secondary, activeSecBtn);
 }
 
 // ==============================================
@@ -359,6 +395,9 @@ function initSidenavHover(pageName) {
     collapseTimerId = setTimeout(() => {
       collapseTimerId = null;
       hoveredSubpage = null;
+      // Position arrow at the active button before collapsing
+      const activeBtn = sidenav.querySelector('.sidenav-button.active');
+      positionArrowAt(sidenav, activeBtn);
       sidenav.classList.remove('expanded');
       if (secondary) {
         secondary.classList.remove('expanded');
@@ -367,6 +406,7 @@ function initSidenavHover(pageName) {
         } else {
           secondary.innerHTML = '';
           secondary.classList.remove('visible');
+          sidenav.classList.remove('has-secondary');
         }
       }
     }, collapseDelay);
@@ -387,6 +427,9 @@ function initSidenavHover(pageName) {
       renderSecondaryNav(pageName, activeSubpage);
       secondary.classList.add('visible', 'expanded');
     }
+    // Restore arrow to the active button
+    const activeBtn = sidenav.querySelector('.sidenav-button.active');
+    positionArrowAt(sidenav, activeBtn);
     expandAll();
   }
 
@@ -425,12 +468,14 @@ function initSidenavHover(pageName) {
     contentBuffer.addEventListener('mouseleave', onLeaveZone);
   }
 
-  // Sidenav1 button hover: live preview of sub-subpages in sidenav2
+  // Sidenav1 button hover: live preview of sub-subpages in sidenav2.
+  // Also moves the arrow to the hovered button.
   if (secondary && config) {
     sidenav.querySelectorAll('.sidenav-button[data-subpage]').forEach(button => {
       button.addEventListener('mouseenter', () => {
         const sub = button.getAttribute('data-subpage');
         hoveredSubpage = config.subSubpages?.[sub] ? sub : null;
+        positionArrowAt(sidenav, button);
         renderSecondaryNav(pageName, sub);
         if (secondary.classList.contains('visible')) secondary.classList.add('expanded');
       });
@@ -451,9 +496,14 @@ async function loadSubpage(pageName, subpage, pushState = true, subsubpage = nul
 
   // Render sidenav2 for this subpage
   renderSecondaryNav(pageName, subpage);
+  const sidenav = document.querySelector('.sidenav');
   const secondary = document.querySelector('.sidenav-secondary');
   const subSubConfig = config.subSubpages?.[subpage];
   if (secondary && subSubConfig) secondary.classList.add('expanded');
+
+  // Position primary arrow at the clicked button
+  const clickedBtn = sidenav?.querySelector(`.sidenav-button[data-subpage="${subpage}"]`);
+  positionArrowAt(sidenav, clickedBtn);
 
   // If this subpage has sub-subpages, delegate to loadSubSubpage
   if (subSubConfig) {
@@ -524,6 +574,11 @@ async function loadSubSubpage(pageName, subpage, subsubpage, pushState = true) {
     contentArea.dataset.subsubpage = subsubpage;
     activeSubSubpage = subsubpage;
     setActiveButton('data-subsubpage', subsubpage);
+
+    // Position secondary nav's arrow at the newly active sub-subpage button
+    const secondary = document.querySelector('.sidenav-secondary');
+    const activeSecBtn = secondary?.querySelector(`.sidenav-button[data-subsubpage="${subsubpage}"]`);
+    positionArrowAt(secondary, activeSecBtn);
 
     if (pushState) {
       window.history.pushState(

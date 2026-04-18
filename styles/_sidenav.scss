@@ -112,18 +112,19 @@
     transition: opacity var(--sidenav-fade-speed) ease;
   }
 
-  // Arrow visible when collapsed — appears instantly (no fade-in delay)
+  // Arrow visible when collapsed — appears instantly (no fade-in delay).
+  // Vertical position set dynamically by JS via --sidenav-arrow-top.
   &::after {
     content: '▶';
     position: absolute;
     right: 0.4em;
-    top: var(--sidenav-arrow-default-top);
+    top: var(--sidenav-arrow-top, var(--sidenav-arrow-default-top));
     transform: translateY(-50%);
     font-size: 0.7em;
     color: white;
     opacity: var(--sidenav-arrow-opacity);
     pointer-events: none;
-    transition: opacity 0s ease 0s;
+    transition: opacity 0s ease 0s, top 150ms ease;
   }
 
   // Expanded state set by JS
@@ -140,10 +141,15 @@
       transition: opacity var(--sidenav-fade-speed) ease;
     }
 
-    // Arrow hidden instantly when expanding
+    // Arrow hidden by default when expanded
     &::after {
       opacity: 0;
-      transition: opacity 0s ease 0s;
+      transition: opacity 0s ease 0s, top 150ms ease;
+    }
+
+    // Arrow stays visible in expanded state when secondary nav is showing
+    &.has-secondary::after {
+      opacity: var(--sidenav-arrow-opacity);
     }
   }
 }
@@ -156,7 +162,9 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  padding-top: var(--sidenav-arrow-default-top);
+  // Vertical offset set dynamically by JS so the first button aligns
+  // with the parent primary-nav button that spawned it.
+  padding-top: var(--sidenav-secondary-offset, var(--sidenav-arrow-default-top));
   width: fit-content;
   flex: 0 1 auto;
   background-color: transparent;
