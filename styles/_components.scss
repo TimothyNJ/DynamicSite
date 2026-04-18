@@ -174,11 +174,12 @@
 // ==============================================
 // Font Examples Table — typography calibration grid
 // ==============================================
-// Pure size-comparison table: zero padding anywhere so font sizes are the
-// only variable. vertical-align: baseline aligns letter shapes across
-// columns. Standard 1px debug borders — toggled by .borders-hidden.
-// Wrapped in its own fit-content container (not .table-body) so borders
-// hug the table rather than stretching to the content-area width.
+// Pure size-comparison table for font calibration. Sample cells have zero
+// padding and line-height: 1 to collapse the font's inherent line box so
+// glyphs sit tight against the cell edges. vertical-align: baseline aligns
+// letter shapes across columns. Label and header cells use standard global
+// <p> rules — no local overrides. Standard 1px debug borders — toggled by
+// .borders-hidden. Wrapped in fit-content container so borders hug the table.
 .fe-table-body {
   width: fit-content;
   max-width: 100%;
@@ -196,12 +197,11 @@
 
 .fe-header-cell {
   text-align: center;
-  padding: 0;
   border: 1px solid royalblue;
 
+  // <p> tags inherit global font rules from _base.scss — no local overrides
   p {
     margin: 0;
-    opacity: 0.6;
   }
 }
 
@@ -213,11 +213,18 @@
   vertical-align: baseline;
   text-align: center;
   padding: 0;
+  line-height: 1;  // Collapse the font's inherent line box buffer
   border: 1px solid royalblue;
 
   .fe-sample {
     margin: 0;
+    line-height: 1;  // Match cell line-height on the element itself
     color: inherit;
+  }
+
+  // Inline <span> samples (MIN / PREF columns) also need collapsed line-height
+  span {
+    line-height: 1;
   }
 }
 
@@ -227,13 +234,11 @@
 
 .fe-label-cell {
   text-align: center;
-  padding: 0;
   border: 1px solid royalblue;
 
+  // <p> tags inherit global font rules from _base.scss — no local overrides
   p {
     margin: 0;
-    font-size: 10px;
-    opacity: 0.6;
   }
 }
 
