@@ -20,69 +20,71 @@
      On phone: expect MIN == LIVE (MIN is winning).
      On MBP/TV: expect LIVE == PREF (vw is winning).
      ────────────────────────────────────────────────────────────────────── -->
-<div class="font-examples-grid">
+<table class="font-examples-table">
+  <thead>
+    <tr class="fe-header-row">
+      <th class="fe-header-cell"><p>MIN</p></th>
+      <th class="fe-header-cell"><p>LIVE</p></th>
+      <th class="fe-header-cell"><p>PREF</p></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="fe-sample-row">
+      <td class="fe-sample-cell"><span style="font-size: 1.125rem; font-weight: bold;">H1</span></td>
+      <td class="fe-sample-cell"><h1 class="fe-sample">H1</h1></td>
+      <td class="fe-sample-cell"><span style="font-size: 1.1vw; font-weight: bold;">H1</span></td>
+    </tr>
+    <tr class="fe-label-row">
+      <td class="fe-label-cell"><p>1.125rem</p></td>
+      <td class="fe-label-cell"><p>clamp</p></td>
+      <td class="fe-label-cell"><p>1.1vw</p></td>
+    </tr>
 
-  <!-- h1 tier -->
-  <div class="fe-row">
-    <span class="fe-sample" style="font-size: 1.125rem; font-weight: bold;">H1</span>
-    <h1 class="fe-sample">H1</h1>
-    <span class="fe-sample" style="font-size: 1.1vw; font-weight: bold;">H1</span>
-  </div>
-  <div class="fe-labels">
-    <div class="fe-label">MIN 1.125rem</div>
-    <div class="fe-label">LIVE</div>
-    <div class="fe-label">PREF 1.1vw</div>
-  </div>
+    <tr class="fe-sample-row">
+      <td class="fe-sample-cell"><span style="font-size: 0.875rem; font-weight: bold;">H2</span></td>
+      <td class="fe-sample-cell"><h2 class="fe-sample">H2</h2></td>
+      <td class="fe-sample-cell"><span style="font-size: 0.95vw; font-weight: bold;">H2</span></td>
+    </tr>
+    <tr class="fe-label-row">
+      <td class="fe-label-cell"><p>0.875rem</p></td>
+      <td class="fe-label-cell"><p>clamp</p></td>
+      <td class="fe-label-cell"><p>0.95vw</p></td>
+    </tr>
 
-  <!-- h2 tier -->
-  <div class="fe-row">
-    <span class="fe-sample" style="font-size: 0.875rem; font-weight: bold;">H2</span>
-    <h2 class="fe-sample">H2</h2>
-    <span class="fe-sample" style="font-size: 0.95vw; font-weight: bold;">H2</span>
-  </div>
-  <div class="fe-labels">
-    <div class="fe-label">MIN 0.875rem</div>
-    <div class="fe-label">LIVE</div>
-    <div class="fe-label">PREF 0.95vw</div>
-  </div>
+    <tr class="fe-sample-row">
+      <td class="fe-sample-cell"><span style="font-size: 0.7rem; font-weight: bold;">H3</span></td>
+      <td class="fe-sample-cell"><h3 class="fe-sample">H3</h3></td>
+      <td class="fe-sample-cell"><span style="font-size: 0.8vw; font-weight: bold;">H3</span></td>
+    </tr>
+    <tr class="fe-label-row">
+      <td class="fe-label-cell"><p>0.7rem</p></td>
+      <td class="fe-label-cell"><p>clamp</p></td>
+      <td class="fe-label-cell"><p>0.8vw</p></td>
+    </tr>
 
-  <!-- h3 tier -->
-  <div class="fe-row">
-    <span class="fe-sample" style="font-size: 0.7rem; font-weight: bold;">H3</span>
-    <h3 class="fe-sample">H3</h3>
-    <span class="fe-sample" style="font-size: 0.8vw; font-weight: bold;">H3</span>
-  </div>
-  <div class="fe-labels">
-    <div class="fe-label">MIN 0.7rem</div>
-    <div class="fe-label">LIVE</div>
-    <div class="fe-label">PREF 0.8vw</div>
-  </div>
+    <tr class="fe-sample-row">
+      <td class="fe-sample-cell"><span style="font-size: 0.6rem;">H4</span></td>
+      <td class="fe-sample-cell"><h4 class="fe-sample">H4</h4></td>
+      <td class="fe-sample-cell"><span style="font-size: 0.75vw;">H4</span></td>
+    </tr>
+    <tr class="fe-label-row">
+      <td class="fe-label-cell"><p>0.6rem</p></td>
+      <td class="fe-label-cell"><p>clamp</p></td>
+      <td class="fe-label-cell"><p>0.75vw</p></td>
+    </tr>
 
-  <!-- h4 tier -->
-  <div class="fe-row">
-    <span class="fe-sample" style="font-size: 0.6rem;">H4</span>
-    <h4 class="fe-sample">H4</h4>
-    <span class="fe-sample" style="font-size: 0.75vw;">H4</span>
-  </div>
-  <div class="fe-labels">
-    <div class="fe-label">MIN 0.6rem</div>
-    <div class="fe-label">LIVE</div>
-    <div class="fe-label">PREF 0.75vw</div>
-  </div>
-
-  <!-- p tier -->
-  <div class="fe-row">
-    <span class="fe-sample" style="font-size: 0.5rem;">P</span>
-    <p class="fe-sample">P</p>
-    <span class="fe-sample" style="font-size: 0.7vw;">P</span>
-  </div>
-  <div class="fe-labels">
-    <div class="fe-label">MIN 0.5rem</div>
-    <div class="fe-label">LIVE</div>
-    <div class="fe-label">PREF 0.7vw</div>
-  </div>
-
-</div>
+    <tr class="fe-sample-row">
+      <td class="fe-sample-cell"><span style="font-size: 0.5rem;">P</span></td>
+      <td class="fe-sample-cell"><p class="fe-sample">P</p></td>
+      <td class="fe-sample-cell"><span style="font-size: 0.7vw;">P</span></td>
+    </tr>
+    <tr class="fe-label-row">
+      <td class="fe-label-cell"><p>0.5rem</p></td>
+      <td class="fe-label-cell"><p>clamp</p></td>
+      <td class="fe-label-cell"><p>0.7vw</p></td>
+    </tr>
+  </tbody>
+</table>
 
 <!-- Browser minimum-font-size probe: if any of these render bigger than
      specified, the browser is enforcing a floor of its own. -->
