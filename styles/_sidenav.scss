@@ -160,7 +160,11 @@
       &::after {
         opacity: var(--sidenav-arrow-opacity);
         right: auto;
-        left: calc(100% + var(--sidenav-arrow-gap) / 2);
+        // 100% = padding-box right (box-sizing: border-box).
+        // Add border-right-width (2px debug border) to reach the border
+        // edge, then half the gap to centre between the two sidenavs.
+        // When debug borders are removed the 2px becomes 0.
+        left: calc(100% + 2px + var(--sidenav-arrow-gap) / 2);
         transform: translate(-50%, -50%);
       }
     }
