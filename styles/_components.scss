@@ -174,8 +174,8 @@
 // ==============================================
 // Font Examples Table — typography calibration grid
 // ==============================================
-// Uses a real <table> so vertical-align: baseline makes all cells in a
-// sample row the same height. Standard 1px debug borders on every cell
+// Uses a real <table> so vertical-align: bottom aligns cell content to the
+// bottom of each cell. Standard 1px debug borders on every cell
 // (same pattern as other tables) — toggled by .borders-hidden.
 .font-examples-table {
   border-collapse: separate;
@@ -202,7 +202,7 @@
 }
 
 .fe-sample-cell {
-  vertical-align: baseline;
+  vertical-align: bottom;
   text-align: center;
   padding: 0.4em 1.5em 0.15em;
   border: 1px solid royalblue;
@@ -229,25 +229,4 @@
   }
 }
 
-// Browser-minimum-font-size probe strip, shown with the font examples grid.
-// Spacing matches the inter-tier row-gap of .font-examples-grid so the
-// probe reads as one more tier rather than a distant afterthought.
-.font-min-probe {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 1.5em;
-  margin-top: 0;
-  padding-top: 0.3em;
-  color: var(--text-color, #fff);
-
-  .fe-probe {
-    text-align: center;
-
-    .fe-label {
-      font-size: 10px;
-      opacity: 0.6;
-      margin-top: 0;
-    }
-  }
-}
+// .font-min-probe removed — probes are now rows inside .font-examples-table

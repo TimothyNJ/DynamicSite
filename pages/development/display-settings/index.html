@@ -1,104 +1,104 @@
-<h1>Display Settings</h1>
-
-<!-- 1-line gap below the page header. -->
-<div style="height: 1em;"></div>
-
-<!-- Size Guides and Borders Button -->
-<div id="borders-toggle-button-container"></div>
-
-<h1 style="margin-top: 1em;">FONTS</h1>
-
-<!-- ──────────────────────────────────────────────────────────────────────
-     Font Examples — typography calibration grid (H1..P, plus min-px probes).
-     Single CSS grid so MIN / LIVE / PREF columns align vertically across
-     tiers; baseline alignment within each row keeps the three samples of
-     one tier on a shared baseline.
-       LEFT   = MIN  (clamp floor, forced via hard-coded rem)
-       CENTER = LIVE (real tag; renders whatever the clamp() resolves to
-                      at the current viewport)
-       RIGHT  = PREF (preferred vw value, unclamped)
-     On phone: expect MIN == LIVE (MIN is winning).
-     On MBP/TV: expect LIVE == PREF (vw is winning).
-     ────────────────────────────────────────────────────────────────────── -->
-<table class="font-examples-table">
-  <thead>
-    <tr class="fe-header-row">
-      <th class="fe-header-cell"><p>MIN</p></th>
-      <th class="fe-header-cell"><p>LIVE</p></th>
-      <th class="fe-header-cell"><p>PREF</p></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr class="fe-sample-row">
-      <td class="fe-sample-cell"><span style="font-size: 1.125rem; font-weight: bold;">H1</span></td>
-      <td class="fe-sample-cell"><h1 class="fe-sample">H1</h1></td>
-      <td class="fe-sample-cell"><span style="font-size: 1.1vw; font-weight: bold;">H1</span></td>
-    </tr>
-    <tr class="fe-label-row">
-      <td class="fe-label-cell"><p>1.125rem</p></td>
-      <td class="fe-label-cell"><p>clamp</p></td>
-      <td class="fe-label-cell"><p>1.1vw</p></td>
-    </tr>
-
-    <tr class="fe-sample-row">
-      <td class="fe-sample-cell"><span style="font-size: 0.875rem; font-weight: bold;">H2</span></td>
-      <td class="fe-sample-cell"><h2 class="fe-sample">H2</h2></td>
-      <td class="fe-sample-cell"><span style="font-size: 0.95vw; font-weight: bold;">H2</span></td>
-    </tr>
-    <tr class="fe-label-row">
-      <td class="fe-label-cell"><p>0.875rem</p></td>
-      <td class="fe-label-cell"><p>clamp</p></td>
-      <td class="fe-label-cell"><p>0.95vw</p></td>
-    </tr>
-
-    <tr class="fe-sample-row">
-      <td class="fe-sample-cell"><span style="font-size: 0.7rem; font-weight: bold;">H3</span></td>
-      <td class="fe-sample-cell"><h3 class="fe-sample">H3</h3></td>
-      <td class="fe-sample-cell"><span style="font-size: 0.8vw; font-weight: bold;">H3</span></td>
-    </tr>
-    <tr class="fe-label-row">
-      <td class="fe-label-cell"><p>0.7rem</p></td>
-      <td class="fe-label-cell"><p>clamp</p></td>
-      <td class="fe-label-cell"><p>0.8vw</p></td>
-    </tr>
-
-    <tr class="fe-sample-row">
-      <td class="fe-sample-cell"><span style="font-size: 0.6rem;">H4</span></td>
-      <td class="fe-sample-cell"><h4 class="fe-sample">H4</h4></td>
-      <td class="fe-sample-cell"><span style="font-size: 0.75vw;">H4</span></td>
-    </tr>
-    <tr class="fe-label-row">
-      <td class="fe-label-cell"><p>0.6rem</p></td>
-      <td class="fe-label-cell"><p>clamp</p></td>
-      <td class="fe-label-cell"><p>0.75vw</p></td>
-    </tr>
-
-    <tr class="fe-sample-row">
-      <td class="fe-sample-cell"><span style="font-size: 0.5rem;">P</span></td>
-      <td class="fe-sample-cell"><p class="fe-sample">P</p></td>
-      <td class="fe-sample-cell"><span style="font-size: 0.7vw;">P</span></td>
-    </tr>
-    <tr class="fe-label-row">
-      <td class="fe-label-cell"><p>0.5rem</p></td>
-      <td class="fe-label-cell"><p>clamp</p></td>
-      <td class="fe-label-cell"><p>0.7vw</p></td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- Browser minimum-font-size probe: if any of these render bigger than
-     specified, the browser is enforcing a floor of its own. -->
-<div class="font-min-probe">
-  <div class="fe-probe">
-    <span style="font-size: 4px;">probe</span>
-    <div class="fe-label">4px forced</div>
+<div class="table-outer">
+  <div class="table-title">
+    <h2>Display Settings</h2>
   </div>
-  <div class="fe-probe">
-    <span style="font-size: 6px;">probe</span>
-    <div class="fe-label">6px forced</div>
+
+  <!-- Size Guides and Borders Button -->
+  <div id="borders-toggle-button-container" style="justify-self: center; margin-bottom: 1em;"></div>
+
+  <div class="table-title">
+    <h2>Fonts</h2>
   </div>
-  <div class="fe-probe">
-    <span style="font-size: 8px;">probe</span>
-    <div class="fe-label">8px forced</div>
+
+  <!-- ──────────────────────────────────────────────────────────────────────
+       Font Examples — typography calibration table (H1..P, plus min-px probes).
+       Real <table> so vertical-align: bottom keeps cell content at the
+       bottom of each cell, and text-align: center centres horizontally.
+         LEFT   = MIN  (clamp floor, forced via hard-coded rem)
+         CENTER = LIVE (real tag; renders whatever the clamp() resolves to
+                        at the current viewport)
+         RIGHT  = PREF (preferred vw value, unclamped)
+       On phone: expect MIN == LIVE (MIN is winning).
+       On MBP/TV: expect LIVE == PREF (vw is winning).
+       ────────────────────────────────────────────────────────────────────── -->
+  <div class="table-body" style="justify-items: center;">
+    <table class="font-examples-table">
+      <thead>
+        <tr class="fe-header-row">
+          <th class="fe-header-cell"><p>MIN</p></th>
+          <th class="fe-header-cell"><p>LIVE</p></th>
+          <th class="fe-header-cell"><p>PREF</p></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><span style="font-size: 1.125rem; font-weight: bold;">H1</span></td>
+          <td class="fe-sample-cell"><h1 class="fe-sample">H1</h1></td>
+          <td class="fe-sample-cell"><span style="font-size: 1.1vw; font-weight: bold;">H1</span></td>
+        </tr>
+        <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>1.125rem</p></td>
+          <td class="fe-label-cell"><p>clamp</p></td>
+          <td class="fe-label-cell"><p>1.1vw</p></td>
+        </tr>
+
+        <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><span style="font-size: 0.875rem; font-weight: bold;">H2</span></td>
+          <td class="fe-sample-cell"><h2 class="fe-sample">H2</h2></td>
+          <td class="fe-sample-cell"><span style="font-size: 0.95vw; font-weight: bold;">H2</span></td>
+        </tr>
+        <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>0.875rem</p></td>
+          <td class="fe-label-cell"><p>clamp</p></td>
+          <td class="fe-label-cell"><p>0.95vw</p></td>
+        </tr>
+
+        <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><span style="font-size: 0.7rem; font-weight: bold;">H3</span></td>
+          <td class="fe-sample-cell"><h3 class="fe-sample">H3</h3></td>
+          <td class="fe-sample-cell"><span style="font-size: 0.8vw; font-weight: bold;">H3</span></td>
+        </tr>
+        <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>0.7rem</p></td>
+          <td class="fe-label-cell"><p>clamp</p></td>
+          <td class="fe-label-cell"><p>0.8vw</p></td>
+        </tr>
+
+        <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><span style="font-size: 0.6rem;">H4</span></td>
+          <td class="fe-sample-cell"><h4 class="fe-sample">H4</h4></td>
+          <td class="fe-sample-cell"><span style="font-size: 0.75vw;">H4</span></td>
+        </tr>
+        <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>0.6rem</p></td>
+          <td class="fe-label-cell"><p>clamp</p></td>
+          <td class="fe-label-cell"><p>0.75vw</p></td>
+        </tr>
+
+        <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><span style="font-size: 0.5rem;">P</span></td>
+          <td class="fe-sample-cell"><p class="fe-sample">P</p></td>
+          <td class="fe-sample-cell"><span style="font-size: 0.7vw;">P</span></td>
+        </tr>
+        <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>0.5rem</p></td>
+          <td class="fe-label-cell"><p>clamp</p></td>
+          <td class="fe-label-cell"><p>0.7vw</p></td>
+        </tr>
+
+        <!-- Browser minimum-font-size probes: if any render bigger than
+             specified, the browser is enforcing a floor of its own. -->
+        <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><span style="font-size: 4px;">probe</span></td>
+          <td class="fe-sample-cell"><span style="font-size: 6px;">probe</span></td>
+          <td class="fe-sample-cell"><span style="font-size: 8px;">probe</span></td>
+        </tr>
+        <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>4px forced</p></td>
+          <td class="fe-label-cell"><p>6px forced</p></td>
+          <td class="fe-label-cell"><p>8px forced</p></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
