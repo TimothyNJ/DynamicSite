@@ -101,10 +101,9 @@
   width: var(--sidenav-collapsed-width);
   min-width: var(--sidenav-collapsed-width);
   overflow: hidden;
-  // No width/min-width transition — fit-content ↔ 2em is not interpolable,
-  // so the browser can't animate it. Declaring the transition prevented
-  // fit-content from resolving correctly. Width snaps; buttons and arrow
-  // handle the visual continuity via opacity and top transitions.
+  interpolate-size: allow-keywords;
+  transition: width var(--sidenav-expand-duration) ease,
+              min-width var(--sidenav-expand-duration) ease;
   position: relative;
   cursor: pointer;
 
