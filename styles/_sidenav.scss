@@ -170,6 +170,7 @@
   // Vertical offset set dynamically by JS so the first button aligns
   // with the parent primary-nav button that spawned it.
   padding-top: var(--sidenav-secondary-offset, var(--sidenav-arrow-default-top));
+  margin-left: 1.5em;
   width: fit-content;
   flex: 0 1 auto;
   background-color: transparent;
