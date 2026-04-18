@@ -172,31 +172,24 @@
 }
 
 // ==============================================
-// Font Examples Grid — typography calibration block
-// ==============================================
-// Single CSS grid (not 5 separate grids) so the MIN / LIVE / PREF columns
-// line up vertically across all tiers (H1..P). Baseline alignment within
-// each row is what keeps the three samples on a shared baseline per tier.
-//
-//   row-gap: 0.8em gives visual breathing room between tiers;
-//   .fe-label has a negative margin-top that re-tightens the gap between
-//   a sample cell and its label directly below.
 // Font Examples Table — typography calibration grid
+// ==============================================
 // Uses a real <table> so vertical-align: baseline makes all cells in a
-// sample row the same height. The baseline border on .fe-sample-row draws
-// one continuous line at the same y-position across all 3 columns.
-// Toggles off with .borders-hidden (border-color: transparent !important).
+// sample row the same height. Standard 1px debug borders on every cell
+// (same pattern as other tables) — toggled by .borders-hidden.
 .font-examples-table {
-  border-collapse: collapse;
+  border-collapse: separate;
   border-spacing: 0;
   margin: 0 auto;
   font-family: var(--font-family-primary);
   color: var(--text-color, #fff);
+  border: 1px solid royalblue;
 }
 
 .fe-header-cell {
   text-align: center;
   padding: 0 1.5em 0.3em;
+  border: 1px solid royalblue;
 
   p {
     margin: 0;
@@ -205,16 +198,14 @@
 }
 
 .fe-sample-row {
-  // Continuous baseline rule — one line spanning all 3 columns.
-  // All cells share the same height (table row behaviour) so
-  // the border sits at the same y-position across the row.
-  border-bottom: 1px solid royalblue;
+  border: 1px solid royalblue;
 }
 
 .fe-sample-cell {
   vertical-align: baseline;
   text-align: center;
   padding: 0.4em 1.5em 0.15em;
+  border: 1px solid royalblue;
 
   .fe-sample {
     margin: 0;
@@ -223,12 +214,13 @@
 }
 
 .fe-label-row {
-  // No border — labels are just annotation below the baseline
+  border: 1px solid royalblue;
 }
 
 .fe-label-cell {
   text-align: center;
   padding: 0.1em 1.5em 0.5em;
+  border: 1px solid royalblue;
 
   p {
     margin: 0;
