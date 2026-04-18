@@ -345,8 +345,56 @@ def github_api(method, endpoint, body=None):
         raise RuntimeError(f'GitHub API {method} {endpoint}: {e.code} {error_body}')
 
 
+FONT_STATE_BUCKET = os.environ.get('FONT_STATE_BUCKET', 'tnjdynamicsite-dev')
+FONT_STATE_KEY = 'font-state-history.json'
+
+
+def get_font_state_history():
+    """Read the font state history from S3. Returns dict or empty default."""
+    s3 = boto3.client('s3', region_name='us-west-2')
+    try:
+        resp = s3.get_object(Bucket=FONT_STATE_BUCKET, Key=FONT_STATE_KEY)
+        return json.loads(resp['Body'].read().decode('utf-8'))
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchKey':
+            return {'previous': None, 'current': None}
+        raise
+
+
+def save_font_state_history(state):
+    """Write the font state history to S3."""
+    s3 = boto3.client('s3', region_name='us-west-2')
+    s3.put_object(
+        Bucket=FONT_STATE_BUCKET,
+        Key=FONT_STATE_KEY,
+        Body=json.dumps(state, indent=2).encode('utf-8'),
+        ContentType='application/json'
+    )
+
+
+def extract_current_font_values(scss_content):
+    """Parse current clamp() values from _variables.scss content."""
+    import re
+    values = {}
+    for tag in ('h1', 'h2', 'h3', 'h4', 'p'):
+        var_name = f'--{tag}-font-size'
+        pattern = re.compile(
+            rf'{var_name}:\s*clamp\(([\d.]+)rem,\s*([\d.]+)vw,\s*([\d.]+)rem\)',
+            re.MULTILINE
+        )
+        m = pattern.search(scss_content)
+        if m:
+            values[tag] = {
+                'min': float(m.group(1)),
+                'pref': float(m.group(2)),
+                'max': float(m.group(3))
+            }
+    return values
+
+
 def handle_push_font_variables(body):
     """Update font clamp() variables in _variables.scss via GitHub API.
+    Stores before/after state in S3 for revert support.
     Expects body: { fontVariables: { h1: {min, pref, max}, h2: {...}, ... } }
     """
     import base64
@@ -361,7 +409,10 @@ def handle_push_font_variables(body):
     current_sha = file_info['sha']
     content = base64.b64decode(file_info['content']).decode('utf-8')
 
-    # 2. Replace each clamp() line
+    # 2. Extract current values before we modify anything
+    before_values = extract_current_font_values(content)
+
+    # 3. Replace each clamp() line
     for tag, vals in font_vars.items():
         min_val = vals.get('min')
         pref_val = vals.get('pref')
@@ -370,7 +421,6 @@ def handle_push_font_variables(body):
             continue
 
         var_name = f'--{tag}-font-size'
-        # Match the clamp() line for this variable
         pattern = re.compile(
             rf'({var_name}:\s*clamp\()[\d.]+rem,\s*[\d.]+vw,\s*[\d.]+rem(\);?)',
             re.MULTILINE
@@ -378,7 +428,7 @@ def handle_push_font_variables(body):
         replacement = rf'\g<1>{min_val}rem, {pref_val}vw, {max_val}rem\2'
         content = pattern.sub(replacement, content)
 
-    # 3. Commit the updated file back to GitHub
+    # 4. Commit the updated file back to GitHub
     encoded = base64.b64encode(content.encode('utf-8')).decode('utf-8')
     commit_body = {
         'message': f'Update font variables via Display Settings push',
@@ -388,10 +438,45 @@ def handle_push_font_variables(body):
     }
     result = github_api('PUT', f'/repos/{GITHUB_REPO}/contents/{GITHUB_FILE_PATH}', commit_body)
 
+    # 5. Store before/after state in S3 for revert support
+    import datetime
+    state = {
+        'previous': before_values,
+        'current': font_vars,
+        'timestamp': datetime.datetime.utcnow().isoformat() + 'Z',
+        'commit': result.get('commit', {}).get('sha', 'unknown')
+    }
+    save_font_state_history(state)
+
     return {
         'status': 'ok',
         'commit': result.get('commit', {}).get('sha', 'unknown'),
         'fontVariables': font_vars
+    }
+
+
+def handle_revert_font_variables():
+    """Revert font variables to the previous state.
+    Reads the stored before/after from S3, pushes the 'previous' values
+    as the new state, then updates the history so the current values
+    become the new 'previous'.
+    """
+    # 1. Read stored state history
+    history = get_font_state_history()
+    previous = history.get('previous')
+    if not previous:
+        raise ValueError('No previous font state to revert to')
+
+    # 2. Push the previous values as new (reuses handle_push_font_variables)
+    result = handle_push_font_variables({'fontVariables': previous})
+
+    # The push handler already saved the new state history with
+    # current values as 'previous' and the reverted values as 'current'
+
+    return {
+        'status': 'ok',
+        'revertedTo': previous,
+        'commit': result.get('commit', 'unknown')
     }
 
 
@@ -476,12 +561,24 @@ def lambda_handler(event, context):
             data = handle_push_font_variables(body)
             return respond(200, data, origin)
 
+        # POST /revert-font-variables
+        if path == '/revert-font-variables' and http_method == 'POST':
+            data = handle_revert_font_variables()
+            return respond(200, data, origin)
+
+        # GET /font-state-history
+        if path == '/font-state-history' and http_method == 'GET':
+            data = get_font_state_history()
+            return respond(200, data, origin)
+
         return respond(404, {'error': f'Unknown route: {route_key}',
                              'available_routes': list(ROUTES.keys()) + [
                                  'GET /security-settings/<env>',
                                  'POST /security-settings/<env>',
                                  'POST /push-client-config/<env>',
-                                 'POST /push-font-variables'
+                                 'POST /push-font-variables',
+                                 'POST /revert-font-variables',
+                                 'GET /font-state-history'
                              ]}, origin)
 
     except RuntimeError as e:

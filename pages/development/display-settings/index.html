@@ -16,17 +16,20 @@
        then the three clamp() values. Text inputs let the developer edit
        values live; the LIVE column updates in real time. Push Changes
        commits the new values to _variables.scss and triggers a deploy.
+
+       View/Edit toggle: View hides inputs, unit row, buttons, and static
+       columns so only the LIVE column displays in a tight layout.
        ────────────────────────────────────────────────────────────────────── -->
   <div class="fe-table-body">
     <table class="font-examples-table">
       <thead>
         <tr class="fe-header-row">
           <th class="fe-header-cell"><h3>LIVE</h3></th>
-          <th class="fe-header-cell"><h3>MIN</h3></th>
-          <th class="fe-header-cell"><h3>PREF</h3></th>
-          <th class="fe-header-cell"><h3>MAX</h3></th>
+          <th class="fe-header-cell fe-edit-only"><h3>MIN</h3></th>
+          <th class="fe-header-cell fe-edit-only"><h3>PREF</h3></th>
+          <th class="fe-header-cell fe-edit-only"><h3>MAX</h3></th>
         </tr>
-        <tr class="fe-unit-row">
+        <tr class="fe-unit-row fe-edit-only">
           <td class="fe-label-cell"></td>
           <td class="fe-label-cell"><p>rem</p></td>
           <td class="fe-label-cell"><p>vw</p></td>
@@ -37,11 +40,11 @@
         <!-- H1 -->
         <tr class="fe-sample-row">
           <td class="fe-sample-cell"><h1 class="fe-sample" data-tier="h1">H1</h1></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h1" data-param="min" style="font-size: 1.125rem; font-weight: bold;">H1</span></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h1" data-param="pref" style="font-size: 1.1vw; font-weight: bold;">H1</span></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h1" data-param="max" style="font-size: 4rem; font-weight: bold;">H1</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h1" data-param="min" style="font-size: 1.125rem; font-weight: bold;">H1</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h1" data-param="pref" style="font-size: 1.1vw; font-weight: bold;">H1</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h1" data-param="max" style="font-size: 4rem; font-weight: bold;">H1</span></td>
         </tr>
-        <tr class="fe-input-row">
+        <tr class="fe-input-row fe-edit-only">
           <td class="fe-label-cell"></td>
           <td class="fe-label-cell"><div id="fe-input-h1-min"></div></td>
           <td class="fe-label-cell"><div id="fe-input-h1-pref"></div></td>
@@ -51,11 +54,11 @@
         <!-- H2 -->
         <tr class="fe-sample-row">
           <td class="fe-sample-cell"><h2 class="fe-sample" data-tier="h2">H2</h2></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h2" data-param="min" style="font-size: 0.875rem; font-weight: bold;">H2</span></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h2" data-param="pref" style="font-size: 0.95vw; font-weight: bold;">H2</span></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h2" data-param="max" style="font-size: 3.5rem; font-weight: bold;">H2</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h2" data-param="min" style="font-size: 0.875rem; font-weight: bold;">H2</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h2" data-param="pref" style="font-size: 0.95vw; font-weight: bold;">H2</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h2" data-param="max" style="font-size: 3.5rem; font-weight: bold;">H2</span></td>
         </tr>
-        <tr class="fe-input-row">
+        <tr class="fe-input-row fe-edit-only">
           <td class="fe-label-cell"></td>
           <td class="fe-label-cell"><div id="fe-input-h2-min"></div></td>
           <td class="fe-label-cell"><div id="fe-input-h2-pref"></div></td>
@@ -65,11 +68,11 @@
         <!-- H3 -->
         <tr class="fe-sample-row">
           <td class="fe-sample-cell"><h3 class="fe-sample" data-tier="h3">H3</h3></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h3" data-param="min" style="font-size: 0.7rem; font-weight: bold;">H3</span></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h3" data-param="pref" style="font-size: 0.8vw; font-weight: bold;">H3</span></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h3" data-param="max" style="font-size: 2.6rem; font-weight: bold;">H3</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h3" data-param="min" style="font-size: 0.7rem; font-weight: bold;">H3</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h3" data-param="pref" style="font-size: 0.8vw; font-weight: bold;">H3</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h3" data-param="max" style="font-size: 2.6rem; font-weight: bold;">H3</span></td>
         </tr>
-        <tr class="fe-input-row">
+        <tr class="fe-input-row fe-edit-only">
           <td class="fe-label-cell"></td>
           <td class="fe-label-cell"><div id="fe-input-h3-min"></div></td>
           <td class="fe-label-cell"><div id="fe-input-h3-pref"></div></td>
@@ -79,11 +82,11 @@
         <!-- H4 -->
         <tr class="fe-sample-row">
           <td class="fe-sample-cell"><h4 class="fe-sample" data-tier="h4">H4</h4></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h4" data-param="min" style="font-size: 0.6rem;">H4</span></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h4" data-param="pref" style="font-size: 0.75vw;">H4</span></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="h4" data-param="max" style="font-size: 2.5rem;">H4</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h4" data-param="min" style="font-size: 0.6rem;">H4</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h4" data-param="pref" style="font-size: 0.75vw;">H4</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="h4" data-param="max" style="font-size: 2.5rem;">H4</span></td>
         </tr>
-        <tr class="fe-input-row">
+        <tr class="fe-input-row fe-edit-only">
           <td class="fe-label-cell"></td>
           <td class="fe-label-cell"><div id="fe-input-h4-min"></div></td>
           <td class="fe-label-cell"><div id="fe-input-h4-pref"></div></td>
@@ -93,11 +96,11 @@
         <!-- P -->
         <tr class="fe-sample-row">
           <td class="fe-sample-cell"><p class="fe-sample" data-tier="p">P</p></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="p" data-param="min" style="font-size: 0.5rem;">P</span></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="p" data-param="pref" style="font-size: 0.7vw;">P</span></td>
-          <td class="fe-sample-cell"><span class="fe-static" data-tier="p" data-param="max" style="font-size: 2.3rem;">P</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="p" data-param="min" style="font-size: 0.5rem;">P</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="p" data-param="pref" style="font-size: 0.7vw;">P</span></td>
+          <td class="fe-sample-cell fe-edit-only"><span class="fe-static" data-tier="p" data-param="max" style="font-size: 2.3rem;">P</span></td>
         </tr>
-        <tr class="fe-input-row">
+        <tr class="fe-input-row fe-edit-only">
           <td class="fe-label-cell"></td>
           <td class="fe-label-cell"><div id="fe-input-p-min"></div></td>
           <td class="fe-label-cell"><div id="fe-input-p-pref"></div></td>
@@ -105,13 +108,13 @@
         </tr>
 
         <!-- Browser minimum-font-size probes -->
-        <tr class="fe-sample-row">
+        <tr class="fe-sample-row fe-edit-only">
           <td class="fe-sample-cell"></td>
           <td class="fe-sample-cell"><span style="font-size: 4px;">probe</span></td>
           <td class="fe-sample-cell"><span style="font-size: 6px;">probe</span></td>
           <td class="fe-sample-cell"><span style="font-size: 8px;">probe</span></td>
         </tr>
-        <tr class="fe-label-row">
+        <tr class="fe-label-row fe-edit-only">
           <td class="fe-label-cell"></td>
           <td class="fe-label-cell"><p>4px forced</p></td>
           <td class="fe-label-cell"><p>6px forced</p></td>
@@ -121,6 +124,13 @@
     </table>
   </div>
 
-  <!-- Push Changes button -->
-  <div id="fe-push-button-container" style="justify-self: center; margin-top: 1em;"></div>
+  <!-- View/Edit toggle -->
+  <div id="fe-view-edit-toggle-container" style="justify-self: center; margin-top: 1em;"></div>
+
+  <!-- Button row: Reset | Push Changes | Revert Push -->
+  <div class="fe-button-row fe-edit-only" style="justify-self: center; margin-top: 0.5em;">
+    <div id="fe-reset-button-container" style="display: inline-block;"></div>
+    <div id="fe-push-button-container" style="display: inline-block; margin: 0 0.5em;"></div>
+    <div id="fe-revert-button-container" style="display: inline-block;"></div>
+  </div>
 </div>

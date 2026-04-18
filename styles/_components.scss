@@ -251,3 +251,23 @@
 .fe-input-row {
   border: 1px solid royalblue;
 }
+
+// Button row — Reset | Push | Revert laid out horizontally
+.fe-button-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5em;
+}
+
+// ==============================================
+// Font Editor View/Edit mode toggle
+// ==============================================
+// When the table is in View mode, .fe-view-mode is added to .fe-table-body.
+// All elements with .fe-edit-only collapse — rows disappear, cells vanish,
+// leaving only the LIVE column in a tight display.
+.fe-table-body.fe-view-mode {
+  .fe-edit-only {
+    display: none;
+  }
+}

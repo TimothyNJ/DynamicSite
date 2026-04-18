@@ -8,8 +8,18 @@
  *   2. The CSS variable (--h1-font-size etc.) with a rebuilt clamp() so the
  *      LIVE column reflects the change in real time
  *
- * Push Changes: collects all current values, sends them to the lambda proxy
- * which updates _variables.scss via GitHub API and triggers a deploy.
+ * View/Edit toggle: View mode hides inputs, unit row, static columns, and
+ * all buttons — only the LIVE column displays in a tight table. Edit mode
+ * shows everything.
+ *
+ * Push Changes: collects all current values, stores the before/after state
+ * on the server (S3), then updates _variables.scss via GitHub API and
+ * triggers a deploy.
+ *
+ * Reset: discards unpushed edits, restores inputs to current TIERS defaults.
+ *
+ * Revert Push: fetches the previous state from server memory, pushes those
+ * values as the new state (a forward push that restores old fonts).
  *
  * Created: 18-Apr-2026
  */
@@ -44,13 +54,11 @@ function buildClamp(tier) {
 }
 
 function updateLiveColumn(tier) {
-  // Update the CSS variable so the real <h1>/<h2>/etc. tag re-renders
   const varName = `--${tier}-font-size`;
   document.documentElement.style.setProperty(varName, buildClamp(tier));
 }
 
 function updateStaticSpan(tier, param) {
-  // Update the inline font-size on the static <span> for this cell
   const span = document.querySelector(`.fe-static[data-tier="${tier}"][data-param="${param}"]`);
   if (span) {
     span.style.fontSize = `${liveValues[tier][param]}${UNITS[param]}`;
@@ -63,6 +71,46 @@ function onValueChange(tier, param, value) {
   liveValues[tier][param] = num;
   updateStaticSpan(tier, param);
   updateLiveColumn(tier);
+}
+
+// ─── View / Edit toggle ────────────────────────────────────────────────────
+
+function setMode(mode) {
+  const tableBody = document.querySelector('.fe-table-body');
+  const buttonRow = document.querySelector('.fe-button-row');
+  if (!tableBody) return;
+
+  if (mode === 'view') {
+    tableBody.classList.add('fe-view-mode');
+    if (buttonRow) buttonRow.style.display = 'none';
+  } else {
+    tableBody.classList.remove('fe-view-mode');
+    if (buttonRow) buttonRow.style.display = '';
+  }
+
+  console.log(`[FontEditor] Mode: ${mode}`);
+}
+
+// ─── Reset ─────────────────────────────────────────────────────────────────
+
+function resetFontValues() {
+  console.log('[FontEditor] Reset — restoring defaults');
+
+  for (const t of TIERS) {
+    liveValues[t.tag] = { min: t.min, pref: t.pref, max: t.max };
+
+    for (const param of ['min', 'pref', 'max']) {
+      // Update the text input value
+      const input = document.querySelector(`#fe-val-${t.tag}-${param}`);
+      if (input) input.value = String(t[param]);
+
+      // Update the static span
+      updateStaticSpan(t.tag, param);
+    }
+
+    // Update the LIVE column CSS variable
+    updateLiveColumn(t.tag);
+  }
 }
 
 // ─── Initialisation ─────────────────────────────────────────────────────────
@@ -93,7 +141,31 @@ export function initializeFontEditor() {
     }
   }
 
-  // Create Push Changes button
+  // View / Edit toggle slider
+  window.componentFactory.createSlider({
+    containerId: 'fe-view-edit-toggle-container',
+    sliderClass: 'fe-view-edit-slider',
+    options: [
+      { text: 'View', value: 'view', position: 1, active: true },
+      { text: 'Edit', value: 'edit', position: 2 }
+    ]
+  }, (selectedOption) => {
+    const mode = selectedOption.getAttribute('data-value')
+      || selectedOption.textContent.trim().toLowerCase();
+    setMode(mode);
+  });
+
+  // Start in View mode
+  setMode('view');
+
+  // Reset button
+  window.componentFactory.createButton('fe-reset-button-container', {
+    id: 'fe-reset-button',
+    text: 'Reset',
+    onClick: () => resetFontValues()
+  });
+
+  // Push Changes button
   window.componentFactory.createButton('fe-push-button-container', {
     id: 'fe-push-button',
     text: 'Push Changes',
@@ -101,10 +173,17 @@ export function initializeFontEditor() {
     onClick: () => pushFontChanges()
   });
 
-  console.log('[FontEditor] Initialised — text inputs and push button created');
+  // Revert Push button
+  window.componentFactory.createButton('fe-revert-button-container', {
+    id: 'fe-revert-button',
+    text: 'Revert Push',
+    onClick: () => revertPush()
+  });
+
+  console.log('[FontEditor] Initialised — View/Edit toggle, inputs, and buttons created');
 }
 
-// ─── Push ───────────────────────────────────────────────────────────────────
+// ─── Authenticated fetch helper ────────────────────────────────────────────
 
 async function authenticatedFetch(path, options = {}) {
   if (!isAuthenticated()) {
@@ -130,6 +209,8 @@ async function authenticatedFetch(path, options = {}) {
   return resp.json();
 }
 
+// ─── Push ───────────────────────────────────────────────────────────────────
+
 async function pushFontChanges() {
   console.log('[FontEditor] Push requested');
 
@@ -147,5 +228,37 @@ async function pushFontChanges() {
     console.log('[FontEditor] Push result:', result);
   } catch (err) {
     console.error('[FontEditor] Push failed:', err);
+  }
+}
+
+// ─── Revert Push ────────────────────────────────────────────────────────────
+
+async function revertPush() {
+  console.log('[FontEditor] Revert Push requested');
+
+  try {
+    const result = await authenticatedFetch('/revert-font-variables', {
+      method: 'POST'
+    });
+    console.log('[FontEditor] Revert result:', result);
+
+    // If the server returns the reverted values, apply them to the UI
+    if (result.revertedTo) {
+      for (const t of TIERS) {
+        const vals = result.revertedTo[t.tag];
+        if (!vals) continue;
+
+        liveValues[t.tag] = { min: vals.min, pref: vals.pref, max: vals.max };
+
+        for (const param of ['min', 'pref', 'max']) {
+          const input = document.querySelector(`#fe-val-${t.tag}-${param}`);
+          if (input) input.value = String(vals[param]);
+          updateStaticSpan(t.tag, param);
+        }
+        updateLiveColumn(t.tag);
+      }
+    }
+  } catch (err) {
+    console.error('[FontEditor] Revert failed:', err);
   }
 }
