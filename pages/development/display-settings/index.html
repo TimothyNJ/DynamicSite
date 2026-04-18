@@ -12,102 +12,102 @@
 
   <!-- ──────────────────────────────────────────────────────────────────────
        Font Examples — typography calibration table (H1..P, plus min-px probes).
-       Columns: MIN | PREF | MAX | LIVE — the three clamp() values then the
-       actual rendered result. Zero padding on sample cells so font sizes are
-       the only variable. vertical-align: baseline aligns letter shapes.
-       On phone: expect MIN == LIVE (floor is winning).
-       On MBP:   expect PREF == LIVE (vw is winning, hasn't hit max).
-       On TV:    expect MAX == LIVE (ceiling is winning).
+       Columns: LIVE | MIN | PREF | MAX — the actual rendered result first,
+       then the three clamp() values. Zero padding on sample cells so font
+       sizes are the only variable. vertical-align: baseline aligns letter shapes.
+       On phone: expect LIVE == MIN (floor is winning).
+       On MBP:   expect LIVE == PREF (vw is winning, hasn't hit max).
+       On TV:    expect LIVE == MAX (ceiling is winning).
        ────────────────────────────────────────────────────────────────────── -->
   <div class="fe-table-body">
     <table class="font-examples-table">
       <thead>
         <tr class="fe-header-row">
+          <th class="fe-header-cell"><h3>LIVE</h3></th>
           <th class="fe-header-cell"><h3>MIN</h3></th>
           <th class="fe-header-cell"><h3>PREF</h3></th>
           <th class="fe-header-cell"><h3>MAX</h3></th>
-          <th class="fe-header-cell"><h3>LIVE</h3></th>
         </tr>
       </thead>
       <tbody>
         <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><h1 class="fe-sample">H1</h1></td>
           <td class="fe-sample-cell"><span style="font-size: 1.125rem; font-weight: bold;">H1</span></td>
           <td class="fe-sample-cell"><span style="font-size: 1.1vw; font-weight: bold;">H1</span></td>
           <td class="fe-sample-cell"><span style="font-size: 4rem; font-weight: bold;">H1</span></td>
-          <td class="fe-sample-cell"><h1 class="fe-sample">H1</h1></td>
         </tr>
         <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>clamp</p></td>
           <td class="fe-label-cell"><p>1.125rem</p></td>
           <td class="fe-label-cell"><p>1.1vw</p></td>
           <td class="fe-label-cell"><p>4rem</p></td>
-          <td class="fe-label-cell"><p>clamp</p></td>
         </tr>
 
         <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><h2 class="fe-sample">H2</h2></td>
           <td class="fe-sample-cell"><span style="font-size: 0.875rem; font-weight: bold;">H2</span></td>
           <td class="fe-sample-cell"><span style="font-size: 0.95vw; font-weight: bold;">H2</span></td>
           <td class="fe-sample-cell"><span style="font-size: 3.5rem; font-weight: bold;">H2</span></td>
-          <td class="fe-sample-cell"><h2 class="fe-sample">H2</h2></td>
         </tr>
         <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>clamp</p></td>
           <td class="fe-label-cell"><p>0.875rem</p></td>
           <td class="fe-label-cell"><p>0.95vw</p></td>
           <td class="fe-label-cell"><p>3.5rem</p></td>
-          <td class="fe-label-cell"><p>clamp</p></td>
         </tr>
 
         <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><h3 class="fe-sample">H3</h3></td>
           <td class="fe-sample-cell"><span style="font-size: 0.7rem; font-weight: bold;">H3</span></td>
           <td class="fe-sample-cell"><span style="font-size: 0.8vw; font-weight: bold;">H3</span></td>
           <td class="fe-sample-cell"><span style="font-size: 2.6rem; font-weight: bold;">H3</span></td>
-          <td class="fe-sample-cell"><h3 class="fe-sample">H3</h3></td>
         </tr>
         <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>clamp</p></td>
           <td class="fe-label-cell"><p>0.7rem</p></td>
           <td class="fe-label-cell"><p>0.8vw</p></td>
           <td class="fe-label-cell"><p>2.6rem</p></td>
-          <td class="fe-label-cell"><p>clamp</p></td>
         </tr>
 
         <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><h4 class="fe-sample">H4</h4></td>
           <td class="fe-sample-cell"><span style="font-size: 0.6rem;">H4</span></td>
           <td class="fe-sample-cell"><span style="font-size: 0.75vw;">H4</span></td>
           <td class="fe-sample-cell"><span style="font-size: 2.5rem;">H4</span></td>
-          <td class="fe-sample-cell"><h4 class="fe-sample">H4</h4></td>
         </tr>
         <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>clamp</p></td>
           <td class="fe-label-cell"><p>0.6rem</p></td>
           <td class="fe-label-cell"><p>0.75vw</p></td>
           <td class="fe-label-cell"><p>2.5rem</p></td>
-          <td class="fe-label-cell"><p>clamp</p></td>
         </tr>
 
         <tr class="fe-sample-row">
+          <td class="fe-sample-cell"><p class="fe-sample">P</p></td>
           <td class="fe-sample-cell"><span style="font-size: 0.5rem;">P</span></td>
           <td class="fe-sample-cell"><span style="font-size: 0.7vw;">P</span></td>
           <td class="fe-sample-cell"><span style="font-size: 2.3rem;">P</span></td>
-          <td class="fe-sample-cell"><p class="fe-sample">P</p></td>
         </tr>
         <tr class="fe-label-row">
+          <td class="fe-label-cell"><p>clamp</p></td>
           <td class="fe-label-cell"><p>0.5rem</p></td>
           <td class="fe-label-cell"><p>0.7vw</p></td>
           <td class="fe-label-cell"><p>2.3rem</p></td>
-          <td class="fe-label-cell"><p>clamp</p></td>
         </tr>
 
         <!-- Browser minimum-font-size probes: if any render bigger than
              specified, the browser is enforcing a floor of its own. -->
         <tr class="fe-sample-row">
+          <td class="fe-sample-cell"></td>
           <td class="fe-sample-cell"><span style="font-size: 4px;">probe</span></td>
           <td class="fe-sample-cell"><span style="font-size: 6px;">probe</span></td>
           <td class="fe-sample-cell"><span style="font-size: 8px;">probe</span></td>
-          <td class="fe-sample-cell"></td>
         </tr>
         <tr class="fe-label-row">
+          <td class="fe-label-cell"></td>
           <td class="fe-label-cell"><p>4px forced</p></td>
           <td class="fe-label-cell"><p>6px forced</p></td>
           <td class="fe-label-cell"><p>8px forced</p></td>
-          <td class="fe-label-cell"></td>
         </tr>
       </tbody>
     </table>
