@@ -151,9 +151,15 @@
       transition: opacity 0s ease 0s, top 300ms ease;
     }
 
-    // Arrow stays visible in expanded state when secondary nav is showing
-    &.has-secondary::after {
-      opacity: var(--sidenav-arrow-opacity);
+    // When secondary nav is showing, push the arrow outside the container
+    // and add margin to create space between the two sidenavs.
+    &.has-secondary {
+      margin-right: 1.5em;
+
+      &::after {
+        opacity: var(--sidenav-arrow-opacity);
+        right: -0.9em;
+      }
     }
   }
 }
