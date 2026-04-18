@@ -172,6 +172,20 @@
   }
 }
 
+// Secondary sidenav arrow — always visible when expanded, positioned
+// to the right of the widest button in the same gap pattern as sidenav 1.
+.sidenav-secondary.collapsible.expanded {
+  --sidenav-arrow-gap: 1.5vw;
+  margin-right: var(--sidenav-arrow-gap);
+
+  &::after {
+    opacity: var(--sidenav-arrow-opacity);
+    right: auto;
+    left: calc(100% + 2px + var(--sidenav-arrow-gap) / 2);
+    transform: translate(-50%, -50%);
+  }
+}
+
 // ==============================================
 // Secondary Side Navigation Panel (sub-subpages)
 // ==============================================
