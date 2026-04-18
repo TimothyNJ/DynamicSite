@@ -242,4 +242,12 @@
   }
 }
 
-// .font-min-probe removed — probes are now rows inside .font-examples-table
+// Unit row — sits below the header, shows the unit type for each column
+.fe-unit-row {
+  border: 1px solid royalblue;
+}
+
+// Input row — holds text input containers for editing clamp values
+.fe-input-row {
+  border: 1px solid royalblue;
+}

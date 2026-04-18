@@ -300,6 +300,101 @@ def handle_push_client_config(env, body):
     return {'status': 'ok', 'environment': env, 'bucket': bucket}
 
 
+# ─── Font Variable Push Handler ──────────────────────────────────────────────
+
+GITHUB_SECRET_NAME = os.environ.get('GITHUB_SECRET_NAME', 'dynamicsite/github-token')
+GITHUB_REPO = 'TimothyNJ/DynamicSite'
+GITHUB_BRANCH = 'development'
+GITHUB_FILE_PATH = 'styles/_variables.scss'
+
+_github_token_cache = {'token': None}
+
+
+def get_github_token():
+    """Retrieve GitHub personal access token from Secrets Manager."""
+    if _github_token_cache['token']:
+        return _github_token_cache['token']
+    client = boto3.client('secretsmanager', region_name='us-west-2')
+    resp = client.get_secret_value(SecretId=GITHUB_SECRET_NAME)
+    token = resp['SecretString']
+    # Handle JSON-wrapped tokens ({"token": "ghp_..."})
+    try:
+        parsed = json.loads(token)
+        token = parsed.get('token', token)
+    except (json.JSONDecodeError, TypeError):
+        pass
+    _github_token_cache['token'] = token.strip()
+    return _github_token_cache['token']
+
+
+def github_api(method, endpoint, body=None):
+    """Call the GitHub REST API."""
+    token = get_github_token()
+    url = f'https://api.github.com{endpoint}'
+    data = json.dumps(body).encode('utf-8') if body else None
+    req = urllib.request.Request(url, data=data, method=method)
+    req.add_header('Authorization', f'Bearer {token}')
+    req.add_header('Accept', 'application/vnd.github+json')
+    req.add_header('Content-Type', 'application/json')
+    req.add_header('X-GitHub-Api-Version', '2022-11-28')
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read().decode('utf-8'))
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode('utf-8')
+        raise RuntimeError(f'GitHub API {method} {endpoint}: {e.code} {error_body}')
+
+
+def handle_push_font_variables(body):
+    """Update font clamp() variables in _variables.scss via GitHub API.
+    Expects body: { fontVariables: { h1: {min, pref, max}, h2: {...}, ... } }
+    """
+    import base64
+    import re
+
+    font_vars = body.get('fontVariables', {})
+    if not font_vars:
+        raise ValueError('No fontVariables in request body')
+
+    # 1. Fetch current file content + SHA from GitHub
+    file_info = github_api('GET', f'/repos/{GITHUB_REPO}/contents/{GITHUB_FILE_PATH}?ref={GITHUB_BRANCH}')
+    current_sha = file_info['sha']
+    content = base64.b64decode(file_info['content']).decode('utf-8')
+
+    # 2. Replace each clamp() line
+    for tag, vals in font_vars.items():
+        min_val = vals.get('min')
+        pref_val = vals.get('pref')
+        max_val = vals.get('max')
+        if min_val is None or pref_val is None or max_val is None:
+            continue
+
+        var_name = f'--{tag}-font-size'
+        # Match the clamp() line for this variable
+        pattern = re.compile(
+            rf'({var_name}:\s*clamp\()[\d.]+rem,\s*[\d.]+vw,\s*[\d.]+rem(\);?)',
+            re.MULTILINE
+        )
+        replacement = rf'\g<1>{min_val}rem, {pref_val}vw, {max_val}rem\2'
+        content = pattern.sub(replacement, content)
+
+    # 3. Commit the updated file back to GitHub
+    encoded = base64.b64encode(content.encode('utf-8')).decode('utf-8')
+    commit_body = {
+        'message': f'Update font variables via Display Settings push',
+        'content': encoded,
+        'sha': current_sha,
+        'branch': GITHUB_BRANCH
+    }
+    result = github_api('PUT', f'/repos/{GITHUB_REPO}/contents/{GITHUB_FILE_PATH}', commit_body)
+
+    return {
+        'status': 'ok',
+        'commit': result.get('commit', {}).get('sha', 'unknown'),
+        'fontVariables': font_vars
+    }
+
+
 # ─── Route Map ───────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -375,11 +470,18 @@ def lambda_handler(event, context):
             data = handle_push_client_config(env, body)
             return respond(200, data, origin)
 
+        # POST /push-font-variables
+        if path == '/push-font-variables' and http_method == 'POST':
+            body = json.loads(event.get('body') or '{}')
+            data = handle_push_font_variables(body)
+            return respond(200, data, origin)
+
         return respond(404, {'error': f'Unknown route: {route_key}',
                              'available_routes': list(ROUTES.keys()) + [
                                  'GET /security-settings/<env>',
                                  'POST /security-settings/<env>',
-                                 'POST /push-client-config/<env>'
+                                 'POST /push-client-config/<env>',
+                                 'POST /push-font-variables'
                              ]}, origin)
 
     except RuntimeError as e:

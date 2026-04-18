@@ -37,6 +37,9 @@ import { start as startUpdateNotifier, stop as stopUpdateNotifier } from './upda
 // Zitadel Management API
 import { fetchProjectRoles } from './api/zitadel-api.js';
 
+// Display Settings — font editor
+import { initializeFontEditor } from './display/font-editor.js';
+
 // Security Settings
 import { initializeSecuritySettings } from './security/security-settings.js';
 
@@ -737,6 +740,9 @@ function initializeDisplaySettingsComponents() {
       }
     }
   });
+
+  // Font editor — text inputs for live clamp() editing + push button
+  initializeFontEditor();
 }
 
 // ─── Backgrounds Page (development/backgrounds) ─────────────────────────────
