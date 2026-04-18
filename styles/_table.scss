@@ -34,7 +34,7 @@
   width: fit-content;
   max-width: 100%;
   flex: 0 1 auto;
-  margin: 0;
+  margin: 0 0 2% 0;
   // Override the parent grid's `justify-items: start` for just this row so
   // the title centres horizontally while the table body stays left-aligned.
   justify-self: center;
@@ -258,7 +258,7 @@ body[data-theme="dark"] .table-main tr > *:first-child {
 .deployment-index-search {
   display: flex;
   width: 100%;
-  margin: var(--component-spacing, 5px) 0;
+  margin: 0 0 1% 0;
 }
 
 // Search-hit highlight — applied to <mark> elements wrapped around matched
