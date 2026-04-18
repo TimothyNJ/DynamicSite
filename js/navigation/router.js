@@ -255,7 +255,11 @@ function positionArrowAt(container, button) {
 // the parent button in the primary nav.
 function alignSecondaryTo(secondary, button) {
   if (!secondary || !button) return;
-  secondary.style.setProperty('--sidenav-secondary-offset', button.offsetTop + 'px');
+  // offsetTop includes the button's margin-top. Subtract the first
+  // secondary button's margin-top so it doesn't double up.
+  const firstBtn = secondary.querySelector('.sidenav-button');
+  const marginTop = firstBtn ? parseFloat(getComputedStyle(firstBtn).marginTop) : 0;
+  secondary.style.setProperty('--sidenav-secondary-offset', (button.offsetTop - marginTop) + 'px');
 }
 
 function initSidenav(pageName) {
