@@ -124,8 +124,9 @@ function renderChunked( tbody, commits ) {
 // ─── Pixel cap (applied once after first chunk renders) ─────────────────────
 
 function applyPixelCaps( container ) {
+  // Query only BODY cells (td), not header cells (th) which contain <h3>.
   const cellFits = container.querySelectorAll(
-    '.description-cell .cell-fit, .summary-cell .cell-fit'
+    'td.description-cell .cell-fit, td.summary-cell .cell-fit'
   );
   if ( cellFits.length === 0 ) return;
 
@@ -137,7 +138,7 @@ function applyPixelCaps( container ) {
     document.body.appendChild( helper );
   }
 
-  // Measure font from the first prose <p> and reuse for all cells
+  // Copy font properties from the first body-cell <p> for measurement.
   const firstP = cellFits[ 0 ]?.querySelector( 'p' );
   if ( ! firstP ) return;
   const cs = window.getComputedStyle( firstP );
@@ -163,6 +164,8 @@ function applyPixelCaps( container ) {
 
     cellFit.style.width = `${ Math.ceil( Math.min( fullWidth, capWidth ) ) + 1 }px`;
   } );
+
+  console.log( `[DeploymentIndex] Pixel-capped ${ cellFits.length } prose cells at ${ CHAR_CAP } chars` );
 }
 
 // ─── Fetch JSON from server ─────────────────────────────────────────────────
