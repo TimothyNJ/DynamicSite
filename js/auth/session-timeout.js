@@ -8,11 +8,20 @@
  * Activity events monitored: mousemove, mousedown, keypress, scroll, touchstart
  * Scoped to the current document only — other tabs/apps are ignored.
  *
+ * Security: uses wall-clock timestamps (Date.now()) rather than relying
+ * solely on setTimeout/setInterval, which freeze during OS sleep. On wake
+ * (visibilitychange), the real elapsed time is checked — if it exceeds the
+ * inactivity limit the user is logged out immediately with no continue option.
+ * The "Continue" button also re-checks the timestamp and validates the auth
+ * token before allowing the session to resume.
+ *
  * Styling: entirely via _session_timeout.scss — no inline styles here.
  * Button: uses site button classes (.button-component, .button-content etc.)
  * Countdown: updates h3 text every second via setInterval (same pattern as
  *            the time format display in settings).
  */
+
+import { isAuthenticated } from './zitadel-auth.js';
 
 function getInactivityLimit() {
   const minutes = parseFloat(localStorage.getItem('sessionTimeoutMinutes') || '0.5');
@@ -27,11 +36,58 @@ let countdownSeconds = COUNTDOWN_SECONDS;
 let modalEl          = null;
 let headingEl        = null;
 let isSessionTimeOutVisible = false;
+let lastActivityTimestamp    = Date.now();
+
+// ─── Wall-Clock Helpers ──────────────────────────────────────────────────────
+
+function stampActivity() {
+  lastActivityTimestamp = Date.now();
+}
+
+function hasSessionExpired() {
+  return (Date.now() - lastActivityTimestamp) >= getInactivityLimit();
+}
+
+// ─── Visibility Change (sleep/wake detection) ────────────────────────────────
+
+function onVisibilityChange() {
+  if (document.visibilityState !== 'visible') return;
+
+  // Page just became visible (wake from sleep, tab switch back, etc.).
+  // Check real elapsed time — timers may have been frozen for hours.
+  if (hasSessionExpired()) {
+    console.log('[SessionTimeout] Session expired during sleep/background — logging out');
+    performLogout();
+    return;
+  }
+
+  // Session still valid — check if the auth token is still good
+  // (covers the case where another tab logged out while we were away)
+  if (!isAuthenticated()) {
+    console.log('[SessionTimeout] Auth token expired or revoked — logging out');
+    performLogout();
+    return;
+  }
+
+  // If the warning modal is showing, recalculate the countdown based on
+  // real elapsed time rather than the frozen setInterval count.
+  if (isSessionTimeOutVisible) {
+    const elapsedSinceWarning = Date.now() - lastActivityTimestamp - getInactivityLimit();
+    const remainingSeconds = COUNTDOWN_SECONDS - Math.floor(elapsedSinceWarning / 1000);
+    if (remainingSeconds <= 0) {
+      performLogout();
+    } else {
+      countdownSeconds = remainingSeconds;
+      if (headingEl) headingEl.textContent = getHeadingText(countdownSeconds);
+    }
+  }
+}
 
 // ─── Activity Detection ───────────────────────────────────────────────────────
 
 function resetInactivityTimer() {
   if (isSessionTimeOutVisible) return;
+  stampActivity();
   clearTimeout(inactivityTimer);
   inactivityTimer = setTimeout(showSessionTimeOutWarning, getInactivityLimit());
 }
@@ -42,12 +98,14 @@ function attachActivityListeners() {
   ACTIVITY_EVENTS.forEach(event => {
     document.addEventListener(event, resetInactivityTimer, { passive: true });
   });
+  document.addEventListener('visibilitychange', onVisibilityChange);
 }
 
 function detachActivityListeners() {
   ACTIVITY_EVENTS.forEach(event => {
     document.removeEventListener(event, resetInactivityTimer);
   });
+  document.removeEventListener('visibilitychange', onVisibilityChange);
 }
 
 // ─── Heading Text ─────────────────────────────────────────────────────────────
@@ -114,6 +172,27 @@ function showSessionTimeOutWarning() {
 
 function dismissSessionTimeOut() {
   if (!isSessionTimeOutVisible) return;
+
+  // Fallback check: verify real elapsed time before allowing continue.
+  // Handles the case where the modal was shown, the user walked away for
+  // hours, came back, and clicked "Continue" out of habit.
+  if (hasSessionExpired()) {
+    const elapsed = Date.now() - lastActivityTimestamp;
+    const limit = getInactivityLimit();
+    if ((elapsed - limit) >= (COUNTDOWN_SECONDS * 1000)) {
+      console.log('[SessionTimeout] Continue pressed but session expired — logging out');
+      performLogout();
+      return;
+    }
+  }
+
+  // Also verify the auth token is still valid (covers cross-tab logout)
+  if (!isAuthenticated()) {
+    console.log('[SessionTimeout] Continue pressed but auth token invalid — logging out');
+    performLogout();
+    return;
+  }
+
   clearInterval(countdownTimer);
   isSessionTimeOutVisible = false;
 
@@ -139,6 +218,7 @@ function performLogout() {
 
 export function start() {
   stop();
+  stampActivity();
   attachActivityListeners();
   resetInactivityTimer();
   console.log(`[SessionTimeout] Started — inactivity limit: ${localStorage.getItem('sessionTimeoutMinutes') || 5} min, warning: 30 sec`);
