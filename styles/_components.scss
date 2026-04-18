@@ -199,8 +199,8 @@
   text-align: center;
   border: 1px solid royalblue;
 
-  // <p> tags inherit global font rules from _base.scss — no local overrides
-  p {
+  // <h3> tags inherit global font rules from _base.scss — same as data tables
+  h3 {
     margin: 0;
   }
 }
