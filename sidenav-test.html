@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html><head><style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #5f7f8f; font-family: sans-serif; color: white; padding: 40px; }
+h3 { font-size: clamp(0.7rem, 0.8vw, 2.6rem); font-weight: bold; }
+
+.page-with-sidenav {
+  display: flex; flex-direction: row; width: 100%; height: 400px;
+}
+.sidenav {
+  display: flex; flex-direction: column; justify-content: flex-start;
+  align-items: stretch; padding-top: 12.5vh; width: fit-content;
+  flex: 0 1 auto; background: transparent; border: 2px solid orange;
+}
+.sidenav-button {
+  font-size: inherit; flex: 0 1 auto; background: transparent; color: white;
+  border: 1px solid transparent; padding: calc(0.1vw + 0.1vh);
+  margin: calc(0.1vw + 0.1vh); border-radius: 5px; cursor: pointer;
+  display: flex; justify-content: flex-start; align-items: center;
+  white-space: nowrap; overflow: visible; max-width: none; position: relative;
+}
+.sidenav-button:hover { border: 1px solid royalblue; }
+.sidenav-button.active { background: royalblue; color: white; }
+
+.sidenav.collapsible { position: relative; }
+.sidenav.collapsible.expanded { width: fit-content; min-width: fit-content; overflow: visible; }
+.sidenav.collapsible.expanded::after {
+  content: '▶'; position: absolute;
+  top: 50%; transform: translate(-50%, -50%); font-size: 0.7em;
+  color: white; opacity: 0.6; pointer-events: none;
+}
+.sidenav.collapsible.expanded.has-secondary {
+  --sidenav-arrow-gap: 1.8em;
+  margin-right: var(--sidenav-arrow-gap);
+}
+.sidenav.collapsible.expanded.has-secondary::after {
+  right: auto;
+  left: calc(100% + 2px + var(--sidenav-arrow-gap) / 1.4);
+}
+
+.sidenav-secondary {
+  display: flex; flex-direction: column; justify-content: flex-start;
+  align-items: stretch; padding-top: 12.5vh; width: fit-content;
+  flex: 0 1 auto; background: transparent; border: 2px solid hotpink;
+}
+.sidenav-content {
+  flex: 1; min-width: 0; display: flex; justify-content: center;
+  align-items: center; border: 2px solid deepskyblue;
+}
+
+/* Measurement overlay */
+.vline { position: absolute; top: 0; bottom: 0; width: 2px; z-index: 1000; pointer-events: none; }
+.vline-label { position: absolute; top: 8px; font-size: 11px; white-space: nowrap; background: rgba(0,0,0,0.7); padding: 2px 5px; border-radius: 3px; }
+.gap-label { position: absolute; font-size: 13px; font-weight: bold; background: rgba(0,0,0,0.85); padding: 4px 8px; border-radius: 4px; z-index: 1001; white-space: nowrap; }
+
+#measurements { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.9);
+  padding: 15px; font-size: 13px; max-width: 500px; white-space: pre-wrap; z-index: 999;
+  border-radius: 8px; line-height: 1.6; }
+</style></head>
+<body>
+<div class="page-with-sidenav" style="position: relative;">
+  <div class="sidenav collapsible expanded has-secondary">
+    <button class="sidenav-button"><h3>Site Settings</h3></button>
+    <button class="sidenav-button"><h3>Table</h3></button>
+    <button class="sidenav-button"><h3>Engines</h3></button>
+    <button class="sidenav-button"><h3>Infrastructure</h3></button>
+    <button class="sidenav-button"><h3>Backgrounds</h3></button>
+    <button class="sidenav-button active"><h3>Deployment Index</h3></button>
+  </div>
+  <div class="sidenav-secondary">
+    <button class="sidenav-button active"><h3>Development</h3></button>
+    <button class="sidenav-button"><h3>Sandbox</h3></button>
+    <button class="sidenav-button"><h3>Production</h3></button>
+  </div>
+  <div class="sidenav-content"><p>Content area</p></div>
+</div>
+<div id="measurements"></div>
+<script>
+setTimeout(() => {
+  const container = document.querySelector('.page-with-sidenav');
+  const s = document.querySelector('.sidenav');
+  const s2 = document.querySelector('.sidenav-secondary');
+  const containerRect = container.getBoundingClientRect();
+
+  // Find widest button in sidenav 1
+  const btns = s.querySelectorAll('.sidenav-button');
+  let widest = null, maxW = 0;
+  btns.forEach(b => { if (b.offsetWidth > maxW) { maxW = b.offsetWidth; widest = b; } });
+
+  // Find widest button in sidenav 2
+  const btns2 = s2.querySelectorAll('.sidenav-button');
+  let widest2 = null, maxW2 = 0;
+  btns2.forEach(b => { if (b.offsetWidth > maxW2) { maxW2 = b.offsetWidth; widest2 = b; } });
+
+  // Measure the arrow pseudo-element by creating a temporary measuring span
+  const arrowMeasure = document.createElement('span');
+  arrowMeasure.textContent = '▶';
+  arrowMeasure.style.cssText = 'font-size: 0.7em; position: absolute; visibility: hidden;';
+  s.appendChild(arrowMeasure);
+  const arrowGlyphWidth = arrowMeasure.getBoundingClientRect().width;
+  s.removeChild(arrowMeasure);
+
+  // Get the ::after computed position
+  const sRect = s.getBoundingClientRect();
+  const afterStyle = getComputedStyle(s, '::after');
+  const afterLeft = parseFloat(afterStyle.left);
+  const afterTransform = afterStyle.transform; // matrix(a,b,c,d,tx,ty)
+
+  // Parse the transform to get tx (translateX component)
+  let tx = 0;
+  if (afterTransform && afterTransform !== 'none') {
+    const match = afterTransform.match(/matrix\(([^)]+)\)/);
+    if (match) {
+      const vals = match[1].split(',').map(Number);
+      tx = vals[4]; // tx is the 5th value
+    }
+  }
+
+  // Arrow's CSS left is relative to the container's padding box
+  // With border-box, the padding box starts after the left border
+  const borderLeft = parseFloat(getComputedStyle(s).borderLeftWidth);
+  const arrowCenterX = sRect.left + borderLeft + afterLeft + tx;
+  const arrowLeftEdge = arrowCenterX - arrowGlyphWidth / 2;
+  const arrowRightEdge = arrowCenterX + arrowGlyphWidth / 2;
+
+  // Get the 4 key x-positions (absolute page coords)
+  const wRect = widest.getBoundingClientRect();
+  const w2Rect = widest2.getBoundingClientRect();
+
+  const line1_x = wRect.right;          // Right edge of widest btn in sidenav 1
+  const line2_x = arrowLeftEdge;        // Left edge of arrow glyph
+  const line3_x = arrowRightEdge;       // Right edge of arrow glyph
+  const line4_x = w2Rect.left;          // Left edge of widest btn in sidenav 2
+
+  // Gaps
+  const gapA = line2_x - line1_x;  // Button 1 right → Arrow left
+  const gapB = line4_x - line3_x;  // Arrow right → Button 2 left
+  const arrowWidth = line3_x - line2_x;
+
+  // Draw the 4 vertical lines
+  const colors = ['#ff4444', '#44ff44', '#44ff44', '#4444ff'];
+  const labels = [
+    'Btn1 R edge',
+    'Arrow L edge',
+    'Arrow R edge',
+    'Btn2 L edge'
+  ];
+  const xPositions = [line1_x, line2_x, line3_x, line4_x];
+
+  xPositions.forEach((x, i) => {
+    const line = document.createElement('div');
+    line.className = 'vline';
+    line.style.left = (x - containerRect.left) + 'px';
+    line.style.backgroundColor = colors[i];
+
+    const label = document.createElement('div');
+    label.className = 'vline-label';
+    label.style.left = (x - containerRect.left + 4) + 'px';
+    label.style.top = (10 + i * 18) + 'px';
+    label.style.color = colors[i];
+    label.textContent = labels[i] + ' (' + x.toFixed(1) + 'px)';
+
+    container.appendChild(line);
+    container.appendChild(label);
+  });
+
+  // Draw gap labels between the lines
+  const midY = containerRect.height / 2 + 40;
+
+  // Gap A label (between line 1 and line 2)
+  const gapALabel = document.createElement('div');
+  gapALabel.className = 'gap-label';
+  gapALabel.style.left = ((line1_x + line2_x) / 2 - containerRect.left) + 'px';
+  gapALabel.style.top = midY + 'px';
+  gapALabel.style.transform = 'translateX(-50%)';
+  gapALabel.style.color = '#ffcc00';
+  gapALabel.textContent = 'Gap A: ' + gapA.toFixed(1) + 'px';
+  container.appendChild(gapALabel);
+
+  // Gap B label (between line 3 and line 4)
+  const gapBLabel = document.createElement('div');
+  gapBLabel.className = 'gap-label';
+  gapBLabel.style.left = ((line3_x + line4_x) / 2 - containerRect.left) + 'px';
+  gapBLabel.style.top = midY + 'px';
+  gapBLabel.style.transform = 'translateX(-50%)';
+  gapBLabel.style.color = '#ffcc00';
+  gapBLabel.textContent = 'Gap B: ' + gapB.toFixed(1) + 'px';
+  container.appendChild(gapBLabel);
+
+  // Build measurement report
+  const info = [
+    `═══ VERTICAL LINE MEASUREMENTS ═══`,
+    ``,
+    `Line 1 (RED):    Widest btn1 right edge = ${line1_x.toFixed(1)}px`,
+    `Line 2 (GREEN):  Arrow left edge         = ${line2_x.toFixed(1)}px`,
+    `Line 3 (GREEN):  Arrow right edge         = ${line3_x.toFixed(1)}px`,
+    `Line 4 (BLUE):   Widest btn2 left edge   = ${line4_x.toFixed(1)}px`,
+    ``,
+    `═══ GAP ANALYSIS ═══`,
+    ``,
+    `Gap A (btn1 → arrow left):   ${gapA.toFixed(1)}px`,
+    `Arrow glyph width:           ${arrowWidth.toFixed(1)}px`,
+    `Gap B (arrow right → btn2):  ${gapB.toFixed(1)}px`,
+    ``,
+    `Difference (A - B):          ${(gapA - gapB).toFixed(1)}px`,
+    ``,
+    gapA.toFixed(1) === gapB.toFixed(1)
+      ? `✅ PERFECTLY CENTERED`
+      : Math.abs(gapA - gapB) < 1
+        ? `✅ CENTERED (< 1px difference — sub-pixel)`
+        : `⚠️ OFF-CENTER by ${Math.abs(gapA - gapB).toFixed(1)}px`,
+    ``,
+    `═══ RAW DATA ═══`,
+    ``,
+    `Sidenav 1 container: ${sRect.left.toFixed(1)} → ${sRect.right.toFixed(1)} (${sRect.width.toFixed(1)}px)`,
+    `  margin-right: ${getComputedStyle(s).marginRight}`,
+    `  border-right-width: ${getComputedStyle(s).borderRightWidth}`,
+    `Widest btn1 "${widest.textContent.trim()}": ${wRect.width.toFixed(1)}px`,
+    `Arrow ::after computed left: ${afterStyle.left}`,
+    `Arrow ::after transform: ${afterTransform}`,
+    `Arrow glyph measured width: ${arrowGlyphWidth.toFixed(1)}px`,
+    `Sidenav 2 container: left=${s2.getBoundingClientRect().left.toFixed(1)}`,
+    `Widest btn2 "${widest2.textContent.trim()}": left=${w2Rect.left.toFixed(1)}`,
+  ];
+
+  document.getElementById('measurements').textContent = info.join('\n');
+}, 300);
+</script>
+</body></html>
