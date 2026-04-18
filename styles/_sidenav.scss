@@ -126,6 +126,8 @@
     right: 0.4em;
     top: var(--sidenav-arrow-top, var(--sidenav-arrow-default-top));
     transform: translateY(-50%);
+    font-size: var(--h3-font-size);
+    line-height: 1;
     color: white;
     opacity: var(--sidenav-arrow-opacity);
     pointer-events: none;
@@ -153,7 +155,7 @@
     // When secondary nav is showing, push the arrow outside the container
     // and add margin to create space between the two sidenavs.
     &.has-secondary {
-      --sidenav-arrow-gap: 1.8em;
+      --sidenav-arrow-gap: 1.5vw;
       margin-right: var(--sidenav-arrow-gap);
 
       &::after {
