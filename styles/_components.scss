@@ -174,13 +174,21 @@
 // ==============================================
 // Font Examples Table — typography calibration grid
 // ==============================================
-// Uses a real <table> so vertical-align: bottom aligns cell content to the
-// bottom of each cell. Standard 1px debug borders on every cell
-// (same pattern as other tables) — toggled by .borders-hidden.
+// Pure size-comparison table: zero padding anywhere so font sizes are the
+// only variable. vertical-align: baseline aligns letter shapes across
+// columns. Standard 1px debug borders — toggled by .borders-hidden.
+// Wrapped in its own fit-content container (not .table-body) so borders
+// hug the table rather than stretching to the content-area width.
+.fe-table-body {
+  width: fit-content;
+  max-width: 100%;
+  justify-self: center;
+  border: 1px solid green;
+}
+
 .font-examples-table {
   border-collapse: separate;
   border-spacing: 0;
-  margin: 0 auto;
   font-family: var(--font-family-primary);
   color: var(--text-color, #fff);
   border: 1px solid royalblue;
@@ -188,7 +196,7 @@
 
 .fe-header-cell {
   text-align: center;
-  padding: 0 1.5em 0.3em;
+  padding: 0;
   border: 1px solid royalblue;
 
   p {
@@ -202,9 +210,9 @@
 }
 
 .fe-sample-cell {
-  vertical-align: bottom;
+  vertical-align: baseline;
   text-align: center;
-  padding: 0.4em 1.5em 0.15em;
+  padding: 0;
   border: 1px solid royalblue;
 
   .fe-sample {
@@ -219,7 +227,7 @@
 
 .fe-label-cell {
   text-align: center;
-  padding: 0.1em 1.5em 0.5em;
+  padding: 0;
   border: 1px solid royalblue;
 
   p {

@@ -12,8 +12,8 @@
 
   <!-- ──────────────────────────────────────────────────────────────────────
        Font Examples — typography calibration table (H1..P, plus min-px probes).
-       Real <table> so vertical-align: bottom keeps cell content at the
-       bottom of each cell, and text-align: center centres horizontally.
+       Zero padding so font sizes are the only variable. vertical-align:
+       baseline aligns letter shapes across columns.
          LEFT   = MIN  (clamp floor, forced via hard-coded rem)
          CENTER = LIVE (real tag; renders whatever the clamp() resolves to
                         at the current viewport)
@@ -21,7 +21,7 @@
        On phone: expect MIN == LIVE (MIN is winning).
        On MBP/TV: expect LIVE == PREF (vw is winning).
        ────────────────────────────────────────────────────────────────────── -->
-  <div class="table-body" style="justify-items: center;">
+  <div class="fe-table-body">
     <table class="font-examples-table">
       <thead>
         <tr class="fe-header-row">
