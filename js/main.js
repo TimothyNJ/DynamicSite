@@ -1280,6 +1280,9 @@ document.addEventListener('subpageLoaded', (e) => {
         const env = e.detail.subsubpage;
         console.log(`[main.js] Initializing Security Settings (${ env })`);
         initializeSecuritySettings( env );
+      } else if (subpage === 'infrastructure') {
+        console.log('[main.js] Initializing Infrastructure page');
+        applyProseCellPixelCap();
       }
     });
   }
