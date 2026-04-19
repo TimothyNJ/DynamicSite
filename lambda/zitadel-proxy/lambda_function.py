@@ -527,11 +527,14 @@ def lambda_handler(event, context):
     http_method = event.get('httpMethod', event.get('requestContext', {}).get('http', {}).get('method', ''))
     path = event.get('path', event.get('rawPath', ''))
 
+    print(f'[lambda] Incoming: {http_method} {path} origin={origin}')
+
     # Strip stage prefix if present (e.g. /prod/roles -> /roles)
     if path and '/' in path[1:]:
         parts = path.split('/')
         if len(parts) >= 3 and parts[1] in ('prod', 'dev', 'staging'):
             path = '/' + '/'.join(parts[2:])
+            print(f'[lambda] Stripped stage prefix → {path}')
 
     # Handle CORS preflight
     if http_method == 'OPTIONS':
@@ -541,17 +544,21 @@ def lambda_handler(event, context):
     auth_header = (event.get('headers') or {}).get('Authorization',
                    (event.get('headers') or {}).get('authorization', ''))
     if not auth_header.startswith('Bearer '):
+        print(f'[lambda] 401: Missing/invalid auth header')
         return respond(401, {'error': 'Missing or invalid Authorization header'}, origin)
 
     user_token = auth_header[7:]
 
     try:
         user_info = validate_user_token(user_token)
+        print(f'[lambda] User validated: {user_info.get("sub", "?")}')
     except ValueError as e:
+        print(f'[lambda] 401: Token validation failed: {e}')
         return respond(401, {'error': str(e)}, origin)
 
     # Route to handler — check static routes first, then dynamic patterns
     route_key = f'{http_method} {path}'
+    print(f'[lambda] Route key: {route_key}')
     handler = ROUTES.get(route_key)
 
     try:
@@ -583,8 +590,11 @@ def lambda_handler(event, context):
 
         # POST /push-font-variables
         if path == '/push-font-variables' and http_method == 'POST':
+            print('[lambda] Handling push-font-variables')
             body = json.loads(event.get('body') or '{}')
+            print(f'[lambda] Body keys: {list(body.keys())}')
             data = handle_push_font_variables(body)
+            print(f'[lambda] Push result: {data.get("status", "?")} commit={data.get("commit", "?")}')
             return respond(200, data, origin)
 
         # POST /revert-font-variables
@@ -612,8 +622,11 @@ def lambda_handler(event, context):
                              ]}, origin)
 
     except RuntimeError as e:
+        print(f'[lambda] 502 RuntimeError: {e}')
         return respond(502, {'error': str(e)}, origin)
     except ValueError as e:
+        print(f'[lambda] 400 ValueError: {e}')
         return respond(400, {'error': str(e)}, origin)
     except Exception as e:
+        print(f'[lambda] 500 Exception: {type(e).__name__}: {e}')
         return respond(500, {'error': f'Internal error: {str(e)}'}, origin)
