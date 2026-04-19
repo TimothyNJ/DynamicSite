@@ -13,7 +13,6 @@
 
 const POLL_INTERVAL_MS = 30_000;   // check every 30 seconds
 const DEFER_DELAY_MS   = 30_000;   // re-show after 30 seconds if user defers
-const COOLDOWN_MS      = 180_000;  // 3-min cooldown after a refresh to let rapid deploys settle
 
 // BUILD_TIMESTAMP is injected by webpack DefinePlugin at build time
 const currentVersion = typeof BUILD_TIMESTAMP !== 'undefined' ? BUILD_TIMESTAMP : null;
@@ -24,30 +23,10 @@ let modalEl     = null;
 let isVisible   = false;
 let isRunning   = false;
 
-// ─── Cooldown — suppress alerts right after a refresh ────────────────────────
-// When rapid-fire CI deploys happen (e.g. multiple git pushes), each one
-// produces a new version.json. Without a cooldown the user gets a popup storm:
-// refresh → new deploy lands → popup → refresh → another deploy → popup…
-// After the user refreshes, we suppress for COOLDOWN_MS so the deploys settle.
-
-function isInCooldown() {
-  try {
-    const ts = sessionStorage.getItem('update-notifier-refresh-ts');
-    if (!ts) return false;
-    return (Date.now() - parseInt(ts, 10)) < COOLDOWN_MS;
-  } catch (e) { return false; }
-}
-
-function markRefreshed() {
-  try { sessionStorage.setItem('update-notifier-refresh-ts', String(Date.now())); }
-  catch (e) { /* private browsing etc. */ }
-}
-
 // ─── Version Check ───────────────────────────────────────────────────────────
 
 async function checkForUpdate() {
   if ( isVisible ) return;              // don't poll while modal is showing
-  if ( isInCooldown() ) return;         // still in post-refresh cooldown
   try {
     const res = await fetch( '/version.json', { cache: 'no-store' } );
     if ( ! res.ok ) return;             // silently ignore fetch failures
@@ -132,7 +111,6 @@ function dismissModal() {
 // ─── Actions ─────────────────────────────────────────────────────────────────
 
 function refreshNow() {
-  markRefreshed();
   window.location.reload();
 }
 
