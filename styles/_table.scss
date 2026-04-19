@@ -283,3 +283,21 @@ body[data-theme="dark"] .search-hit {
 .table-body-row.search-matched .cell-fit > p {
   font-size: var(--h4-font-size);
 }
+
+// ==============================================
+// Infrastructure page links — white, no underline,
+// inherits the p font-size from _base.scss.
+// ==============================================
+.infra-link {
+  color: white;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: underline;
+  }
+
+  &:visited {
+    color: white;
+  }
+}
