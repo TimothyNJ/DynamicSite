@@ -21,7 +21,7 @@
  *            the time format display in settings).
  */
 
-import { isAuthenticated } from './zitadel-auth.js';
+import { isAuthenticated, isTokenExpired, refreshToken, startTokenRefreshTimer } from './zitadel-auth.js';
 
 function getInactivityLimit() {
   const minutes = parseFloat(localStorage.getItem('sessionTimeoutMinutes') || '0.5');
@@ -50,7 +50,7 @@ function hasSessionExpired() {
 
 // ─── Visibility Change (sleep/wake detection) ────────────────────────────────
 
-function onVisibilityChange() {
+async function onVisibilityChange() {
   if (document.visibilityState !== 'visible') return;
 
   // Page just became visible (wake from sleep, tab switch back, etc.).
@@ -61,12 +61,24 @@ function onVisibilityChange() {
     return;
   }
 
-  // Session still valid — check if the auth token is still good
-  // (covers the case where another tab logged out while we were away)
+  // Session still valid — check if the auth token is still good.
+  // If the token expired while backgrounded, try a refresh first.
   if (!isAuthenticated()) {
-    console.log('[SessionTimeout] Auth token expired or revoked — logging out');
-    performLogout();
-    return;
+    if (isTokenExpired()) {
+      try {
+        await refreshToken();
+        startTokenRefreshTimer();
+        console.log('[SessionTimeout] Token refreshed after visibility change');
+      } catch {
+        console.log('[SessionTimeout] Token refresh failed on visibility change — logging out');
+        performLogout();
+        return;
+      }
+    } else {
+      console.log('[SessionTimeout] Auth state invalid on visibility change — logging out');
+      performLogout();
+      return;
+    }
   }
 
   // If the warning modal is showing, recalculate the countdown based on
@@ -181,7 +193,7 @@ function showSessionTimeOutWarning() {
   }, 1000);
 }
 
-function dismissSessionTimeOut() {
+async function dismissSessionTimeOut() {
   if (!isSessionTimeOutVisible) return;
 
   // Fallback check: verify real elapsed time before allowing continue.
@@ -197,11 +209,27 @@ function dismissSessionTimeOut() {
     }
   }
 
-  // Also verify the auth token is still valid (covers cross-tab logout)
+  // Check auth state. If the access token expired during inactivity,
+  // attempt a refresh before giving up — the session timeout is about user
+  // presence, not token lifetime. Only log out if the refresh itself fails
+  // (e.g. refresh token revoked, network down).
   if (!isAuthenticated()) {
-    console.log('[SessionTimeout] Continue pressed but auth token invalid — logging out');
-    performLogout();
-    return;
+    if (isTokenExpired()) {
+      try {
+        console.log('[SessionTimeout] Token expired during inactivity — attempting refresh');
+        await refreshToken();
+        startTokenRefreshTimer();
+        console.log('[SessionTimeout] Token refreshed successfully — continuing session');
+      } catch (e) {
+        console.log('[SessionTimeout] Token refresh failed — logging out', e);
+        performLogout();
+        return;
+      }
+    } else {
+      console.log('[SessionTimeout] Continue pressed but auth state invalid — logging out');
+      performLogout();
+      return;
+    }
   }
 
   clearInterval(countdownTimer);
