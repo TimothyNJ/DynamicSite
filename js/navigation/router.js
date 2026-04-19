@@ -36,7 +36,7 @@ const sidenavConfig = {
     subSubpages: {
       "create": {
         defaultSub: "bank-validations",
-        items: ["bank-validations", "tin-validations", "create-scac", "change-payment-terms", "change-invoice-approver", "vendor-request", "user-permission-request", "report"]
+        items: ["bank-validations", "tin-validations", "address-validations", "create-scac", "change-payment-terms", "change-invoice-approver", "vendor-request", "user-permission-request", "report"]
       }
     }
   },
