@@ -285,6 +285,56 @@ body[data-theme="dark"] .search-hit {
 }
 
 // ==============================================
+// Infrastructure table — no internal scroll, content
+// flows vertically with the page. Table constrained
+// horizontally to the content area; columns wrap text
+// downward rather than pushing the table wider.
+// ==============================================
+.infra-table {
+  // Override .table-title: left-align to match body content
+  .table-title {
+    justify-self: start;
+  }
+
+  // Override .table-body: remove internal scroll — the page
+  // itself handles vertical scrolling via swipe.
+  .table-body {
+    overflow: visible;
+    max-height: none;
+  }
+
+  // Override .table-main: constrain to available width instead
+  // of growing to max-content. Columns wrap text downward.
+  .table-main {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  // First column (service name / URL) — shrink to fit content
+  .table-main td:first-child {
+    width: 1%;
+    white-space: nowrap;
+  }
+}
+
+// Spacer row between infrastructure service blocks — h3-height gap.
+.infra-spacer {
+  border: none;
+
+  td {
+    border: none;
+    padding: 0;
+  }
+
+  // The h3 inside sets the row height to match h3 line-height
+  .cell-fit > h3 {
+    margin: 0;
+    padding: 0;
+    visibility: hidden;
+  }
+}
+
+// ==============================================
 // Infrastructure page links — white, no underline,
 // inherits the p font-size from _base.scss.
 // ==============================================
