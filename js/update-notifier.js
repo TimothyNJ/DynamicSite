@@ -9,7 +9,7 @@
  * Styling: entirely via _update_notifier.scss — no inline styles here.
  *
  * Created: 17-Apr-2026
- * Updated: 18-Apr-2026 — concurrency test 1
+ * Updated: 18-Apr-2026 — concurrency test 2
  */
 
 const POLL_INTERVAL_MS = 30_000;   // check every 30 seconds
