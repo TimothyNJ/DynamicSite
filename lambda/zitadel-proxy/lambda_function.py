@@ -406,7 +406,7 @@ def extract_current_font_values(scss_content):
     return values
 
 
-def handle_push_font_variables(body):
+def handle_push_font_variables(body, is_revert=False):
     """Update font clamp() variables in _variables.scss via GitHub API.
     Stores before/after state in S3 for revert support.
     Expects body: { fontVariables: { h1: {min, pref, max}, ... }, environment: "development" }
@@ -462,10 +462,11 @@ def handle_push_font_variables(body):
         if diffs:
             changes.append(f'  {tag.upper()}: {", ".join(diffs)}')
 
+    action = 'Font revert' if is_revert else 'Font push'
     if changes:
-        commit_msg = f'Font push ({env}): update {len(changes)} tier(s)\n\n' + '\n'.join(changes)
+        commit_msg = f'{action} ({env}): update {len(changes)} tier(s)\n\n' + '\n'.join(changes)
     else:
-        commit_msg = f'Font push ({env}): no value changes (re-push of current values)'
+        commit_msg = f'{action} ({env}): no value changes (re-push of current values)'
 
     # Commit the updated file back to GitHub
     encoded = base64.b64encode(content.encode('utf-8')).decode('utf-8')
@@ -513,7 +514,7 @@ def handle_revert_font_variables(body=None):
         raise ValueError(f'No previous font state to revert to for {env}')
 
     # 2. Push the previous values as new (reuses handle_push_font_variables)
-    result = handle_push_font_variables({'fontVariables': previous, 'environment': env})
+    result = handle_push_font_variables({'fontVariables': previous, 'environment': env}, is_revert=True)
 
     # The push handler already saved the new state history with
     # current values as 'previous' and the reverted values as 'current'
