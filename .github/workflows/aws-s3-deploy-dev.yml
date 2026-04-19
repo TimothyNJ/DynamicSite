@@ -27,6 +27,11 @@ jobs:
           # Persist GITHUB_TOKEN so the regenerate step can push back.
           persist-credentials: true
 
+      # Fetch all remote branches so generate_deployment_index.py can
+      # run git log against sandbox and production too.
+      - name: Fetch all branches
+        run: git fetch --no-tags origin +refs/heads/*:refs/remotes/origin/*
+
       # ──────────────────────────────────────────────────────────────────────
       # Generate Deployment Index JSON from git log. The JSON is deployed to
       # S3 (not committed to git). The client-side renderer fetches it and
@@ -39,11 +44,11 @@ jobs:
             --out pages/development/deployment-index/development/index.html \
             --json-out pages/development/deployment-index/development/index.json
           python3 scripts/generate_deployment_index.py \
-            --branch sandbox \
+            --branch origin/sandbox \
             --out pages/development/deployment-index/sandbox/index.html \
             --json-out pages/development/deployment-index/sandbox/index.json
           python3 scripts/generate_deployment_index.py \
-            --branch production \
+            --branch origin/production \
             --out pages/development/deployment-index/production/index.html \
             --json-out pages/development/deployment-index/production/index.json
 

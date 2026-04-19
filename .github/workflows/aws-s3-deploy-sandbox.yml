@@ -22,10 +22,15 @@ jobs:
       # ──────────────────────────────────────────────────────────────────────
       # Generate Deployment Index JSON from git log. Deployed to S3 only.
       # ──────────────────────────────────────────────────────────────────────
+      # Fetch all remote branches so generate_deployment_index.py can
+      # run git log against development and production too.
+      - name: Fetch all branches
+        run: git fetch --no-tags origin +refs/heads/*:refs/remotes/origin/*
+
       - name: Generate Deployment Index JSON (all environments)
         run: |
           python3 scripts/generate_deployment_index.py \
-            --branch development \
+            --branch origin/development \
             --out pages/development/deployment-index/development/index.html \
             --json-out pages/development/deployment-index/development/index.json
           python3 scripts/generate_deployment_index.py \
@@ -33,7 +38,7 @@ jobs:
             --out pages/development/deployment-index/sandbox/index.html \
             --json-out pages/development/deployment-index/sandbox/index.json
           python3 scripts/generate_deployment_index.py \
-            --branch production \
+            --branch origin/production \
             --out pages/development/deployment-index/production/index.html \
             --json-out pages/development/deployment-index/production/index.json
 

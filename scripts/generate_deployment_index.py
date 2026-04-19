@@ -230,9 +230,15 @@ def main() -> int:
         )
         repo_root = Path(result.stdout.strip()).resolve()
 
-    raw = run_git_log(args.branch, repo_root)
+    # The --branch arg may be a remote ref like "origin/sandbox" when the
+    # workflow fetches all branches. git log needs the full ref, but HTML
+    # IDs and titles use the short name.
+    git_ref = args.branch
+    display_branch = args.branch.removeprefix("origin/")
+
+    raw = run_git_log(git_ref, repo_root)
     commits = parse_log(raw)
-    html_out = render_page(args.branch, commits)
+    html_out = render_page(display_branch, commits)
     json_out = render_json(commits)
 
     if args.dry_run:
