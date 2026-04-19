@@ -460,11 +460,11 @@ def handle_push_font_variables(body, is_revert=False):
                 unit = 'vw' if param == 'pref' else 'rem'
                 diffs.append(f'{param}: {old_v}{unit} → {new_v}{unit}')
         if diffs:
-            changes.append(f'  {tag.upper()}: {", ".join(diffs)}')
+            changes.append(f'{tag.upper()}: {", ".join(diffs)}')
 
     action = 'Font revert' if is_revert else 'Font push'
     if changes:
-        commit_msg = f'{action} ({env}): update {len(changes)} tier(s)\n\n' + '\n'.join(changes)
+        commit_msg = f'{action} ({env}): update {len(changes)} tier(s)\n\n' + '<br>'.join(changes)
     else:
         commit_msg = f'{action} ({env}): no value changes (re-push of current values)'
 

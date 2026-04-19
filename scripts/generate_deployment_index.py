@@ -124,18 +124,15 @@ def esc(text: str) -> str:
 
 
 def body_as_paragraph(body: str) -> str:
-    """Clean up commit body whitespace while preserving intentional line breaks.
+    """Collapse commit body whitespace into a single paragraph.
 
-    Each line is individually cleaned (runs of spaces/tabs collapsed), and
-    blank lines are removed, but newlines between non-empty lines are kept.
-    This lets structured descriptions (e.g. font-push diffs with one tier
-    per line) display with line breaks in the deployment index.
+    All runs of whitespace (spaces, tabs, newlines) become single spaces.
+    Intentional line breaks are expressed with literal '<br>' markers in the
+    commit body — those are handled downstream after HTML-escaping.
     """
     if not body:
         return ""
-    lines = body.strip().split('\n')
-    cleaned = [' '.join(line.split()) for line in lines]
-    return '\n'.join(line for line in cleaned if line)
+    return " ".join(body.split())
 
 
 def render_row(commit: dict) -> str:
@@ -143,7 +140,7 @@ def render_row(commit: dict) -> str:
     local_fallback = format_pdt_compact(commit["iso"])
     utc_compact = format_utc_compact(commit["iso"])
     summary = esc(commit["subject"])
-    description = esc(body_as_paragraph(commit["body"])).replace('\n', '<br>')
+    description = esc(body_as_paragraph(commit["body"])).replace('&lt;br&gt;', '<br>')
     short_sha = esc(commit["short_sha"])
     return (
         "        <tr class=\"table-body-row\">\n"
@@ -195,7 +192,7 @@ def render_json(commits: list[dict]) -> str:
     - sha: 7-char short SHA
     - iso: UTC ISO 8601 timestamp ending in Z
     - subject: commit subject line
-    - body: commit body with line breaks preserved (may be empty string)
+    - body: commit body collapsed to paragraph; may contain &lt;br&gt; markers (empty string if none)
     """
     records = []
     for c in commits:
