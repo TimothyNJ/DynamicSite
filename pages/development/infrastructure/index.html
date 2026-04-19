@@ -1,9 +1,13 @@
 <div class="table-outer infra-table">
   <div class="table-title">
-    <h3>Infrastructure</h3>
+    <h2>Infrastructure</h2>
   </div>
   <div class="table-body">
     <table class="table-main">
+      <colgroup>
+        <col style="width: 30%;">
+        <col style="width: 70%;">
+      </colgroup>
       <tbody>
 
         <!-- GitHub -->
@@ -32,7 +36,7 @@
           <td class="table-body-cell summary-cell" rowspan="2"><div class="cell-fit"><p>CDN for dynamicsite.io and www.dynamicsite.io. Origin: tnjdynamicsite S3 bucket. Viewer-request function dynamicsite-prod-auth-redirect provides HTTP Basic Auth site blocker and www-to-apex redirect.</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-east-1.console.aws.amazon.com/cloudfront/v4/home#/distributions/E26XILFQZ1UE5P" target="_blank" rel="noopener">Distribution E26XILFQZ1UE5P</a></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-east-1.console.aws.amazon.com/cloudfront/v4/home#/distributions/E26XILFQZ1UE5P" target="_blank" rel="noopener">E26XILFQZ1UE5P</a></p></div></td>
         </tr>
         <tr class="infra-spacer"><td colspan="2"><div class="cell-fit"><h3>&nbsp;</h3></div></td></tr>
 
@@ -42,7 +46,7 @@
           <td class="table-body-cell summary-cell" rowspan="2"><div class="cell-fit"><p>CDN for dev.dynamicsite.io. Origin: tnjdynamicsite-dev S3 bucket. Viewer-request function dynamicsite-basic-auth provides HTTP Basic Auth site blocker.</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-east-1.console.aws.amazon.com/cloudfront/v4/home#/distributions/E3OWX0O17FJNHI" target="_blank" rel="noopener">Distribution E3OWX0O17FJNHI</a></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-east-1.console.aws.amazon.com/cloudfront/v4/home#/distributions/E3OWX0O17FJNHI" target="_blank" rel="noopener">E3OWX0O17FJNHI</a></p></div></td>
         </tr>
         <tr class="infra-spacer"><td colspan="2"><div class="cell-fit"><h3>&nbsp;</h3></div></td></tr>
 
@@ -52,7 +56,7 @@
           <td class="table-body-cell summary-cell" rowspan="2"><div class="cell-fit"><p>CDN for sandbox.dynamicsite.io. Origin: tnjdynamicsite-sandbox S3 bucket. Viewer-request function dynamicsite-basic-auth provides HTTP Basic Auth site blocker.</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-east-1.console.aws.amazon.com/cloudfront/v4/home#/distributions/E28F8S6UWTY5P2" target="_blank" rel="noopener">Distribution E28F8S6UWTY5P2</a></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-east-1.console.aws.amazon.com/cloudfront/v4/home#/distributions/E28F8S6UWTY5P2" target="_blank" rel="noopener">E28F8S6UWTY5P2</a></p></div></td>
         </tr>
         <tr class="infra-spacer"><td colspan="2"><div class="cell-fit"><h3>&nbsp;</h3></div></td></tr>
 
@@ -62,7 +66,7 @@
           <td class="table-body-cell summary-cell" rowspan="2"><div class="cell-fit"><p>Static site hosting. Three buckets: tnjdynamicsite (production), tnjdynamicsite-dev (development), tnjdynamicsite-sandbox (sandbox). All deployed via GitHub Actions with no-cache headers. Also stores security-config.json and version.json.</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://s3.console.aws.amazon.com/s3/buckets?region=us-west-2" target="_blank" rel="noopener">S3 Console (us-west-2)</a></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://s3.console.aws.amazon.com/s3/buckets?region=us-west-2" target="_blank" rel="noopener">s3.console.aws.amazon.com</a></p></div></td>
         </tr>
         <tr class="infra-spacer"><td colspan="2"><div class="cell-fit"><h3>&nbsp;</h3></div></td></tr>
 
@@ -72,7 +76,7 @@
           <td class="table-body-cell summary-cell" rowspan="2"><div class="cell-fit"><p>API proxy between the client and Zitadel Management API. Authenticates via service account JWT, handles session management, font variable push, and security config updates. Deployed from lambda/zitadel-proxy/ on code changes.</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/dynamicsite-zitadel-proxy" target="_blank" rel="noopener">dynamicsite-zitadel-proxy (Python 3.12)</a></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/dynamicsite-zitadel-proxy" target="_blank" rel="noopener">dynamicsite-zitadel-proxy</a></p></div></td>
         </tr>
         <tr class="infra-spacer"><td colspan="2"><div class="cell-fit"><h3>&nbsp;</h3></div></td></tr>
 
@@ -82,7 +86,7 @@
           <td class="table-body-cell summary-cell" rowspan="2"><div class="cell-fit"><p>Stores six secrets: Zitadel service account key, GitHub PAT, Cloudflare API token, Migadu API key, SES SMTP credentials, and GitHub Actions deployer IAM credentials.</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-west-2.console.aws.amazon.com/secretsmanager/listsecrets?region=us-west-2" target="_blank" rel="noopener">Secrets Manager (us-west-2)</a></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-west-2.console.aws.amazon.com/secretsmanager/listsecrets?region=us-west-2" target="_blank" rel="noopener">secretsmanager.console.aws.amazon.com</a></p></div></td>
         </tr>
         <tr class="infra-spacer"><td colspan="2"><div class="cell-fit"><h3>&nbsp;</h3></div></td></tr>
 
@@ -92,7 +96,7 @@
           <td class="table-body-cell summary-cell" rowspan="2"><div class="cell-fit"><p>Email sending service. SMTP credentials stored in Secrets Manager. Used for transactional email from the DynamicSite domain.</p></div></td>
         </tr>
         <tr class="table-body-row">
-          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-west-2.console.aws.amazon.com/ses/home?region=us-west-2" target="_blank" rel="noopener">SES Console (us-west-2)</a></p></div></td>
+          <td class="table-body-cell"><div class="cell-fit"><p><a class="infra-link" href="https://us-west-2.console.aws.amazon.com/ses/home?region=us-west-2" target="_blank" rel="noopener">ses.console.aws.amazon.com</a></p></div></td>
         </tr>
         <tr class="infra-spacer"><td colspan="2"><div class="cell-fit"><h3>&nbsp;</h3></div></td></tr>
 

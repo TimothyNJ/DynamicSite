@@ -291,11 +291,6 @@ body[data-theme="dark"] .search-hit {
 // downward rather than pushing the table wider.
 // ==============================================
 .infra-table {
-  // Override .table-title: left-align to match body content
-  .table-title {
-    justify-self: start;
-  }
-
   // Override .table-body: remove internal scroll — the page
   // itself handles vertical scrolling via swipe.
   .table-body {
@@ -305,15 +300,24 @@ body[data-theme="dark"] .search-hit {
 
   // Override .table-main: constrain to available width instead
   // of growing to max-content. Columns wrap text downward.
+  // Column proportions set by <colgroup> in the HTML.
   .table-main {
     width: 100%;
     table-layout: fixed;
   }
 
-  // First column (service name / URL) — shrink to fit content
+  // First column: allow service names to wrap if needed
   .table-main td:first-child {
-    width: 1%;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  // Remove sticky first-column background from infra table —
+  // no horizontal scroll means no need for frozen columns.
+  .table-main tr > *:first-child {
+    position: static;
+    background: none;
   }
 }
 
