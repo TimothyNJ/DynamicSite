@@ -154,6 +154,11 @@ export function initializeFontEditor(env) {
     return;
   }
 
+  // Idempotency guard — prevent duplicate component creation on first navigation
+  const container = document.getElementById('fe-input-h1-min');
+  if (container && container.dataset.initialized === 'true') return;
+  if (container) container.dataset.initialized = 'true';
+
   currentEnv = env || 'development';
 
   // Seed live state from the actually deployed CSS variables (not hardcoded defaults)

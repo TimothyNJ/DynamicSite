@@ -724,6 +724,11 @@ function initializeDisplaySettingsComponents(env) {
     return;
   }
 
+  // Idempotency guard — prevent duplicate component creation on first navigation
+  const guard = document.getElementById('borders-toggle-button-container');
+  if (guard && guard.dataset.initialized === 'true') return;
+  if (guard) guard.dataset.initialized = 'true';
+
   componentFactory.createButton('borders-toggle-button-container', {
     id: 'borders-toggle-button',
     text: 'Size Guides and Borders',
