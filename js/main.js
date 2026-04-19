@@ -33,6 +33,7 @@ import {
 
 import { start as startSessionTimeout, stop as stopSessionTimeout, restart as restartSessionTimeout } from './auth/session-timeout.js';
 import { start as startUpdateNotifier, stop as stopUpdateNotifier } from './update-notifier.js';
+import { enforceSiteBlocker } from './auth/site-blocker.js';
 
 // Zitadel Management API
 import { fetchProjectRoles } from './api/zitadel-api.js';
@@ -1461,6 +1462,10 @@ function initializeApp() {
     return; // Don't initialize the rest of the app during callback
   }
   
+  // Site blocker — full-screen auth gate, covers everything until login
+  enforceSiteBlocker();
+  window.enforceSiteBlocker = enforceSiteBlocker;
+
   // Update navigation based on authentication state
   updateNavigationForAuthState();
   window.updateNavigationForAuthState = updateNavigationForAuthState;
