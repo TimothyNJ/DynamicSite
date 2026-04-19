@@ -5,6 +5,13 @@ on:
     branches: [development]
   workflow_dispatch:
 
+# Cancel any in-progress run when a new push arrives. Only the latest
+# commit needs to deploy — intermediate pushes are wasted work and
+# produce version.json churn that triggers update-notifier popups.
+concurrency:
+  group: deploy-dev-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
