@@ -32,12 +32,20 @@ jobs:
       # S3 (not committed to git). The client-side renderer fetches it and
       # builds the table in the browser.
       # ──────────────────────────────────────────────────────────────────────
-      - name: Generate Deployment Index JSON (development)
+      - name: Generate Deployment Index JSON (all environments)
         run: |
           python3 scripts/generate_deployment_index.py \
             --branch development \
             --out pages/development/deployment-index/development/index.html \
             --json-out pages/development/deployment-index/development/index.json
+          python3 scripts/generate_deployment_index.py \
+            --branch sandbox \
+            --out pages/development/deployment-index/sandbox/index.html \
+            --json-out pages/development/deployment-index/sandbox/index.json
+          python3 scripts/generate_deployment_index.py \
+            --branch production \
+            --out pages/development/deployment-index/production/index.html \
+            --json-out pages/development/deployment-index/production/index.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
