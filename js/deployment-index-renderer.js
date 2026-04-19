@@ -152,7 +152,14 @@ function buildRow( commit, summaryCapPx, descCapPx ) {
     descDiv.style.width = descCapPx + 'px';
   }
   const descP = document.createElement( 'p' );
-  descP.textContent = body;
+  if ( body.includes( '\n' ) ) {
+    body.split( '\n' ).forEach( ( line, i ) => {
+      if ( i > 0 ) descP.appendChild( document.createElement( 'br' ) );
+      descP.appendChild( document.createTextNode( line ) );
+    } );
+  } else {
+    descP.textContent = body;
+  }
   descDiv.appendChild( descP );
   tdDesc.appendChild( descDiv );
 

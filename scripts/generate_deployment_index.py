@@ -124,18 +124,18 @@ def esc(text: str) -> str:
 
 
 def body_as_paragraph(body: str) -> str:
-    """Commit bodies often contain multi-line prose and soft wraps.
+    """Clean up commit body whitespace while preserving intentional line breaks.
 
-    Collapse internal newlines to spaces so the <p> renders as a single
-    paragraph that wraps naturally inside the description column (which is
-    pixel-capped to ~66 chars). Blank lines (paragraph breaks in commit
-    bodies) become a single space too — the column is narrow enough that
-    paragraph breaks would look arbitrary.
+    Each line is individually cleaned (runs of spaces/tabs collapsed), and
+    blank lines are removed, but newlines between non-empty lines are kept.
+    This lets structured descriptions (e.g. font-push diffs with one tier
+    per line) display with line breaks in the deployment index.
     """
     if not body:
         return ""
-    # Collapse all runs of whitespace (including newlines) into single spaces.
-    return " ".join(body.split())
+    lines = body.strip().split('\n')
+    cleaned = [' '.join(line.split()) for line in lines]
+    return '\n'.join(line for line in cleaned if line)
 
 
 def render_row(commit: dict) -> str:
@@ -143,7 +143,7 @@ def render_row(commit: dict) -> str:
     local_fallback = format_pdt_compact(commit["iso"])
     utc_compact = format_utc_compact(commit["iso"])
     summary = esc(commit["subject"])
-    description = esc(body_as_paragraph(commit["body"]))
+    description = esc(body_as_paragraph(commit["body"])).replace('\n', '<br>')
     short_sha = esc(commit["short_sha"])
     return (
         "        <tr class=\"table-body-row\">\n"
@@ -195,7 +195,7 @@ def render_json(commits: list[dict]) -> str:
     - sha: 7-char short SHA
     - iso: UTC ISO 8601 timestamp ending in Z
     - subject: commit subject line
-    - body: commit body collapsed to single paragraph (may be empty string)
+    - body: commit body with line breaks preserved (may be empty string)
     """
     records = []
     for c in commits:
