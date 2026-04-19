@@ -447,10 +447,30 @@ def handle_push_font_variables(body):
         replacement = rf'\g<1>{min_val}rem, {pref_val}vw, {max_val}rem\2'
         content = pattern.sub(replacement, content)
 
-    # 4. Commit the updated file back to GitHub
+    # 4. Build a descriptive commit message with specific changes
+    changes = []
+    for tag in ('h1', 'h2', 'h3', 'h4', 'p'):
+        new = font_vars.get(tag, {})
+        old = before_values.get(tag, {})
+        diffs = []
+        for param in ('min', 'pref', 'max'):
+            old_v = old.get(param)
+            new_v = new.get(param)
+            if old_v is not None and new_v is not None and float(old_v) != float(new_v):
+                unit = 'vw' if param == 'pref' else 'rem'
+                diffs.append(f'{param}: {old_v}{unit} → {new_v}{unit}')
+        if diffs:
+            changes.append(f'  {tag.upper()}: {", ".join(diffs)}')
+
+    if changes:
+        commit_msg = f'Font push ({env}): update {len(changes)} tier(s)\n\n' + '\n'.join(changes)
+    else:
+        commit_msg = f'Font push ({env}): no value changes (re-push of current values)'
+
+    # Commit the updated file back to GitHub
     encoded = base64.b64encode(content.encode('utf-8')).decode('utf-8')
     commit_body = {
-        'message': f'Update font variables via Display Settings push ({env})',
+        'message': commit_msg,
         'content': encoded,
         'sha': current_sha,
         'branch': branch
