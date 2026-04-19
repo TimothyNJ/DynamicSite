@@ -80,6 +80,24 @@
           <td class="table-body-cell"><div class="cell-fit"><h3><a class="infra-link" href="https://github.com/TimothyNJ/DynamicSite/blob/development/webpack.config.js" target="_blank" rel="noopener">Webpack</a></h3></div></td>
           <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Bundles js/main.js into dist/bundle.js with Babel transpilation and SCSS loading. Generates version.json with Pacific-time build timestamp used by update-notifier. BUILD_TIMESTAMP injected via DefinePlugin.</p></div></td>
         </tr>
+        <tr class="infra-spacer"><td colspan="2"><div class="cell-fit"><h3>&nbsp;</h3></div></td></tr>
+
+        <tr class="table-body-row">
+          <td class="table-body-cell"><div class="cell-fit"><h3><a class="infra-link" href="https://github.com/google/libaddressinput" target="_blank" rel="noopener">libaddressinput</a></h3></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Google's open-source postal address library (Apache 2.0). Provides country-aware address form rendering and format validation. Fetches metadata from Google's Address Data Service to determine required fields, postal code patterns, and field ordering per country. Stage 1 of the address validation pipeline.</p></div></td>
+        </tr>
+        <tr class="infra-spacer"><td colspan="2"><div class="cell-fit"><h3>&nbsp;</h3></div></td></tr>
+
+        <tr class="table-body-row">
+          <td class="table-body-cell"><div class="cell-fit"><h3><a class="infra-link" href="https://github.com/openvenues/libpostal" target="_blank" rel="noopener">libpostal</a></h3></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Open-source C library (MIT) for parsing and normalising street addresses globally. Trained on OpenStreetMap data, supports 60+ languages and 100+ countries with 98.9% parsing accuracy. Self-hosted in Docker on EC2. Stage 2a of the address validation pipeline.</p></div></td>
+        </tr>
+        <tr class="infra-spacer"><td colspan="2"><div class="cell-fit"><h3>&nbsp;</h3></div></td></tr>
+
+        <tr class="table-body-row">
+          <td class="table-body-cell"><div class="cell-fit"><h3><a class="infra-link" href="https://openaddresses.io/" target="_blank" rel="noopener">OpenAddresses</a></h3></div></td>
+          <td class="table-body-cell summary-cell"><div class="cell-fit"><p>Free and open global address dataset with 500M+ real-world addresses. Imported into PostgreSQL for cross-referencing parsed addresses against known locations. Attribution-licensed data downloaded from batch.openaddresses.io. Stage 2b of the address validation pipeline.</p></div></td>
+        </tr>
 
       </tbody>
     </table>
