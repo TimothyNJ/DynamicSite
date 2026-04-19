@@ -97,15 +97,20 @@ function setMode(mode) {
 // ─── Reset ─────────────────────────────────────────────────────────────────
 
 function resetFontValues() {
-  console.log('[FontEditor] Reset — restoring defaults');
+  console.log('[FontEditor] Reset — restoring to deployed values');
+
+  // Re-read what's actually deployed so Reset always reflects reality
+  const deployed = readDeployedValues();
 
   for (const t of TIERS) {
-    liveValues[t.tag] = { min: t.min, pref: t.pref, max: t.max };
+    liveValues[t.tag] = { ...deployed[t.tag] };
 
     for (const param of ['min', 'pref', 'max']) {
+      const val = liveValues[t.tag][param];
+
       // Update the text input value
       const input = document.querySelector(`#fe-val-${t.tag}-${param}`);
-      if (input) input.value = String(t[param]);
+      if (input) input.value = String(val);
 
       // Update the static span
       updateStaticSpan(t.tag, param);
@@ -114,6 +119,31 @@ function resetFontValues() {
     // Update the LIVE column CSS variable
     updateLiveColumn(t.tag);
   }
+}
+
+// ─── Read deployed CSS variable values ─────────────────────────────────────
+
+function readDeployedValues() {
+  const styles = getComputedStyle(document.documentElement);
+  const deployed = {};
+
+  for (const t of TIERS) {
+    const raw = styles.getPropertyValue(`--${t.tag}-font-size`).trim();
+    // Parse clamp(1.125rem, 3.1vw, 4rem)
+    const m = raw.match(/clamp\(\s*([\d.]+)rem\s*,\s*([\d.]+)vw\s*,\s*([\d.]+)rem\s*\)/);
+    if (m) {
+      deployed[t.tag] = {
+        min: parseFloat(m[1]),
+        pref: parseFloat(m[2]),
+        max: parseFloat(m[3])
+      };
+    } else {
+      // Fallback to hardcoded TIERS defaults if CSS variable isn't available
+      deployed[t.tag] = { min: t.min, pref: t.pref, max: t.max };
+    }
+  }
+
+  return deployed;
 }
 
 // ─── Initialisation ─────────────────────────────────────────────────────────
@@ -126,16 +156,17 @@ export function initializeFontEditor(env) {
 
   currentEnv = env || 'development';
 
-  // Seed live state from defaults
+  // Seed live state from the actually deployed CSS variables (not hardcoded defaults)
+  const deployed = readDeployedValues();
   for (const t of TIERS) {
-    liveValues[t.tag] = { min: t.min, pref: t.pref, max: t.max };
+    liveValues[t.tag] = { ...deployed[t.tag] };
   }
 
-  // Create text inputs for each tier × param
+  // Create text inputs for each tier × param, using deployed values
   for (const t of TIERS) {
     for (const param of ['min', 'pref', 'max']) {
       const containerId = `fe-input-${t.tag}-${param}`;
-      const currentVal = t[param];
+      const currentVal = liveValues[t.tag][param];
 
       window.componentFactory.createTextInput(containerId, {
         id: `fe-val-${t.tag}-${param}`,
