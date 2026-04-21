@@ -43,8 +43,8 @@ import { initializeFontEditor } from './display/font-editor.js';
 // Security Settings
 import { initializeSecuritySettings } from './security/security-settings.js';
 
-// Vendor Request — Address Validations subpage
-import { initializeAddressValidations } from './vendor-request/address-validations.js';
+// Tasks — Address Validations subpage
+import { initializeAddressValidations } from './tasks/address-validations.js';
 
 function isUserAuthenticated() {
   return isAuthenticated();
@@ -677,17 +677,17 @@ function initializeSettingsComponents() {
   }
 }
 
-// Vendor Request page initialization
-function initializeVendorRequestComponents() {
-  console.log('[Vendor Request] Initializing vendor request components...');
+// Tasks page initialization
+function initializeTasksComponents() {
+  console.log('[Tasks] Initializing tasks components...');
   
   if (!window.componentFactory) {
-    console.error('[Vendor Request] ComponentFactory not available');
+    console.error('[Tasks] ComponentFactory not available');
     return;
   }
   
-  // Vendor request form components will be initialized here
-  console.log('[Vendor Request] Page ready for vendor request form components');
+  // Task form components will be initialized here
+  console.log('[Tasks] Page ready for task form components');
 }
 
 // Data Entry page initialization
@@ -925,10 +925,10 @@ window.initializePageComponents = function(pageName) {
     // Initialize data entry components
     console.log('[main.js] Initializing data entry components');
     initializeDataEntryComponents();
-  } else if (pageName === 'vendor-request') {
-    // Initialize vendor request components
-    console.log('[main.js] Initializing vendor request components');
-    initializeVendorRequestComponents();
+  } else if (pageName === 'tasks') {
+    // Initialize tasks components
+    console.log('[main.js] Initializing tasks components');
+    initializeTasksComponents();
   }
 
   // Add other page-specific initialization as needed
@@ -1303,11 +1303,11 @@ document.addEventListener('subpageLoaded', (e) => {
     });
   }
 
-  // Vendor Request subpages
-  if (page === 'vendor-request') {
+  // Tasks subpages
+  if (page === 'tasks') {
     requestAnimationFrame(() => {
       if (subpage === 'create' && e.detail.subsubpage === 'address-validations') {
-        console.log('[main.js] Initializing Address Validations (vendor-request/create/address-validations)');
+        console.log('[main.js] Initializing Address Validations (tasks/create/address-validations)');
         initializeAddressValidations();
       }
     });
@@ -1357,7 +1357,7 @@ function updateNavigationForAuthState() {
   const navButtons = document.querySelectorAll('.nav-container button[data-page]');
   
   // Pages requiring only authentication (all logged-in users including guest)
-  const adminPages = ['settings', 'vendor-request', 'finance', 'logistics', 'reporting', 'development'];
+  const adminPages = ['settings', 'tasks', 'finance', 'logistics', 'reporting', 'development'];
   const hasAdminAccess = isAuth;
 
   // Pages requiring minimum '05_org_admin' role (not visible to guest)

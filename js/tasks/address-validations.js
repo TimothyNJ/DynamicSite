@@ -320,7 +320,7 @@ function renderFields(container, lines, metadata) {
 
 /**
  * Main initialization entry point — called from main.js on subpageLoaded
- * for vendor-request/create/address-validations.
+ * for tasks/create/address-validations.
  */
 export async function initializeAddressValidations() {
   console.log('[address-validations] init');

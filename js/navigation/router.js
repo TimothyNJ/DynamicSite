@@ -8,7 +8,7 @@ let currentPageCleanup = null;
 // Map page names to their file paths
 const pagePathMap = {
   home: "pages/home/index.html",
-  "vendor-request": "pages/vendor-request/index.html",
+  "tasks": "pages/tasks/index.html",
   "data-entry": "pages/data-entry/index.html",
 
   settings: "pages/settings/index.html",
@@ -22,16 +22,16 @@ const pagePathMap = {
 
 // Map hash aliases to internal page names (URL-friendly → data-page)
 const hashAliasMap = {
-  "tasks": "vendor-request",
+  "vendor-request": "tasks",
 };
 
 // Map parent pages to their subpage configs
 // defaultSub: which subpage loads when navigating to the parent
 // basePath: filesystem path prefix for subpage HTML files
 const sidenavConfig = {
-  "vendor-request": {
+  "tasks": {
     defaultSub: "approve",
-    basePath: "pages/vendor-request",
+    basePath: "pages/tasks",
     subpages: ["approve", "visibility", "create"],
     subSubpages: {
       "create": {
@@ -95,7 +95,7 @@ let hoveredSubpage = null; // Which sidenav1 button is hovered (for sidenav2 tar
 const protectedPages = {
   'settings':       'authenticated',
   'data-entry':     'authenticated',
-  'vendor-request': 'authenticated',
+  'tasks':          'authenticated',
   'users':          '05_org_admin',
   'finance':        'authenticated',
   'logistics':      'authenticated',
@@ -137,7 +137,7 @@ export function initRouter() {
 // Hash Parsing & URL Helpers
 // ==============================================
 
-// e.g., #tasks/approve → { page: "vendor-request", subpage: "approve" }
+// e.g., #tasks/approve → { page: "tasks", subpage: "approve" }
 function parseHash() {
   const hash = window.location.hash.substring(1);
   if (!hash) return { page: null, subpage: null, subsubpage: null };
