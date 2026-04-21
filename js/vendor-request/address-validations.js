@@ -28,8 +28,27 @@ const PRIORITY_COUNTRIES = [
   'AE', 'SA', 'IL', 'TR', 'ZA', 'NG', 'KE', 'MA', 'NZ'
 ];
 
-// libaddressinput metadata endpoint (Google's public service, CORS-enabled).
-const LIBADDRESS_BASE = 'https://chromium-i18n.appspot.com/ssl-aggregate-address/data';
+// libaddressinput metadata endpoints (Google's public service, CORS-enabled).
+//
+// Two distinct endpoints exist:
+//   * /ssl-address/data            -> flat per-country metadata, fields at top
+//                                     level. The ROOT of this endpoint is the
+//                                     only place that returns the master
+//                                     `countries` list ({"countries":"AC~AD..."}).
+//   * /ssl-aggregate-address/data  -> bundled per-country metadata that also
+//                                     includes every subdivision (state /
+//                                     province) in one response. Country
+//                                     metadata is wrapped under a "data/<CC>"
+//                                     key, with subdivisions under
+//                                     "data/<CC>/<SUB>". The aggregate root
+//                                     ("/data" with no country) returns {} —
+//                                     it is per-country only.
+//
+// Phase 1 needs the country list (LIST endpoint) and per-country fmt + label
+// hints (AGGREGATE endpoint, so subsequent phases get state/province lists
+// for free without re-fetching).
+const LIBADDRESS_LIST_BASE = 'https://chromium-i18n.appspot.com/ssl-address/data';
+const LIBADDRESS_AGGREGATE_BASE = 'https://chromium-i18n.appspot.com/ssl-aggregate-address/data';
 
 // In-memory cache of per-country metadata (populated lazily on selection).
 const metadataCache = new Map();
@@ -84,7 +103,7 @@ const NAME_TYPE_LABELS = {
  */
 async function fetchCountryCodes() {
   try {
-    const response = await fetch(LIBADDRESS_BASE);
+    const response = await fetch(LIBADDRESS_LIST_BASE);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     if (typeof data.countries === 'string' && data.countries.length > 0) {
@@ -176,14 +195,27 @@ function populateCountryDropdown(selectEl, priority, remainder) {
 async function fetchCountryMetadata(code) {
   if (metadataCache.has(code)) return metadataCache.get(code);
   try {
-    const response = await fetch(`${LIBADDRESS_BASE}/${encodeURIComponent(code)}`);
+    const response = await fetch(`${LIBADDRESS_AGGREGATE_BASE}/${encodeURIComponent(code)}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    metadataCache.set(code, data);
-    return data;
+    const raw = await response.json();
+    // Aggregate responses wrap the country record under a "data/<CC>" key,
+    // with subdivisions under "data/<CC>/<SUB>". Unwrap to the country record.
+    const wrappedKey = `data/${code}`;
+    const country = raw && raw[wrappedKey] ? raw[wrappedKey] : raw;
+    if (!country || typeof country.fmt !== 'string') {
+      throw new Error(`Unexpected metadata shape for ${code} (no fmt)`);
+    }
+    // Pull subdivisions into `subdivisions` array on the cached object so
+    // later phases can render a state/province dropdown without re-fetching.
+    const subdivisions = Object.keys(raw || {})
+      .filter((k) => k.startsWith(`${wrappedKey}/`))
+      .map((k) => raw[k]);
+    const result = Object.assign({}, country, { subdivisions });
+    metadataCache.set(code, result);
+    return result;
   } catch (err) {
     console.warn(`[address-validations] Metadata fetch failed for ${code}; using defaults.`, err);
-    const fallback = { fmt: DEFAULT_FMT, require: 'ACZ' };
+    const fallback = { fmt: DEFAULT_FMT, require: 'ACZ', subdivisions: [] };
     metadataCache.set(code, fallback);
     return fallback;
   }
