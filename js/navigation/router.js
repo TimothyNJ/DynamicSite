@@ -20,10 +20,10 @@ const pagePathMap = {
   login: "pages/login/index.html",
 };
 
-// Map hash aliases to internal page names (URL-friendly → data-page)
-const hashAliasMap = {
-  "vendor-request": "tasks",
-};
+// Map hash aliases to internal page names (URL-friendly → data-page).
+// Empty by default — populate only when introducing a URL alias whose
+// hash token deliberately differs from the internal page name.
+const hashAliasMap = {};
 
 // Map parent pages to their subpage configs
 // defaultSub: which subpage loads when navigating to the parent

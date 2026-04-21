@@ -1316,15 +1316,6 @@ document.addEventListener('subpageLoaded', (e) => {
 
 console.log('[main.js] ES6 modules imported successfully');
 
-// Function to determine current page from URL hash
-function getCurrentPage() {
-  const hash = window.location.hash;
-  if (hash.includes('settings')) return 'settings';
-  if (hash.includes('create-vendor-request')) return 'create-vendor-request';
-  if (hash.includes('data-entry-forms')) return 'data-entry-forms';
-  return 'home';
-}
-
 // Measure buttons and set divider dimensions to the minimum sibling size
 function updateDividers() {
   // Navbar: vertical dividers sized to the shortest visible button
