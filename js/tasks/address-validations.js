@@ -8,10 +8,15 @@
  *      countries first, then the rest alphabetically).
  *   2. On country change, fetch libaddressinput metadata from
  *      https://chromium-i18n.appspot.com/ssl-aggregate-address/data/<CC>
- *   3. Parse the `fmt` format string (tokens: %N %O %A %D %C %S %Z %X) and
- *      render a greyed-out input field for each token, labelled per the
- *      country's conventions (`state_name_type`, `locality_name_type`,
+ *   3. Parse the `fmt` format string and render a greyed-out input field
+ *      for each address-component token, labelled per the country's
+ *      conventions (`state_name_type`, `locality_name_type`,
  *      `zip_name_type`, etc.).
+ *
+ *      Address-component tokens kept: %A (street) %D (sublocality)
+ *      %C (city) %S (state/province) %Z (postal) %X (sorting code).
+ *      Identity tokens dropped: %N (recipient name) and %O (organization)
+ *      — this validator is for addresses only, not full mailing labels.
  *
  * Later phases will layer on Google Places Autocomplete, Google Address
  * Validation API, and a manual-review fallback.
@@ -253,6 +258,12 @@ function parseFmt(fmt, metadata) {
   const lines = raw.split('%n');
   const required = new Set((metadata && metadata.require ? metadata.require : '').split(''));
 
+  // Identity tokens — excluded from an address-only validator. `%N` is the
+  // recipient's personal name, `%O` is the organization. libaddressinput
+  // puts them in every country's `fmt` because the spec is built for full
+  // mailing labels; we drop them so only address components reach the UI.
+  const IDENTITY_TOKENS = new Set(['N', 'O']);
+
   return lines.map((line) => {
     const tokens = [];
     // Match %<LETTER> tokens; ignore literal separator chars between them.
@@ -260,6 +271,7 @@ function parseFmt(fmt, metadata) {
     let match;
     while ((match = re.exec(line)) !== null) {
       const token = match[1];
+      if (IDENTITY_TOKENS.has(token)) continue;
       tokens.push({
         token,
         label: labelForToken(token, metadata),
