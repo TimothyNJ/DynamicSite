@@ -1,4 +1,21 @@
-<div class="subpage-placeholder">
-  <h2>Address Validations</h2>
-  <p>Address validation tasks will be displayed here.</p>
+<!--
+  Address Validations — Phase 1
+  Minimal country selector + libaddressinput-driven field rendering.
+  Later phases will add Google Places Autocomplete, Google AV, and manual review.
+-->
+<div class="address-validator">
+  <div class="address-validator__title">
+    <h2>Address Validations</h2>
+  </div>
+
+  <div class="address-validator__country-row">
+    <label for="address-country-select" class="address-validator__label">Country</label>
+    <select id="address-country-select" class="address-validator__select">
+      <option value="">-- Select a country --</option>
+    </select>
+  </div>
+
+  <div class="address-validator__fields" id="address-fields-container" aria-live="polite">
+    <p class="address-validator__hint">Select a country above to see the correct address fields for that country.</p>
+  </div>
 </div>

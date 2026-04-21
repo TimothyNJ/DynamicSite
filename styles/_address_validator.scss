@@ -1,0 +1,88 @@
+// _address_validator.scss
+// Phase 1 styles for the Address Validations subpage.
+// Minimal — uses existing CSS variables for theme awareness.
+
+.address-validator {
+  display: flex;
+  flex-direction: column;
+  gap: var(--component-spacing, 1rem);
+  padding: 1rem;
+  max-width: 720px;
+  margin: 0 auto;
+
+  &__title {
+    text-align: center;
+  }
+
+  &__country-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  &__label,
+  &__field-label {
+    font-family: var(--font-family-primary);
+    font-size: var(--component-font-size, 1rem);
+    font-weight: var(--component-font-weight, 500);
+    color: var(--text-color-dark);
+    body[data-theme="dark"] & { color: var(--text-color-light); }
+  }
+
+  &__select {
+    font-family: var(--font-family-primary);
+    font-size: var(--component-font-size, 1rem);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--input-border-radius, 6px);
+    border: 1px solid var(--text-color-dark-secondary, #888);
+    background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
+    color: var(--text-color-dark);
+    body[data-theme="dark"] & {
+      background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
+      color: var(--text-color-light);
+    }
+  }
+
+  &__hint {
+    font-style: italic;
+    opacity: 0.7;
+    margin: 0.5rem 0;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+  }
+
+  &__cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  &__field-input {
+    font-family: var(--font-family-primary);
+    font-size: var(--component-font-size, 1rem);
+    padding: 0.5rem 0.6rem;
+    border-radius: var(--input-border-radius, 6px);
+    border: 1px solid var(--text-color-dark-secondary, #888);
+    background: var(--light-slider-start, #f0f0f0);
+    color: var(--text-color-dark);
+    opacity: 0.55; // greyed-out for Phase 1 (placeholder visual state)
+    cursor: not-allowed;
+
+    body[data-theme="dark"] & {
+      background: var(--dark-slider-start, #2a2a2a);
+      color: var(--text-color-light);
+    }
+
+    &:disabled { opacity: 0.55; }
+  }
+}

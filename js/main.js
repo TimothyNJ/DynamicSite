@@ -43,6 +43,9 @@ import { initializeFontEditor } from './display/font-editor.js';
 // Security Settings
 import { initializeSecuritySettings } from './security/security-settings.js';
 
+// Vendor Request — Address Validations subpage
+import { initializeAddressValidations } from './vendor-request/address-validations.js';
+
 function isUserAuthenticated() {
   return isAuthenticated();
 }
@@ -1296,6 +1299,16 @@ document.addEventListener('subpageLoaded', (e) => {
       } else if (subpage === 'org-roles-above-admin') {
         console.log('[main.js] Initializing org roles above admin table (users/org-roles-above-admin)');
         initializeOrgRolesAboveAdmin();
+      }
+    });
+  }
+
+  // Vendor Request subpages
+  if (page === 'vendor-request') {
+    requestAnimationFrame(() => {
+      if (subpage === 'create' && e.detail.subsubpage === 'address-validations') {
+        console.log('[main.js] Initializing Address Validations (vendor-request/create/address-validations)');
+        initializeAddressValidations();
       }
     });
   }
