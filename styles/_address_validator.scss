@@ -55,10 +55,12 @@
     gap: 0.75rem;
   }
 
+  // Fields are now rendered as a vertical stack — one row per address
+  // level, biggest → smallest. Each row holds a single labelled control.
   &__row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
   }
 
   &__cell {
@@ -67,6 +69,9 @@
     gap: 0.25rem;
   }
 
+  // Shared visual style for both <input> and <select> address fields.
+  // Selecting on the class so a <select> picks up the same chrome as
+  // text inputs (the rendered region row swaps between the two).
   &__field-input {
     font-family: var(--font-family-primary);
     font-size: var(--component-font-size, 1rem);
@@ -77,6 +82,8 @@
     color: var(--text-color-dark);
     opacity: 0.55; // greyed-out for Phase 1 (placeholder visual state)
     cursor: not-allowed;
+    width: 100%;
+    box-sizing: border-box;
 
     body[data-theme="dark"] & {
       background: var(--dark-slider-start, #2a2a2a);
@@ -84,5 +91,12 @@
     }
 
     &:disabled { opacity: 0.55; }
+
+    // Read-only country echo row: not disabled (so the value renders
+    // crisp), but visually distinct from the empty Phase 1 placeholders.
+    &[readonly] {
+      opacity: 0.85;
+      cursor: default;
+    }
   }
 }

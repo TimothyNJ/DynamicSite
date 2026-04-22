@@ -1,37 +1,38 @@
 /**
  * address-validations.js
  *
- * Phase 1 — minimal country selector + libaddressinput-driven field rendering.
+ * Phase 1 — country selector + address fields rendered biggest → smallest.
  *
- * Flow:
- *   1. Populate the country <select> from ISO 3166-1 country list (priority
- *      countries first, then the rest alphabetically).
- *   2. On country change, fetch libaddressinput metadata from
- *      https://chromium-i18n.appspot.com/ssl-aggregate-address/data/<CC>
- *   3. Parse the `fmt` format string and render a greyed-out input field
- *      for each address-component token, labelled per the country's
- *      conventions (`state_name_type`, `locality_name_type`,
- *      `zip_name_type`, etc.).
+ * Field order (always, regardless of libaddressinput's per-country `fmt`
+ * ordering):
  *
- *      Address-component tokens kept: %A (street) %D (sublocality)
- *      %C (city) %S (state/province) %Z (postal) %X (sorting code).
- *      Identity tokens dropped: %N (recipient name) and %O (organization)
- *      — this validator is for addresses only, not full mailing labels.
+ *   1. Country     (read-only echo of the dropdown selection)
+ *   2. Region      (state / province / prefecture / etc — labelled per
+ *                   country via country-overrides.js, rendered as a
+ *                   <select> when subdivisions are available)
+ *   3. District    (county / council — only rendered when the country's
+ *                   override defines `districtLabel`)
+ *   4. City        (town / city / suburb)
+ *   5. Postal code (ZIP / postcode / Eircode / PIN / CEP)
  *
- * Later phases will layer on Google Places Autocomplete, Google Address
- * Validation API, and a manual-review fallback.
+ * libaddressinput is still consulted to decide which fields the country
+ * actually uses (does the `fmt` mention %S? %Z?), to populate the region
+ * dropdown values (sub_keys / sub_names), and to drive the required-field
+ * asterisks (the `require` string). Labels come from country-overrides.js
+ * first, libaddressinput second, fallback third.
+ *
+ * Country dropdown structure:
+ *   - United States                              (pinned at the top)
+ *   - <optgroup label="Common">                  alphabetical
+ *       Australia, Canada, France, …
+ *   - <optgroup label="All Countries">           every country, alphabetical
+ *       Afghanistan, Åland Islands, …, United States, …
+ *
+ * The "All Countries" group intentionally re-lists US and the Commons —
+ * it is the canonical full list.
  */
 
-// Priority ordering — matches the vendor-onboarding plan (US-heavy,
-// then highest-volume/highest-value markets).
-const PRIORITY_COUNTRIES = [
-  'US', 'GB', 'CN', 'DE', 'FR', 'IT', 'ES', 'NL', 'IE', 'SE', 'BE',
-  'HK', 'MX', 'CA', 'VN', 'PK', 'EG',
-  'AU', 'JP', 'KR', 'SG', 'TW', 'TH', 'ID', 'PH', 'IN', 'MY',
-  'BR', 'AR', 'CL', 'CO', 'PE',
-  'CH', 'AT', 'DK', 'NO', 'FI', 'PL', 'CZ', 'PT', 'GR', 'RO', 'HU',
-  'AE', 'SA', 'IL', 'TR', 'ZA', 'NG', 'KE', 'MA', 'NZ'
-];
+import { COMMON_COUNTRIES, getOverride } from './country-overrides.js';
 
 // libaddressinput metadata endpoints (Google's public service, CORS-enabled).
 //
@@ -48,63 +49,56 @@ const PRIORITY_COUNTRIES = [
 //                                     "data/<CC>/<SUB>". The aggregate root
 //                                     ("/data" with no country) returns {} —
 //                                     it is per-country only.
-//
-// Phase 1 needs the country list (LIST endpoint) and per-country fmt + label
-// hints (AGGREGATE endpoint, so subsequent phases get state/province lists
-// for free without re-fetching).
 const LIBADDRESS_LIST_BASE = 'https://chromium-i18n.appspot.com/ssl-address/data';
 const LIBADDRESS_AGGREGATE_BASE = 'https://chromium-i18n.appspot.com/ssl-aggregate-address/data';
+
+// Fallback country list used only if the live country fetch fails. Keeps
+// the page usable offline.
+const FALLBACK_COUNTRY_CODES = [
+  'US', 'GB', 'CA', 'AU', 'NZ', 'IE', 'DE', 'FR', 'IT', 'ES', 'NL', 'CH',
+  'AT', 'BE', 'DK', 'NO', 'SE', 'FI', 'PT', 'GR', 'PL', 'CZ', 'HU', 'RO',
+  'TR', 'IL', 'AE', 'SA', 'EG', 'ZA', 'KE', 'NG', 'MA',
+  'CN', 'HK', 'TW', 'JP', 'KR', 'SG', 'IN', 'PK', 'TH', 'VN', 'ID', 'PH', 'MY',
+  'MX', 'BR', 'AR', 'CL', 'CO', 'PE'
+];
 
 // In-memory cache of per-country metadata (populated lazily on selection).
 const metadataCache = new Map();
 
-// Default format (used as a fallback if metadata fetch fails).
+// Default format used as a fallback if a country's metadata fetch fails.
 const DEFAULT_FMT = '%N%n%O%n%A%n%C %S %Z';
 
-// Token → human-readable label fallbacks. Real labels come from metadata
-// (state_name_type, locality_name_type, zip_name_type, etc.).
-const TOKEN_FALLBACK_LABELS = {
-  N: 'Recipient',
-  O: 'Organization',
-  A: 'Address',
-  D: 'Neighborhood',
-  C: 'City',
-  S: 'State',
-  Z: 'Postal code',
-  X: 'Sorting code'
-};
-
-// Map metadata "*_name_type" enum values to display labels.
+// Map libaddressinput "*_name_type" enum values to display labels. Used
+// when no override is defined for a country.
 const NAME_TYPE_LABELS = {
-  area:        'Area',
-  county:      'County',
-  department:  'Department',
-  district:    'District',
-  do_si:       'Do/Si',
-  emirate:     'Emirate',
-  island:      'Island',
-  oblast:      'Oblast',
-  parish:      'Parish',
-  prefecture:  'Prefecture',
-  province:    'Province',
-  state:       'State',
-  city:        'City',
-  post_town:   'Post town',
-  suburb:      'Suburb',
-  townland:    'Townland',
+  area:             'Area',
+  county:           'County',
+  department:       'Department',
+  district:         'District',
+  do_si:            'Do/Si',
+  emirate:          'Emirate',
+  island:           'Island',
+  oblast:           'Oblast',
+  parish:           'Parish',
+  prefecture:       'Prefecture',
+  province:         'Province',
+  state:            'State',
+  city:             'City',
+  post_town:        'Post town',
+  suburb:           'Suburb',
+  townland:         'Townland',
   village_township: 'Village / Township',
-  neighborhood: 'Neighborhood',
-  zip:         'ZIP code',
-  postal:      'Postal code',
-  pin:         'PIN code',
-  eircode:     'Eircode'
+  neighborhood:     'Neighborhood',
+  zip:              'ZIP code',
+  postal:           'Postal code',
+  pin:              'PIN code',
+  eircode:          'Eircode'
 };
 
 /**
  * Fetch the master list of supported countries from libaddressinput.
  * The root metadata endpoint returns { id, countries: "AC~AD~AE~..." }.
- * Returns an array of ISO-3166 alpha-2 codes. Falls back to the priority
- * list if the network call fails.
+ * Returns an array of ISO 3166-1 alpha-2 codes.
  */
 async function fetchCountryCodes() {
   try {
@@ -116,15 +110,15 @@ async function fetchCountryCodes() {
     }
     throw new Error('Empty countries field');
   } catch (err) {
-    console.warn('[address-validations] Country list fetch failed; using priority fallback.', err);
-    return [...PRIORITY_COUNTRIES];
+    console.warn('[address-validations] Country list fetch failed; using fallback list.', err);
+    return [...FALLBACK_COUNTRY_CODES];
   }
 }
 
 /**
- * Resolve a human-readable country name from an ISO-3166 alpha-2 code,
+ * Resolve a human-readable country name from an ISO 3166-1 alpha-2 code,
  * using the browser's built-in Intl.DisplayNames. Falls back to the code
- * itself if Intl.DisplayNames is unavailable or returns nothing.
+ * itself if Intl.DisplayNames is unavailable.
  */
 function countryName(code) {
   try {
@@ -140,62 +134,78 @@ function countryName(code) {
 }
 
 /**
- * Build the ordered country list:
- *   1. Priority countries (in defined order) that are present in the master list.
- *   2. Remaining countries, sorted alphabetically by display name.
+ * Build the three groups for the country dropdown:
+ *   - pinned: the single US entry (or empty if US not in master list)
+ *   - common: COMMON_COUNTRIES intersected with master list, A→Z by name
+ *   - all:    every country in the master list, A→Z by name
+ *
+ * The "all" group is intentionally complete — it re-lists US and the
+ * commons. The user wants one canonical full list, not a deduped one.
  */
-function buildOrderedCountries(allCodes) {
+function buildCountryGroups(allCodes) {
   const allSet = new Set(allCodes);
-  const priority = PRIORITY_COUNTRIES
-    .filter((code) => allSet.has(code))
-    .map((code) => ({ code, name: countryName(code) }));
 
-  const prioritySet = new Set(priority.map((c) => c.code));
-  const remainder = allCodes
-    .filter((code) => !prioritySet.has(code))
+  const pinned = allSet.has('US')
+    ? [{ code: 'US', name: countryName('US') }]
+    : [];
+
+  const common = COMMON_COUNTRIES
+    .filter((code) => allSet.has(code))
     .map((code) => ({ code, name: countryName(code) }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  return { priority, remainder };
+  const all = allCodes
+    .map((code) => ({ code, name: countryName(code) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return { pinned, common, all };
 }
 
 /**
- * Populate the country <select> with priority group + the rest (alphabetical).
+ * Populate the country <select> with the three groups. The pinned US sits
+ * directly under the placeholder; the two optgroups follow.
  */
-function populateCountryDropdown(selectEl, priority, remainder) {
-  // Start fresh but keep the leading placeholder if present.
+function populateCountryDropdown(selectEl, pinned, common, all) {
   const placeholder = selectEl.querySelector('option[value=""]');
   selectEl.innerHTML = '';
   if (placeholder) selectEl.appendChild(placeholder);
 
-  if (priority.length > 0) {
-    const pGroup = document.createElement('optgroup');
-    pGroup.label = 'Common';
-    priority.forEach(({ code, name }) => {
+  pinned.forEach(({ code, name }) => {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = name;
+    selectEl.appendChild(opt);
+  });
+
+  if (common.length > 0) {
+    const cGroup = document.createElement('optgroup');
+    cGroup.label = 'Common';
+    common.forEach(({ code, name }) => {
       const opt = document.createElement('option');
       opt.value = code;
       opt.textContent = name;
-      pGroup.appendChild(opt);
+      cGroup.appendChild(opt);
     });
-    selectEl.appendChild(pGroup);
+    selectEl.appendChild(cGroup);
   }
 
-  if (remainder.length > 0) {
-    const rGroup = document.createElement('optgroup');
-    rGroup.label = 'All countries';
-    remainder.forEach(({ code, name }) => {
+  if (all.length > 0) {
+    const aGroup = document.createElement('optgroup');
+    aGroup.label = 'All Countries';
+    all.forEach(({ code, name }) => {
       const opt = document.createElement('option');
       opt.value = code;
       opt.textContent = name;
-      rGroup.appendChild(opt);
+      aGroup.appendChild(opt);
     });
-    selectEl.appendChild(rGroup);
+    selectEl.appendChild(aGroup);
   }
 }
 
 /**
- * Fetch per-country libaddressinput metadata (format string, required fields,
- * localized field labels). Cached in-memory for the session.
+ * Fetch per-country libaddressinput metadata. Cached in-memory for the
+ * session. Aggregate responses wrap the country record under a "data/<CC>"
+ * key, with subdivisions under "data/<CC>/<SUB>".
  */
 async function fetchCountryMetadata(code) {
   if (metadataCache.has(code)) return metadataCache.get(code);
@@ -203,18 +213,17 @@ async function fetchCountryMetadata(code) {
     const response = await fetch(`${LIBADDRESS_AGGREGATE_BASE}/${encodeURIComponent(code)}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const raw = await response.json();
-    // Aggregate responses wrap the country record under a "data/<CC>" key,
-    // with subdivisions under "data/<CC>/<SUB>". Unwrap to the country record.
     const wrappedKey = `data/${code}`;
     const country = raw && raw[wrappedKey] ? raw[wrappedKey] : raw;
     if (!country || typeof country.fmt !== 'string') {
       throw new Error(`Unexpected metadata shape for ${code} (no fmt)`);
     }
-    // Pull subdivisions into `subdivisions` array on the cached object so
-    // later phases can render a state/province dropdown without re-fetching.
+    // Pull subdivisions into a normalised array. Each entry: { code, name }.
     const subdivisions = Object.keys(raw || {})
       .filter((k) => k.startsWith(`${wrappedKey}/`))
-      .map((k) => raw[k]);
+      .map((k) => raw[k])
+      .filter((s) => s && s.key && s.name)
+      .map((s) => ({ code: s.key, name: s.name }));
     const result = Object.assign({}, country, { subdivisions });
     metadataCache.set(code, result);
     return result;
@@ -227,111 +236,197 @@ async function fetchCountryMetadata(code) {
 }
 
 /**
- * Resolve a per-country label for a format token, using the metadata
- * `state_name_type`, `locality_name_type`, `zip_name_type`, etc.
+ * Resolve the four field labels for a country, taking the override first
+ * and falling back to libaddressinput's `*_name_type` then a hard-coded
+ * default.
  */
-function labelForToken(token, metadata) {
+function resolveLabels(metadata, override) {
   const m = metadata || {};
-  switch (token) {
-    case 'N': return 'Recipient';
-    case 'O': return 'Organization';
-    case 'A': return 'Street address';
-    case 'D': return NAME_TYPE_LABELS[m.sublocality_name_type] || 'Neighborhood';
-    case 'C': return NAME_TYPE_LABELS[m.locality_name_type] || 'City';
-    case 'S': return NAME_TYPE_LABELS[m.state_name_type] || 'State / Province';
-    case 'Z': return NAME_TYPE_LABELS[m.zip_name_type] || 'Postal code';
-    case 'X': return 'Sorting code';
-    default:  return TOKEN_FALLBACK_LABELS[token] || token;
+  const o = override || {};
+  return {
+    region:   o.regionLabel   || NAME_TYPE_LABELS[m.state_name_type]    || 'Region',
+    district: o.districtLabel || null, // district only renders if override defines it
+    city:     o.cityLabel     || NAME_TYPE_LABELS[m.locality_name_type] || 'City',
+    postal:   o.postalLabel   || NAME_TYPE_LABELS[m.zip_name_type]      || 'Postal code'
+  };
+}
+
+/**
+ * Decide which rows to render for the selected country. Country, City and
+ * Postal code are always present. Region renders if the country's `fmt`
+ * includes %S OR the override seeds its own region list. District renders
+ * only if the override defines `districtLabel`.
+ */
+function decideRowVisibility(metadata, override) {
+  const fmt = (metadata && metadata.fmt) || DEFAULT_FMT;
+  const hasS = /%S/.test(fmt);
+  const hasC = /%C/.test(fmt);
+  const hasZ = /%Z/.test(fmt);
+  const overrideRegions = Array.isArray(override && override.regions) && override.regions.length > 0;
+  const subdivisions = (metadata && metadata.subdivisions) || [];
+
+  return {
+    country:  true,
+    region:   hasS || overrideRegions || subdivisions.length > 0,
+    district: !!(override && override.districtLabel),
+    city:     hasC || true,   // always show city — virtually every country has one
+    postal:   hasZ || true    // always show postal — countries without postcodes are rare
+  };
+}
+
+/**
+ * Required-field detection from libaddressinput's `require` string.
+ * Tokens used here: A (street), C (city), S (region), Z (postal).
+ */
+function isRequired(metadata, token) {
+  const req = (metadata && metadata.require) || '';
+  return req.indexOf(token) !== -1;
+}
+
+/**
+ * Build a single labelled row (label + form control) — the unit used by
+ * every level of the address layout.
+ */
+function makeRow({ id, label, required, control }) {
+  const cell = document.createElement('div');
+  cell.className = 'address-validator__cell';
+
+  const lbl = document.createElement('label');
+  lbl.className = 'address-validator__field-label';
+  lbl.setAttribute('for', id);
+  lbl.textContent = required ? `${label} *` : label;
+
+  control.id = id;
+  control.name = id;
+  control.classList.add('address-validator__field-input');
+  control.disabled = true; // greyed-out for Phase 1 (placeholder visual state)
+
+  cell.appendChild(lbl);
+  cell.appendChild(control);
+
+  const row = document.createElement('div');
+  row.className = 'address-validator__row';
+  row.appendChild(cell);
+  return row;
+}
+
+/**
+ * Build a region <select> populated from libaddressinput subdivisions if
+ * present, otherwise from the override's seeded `regions` array. Returns
+ * a plain text input if neither source has values.
+ */
+function makeRegionControl(metadata, override) {
+  const subdivisions = (metadata && metadata.subdivisions) || [];
+  const seeded = (override && Array.isArray(override.regions)) ? override.regions : [];
+  const values = subdivisions.length > 0 ? subdivisions : seeded;
+
+  if (values.length === 0) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.setAttribute('autocomplete', 'off');
+    return input;
   }
+
+  const sel = document.createElement('select');
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = '-- Select --';
+  sel.appendChild(placeholder);
+  values
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .forEach(({ code, name }) => {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  return sel;
 }
 
 /**
- * Parse a libaddressinput `fmt` string into an ordered list of lines,
- * where each line is an array of {token,label} entries. Tokens are the
- * single letters following a `%`; `%n` is the line separator.
- *
- * Example: "%N%n%O%n%A%n%C %S %Z" ->
- *   [ [{N}], [{O}], [{A}], [{C},{S},{Z}] ]
+ * Render the full address-fields stack in fixed biggest → smallest order.
  */
-function parseFmt(fmt, metadata) {
-  const raw = (fmt || DEFAULT_FMT);
-  const lines = raw.split('%n');
-  const required = new Set((metadata && metadata.require ? metadata.require : '').split(''));
-
-  // Identity tokens — excluded from an address-only validator. `%N` is the
-  // recipient's personal name, `%O` is the organization. libaddressinput
-  // puts them in every country's `fmt` because the spec is built for full
-  // mailing labels; we drop them so only address components reach the UI.
-  const IDENTITY_TOKENS = new Set(['N', 'O']);
-
-  return lines.map((line) => {
-    const tokens = [];
-    // Match %<LETTER> tokens; ignore literal separator chars between them.
-    const re = /%([A-Za-z])/g;
-    let match;
-    while ((match = re.exec(line)) !== null) {
-      const token = match[1];
-      if (IDENTITY_TOKENS.has(token)) continue;
-      tokens.push({
-        token,
-        label: labelForToken(token, metadata),
-        required: required.has(token)
-      });
-    }
-    return tokens;
-  }).filter((tokens) => tokens.length > 0);
-}
-
-/**
- * Render the address fields for a country. Fields are disabled (greyed out)
- * for Phase 1 — they exist so the structure is visible and ready for the
- * next phase (Google Places Autocomplete + AV).
- */
-function renderFields(container, lines, metadata) {
+function renderFields(container, code, metadata) {
   container.innerHTML = '';
 
-  if (!lines || lines.length === 0) {
-    container.innerHTML = '<p class="address-validator__hint">No fields available for this country.</p>';
-    return;
-  }
+  const override = getOverride(code);
+  const labels = resolveLabels(metadata, override);
+  const show = decideRowVisibility(metadata, override);
 
   const form = document.createElement('div');
   form.className = 'address-validator__form';
 
-  lines.forEach((tokens) => {
-    const row = document.createElement('div');
-    row.className = 'address-validator__row';
-    tokens.forEach(({ token, label, required }) => {
-      const cell = document.createElement('div');
-      cell.className = 'address-validator__cell';
-      cell.dataset.token = token;
+  // 1. Country — read-only echo of the selected country.
+  if (show.country) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = countryName(code);
+    input.setAttribute('readonly', 'readonly');
+    input.setAttribute('autocomplete', 'off');
+    form.appendChild(makeRow({
+      id:       'addr-field-country',
+      label:    'Country',
+      required: true,
+      control:  input
+    }));
+  }
 
-      const id = `addr-field-${token.toLowerCase()}`;
-      const lbl = document.createElement('label');
-      lbl.className = 'address-validator__field-label';
-      lbl.setAttribute('for', id);
-      lbl.textContent = required ? `${label} *` : label;
+  // 2. Region — dropdown if values exist, text otherwise.
+  if (show.region) {
+    const control = makeRegionControl(metadata, override);
+    form.appendChild(makeRow({
+      id:       'addr-field-region',
+      label:    labels.region,
+      required: isRequired(metadata, 'S'),
+      control
+    }));
+  }
 
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.id = id;
-      input.name = id;
-      input.disabled = true; // greyed-out for Phase 1
-      input.className = 'address-validator__field-input';
-      input.setAttribute('autocomplete', 'off');
+  // 3. District / county / council — only when the override defines it.
+  if (show.district) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.setAttribute('autocomplete', 'off');
+    form.appendChild(makeRow({
+      id:       'addr-field-district',
+      label:    labels.district,
+      required: false,
+      control:  input
+    }));
+  }
 
-      cell.appendChild(lbl);
-      cell.appendChild(input);
-      row.appendChild(cell);
-    });
-    form.appendChild(row);
-  });
+  // 4. City / town / suburb.
+  if (show.city) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.setAttribute('autocomplete', 'off');
+    form.appendChild(makeRow({
+      id:       'addr-field-city',
+      label:    labels.city,
+      required: isRequired(metadata, 'C'),
+      control:  input
+    }));
+  }
+
+  // 5. Postal code / ZIP / postcode.
+  if (show.postal) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.setAttribute('autocomplete', 'off');
+    form.appendChild(makeRow({
+      id:       'addr-field-postal',
+      label:    labels.postal,
+      required: isRequired(metadata, 'Z'),
+      control:  input
+    }));
+  }
 
   container.appendChild(form);
 }
 
 /**
- * Main initialization entry point — called from main.js on subpageLoaded
+ * Main initialisation entry point — called from main.js on subpageLoaded
  * for tasks/create/address-validations.
  */
 export async function initializeAddressValidations() {
@@ -346,8 +441,8 @@ export async function initializeAddressValidations() {
 
   // 1. Populate the country dropdown.
   const codes = await fetchCountryCodes();
-  const { priority, remainder } = buildOrderedCountries(codes);
-  populateCountryDropdown(selectEl, priority, remainder);
+  const { pinned, common, all } = buildCountryGroups(codes);
+  populateCountryDropdown(selectEl, pinned, common, all);
 
   // 2. Wire the change handler.
   selectEl.addEventListener('change', async (ev) => {
@@ -360,9 +455,8 @@ export async function initializeAddressValidations() {
 
     fieldsEl.innerHTML = '<p class="address-validator__hint">Loading fields…</p>';
     const metadata = await fetchCountryMetadata(code);
-    const lines = parseFmt(metadata.fmt, metadata);
-    renderFields(fieldsEl, lines, metadata);
+    renderFields(fieldsEl, code, metadata);
   });
 
-  console.log(`[address-validations] ready — ${priority.length} priority + ${remainder.length} other countries`);
+  console.log(`[address-validations] ready — pinned=${pinned.length} common=${common.length} all=${all.length}`);
 }
