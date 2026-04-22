@@ -487,7 +487,60 @@ function initializeComponentEnginesDemos() {
     label: 'File Upload',
     onChange: (files) => console.log('[Demo] Files selected:', files)
   });
-  
+
+  // 14. Ring Slinky demo (visual + live controls panel)
+  const demoRingSlinky = componentFactory.createRingSlinky('demo-ring-slinky-container', {
+    id: 'demo-ring-slinky'
+  });
+
+  if (demoRingSlinky) {
+    const controlsHost = document.getElementById('demo-ring-slinky-controls-container');
+    if (controlsHost) {
+      const panel = document.createElement('div');
+      panel.className = 'ring-pulse-controls';
+      panel.innerHTML = `
+        <label>Rings    <input data-knob="count"   type="range" min="3"  max="40"  value="21">  <output data-out="count">21</output></label>
+        <label>Tilt     <input data-knob="tilt"    type="range" min="0"  max="89"  value="70">  <output data-out="tilt">70&deg;</output></label>
+        <label>Lift     <input data-knob="lift"    type="range" min="0"  max="80"  value="50">  <output data-out="lift">50vmin</output></label>
+        <label>Stagger  <input data-knob="stagger" type="range" min="0"  max="300" value="80">  <output data-out="stagger">80ms</output></label>
+        <label>Hue      <input data-knob="hue"     type="range" min="0"  max="720" value="180"> <output data-out="hue">180&deg;</output></label>
+        <label>Color    <input data-knob="color"   type="color" value="#00c8ff"></label>
+      `;
+      controlsHost.appendChild(panel);
+
+      const out = (key) => panel.querySelector(`[data-out="${key}"]`);
+
+      panel.querySelector('[data-knob="count"]').addEventListener('input', (e) => {
+        const v = +e.target.value;
+        out('count').textContent = v;
+        demoRingSlinky.setCount(v);
+      });
+      panel.querySelector('[data-knob="tilt"]').addEventListener('input', (e) => {
+        const v = +e.target.value;
+        out('tilt').textContent = v + '\u00B0';
+        demoRingSlinky.setTilt(v);
+      });
+      panel.querySelector('[data-knob="lift"]').addEventListener('input', (e) => {
+        const v = +e.target.value;
+        out('lift').textContent = v + 'vmin';
+        demoRingSlinky.setLift(v);
+      });
+      panel.querySelector('[data-knob="stagger"]').addEventListener('input', (e) => {
+        const v = +e.target.value;
+        out('stagger').textContent = v + 'ms';
+        demoRingSlinky.setStagger(v);
+      });
+      panel.querySelector('[data-knob="hue"]').addEventListener('input', (e) => {
+        const v = +e.target.value;
+        out('hue').textContent = v + '\u00B0';
+        demoRingSlinky.setHueSweep(v);
+      });
+      panel.querySelector('[data-knob="color"]').addEventListener('input', (e) => {
+        demoRingSlinky.setColor(e.target.value);
+      });
+    }
+  }
+
   console.log('[Engines Page] Demo components initialized');
   
   // Return 3D components for cleanup
