@@ -21,7 +21,6 @@ import { ThreeD_component_engine } from '../engines/threed_component_engine.js';
 import { wheel_selector_component_engine } from '../engines/wheel_selector_component_engine.js';
 import { custom_wheel_selector_engine } from '../engines/custom_wheel_selector_engine.js';
 import { ios_drum_wheel_engine } from '../engines/ios_drum_wheel_engine.js';
-import { ring_slinky_component_engine } from '../engines/ring_slinky_component_engine.js';
 
 
 class ComponentFactory {
@@ -36,7 +35,6 @@ class ComponentFactory {
     this.calendarInstances = new Map();
     this.wheelSelectorInstances = new Map();
     this.customWheelInstances = new Map();
-    this.ringSlinkyInstances = new Map();
 
     this.initialized = false;
     
@@ -1225,58 +1223,6 @@ class ComponentFactory {
       onChange: (value) => {
         console.log('[ComponentFactory] Date format selected:', value);
       }
-    });
-  }
-
-  /**
-   * Create a Ring Slinky loader using ring_slinky_component_engine.
-   *
-   * The engine is a pure visual primitive — supply a containerId and an
-   * optional config and it renders a tilted stack of pulsing rings into
-   * that container. Multiple instances on a page each carry their own
-   * scoped CSS custom properties so they do not interfere with each other.
-   *
-   * @param {string} containerId - Container element ID
-   * @param {Object} config - Visual configuration (count, tilt, lift, etc.)
-   * @param {Function} handler - Optional callback (currently unused; reserved)
-   * @returns {Object} Ring Slinky engine instance
-   */
-  createRingSlinky(containerId, config = {}, handler = null) {
-    console.log(`[ComponentFactory] Creating ring slinky in container: ${containerId}`);
-
-    if (!ring_slinky_component_engine) {
-      console.error('[ComponentFactory] ERROR: ring_slinky_component_engine not available');
-      return null;
-    }
-
-    try {
-      const ringSlinkyEngine = new ring_slinky_component_engine(
-        { ...config, containerId },
-        handler
-      );
-      const initResult = ringSlinkyEngine.init();
-
-      if (initResult) {
-        const key = config.id || containerId;
-        this.ringSlinkyInstances.set(key, ringSlinkyEngine);
-        console.log(`[ComponentFactory] Ring slinky created successfully: ${key}`);
-        return ringSlinkyEngine;
-      } else {
-        console.error(`[ComponentFactory] Failed to initialize ring slinky in: ${containerId}`);
-        return null;
-      }
-    } catch (error) {
-      console.error('[ComponentFactory] Error creating ring slinky:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Create a default Ring Slinky loader with the canonical 21-ring configuration.
-   */
-  createDefaultRingSlinky(containerId = 'ring-slinky-container') {
-    return this.createRingSlinky(containerId, {
-      id: 'default-ring-slinky'
     });
   }
 }

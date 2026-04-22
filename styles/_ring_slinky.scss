@@ -1,30 +1,31 @@
-// _ring_slinky.scss - Ring Slinky component engine styles
+// _ring_slinky.scss - Ring Slinky animated loader styles
 //
 // Visual primitive: a stack of concentric rings tilted in 3D, rising and
-// falling in sequence. All knobs live as custom properties on the
-// .ring-pulse-stage element so each instance is independent — change one
-// value on one stage and only that loader updates.
+// falling in sequence with a hue-rotation sweep. Knobs live as CSS custom
+// properties on :root so the settings page can mutate them live and the
+// display page picks them up automatically.
 //
 // Originally derived from a CSS loader by NlghtM4re on Uiverse.io
-// (MIT License — see js/engines/ring_slinky_component_engine.js for full text).
+// (MIT License — see js/backgrounds/ring-slinky.js for full attribution).
+
+:root {
+  --ring-slinky-count:       21;
+  --ring-slinky-step:        2.5vmin;     // radius growth per index
+  --ring-slinky-stagger:     0.08s;       // delay per ring
+  --ring-slinky-duration:    3s;
+  --ring-slinky-tilt:        70deg;
+  --ring-slinky-lift:        -50vmin;     // how high rings rise at peak
+  --ring-slinky-thickness:   0.9vmin;
+  --ring-slinky-color:       #00c8ff;
+  --ring-slinky-glow:        rgb(124, 124, 124);
+  --ring-slinky-hue-sweep:   180deg;      // color rotation at peak
+  --ring-slinky-perspective: 1200px;
+}
 
 // ==============================================
-// Stage — per-instance scope for all knobs
+// Stage
 // ==============================================
-.ring-pulse-stage {
-  // Defaults (can be overridden inline by the engine per instance)
-  --ring-count:       21;
-  --ring-step:        2.5vmin;     // radius growth per index
-  --ring-stagger:     0.08s;       // delay per ring
-  --ring-duration:    3s;
-  --ring-tilt:        70deg;
-  --ring-lift:        -50vmin;     // how high they rise at peak
-  --ring-thickness:   0.9vmin;
-  --ring-color:       #00c8ff;
-  --ring-glow:        rgb(124, 124, 124);
-  --ring-hue-sweep:   180deg;      // color rotation at peak
-  --ring-perspective: 1200px;
-
+.ring-slinky-stage {
   position: relative;
   display: flex;
   justify-content: center;
@@ -33,49 +34,44 @@
   align-items: flex-end;
   padding-bottom: 6vmin;
   width: 100%;
-  height: 60vh;                    // sensible default; override in markup if needed
+  height: 60vh;
   overflow: hidden;
   background: #000;
-  perspective: var(--ring-perspective);
-
-  border: 1px solid yellow;        // Debug border to match other engines
+  perspective: var(--ring-slinky-perspective);
 }
 
 // ==============================================
 // Individual ring
 // ==============================================
-.ring-pulse-stage .ring {
+.ring-slinky-stage .ring {
   position: absolute;
-  width: calc(var(--i) * var(--ring-step));
+  width: calc(var(--i) * var(--ring-slinky-step));
   aspect-ratio: 1;
-  border: var(--ring-thickness) solid var(--ring-color);
+  border: var(--ring-slinky-thickness) solid var(--ring-slinky-color);
   border-radius: 50%;
-  rotate: x var(--ring-tilt);
+  rotate: x var(--ring-slinky-tilt);
   translate: 0 0;
-  box-shadow: 0 0 15px var(--ring-glow),
-              inset 0 0 15px var(--ring-glow);
-  animation: ring-pulse var(--ring-duration) ease-in-out
-             calc(var(--i) * var(--ring-stagger)) infinite;
+  box-shadow: 0 0 15px var(--ring-slinky-glow),
+              inset 0 0 15px var(--ring-slinky-glow);
+  animation: ring-slinky-pulse var(--ring-slinky-duration) ease-in-out
+             calc(var(--i) * var(--ring-slinky-stagger)) infinite;
 }
 
-// Only the things that actually change get animated; the rest stays at rest.
-@keyframes ring-pulse {
+@keyframes ring-slinky-pulse {
   50% {
-    translate: 0 var(--ring-lift);
-    filter: hue-rotate(var(--ring-hue-sweep));
+    translate: 0 var(--ring-slinky-lift);
+    filter: hue-rotate(var(--ring-slinky-hue-sweep));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ring-pulse-stage .ring {
-    animation: none;
-  }
+  .ring-slinky-stage .ring { animation: none; }
 }
 
 // ==============================================
-// Demo controls panel (engines page only)
+// Settings page controls panel
 // ==============================================
-.ring-pulse-controls {
+.ring-slinky-controls {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 22px;
@@ -83,7 +79,6 @@
   align-items: center;
   padding: 14px 18px;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid yellow;        // Debug border to match other engines
   color: #aaa;
   font: 13px/1.4 ui-sans-serif, system-ui, -apple-system, sans-serif;
 
