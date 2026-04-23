@@ -101,7 +101,7 @@ import { startPrefetch } from './navigation/page-prefetch.js';
 // Background system
 import * as BackgroundManager from './backgrounds/background-manager.js';
 import * as WaterBackground from './backgrounds/water-background.js';
-import { initRingSlinkyStage, initRingSlinkySettings } from './backgrounds/ring-slinky.js';
+import { initRingSlinky } from './backgrounds/ring-slinky.js';
 
 // Deployment Index — JSON-driven client-side renderer
 import { renderDeploymentIndex } from './deployment-index-renderer.js';
@@ -1272,13 +1272,9 @@ document.addEventListener('subpageLoaded', (e) => {
           BackgroundManager.onLeavePool();
           initializeBackgroundsPage();
         } else if (subSub === 'ring-slinky') {
-          console.log('[main.js] Initializing Ring Slinky display (development/backgrounds/ring-slinky)');
+          console.log('[main.js] Initializing Ring Slinky (development/backgrounds/ring-slinky)');
           BackgroundManager.onLeavePool();
-          initRingSlinkyStage('ring-slinky-stage-container');
-        } else if (subSub === 'ring-slinky-settings') {
-          console.log('[main.js] Initializing Ring Slinky Settings (development/backgrounds/ring-slinky-settings)');
-          BackgroundManager.onLeavePool();
-          initRingSlinkySettings('ring-slinky-settings-stage-container', 'ring-slinky-settings-controls-container');
+          initRingSlinky('ring-slinky-stage-container', 'ring-slinky-controls-container');
         } else {
           BackgroundManager.onLeavePool();
         }

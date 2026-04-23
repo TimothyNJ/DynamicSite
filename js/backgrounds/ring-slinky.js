@@ -1,15 +1,10 @@
 /**
  * ring-slinky.js - Page init for the Ring Slinky animated loader.
  *
- * Two entry points:
- *   initRingSlinkyStage(stageId)
- *     -> populates a single stage container with rings (display page).
- *
- *   initRingSlinkySettings(stageId, controlsId)
- *     -> populates a stage AND a controls panel that mutates the live
- *        :root CSS custom properties. Because the knobs live on :root,
- *        whatever the settings page sets will persist on the display page
- *        as long as the document is alive.
+ * Single entry point:
+ *   initRingSlinky(stageId, controlsId)
+ *     -> populates a stage container with rings AND wires up a controls
+ *        panel that mutates the live :root CSS custom properties.
  *
  * --------------------------------------------------------------------
  * Originally derived from a CSS loader by NlghtM4re on Uiverse.io
@@ -32,8 +27,8 @@
 
 const RING_COUNT_DEFAULT = 21;
 
-// Module-scoped so the count persists between display and settings pages
-// in the same way the :root CSS variables persist.
+// Module-scoped so the count survives navigation away and back, the same
+// way the :root CSS variables survive.
 let currentCount = RING_COUNT_DEFAULT;
 
 function populateStage(container, count) {
@@ -47,20 +42,11 @@ function populateStage(container, count) {
   }
 }
 
-export function initRingSlinkyStage(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    console.warn(`[ring-slinky] Stage container '${containerId}' not found`);
-    return;
-  }
-  populateStage(container, currentCount);
-}
-
-export function initRingSlinkySettings(stageId, controlsId) {
+export function initRingSlinky(stageId, controlsId) {
   const stage = document.getElementById(stageId);
   const controls = document.getElementById(controlsId);
   if (!stage || !controls) {
-    console.warn('[ring-slinky] Settings containers not found');
+    console.warn('[ring-slinky] Containers not found');
     return;
   }
 
@@ -84,8 +70,8 @@ export function initRingSlinkySettings(stageId, controlsId) {
     return Number.isFinite(v) ? v : fallback;
   };
 
-  // Read current values from :root (so the panel reflects whatever the
-  // user last set, not just the SCSS defaults).
+  // Read current values from :root so the panel reflects whatever the
+  // user last set, not just the SCSS defaults.
   const tilt    = readNum('--ring-slinky-tilt',      70);
   const lift    = Math.abs(readNum('--ring-slinky-lift', -50));
   const stagger = Math.round(readNum('--ring-slinky-stagger', 0.08) * 1000);
