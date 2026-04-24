@@ -912,8 +912,10 @@ window.initializePageComponents = function(pageName) {
       console.error('[main.js] No h1 element found on home page');
     }
 
-    // Activate water background if selected
-    BackgroundManager.onEnterHome();
+    // Home page no longer shows the pool (water) background — keep the
+    // standard gradient by ensuring water is hidden when landing here.
+    BackgroundManager.onLeaveHome();
+    BackgroundManager.onLeavePool();
   } else {
     // Leaving home — hide water, restore gradient
     BackgroundManager.onLeaveHome();
