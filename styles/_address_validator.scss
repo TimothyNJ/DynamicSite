@@ -70,6 +70,16 @@
     gap: 0.25rem;
   }
 
+  // Floating-label cell variant for <input> fields. DOM order is
+  // input → label → error. The label sits absolutely over the input at
+  // rest and floats up/scales down on focus OR when the input has a
+  // value (detected via `:not(:placeholder-shown)` — which is why the JS
+  // seeds a " " placeholder on every input).
+  &__cell--floating {
+    position: relative;
+    gap: 0;
+  }
+
   // Shared visual style for both <input> and <select> address fields.
   // Selecting on the class so a <select> picks up the same chrome as
   // text inputs (the rendered region row swaps between the two).
@@ -108,6 +118,59 @@
       border-color: #c0392b;
       box-shadow: 0 0 0 1px #c0392b inset;
     }
+  }
+
+  // Floating-label variant of the input: taller top padding so the
+  // floated label has somewhere to sit, and the seeded " " placeholder
+  // is hidden until focus so it doesn't visibly double the label.
+  &__cell--floating &__field-input {
+    padding: 1.1rem 0.75rem 0.35rem;
+    min-height: 2.6rem;
+
+    &::placeholder { color: transparent; }
+    &:focus::placeholder { color: var(--text-color-dark-secondary, #888); }
+  }
+
+  // The label itself in the floating variant: positioned over the input,
+  // ignores pointer events so clicks pass through to the control,
+  // transitions to a smaller scaled form when the input is focused or
+  // has a value.
+  &__cell--floating &__field-label {
+    position: absolute;
+    left: 0.75rem;
+    top: 0.7rem;
+    margin: 0;
+    pointer-events: none;
+    max-width: calc(100% - 1.5rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transform-origin: 0 0;
+    transition: transform 0.2s ease-out, color 0.2s ease-out;
+    color: var(--text-color-dark-secondary, #888);
+    body[data-theme="dark"] & { color: var(--text-color-dark-secondary, #aaa); }
+  }
+
+  // Float the label when the input is focused OR has a value.
+  &__cell--floating
+    &__field-input:focus
+    + &__field-label,
+  &__cell--floating
+    &__field-input:not(:placeholder-shown)
+    + &__field-label {
+    transform: translateY(-0.55rem) scale(0.78);
+    color: var(--text-color-dark);
+    body[data-theme="dark"] & { color: var(--text-color-light); }
+  }
+
+  // Error highlight: when the input is invalid, redden the floated label too.
+  &__cell--floating
+    &__field-input--invalid
+    + &__field-label,
+  &__cell--floating
+    &__field-input--invalid:focus
+    + &__field-label {
+    color: #c0392b;
   }
 
   // Error message slot under a field — empty by default, filled with red
