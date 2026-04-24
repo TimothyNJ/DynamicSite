@@ -37,11 +37,11 @@ const API_BASE = 'https://api.dynamicsite.io';
 // from the live --h*-font-size values, so these defaults should mirror what's
 // in _variables.scss to avoid confusion.
 const TIERS = [
-  { tag: 'h1', min: 1.125, pref: 2.5, max: 4,   weight: 'bold'   },
-  { tag: 'h2', min: 0.875, pref: 2,   max: 3.5, weight: 'bold'   },
-  { tag: 'h3', min: 0.7,   pref: 1.6, max: 2.6, weight: 'bold'   },
-  { tag: 'h4', min: 0.6,   pref: 1.5, max: 2.5, weight: 'normal' },
-  { tag: 'p',  min: 0.5,   pref: 1.2, max: 2.3, weight: 'normal' },
+  { tag: 'h1', min: 1.125, pref: 1.6, max: 4,   weight: 'bold'   },
+  { tag: 'h2', min: 0.875, pref: 1.4, max: 3.5, weight: 'bold'   },
+  { tag: 'h3', min: 0.7,   pref: 1.2, max: 2.6, weight: 'bold'   },
+  { tag: 'h4', min: 0.6,   pref: 1.2, max: 2.5, weight: 'normal' },
+  { tag: 'p',  min: 0.5,   pref: 1,   max: 2.3, weight: 'normal' },
 ];
 
 // Units per param — used when building the clamp() string and inline styles
