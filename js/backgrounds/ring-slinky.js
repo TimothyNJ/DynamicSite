@@ -56,7 +56,7 @@ export function initRingSlinky(stageId, controlsId) {
   controls.innerHTML = `
     <label>Rings    <input data-knob="count"   type="range" min="3"  max="40">   <output data-out="count"></output></label>
     <label>Tilt     <input data-knob="tilt"    type="range" min="0"  max="89">   <output data-out="tilt"></output></label>
-    <label>Lift     <input data-knob="lift"    type="range" min="0"  max="80">   <output data-out="lift"></output></label>
+    <label>Lift     <input data-knob="lift"    type="range" min="0"  max="30">   <output data-out="lift"></output></label>
     <label>Stagger  <input data-knob="stagger" type="range" min="0"  max="300">  <output data-out="stagger"></output></label>
     <label>Hue      <input data-knob="hue"     type="range" min="0"  max="720">  <output data-out="hue"></output></label>
     <label>Perspective <input data-knob="perspective" type="range" min="0" max="4000" step="50"> <output data-out="perspective"></output></label>
