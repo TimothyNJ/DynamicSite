@@ -1,0 +1,151 @@
+// _slinky_rings.scss - Slinky Rings animated loader styles
+//
+// Visual primitive: a stack of concentric rings tilted in 3D, rising and
+// falling in sequence with a hue-rotation sweep. Knobs live as CSS custom
+// properties on :root so the settings page can mutate them live and the
+// display page picks them up automatically.
+//
+// Originally derived from a CSS loader by NlghtM4re on Uiverse.io
+// (MIT License — see js/backgrounds/slinky-rings.js for full attribution).
+
+:root {
+  --slinky-rings-count:       21;
+  --slinky-rings-step:        2.5vmin;       // radius growth per index
+  --slinky-rings-stagger:     0.08s;         // delay per ring
+  --slinky-rings-duration:    3s;
+  --slinky-rings-tilt:        70deg;
+  --slinky-rings-lift:        15vmin;        // half-amplitude: rings oscillate +/- this from center (positive value)
+  --slinky-rings-thickness:   3px;           // Uiverse original
+  --slinky-rings-color:       #00ff0d;       // Uiverse original (rgb(0, 255, 13))
+  --slinky-rings-glow:        rgb(124, 124, 124);  // Uiverse original — subtle gray ambient halo
+  --slinky-rings-hue-sweep:   360deg;        // Uiverse original — full color wheel cycle
+  --slinky-rings-perspective: none;          // 'none' = orthographic (matches Uiverse original); set e.g. 1200px to add 3D depth
+}
+
+// ==============================================
+// Stage
+// ==============================================
+.slinky-rings-stage {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  overflow: hidden;
+  background: transparent;
+  perspective: var(--slinky-rings-perspective);
+}
+
+// ==============================================
+// Individual ring
+// ==============================================
+// Rings are concentric — all share the same center (horizontally AND vertically)
+// in the middle of the stage. Negative margins equal to half the ring's size
+// offset each ring so its center sits at 50%/50%. From that shared baseline
+// every ring oscillates the same +/- --slinky-rings-lift, so inner and outer
+// rings reach the same vertical extremes.
+.slinky-rings-stage .ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--i) * var(--slinky-rings-step));
+  aspect-ratio: 1;
+  margin-top: calc(var(--i) * var(--slinky-rings-step) / -2);
+  margin-left: calc(var(--i) * var(--slinky-rings-step) / -2);
+  border: var(--slinky-rings-thickness) solid var(--slinky-rings-color);
+  border-radius: 50%;
+  rotate: x var(--slinky-rings-tilt);
+  translate: 0 0;
+  box-shadow: 0 0 15px var(--slinky-rings-glow),
+              inset 0 0 15px var(--slinky-rings-glow);
+  animation: slinky-rings-pulse var(--slinky-rings-duration) linear
+             calc(var(--i) * var(--slinky-rings-stagger)) infinite;
+}
+
+// Symmetric oscillation: rise to -lift, return to center, fall to +lift, return.
+// Per-keyframe timing: segments heading to an extreme use ease-out (decelerate
+// to rest), segments leaving an extreme use ease-in (accelerate away). This
+// matches velocities at every keyframe — no pauses at center or anywhere else,
+// giving a smooth sinusoidal motion. The base `linear` in the animation shorthand
+// is just a fallback; the per-keyframe functions override it for each segment.
+@keyframes slinky-rings-pulse {
+  0% {
+    translate: 0 0;
+    filter: hue-rotate(0deg);
+    animation-timing-function: ease-out;
+  }
+  25% {
+    translate: 0 calc(-1 * var(--slinky-rings-lift));
+    filter: hue-rotate(calc(var(--slinky-rings-hue-sweep) / 4));
+    animation-timing-function: ease-in;
+  }
+  50% {
+    translate: 0 0;
+    filter: hue-rotate(calc(var(--slinky-rings-hue-sweep) / 2));
+    animation-timing-function: ease-out;
+  }
+  75% {
+    translate: 0 var(--slinky-rings-lift);
+    filter: hue-rotate(calc(var(--slinky-rings-hue-sweep) * 3 / 4));
+    animation-timing-function: ease-in;
+  }
+  100% {
+    translate: 0 0;
+    filter: hue-rotate(var(--slinky-rings-hue-sweep));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slinky-rings-stage .ring { animation: none; }
+}
+
+// Override global "Borders Toggle" — without this, rings lose their colored
+// border because _base.scss has `.borders-hidden *:not(button) { border-color:
+// transparent !important; }`, leaving only the box-shadow glow visible (so the
+// rings appear black with only the white halo).
+.borders-hidden .slinky-rings-stage .ring {
+  border-color: var(--slinky-rings-color) !important;
+}
+
+// ==============================================
+// Settings page controls panel
+// ==============================================
+.slinky-rings-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #aaa;
+  font: 13px/1.4 ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  output {
+    font-variant-numeric: tabular-nums;
+    min-width: 5ch;
+    text-align: right;
+    color: #fff;
+  }
+
+  input[type="range"] {
+    width: 110px;
+    accent-color: #00c8ff;
+  }
+
+  input[type="color"] {
+    width: 28px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    cursor: pointer;
+  }
+}

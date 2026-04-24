@@ -1,8 +1,8 @@
 /**
- * ring-slinky.js - Page init for the Ring Slinky animated loader.
+ * slinky-rings.js - Page init for the Slinky Rings animated loader.
  *
  * Single entry point:
- *   initRingSlinky(stageId, controlsId)
+ *   initSlinkyRings(stageId, controlsId)
  *     -> populates a stage container with rings AND wires up a controls
  *        panel that mutates the live :root CSS custom properties.
  *
@@ -32,7 +32,7 @@ const RING_COUNT_DEFAULT = 21;
 let currentCount = RING_COUNT_DEFAULT;
 
 function populateStage(container, count) {
-  container.classList.add('ring-slinky-stage');
+  container.classList.add('slinky-rings-stage');
   container.innerHTML = '';
   for (let i = 0; i < count; i++) {
     const r = document.createElement('div');
@@ -42,17 +42,17 @@ function populateStage(container, count) {
   }
 }
 
-export function initRingSlinky(stageId, controlsId) {
+export function initSlinkyRings(stageId, controlsId) {
   const stage = document.getElementById(stageId);
   const controls = document.getElementById(controlsId);
   if (!stage || !controls) {
-    console.warn('[ring-slinky] Containers not found');
+    console.warn('[slinky-rings] Containers not found');
     return;
   }
 
   populateStage(stage, currentCount);
 
-  controls.classList.add('ring-slinky-controls');
+  controls.classList.add('slinky-rings-controls');
   controls.innerHTML = `
     <label>Rings    <input data-knob="count"   type="range" min="3"  max="40">   <output data-out="count"></output></label>
     <label>Tilt     <input data-knob="tilt"    type="range" min="0"  max="89">   <output data-out="tilt"></output></label>
@@ -73,14 +73,14 @@ export function initRingSlinky(stageId, controlsId) {
 
   // Read current values from :root so the panel reflects whatever the
   // user last set, not just the SCSS defaults.
-  const tilt    = readNum('--ring-slinky-tilt',      70);
-  const lift    = readNum('--ring-slinky-lift', 15);
-  const stagger = Math.round(readNum('--ring-slinky-stagger', 0.08) * 1000);
-  const hue     = readNum('--ring-slinky-hue-sweep', 360);
-  const color   = (rootComputed.getPropertyValue('--ring-slinky-color') || '#00ff0d').trim();
+  const tilt    = readNum('--slinky-rings-tilt',      70);
+  const lift    = readNum('--slinky-rings-lift', 15);
+  const stagger = Math.round(readNum('--slinky-rings-stagger', 0.08) * 1000);
+  const hue     = readNum('--slinky-rings-hue-sweep', 360);
+  const color   = (rootComputed.getPropertyValue('--slinky-rings-color') || '#00ff0d').trim();
   // Perspective is special: 'none' (the Uiverse default) means orthographic,
   // anything else is a px length. Map 'none' -> 0 on the slider.
-  const perspectiveRaw = (rootComputed.getPropertyValue('--ring-slinky-perspective') || 'none').trim();
+  const perspectiveRaw = (rootComputed.getPropertyValue('--slinky-rings-perspective') || 'none').trim();
   const perspective = perspectiveRaw === 'none' ? 0 : (parseFloat(perspectiveRaw) || 0);
 
   controls.querySelector('[data-knob="count"]').value = currentCount;
@@ -106,29 +106,29 @@ export function initRingSlinky(stageId, controlsId) {
   controls.querySelector('[data-knob="tilt"]').addEventListener('input', (e) => {
     const v = +e.target.value;
     out('tilt').textContent = v + '\u00B0';
-    rootStyle.setProperty('--ring-slinky-tilt', v + 'deg');
+    rootStyle.setProperty('--slinky-rings-tilt', v + 'deg');
   });
   controls.querySelector('[data-knob="lift"]').addEventListener('input', (e) => {
     const v = +e.target.value;
     out('lift').textContent = v + 'vmin';
-    rootStyle.setProperty('--ring-slinky-lift', v + 'vmin');
+    rootStyle.setProperty('--slinky-rings-lift', v + 'vmin');
   });
   controls.querySelector('[data-knob="stagger"]').addEventListener('input', (e) => {
     const v = +e.target.value;
     out('stagger').textContent = v + 'ms';
-    rootStyle.setProperty('--ring-slinky-stagger', (v / 1000) + 's');
+    rootStyle.setProperty('--slinky-rings-stagger', (v / 1000) + 's');
   });
   controls.querySelector('[data-knob="hue"]').addEventListener('input', (e) => {
     const v = +e.target.value;
     out('hue').textContent = v + '\u00B0';
-    rootStyle.setProperty('--ring-slinky-hue-sweep', v + 'deg');
+    rootStyle.setProperty('--slinky-rings-hue-sweep', v + 'deg');
   });
   controls.querySelector('[data-knob="perspective"]').addEventListener('input', (e) => {
     const v = +e.target.value;
     out('perspective').textContent = v === 0 ? 'off' : v + 'px';
-    rootStyle.setProperty('--ring-slinky-perspective', v === 0 ? 'none' : v + 'px');
+    rootStyle.setProperty('--slinky-rings-perspective', v === 0 ? 'none' : v + 'px');
   });
   controls.querySelector('[data-knob="color"]').addEventListener('input', (e) => {
-    rootStyle.setProperty('--ring-slinky-color', e.target.value);
+    rootStyle.setProperty('--slinky-rings-color', e.target.value);
   });
 }

@@ -1,4 +1,4 @@
-// _ring_slinky.scss - Ring Slinky animated loader styles
+// _magic_rings.scss - Magic Rings animated loader styles
 //
 // Visual primitive: a stack of concentric rings tilted in 3D, rising and
 // falling in sequence with a hue-rotation sweep. Knobs live as CSS custom
@@ -6,32 +6,32 @@
 // display page picks them up automatically.
 //
 // Originally derived from a CSS loader by NlghtM4re on Uiverse.io
-// (MIT License — see js/backgrounds/ring-slinky.js for full attribution).
+// (MIT License — see js/backgrounds/magic-rings.js for full attribution).
 
 :root {
-  --ring-slinky-count:       21;
-  --ring-slinky-step:        2.5vmin;       // radius growth per index
-  --ring-slinky-stagger:     0.08s;         // delay per ring
-  --ring-slinky-duration:    3s;
-  --ring-slinky-tilt:        70deg;
-  --ring-slinky-lift:        15vmin;        // half-amplitude: rings oscillate +/- this from center (positive value)
-  --ring-slinky-thickness:   3px;           // Uiverse original
-  --ring-slinky-color:       #00ff0d;       // Uiverse original (rgb(0, 255, 13))
-  --ring-slinky-glow:        rgb(124, 124, 124);  // Uiverse original — subtle gray ambient halo
-  --ring-slinky-hue-sweep:   360deg;        // Uiverse original — full color wheel cycle
-  --ring-slinky-perspective: none;          // 'none' = orthographic (matches Uiverse original); set e.g. 1200px to add 3D depth
+  --magic-rings-count:       21;
+  --magic-rings-step:        2.5vmin;       // radius growth per index
+  --magic-rings-stagger:     0.08s;         // delay per ring
+  --magic-rings-duration:    3s;
+  --magic-rings-tilt:        70deg;
+  --magic-rings-lift:        15vmin;        // half-amplitude: rings oscillate +/- this from center (positive value)
+  --magic-rings-thickness:   3px;           // Uiverse original
+  --magic-rings-color:       #00ff0d;       // Uiverse original (rgb(0, 255, 13))
+  --magic-rings-glow:        rgb(124, 124, 124);  // Uiverse original — subtle gray ambient halo
+  --magic-rings-hue-sweep:   360deg;        // Uiverse original — full color wheel cycle
+  --magic-rings-perspective: none;          // 'none' = orthographic (matches Uiverse original); set e.g. 1200px to add 3D depth
 }
 
 // ==============================================
 // Stage
 // ==============================================
-.ring-slinky-stage {
+.magic-rings-stage {
   position: relative;
   width: 100%;
   height: 60vh;
   overflow: hidden;
   background: transparent;
-  perspective: var(--ring-slinky-perspective);
+  perspective: var(--magic-rings-perspective);
 }
 
 // ==============================================
@@ -40,24 +40,24 @@
 // Rings are concentric — all share the same center (horizontally AND vertically)
 // in the middle of the stage. Negative margins equal to half the ring's size
 // offset each ring so its center sits at 50%/50%. From that shared baseline
-// every ring oscillates the same +/- --ring-slinky-lift, so inner and outer
+// every ring oscillates the same +/- --magic-rings-lift, so inner and outer
 // rings reach the same vertical extremes.
-.ring-slinky-stage .ring {
+.magic-rings-stage .ring {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: calc(var(--i) * var(--ring-slinky-step));
+  width: calc(var(--i) * var(--magic-rings-step));
   aspect-ratio: 1;
-  margin-top: calc(var(--i) * var(--ring-slinky-step) / -2);
-  margin-left: calc(var(--i) * var(--ring-slinky-step) / -2);
-  border: var(--ring-slinky-thickness) solid var(--ring-slinky-color);
+  margin-top: calc(var(--i) * var(--magic-rings-step) / -2);
+  margin-left: calc(var(--i) * var(--magic-rings-step) / -2);
+  border: var(--magic-rings-thickness) solid var(--magic-rings-color);
   border-radius: 50%;
-  rotate: x var(--ring-slinky-tilt);
+  rotate: x var(--magic-rings-tilt);
   translate: 0 0;
-  box-shadow: 0 0 15px var(--ring-slinky-glow),
-              inset 0 0 15px var(--ring-slinky-glow);
-  animation: ring-slinky-pulse var(--ring-slinky-duration) linear
-             calc(var(--i) * var(--ring-slinky-stagger)) infinite;
+  box-shadow: 0 0 15px var(--magic-rings-glow),
+              inset 0 0 15px var(--magic-rings-glow);
+  animation: magic-rings-pulse var(--magic-rings-duration) linear
+             calc(var(--i) * var(--magic-rings-stagger)) infinite;
 }
 
 // Symmetric oscillation: rise to -lift, return to center, fall to +lift, return.
@@ -66,49 +66,49 @@
 // matches velocities at every keyframe — no pauses at center or anywhere else,
 // giving a smooth sinusoidal motion. The base `linear` in the animation shorthand
 // is just a fallback; the per-keyframe functions override it for each segment.
-@keyframes ring-slinky-pulse {
+@keyframes magic-rings-pulse {
   0% {
     translate: 0 0;
     filter: hue-rotate(0deg);
     animation-timing-function: ease-out;
   }
   25% {
-    translate: 0 calc(-1 * var(--ring-slinky-lift));
-    filter: hue-rotate(calc(var(--ring-slinky-hue-sweep) / 4));
+    translate: 0 calc(-1 * var(--magic-rings-lift));
+    filter: hue-rotate(calc(var(--magic-rings-hue-sweep) / 4));
     animation-timing-function: ease-in;
   }
   50% {
     translate: 0 0;
-    filter: hue-rotate(calc(var(--ring-slinky-hue-sweep) / 2));
+    filter: hue-rotate(calc(var(--magic-rings-hue-sweep) / 2));
     animation-timing-function: ease-out;
   }
   75% {
-    translate: 0 var(--ring-slinky-lift);
-    filter: hue-rotate(calc(var(--ring-slinky-hue-sweep) * 3 / 4));
+    translate: 0 var(--magic-rings-lift);
+    filter: hue-rotate(calc(var(--magic-rings-hue-sweep) * 3 / 4));
     animation-timing-function: ease-in;
   }
   100% {
     translate: 0 0;
-    filter: hue-rotate(var(--ring-slinky-hue-sweep));
+    filter: hue-rotate(var(--magic-rings-hue-sweep));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ring-slinky-stage .ring { animation: none; }
+  .magic-rings-stage .ring { animation: none; }
 }
 
 // Override global "Borders Toggle" — without this, rings lose their colored
 // border because _base.scss has `.borders-hidden *:not(button) { border-color:
 // transparent !important; }`, leaving only the box-shadow glow visible (so the
 // rings appear black with only the white halo).
-.borders-hidden .ring-slinky-stage .ring {
-  border-color: var(--ring-slinky-color) !important;
+.borders-hidden .magic-rings-stage .ring {
+  border-color: var(--magic-rings-color) !important;
 }
 
 // ==============================================
 // Settings page controls panel
 // ==============================================
-.ring-slinky-controls {
+.magic-rings-controls {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 22px;

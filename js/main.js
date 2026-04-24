@@ -101,7 +101,8 @@ import { startPrefetch } from './navigation/page-prefetch.js';
 // Background system
 import * as BackgroundManager from './backgrounds/background-manager.js';
 import * as WaterBackground from './backgrounds/water-background.js';
-import { initRingSlinky } from './backgrounds/ring-slinky.js';
+import { initSlinkyRings } from './backgrounds/slinky-rings.js';
+import { initMagicRings } from './backgrounds/magic-rings.js';
 
 // Deployment Index — JSON-driven client-side renderer
 import { renderDeploymentIndex } from './deployment-index-renderer.js';
@@ -1271,10 +1272,14 @@ document.addEventListener('subpageLoaded', (e) => {
           console.log('[main.js] Initializing Pool Settings (development/backgrounds/pool-settings)');
           BackgroundManager.onLeavePool();
           initializeBackgroundsPage();
-        } else if (subSub === 'ring-slinky') {
-          console.log('[main.js] Initializing Ring Slinky (development/backgrounds/ring-slinky)');
+        } else if (subSub === 'slinky-rings') {
+          console.log('[main.js] Initializing Slinky Rings (development/backgrounds/slinky-rings)');
           BackgroundManager.onLeavePool();
-          initRingSlinky('ring-slinky-stage-container', 'ring-slinky-controls-container');
+          initSlinkyRings('slinky-rings-stage-container', 'slinky-rings-controls-container');
+        } else if (subSub === 'magic-rings') {
+          console.log('[main.js] Initializing Magic Rings (development/backgrounds/magic-rings)');
+          BackgroundManager.onLeavePool();
+          initMagicRings('magic-rings-stage-container', 'magic-rings-controls-container');
         } else {
           BackgroundManager.onLeavePool();
         }

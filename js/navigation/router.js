@@ -71,7 +71,7 @@ const sidenavConfig = {
       },
       "backgrounds": {
         defaultSub: "pool",
-        items: ["pool", "pool-settings", "ring-slinky"]
+        items: ["pool", "pool-settings", "slinky-rings", "magic-rings"]
       },
       "deployment-index": {
         defaultSub: "development",
