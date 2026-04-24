@@ -32,12 +32,16 @@ const API_BASE = 'https://api.dynamicsite.io';
 // Current defaults from _variables.scss — used as initial input values.
 // Units: min = rem, pref = vw, max = rem.
 
+// Note: min/pref/max here are only used as a fallback if readDeployedValues()
+// can't parse a tier's CSS variable. At runtime the editor is always seeded
+// from the live --h*-font-size values, so these defaults should mirror what's
+// in _variables.scss to avoid confusion.
 const TIERS = [
-  { tag: 'h1', min: 1.125, pref: 1.1,  max: 4,   weight: 'bold'   },
-  { tag: 'h2', min: 0.875, pref: 0.95, max: 3.5,  weight: 'bold'   },
-  { tag: 'h3', min: 0.7,   pref: 0.8,  max: 2.6,  weight: 'bold'   },
-  { tag: 'h4', min: 0.6,   pref: 0.75, max: 2.5,  weight: 'normal' },
-  { tag: 'p',  min: 0.5,   pref: 0.7,  max: 2.3,  weight: 'normal' },
+  { tag: 'h1', min: 1.125, pref: 2.5, max: 4,   weight: 'bold'   },
+  { tag: 'h2', min: 0.875, pref: 2,   max: 3.5, weight: 'bold'   },
+  { tag: 'h3', min: 0.7,   pref: 1.6, max: 2.6, weight: 'bold'   },
+  { tag: 'h4', min: 0.6,   pref: 1.5, max: 2.5, weight: 'normal' },
+  { tag: 'p',  min: 0.5,   pref: 1.2, max: 2.3, weight: 'normal' },
 ];
 
 // Units per param — used when building the clamp() string and inline styles
@@ -176,7 +180,11 @@ export function initializeFontEditor(env) {
     deployedValues[t.tag] = { ...deployed[t.tag] };
   }
 
-  // Create text inputs for each tier × param, using deployed values
+  // Create text inputs for each tier × param, using deployed values.
+  // Also overwrite the hardcoded inline font-size on each static span so it
+  // reflects the actually-deployed value, not the stale HTML literal — without
+  // this, if someone has pushed new clamp values without regenerating the
+  // page HTML, the MIN/PREF/MAX columns lie about what's deployed.
   for (const t of TIERS) {
     for (const param of ['min', 'pref', 'max']) {
       const containerId = `fe-input-${t.tag}-${param}`;
@@ -188,6 +196,9 @@ export function initializeFontEditor(env) {
         value: String(currentVal),
         onChange: (value) => onValueChange(t.tag, param, value)
       });
+
+      // Sync the static span to the deployed value (overrides stale HTML)
+      updateStaticSpan(t.tag, param);
     }
   }
 
