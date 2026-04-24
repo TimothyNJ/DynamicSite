@@ -6,14 +6,13 @@
  * Field order (always, regardless of libaddressinput's per-country `fmt`
  * ordering):
  *
- *   1. Country     (read-only echo of the dropdown selection)
- *   2. Region      (state / province / prefecture / etc — labelled per
+ *   1. Region      (state / province / prefecture / etc — labelled per
  *                   country via country-overrides.js, rendered as a
  *                   <select> when subdivisions are available)
- *   3. District    (county / council — only rendered when the country's
+ *   2. District    (county / council — only rendered when the country's
  *                   override defines `districtLabel`)
- *   4. City        (town / city / suburb)
- *   5. Postal code (ZIP / postcode / Eircode / PIN / CEP)
+ *   3. City        (town / city / suburb)
+ *   4. Postal code (ZIP / postcode / Eircode / PIN / CEP)
  *
  * libaddressinput is still consulted to decide which fields the country
  * actually uses (does the `fmt` mention %S? %Z?), to populate the region
@@ -266,7 +265,6 @@ function decideRowVisibility(metadata, override) {
   const subdivisions = (metadata && metadata.subdivisions) || [];
 
   return {
-    country:  true,
     region:   hasS || overrideRegions || subdivisions.length > 0,
     district: !!(override && override.districtLabel),
     // City always shown — virtually every country has one and libaddressinput
@@ -447,22 +445,7 @@ function renderFields(container, code, metadata) {
   const form = document.createElement('div');
   form.className = 'address-validator__form';
 
-  // 1. Country — read-only echo of the selected country.
-  if (show.country) {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = countryName(code);
-    input.setAttribute('readonly', 'readonly');
-    input.setAttribute('autocomplete', 'off');
-    form.appendChild(makeRow({
-      id:       'addr-field-country',
-      label:    'Country',
-      required: true,
-      control:  input
-    }));
-  }
-
-  // 2. Region — dropdown if values exist, text otherwise.
+  // 1. Region — dropdown if values exist, text otherwise.
   if (show.region) {
     const control = makeRegionControl(metadata, override);
     const regionRequired = isRequired(metadata, 'S');
@@ -475,7 +458,7 @@ function renderFields(container, code, metadata) {
     attachValidator(control, makeRequiredValidator(regionRequired));
   }
 
-  // 3. District / county / council — only when the override defines it.
+  // 2. District / county / council — only when the override defines it.
   if (show.district) {
     const input = document.createElement('input');
     input.type = 'text';
@@ -489,7 +472,7 @@ function renderFields(container, code, metadata) {
     // District is always optional — no validator attached.
   }
 
-  // 4. City / town / suburb.
+  // 3. City / town / suburb.
   if (show.city) {
     const input = document.createElement('input');
     input.type = 'text';
@@ -504,7 +487,7 @@ function renderFields(container, code, metadata) {
     attachValidator(input, makeRequiredValidator(cityRequired));
   }
 
-  // 5. Postal code / ZIP / postcode.
+  // 4. Postal code / ZIP / postcode.
   if (show.postal) {
     const input = document.createElement('input');
     input.type = 'text';
