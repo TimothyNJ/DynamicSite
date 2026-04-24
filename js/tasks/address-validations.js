@@ -370,8 +370,12 @@ function attachValidator(control, validator) {
  * every level of the address layout.
  */
 function makeRow({ id, label, required, control }) {
+  const isInput = control.tagName === 'INPUT';
+
   const cell = document.createElement('div');
-  cell.className = 'address-validator__cell';
+  cell.className = isInput
+    ? 'address-validator__cell address-validator__cell--floating'
+    : 'address-validator__cell';
 
   const lbl = document.createElement('label');
   lbl.className = 'address-validator__field-label';
@@ -382,14 +386,31 @@ function makeRow({ id, label, required, control }) {
   control.name = id;
   control.classList.add('address-validator__field-input');
 
+  // Floating-label pattern: inputs need a non-empty placeholder so
+  // `:placeholder-shown` can distinguish "empty" from "filled". A single
+  // space is invisible to the user but lets the CSS sibling selector
+  // float the label back into the field when the value clears. Hidden
+  // by the SCSS `::placeholder { color: transparent }` rule.
+  if (isInput && !control.getAttribute('placeholder')) {
+    control.setAttribute('placeholder', ' ');
+  }
+
   // Error message span — hidden until the field blurs in an invalid state.
   const errEl = document.createElement('span');
   errEl.className = 'address-validator__error';
   errEl.id = `${id}-error`;
   errEl.setAttribute('aria-live', 'polite');
 
-  cell.appendChild(lbl);
-  cell.appendChild(control);
+  // Floating-label pattern requires the label to come AFTER the input in
+  // DOM order so `input:focus + label` and `input:not(:placeholder-shown) + label`
+  // can reach it. Selects keep the traditional label-above layout.
+  if (isInput) {
+    cell.appendChild(control);
+    cell.appendChild(lbl);
+  } else {
+    cell.appendChild(lbl);
+    cell.appendChild(control);
+  }
   cell.appendChild(errEl);
 
   const row = document.createElement('div');
