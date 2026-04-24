@@ -334,10 +334,15 @@ function makeRequiredValidator(required) {
  * and clear the error as soon as the user starts correcting it.
  */
 function attachValidator(control, validator) {
-  const errEl = document.getElementById(`${control.id}-error`);
+  // Look up the error span lazily — at attach time the row may not yet be
+  // in the document (renderFields appends the whole form at the end), so
+  // getElementById would return null. Reading it on each call means we
+  // always get the live element once the form is mounted.
+  const getErrEl = () => document.getElementById(`${control.id}-error`);
 
   const run = () => {
     const msg = validator(control.value);
+    const errEl = getErrEl();
     if (msg) {
       control.classList.add('address-validator__field-input--invalid');
       if (errEl) errEl.textContent = msg;
@@ -352,6 +357,7 @@ function attachValidator(control, validator) {
     // Clear invalid styling the moment the user starts typing. Re-runs on
     // the next blur.
     control.classList.remove('address-validator__field-input--invalid');
+    const errEl = getErrEl();
     if (errEl) errEl.textContent = '';
   });
   // On <select> change, validate immediately — selects don't fire blur
