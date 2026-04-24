@@ -59,6 +59,7 @@ export function initRingSlinky(stageId, controlsId) {
     <label>Lift     <input data-knob="lift"    type="range" min="0"  max="80">   <output data-out="lift"></output></label>
     <label>Stagger  <input data-knob="stagger" type="range" min="0"  max="300">  <output data-out="stagger"></output></label>
     <label>Hue      <input data-knob="hue"     type="range" min="0"  max="720">  <output data-out="hue"></output></label>
+    <label>Perspective <input data-knob="perspective" type="range" min="0" max="4000" step="50"> <output data-out="perspective"></output></label>
     <label>Color    <input data-knob="color"   type="color"></label>
   `;
 
@@ -77,6 +78,10 @@ export function initRingSlinky(stageId, controlsId) {
   const stagger = Math.round(readNum('--ring-slinky-stagger', 0.08) * 1000);
   const hue     = readNum('--ring-slinky-hue-sweep', 360);
   const color   = (rootComputed.getPropertyValue('--ring-slinky-color') || '#00ff0d').trim();
+  // Perspective is special: 'none' (the Uiverse default) means orthographic,
+  // anything else is a px length. Map 'none' -> 0 on the slider.
+  const perspectiveRaw = (rootComputed.getPropertyValue('--ring-slinky-perspective') || 'none').trim();
+  const perspective = perspectiveRaw === 'none' ? 0 : (parseFloat(perspectiveRaw) || 0);
 
   controls.querySelector('[data-knob="count"]').value = currentCount;
   out('count').textContent = currentCount;
@@ -88,6 +93,8 @@ export function initRingSlinky(stageId, controlsId) {
   out('stagger').textContent = stagger + 'ms';
   controls.querySelector('[data-knob="hue"]').value = hue;
   out('hue').textContent = hue + '\u00B0';
+  controls.querySelector('[data-knob="perspective"]').value = perspective;
+  out('perspective').textContent = perspective === 0 ? 'off' : perspective + 'px';
   controls.querySelector('[data-knob="color"]').value = color;
 
   controls.querySelector('[data-knob="count"]').addEventListener('input', (e) => {
@@ -115,6 +122,11 @@ export function initRingSlinky(stageId, controlsId) {
     const v = +e.target.value;
     out('hue').textContent = v + '\u00B0';
     rootStyle.setProperty('--ring-slinky-hue-sweep', v + 'deg');
+  });
+  controls.querySelector('[data-knob="perspective"]').addEventListener('input', (e) => {
+    const v = +e.target.value;
+    out('perspective').textContent = v === 0 ? 'off' : v + 'px';
+    rootStyle.setProperty('--ring-slinky-perspective', v === 0 ? 'none' : v + 'px');
   });
   controls.querySelector('[data-knob="color"]').addEventListener('input', (e) => {
     rootStyle.setProperty('--ring-slinky-color', e.target.value);

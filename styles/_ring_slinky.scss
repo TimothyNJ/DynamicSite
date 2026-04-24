@@ -19,6 +19,7 @@
   --ring-slinky-color:       #00ff0d;       // Uiverse original (rgb(0, 255, 13))
   --ring-slinky-glow:        rgb(124, 124, 124);  // Uiverse original — subtle gray ambient halo
   --ring-slinky-hue-sweep:   360deg;        // Uiverse original — full color wheel cycle
+  --ring-slinky-perspective: none;          // 'none' = orthographic (matches Uiverse original); set e.g. 1200px to add 3D depth
 }
 
 // ==============================================
@@ -36,6 +37,7 @@
   height: 60vh;
   overflow: hidden;
   background: #000;
+  perspective: var(--ring-slinky-perspective);
 }
 
 // ==============================================
