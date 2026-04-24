@@ -10,15 +10,15 @@
 
 :root {
   --ring-slinky-count:       21;
-  --ring-slinky-step:        2.5vmin;     // radius growth per index
-  --ring-slinky-stagger:     0.08s;       // delay per ring
+  --ring-slinky-step:        2.5vmin;       // radius growth per index
+  --ring-slinky-stagger:     0.08s;         // delay per ring
   --ring-slinky-duration:    3s;
   --ring-slinky-tilt:        70deg;
-  --ring-slinky-lift:        -50vmin;     // how high rings rise at peak
-  --ring-slinky-thickness:   0.3vmin;
-  --ring-slinky-color:       #00c8ff;
-  --ring-slinky-glow:        var(--ring-slinky-color);  // glow follows ring color
-  --ring-slinky-hue-sweep:   180deg;      // color rotation at peak
+  --ring-slinky-lift:        -30vmin;       // travel at peak (Uiverse original was -50vmin in a 100vh body; reduced here to fit our 60vh stage)
+  --ring-slinky-thickness:   3px;           // Uiverse original
+  --ring-slinky-color:       #00ff0d;       // Uiverse original (rgb(0, 255, 13))
+  --ring-slinky-glow:        rgb(124, 124, 124);  // Uiverse original — subtle gray ambient halo
+  --ring-slinky-hue-sweep:   360deg;        // Uiverse original — full color wheel cycle
 }
 
 // ==============================================
