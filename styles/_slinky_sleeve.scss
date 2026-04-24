@@ -1,0 +1,160 @@
+// _slinky_sleeve.scss - Slinky Sleeve animated loader styles
+//
+// Visual primitive: the Slinky Rings oscillation, but each ring's outline
+// is an SVG path that morphs from a plain circle (when above or below the
+// target object) into the horizontal cross-section of the target object
+// (when inside it). The effect is a "tight sock" being pulled over a
+// solid shape centred at the stage centre — the shape is only ever
+// traced, never drawn, by whichever rings happen to be passing through
+// its vertical extent at any moment.
+//
+// v1 target shape: a boxy capital "I" (top bar, vertical stem, bottom
+// bar). All rings share the same target shape; ring index only affects
+// the circle-state radius, not the sleeve-state shape.
+//
+// Architecture note: unlike Slinky Rings (pure-CSS border-div) and Magic
+// Rings (CSS keyframes), Slinky Sleeve is driven by a JS requestAnimation
+// Frame loop that computes each ring's current Y and sets the path's
+// `d` attribute. CSS can't draw non-convex outlines with just border,
+// and CSS can't animate path data without JS glue. See js/backgrounds/
+// slinky-sleeve.js.
+//
+// Shape of origin: Slinky Rings (styles/_slinky_rings.scss), which
+// descends from NlghtM4re's Uiverse.io loader (MIT).
+
+:root {
+  // Motion — same shape of knobs as Slinky Rings
+  --slinky-sleeve-count:        21;
+  --slinky-sleeve-step:         2.5vmin;       // radius growth per index (circle state)
+  --slinky-sleeve-stagger:      0.08s;
+  --slinky-sleeve-duration:     3s;
+  --slinky-sleeve-tilt:         70deg;
+  --slinky-sleeve-lift:         15vmin;
+  --slinky-sleeve-thickness:    3px;
+  --slinky-sleeve-color:        #00ff0d;
+  --slinky-sleeve-glow:         rgb(124, 124, 124);
+  --slinky-sleeve-hue-sweep:    360deg;
+  --slinky-sleeve-perspective:  none;
+
+  // Target object — boxy capital I, centred at stage centre.
+  // All sizes in vmin so they scale with the stage.
+  --slinky-sleeve-i-height:     15vmin;        // total vertical extent of the I
+  --slinky-sleeve-i-bar-width:  10vmin;        // width of top + bottom bars
+  --slinky-sleeve-i-bar-height: 3vmin;         // vertical thickness of each bar
+  --slinky-sleeve-i-stem-width: 3.5vmin;       // width of the vertical stem
+  --slinky-sleeve-i-depth:      6vmin;         // depth (Z extent) — same at every slice
+  --slinky-sleeve-i-fade:       1vmin;         // soft fade zone at top + bottom edges of the I
+}
+
+// ==============================================
+// Stage
+// ==============================================
+.slinky-sleeve-stage {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  overflow: hidden;
+  background: transparent;
+  perspective: var(--slinky-sleeve-perspective);
+  animation: slinky-sleeve-hue var(--slinky-sleeve-duration) linear infinite;
+}
+
+@keyframes slinky-sleeve-hue {
+  from { filter: hue-rotate(0deg); }
+  to   { filter: hue-rotate(var(--slinky-sleeve-hue-sweep)); }
+}
+
+// ==============================================
+// Individual ring
+// ==============================================
+// Each ring is a positioned div containing one SVG. The div sits at
+// stage centre with a fixed bounding box (oversized enough to contain
+// any shape the ring can morph into). The div is 3D-tilted like the
+// Slinky Rings; its path is drawn in stage-plane vmin coords centred at
+// 0,0 and translated vertically to the ring's current Y.
+.slinky-sleeve-stage .ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60vmin;
+  height: 60vmin;
+  margin-top: -30vmin;
+  margin-left: -30vmin;
+  rotate: x var(--slinky-sleeve-tilt);
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.slinky-sleeve-stage .ring svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.slinky-sleeve-stage .ring path {
+  fill: none;
+  stroke: var(--slinky-sleeve-color);
+  stroke-width: var(--slinky-sleeve-thickness);
+  stroke-linejoin: miter;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px var(--slinky-sleeve-glow));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slinky-sleeve-stage { animation: none; }
+  // JS rAF loop honours prefers-reduced-motion by freezing at t=0; see
+  // slinky-sleeve.js.
+}
+
+// Override global "Borders Toggle" — stroke isn't a border, but the
+// filter drop-shadow could be dimmed by any descendant border rules,
+// so we restate the stroke colour here to be safe.
+.borders-hidden .slinky-sleeve-stage .ring path {
+  stroke: var(--slinky-sleeve-color) !important;
+}
+
+// ==============================================
+// Settings page controls panel
+// ==============================================
+.slinky-sleeve-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #aaa;
+  font: 13px/1.4 ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  output {
+    font-variant-numeric: tabular-nums;
+    min-width: 5ch;
+    text-align: right;
+    color: #fff;
+  }
+
+  input[type="range"] {
+    width: 110px;
+    accent-color: #00c8ff;
+  }
+
+  input[type="color"] {
+    width: 28px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    cursor: pointer;
+  }
+}

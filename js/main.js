@@ -103,6 +103,7 @@ import * as BackgroundManager from './backgrounds/background-manager.js';
 import * as WaterBackground from './backgrounds/water-background.js';
 import { initSlinkyRings } from './backgrounds/slinky-rings.js';
 import { initMagicRings } from './backgrounds/magic-rings.js';
+import { initSlinkySleeve } from './backgrounds/slinky-sleeve.js';
 
 // Deployment Index — JSON-driven client-side renderer
 import { renderDeploymentIndex } from './deployment-index-renderer.js';
@@ -1280,6 +1281,10 @@ document.addEventListener('subpageLoaded', (e) => {
           console.log('[main.js] Initializing Magic Rings (development/backgrounds/magic-rings)');
           BackgroundManager.onLeavePool();
           initMagicRings('magic-rings-stage-container', 'magic-rings-controls-container');
+        } else if (subSub === 'slinky-sleeve') {
+          console.log('[main.js] Initializing Slinky Sleeve (development/backgrounds/slinky-sleeve)');
+          BackgroundManager.onLeavePool();
+          initSlinkySleeve('slinky-sleeve-stage-container', 'slinky-sleeve-controls-container');
         } else {
           BackgroundManager.onLeavePool();
         }
