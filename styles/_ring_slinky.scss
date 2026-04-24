@@ -68,6 +68,14 @@
   .ring-slinky-stage .ring { animation: none; }
 }
 
+// Override global "Borders Toggle" — without this, rings lose their colored
+// border because _base.scss has `.borders-hidden *:not(button) { border-color:
+// transparent !important; }`, leaving only the box-shadow glow visible (so the
+// rings appear black with only the white halo).
+.borders-hidden .ring-slinky-stage .ring {
+  border-color: var(--ring-slinky-color) !important;
+}
+
 // ==============================================
 // Settings page controls panel
 // ==============================================
