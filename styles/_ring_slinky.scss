@@ -14,7 +14,7 @@
   --ring-slinky-stagger:     0.08s;         // delay per ring
   --ring-slinky-duration:    3s;
   --ring-slinky-tilt:        70deg;
-  --ring-slinky-lift:        -30vmin;       // travel at peak (Uiverse original was -50vmin in a 100vh body; reduced here to fit our 60vh stage)
+  --ring-slinky-lift:        15vmin;        // half-amplitude: rings oscillate +/- this from center (positive value)
   --ring-slinky-thickness:   3px;           // Uiverse original
   --ring-slinky-color:       #00ff0d;       // Uiverse original (rgb(0, 255, 13))
   --ring-slinky-glow:        rgb(124, 124, 124);  // Uiverse original — subtle gray ambient halo
@@ -27,12 +27,6 @@
 // ==============================================
 .ring-slinky-stage {
   position: relative;
-  display: flex;
-  justify-content: center;
-  // Anchor rings near the bottom of the stage so the upward lift has
-  // headroom and never clips the top edge.
-  align-items: flex-end;
-  padding-bottom: 6vmin;
   width: 100%;
   height: 60vh;
   overflow: hidden;
@@ -43,10 +37,19 @@
 // ==============================================
 // Individual ring
 // ==============================================
+// Rings are concentric — all share the same center (horizontally AND vertically)
+// in the middle of the stage. Negative margins equal to half the ring's size
+// offset each ring so its center sits at 50%/50%. From that shared baseline
+// every ring oscillates the same +/- --ring-slinky-lift, so inner and outer
+// rings reach the same vertical extremes.
 .ring-slinky-stage .ring {
   position: absolute;
+  top: 50%;
+  left: 50%;
   width: calc(var(--i) * var(--ring-slinky-step));
   aspect-ratio: 1;
+  margin-top: calc(var(--i) * var(--ring-slinky-step) / -2);
+  margin-left: calc(var(--i) * var(--ring-slinky-step) / -2);
   border: var(--ring-slinky-thickness) solid var(--ring-slinky-color);
   border-radius: 50%;
   rotate: x var(--ring-slinky-tilt);
@@ -57,9 +60,27 @@
              calc(var(--i) * var(--ring-slinky-stagger)) infinite;
 }
 
+// Symmetric oscillation: rise to -lift, return to center, fall to +lift, return.
+// Hue rotates continuously across the full cycle.
 @keyframes ring-slinky-pulse {
+  0% {
+    translate: 0 0;
+    filter: hue-rotate(0deg);
+  }
+  25% {
+    translate: 0 calc(-1 * var(--ring-slinky-lift));
+    filter: hue-rotate(calc(var(--ring-slinky-hue-sweep) / 4));
+  }
   50% {
+    translate: 0 0;
+    filter: hue-rotate(calc(var(--ring-slinky-hue-sweep) / 2));
+  }
+  75% {
     translate: 0 var(--ring-slinky-lift);
+    filter: hue-rotate(calc(var(--ring-slinky-hue-sweep) * 3 / 4));
+  }
+  100% {
+    translate: 0 0;
     filter: hue-rotate(var(--ring-slinky-hue-sweep));
   }
 }

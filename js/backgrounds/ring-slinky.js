@@ -74,7 +74,7 @@ export function initRingSlinky(stageId, controlsId) {
   // Read current values from :root so the panel reflects whatever the
   // user last set, not just the SCSS defaults.
   const tilt    = readNum('--ring-slinky-tilt',      70);
-  const lift    = Math.abs(readNum('--ring-slinky-lift', -30));
+  const lift    = readNum('--ring-slinky-lift', 15);
   const stagger = Math.round(readNum('--ring-slinky-stagger', 0.08) * 1000);
   const hue     = readNum('--ring-slinky-hue-sweep', 360);
   const color   = (rootComputed.getPropertyValue('--ring-slinky-color') || '#00ff0d').trim();
@@ -111,7 +111,7 @@ export function initRingSlinky(stageId, controlsId) {
   controls.querySelector('[data-knob="lift"]').addEventListener('input', (e) => {
     const v = +e.target.value;
     out('lift').textContent = v + 'vmin';
-    rootStyle.setProperty('--ring-slinky-lift', '-' + v + 'vmin');
+    rootStyle.setProperty('--ring-slinky-lift', v + 'vmin');
   });
   controls.querySelector('[data-knob="stagger"]').addEventListener('input', (e) => {
     const v = +e.target.value;
