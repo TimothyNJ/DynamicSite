@@ -17,9 +17,8 @@
   --ring-slinky-lift:        -50vmin;     // how high rings rise at peak
   --ring-slinky-thickness:   0.3vmin;
   --ring-slinky-color:       #00c8ff;
-  --ring-slinky-glow:        rgb(124, 124, 124);
+  --ring-slinky-glow:        var(--ring-slinky-color);  // glow follows ring color
   --ring-slinky-hue-sweep:   180deg;      // color rotation at peak
-  --ring-slinky-perspective: 1200px;
 }
 
 // ==============================================
@@ -37,7 +36,6 @@
   height: 60vh;
   overflow: hidden;
   background: #000;
-  perspective: var(--ring-slinky-perspective);
 }
 
 // ==============================================
