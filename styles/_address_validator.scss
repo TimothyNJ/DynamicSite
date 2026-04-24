@@ -1,6 +1,7 @@
 // _address_validator.scss
-// Phase 1 styles for the Address Validations subpage.
-// Minimal — uses existing CSS variables for theme awareness.
+// Phase 2 styles for the Address Validations subpage.
+// Uses existing CSS variables for theme awareness. Phase 2 adds
+// live invalid-field styling and the error-message slot.
 
 .address-validator {
   display: flex;
@@ -80,8 +81,6 @@
     border: 1px solid var(--text-color-dark-secondary, #888);
     background: var(--light-slider-start, #f0f0f0);
     color: var(--text-color-dark);
-    opacity: 0.55; // greyed-out for Phase 1 (placeholder visual state)
-    cursor: not-allowed;
     width: 100%;
     box-sizing: border-box;
 
@@ -90,13 +89,36 @@
       color: var(--text-color-light);
     }
 
-    &:disabled { opacity: 0.55; }
+    &:focus {
+      outline: none;
+      border-color: var(--text-color-dark);
+      body[data-theme="dark"] & { border-color: var(--text-color-light); }
+    }
 
-    // Read-only country echo row: not disabled (so the value renders
-    // crisp), but visually distinct from the empty Phase 1 placeholders.
+    // Read-only country echo row — visually distinct but still legible.
     &[readonly] {
       opacity: 0.85;
       cursor: default;
     }
+
+    // Invalid state — red border. Applied by the JS validator on blur and
+    // cleared the moment the user starts typing again.
+    &--invalid,
+    &--invalid:focus {
+      border-color: #c0392b;
+      box-shadow: 0 0 0 1px #c0392b inset;
+    }
+  }
+
+  // Error message slot under a field — empty by default, filled with red
+  // text when the validator paints an error. min-height reserves the space
+  // so layout doesn't jump when an error appears.
+  &__error {
+    display: block;
+    min-height: 1em;
+    font-family: var(--font-family-primary);
+    font-size: 0.85em;
+    color: #c0392b;
+    line-height: 1.2;
   }
 }

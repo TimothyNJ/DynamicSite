@@ -269,8 +269,12 @@ function decideRowVisibility(metadata, override) {
     country:  true,
     region:   hasS || overrideRegions || subdivisions.length > 0,
     district: !!(override && override.districtLabel),
-    city:     hasC || true,   // always show city — virtually every country has one
-    postal:   hasZ || true    // always show postal — countries without postcodes are rare
+    // City always shown — virtually every country has one and libaddressinput
+    // sometimes omits %C in the fmt string even when a city field is used.
+    city:     hasC || true,
+    // Postal shown only when the fmt mentions %Z. Countries without postcodes
+    // (HK, AE, parts of IE historically) should not present an empty field.
+    postal:   hasZ
   };
 }
 
@@ -281,6 +285,80 @@ function decideRowVisibility(metadata, override) {
 function isRequired(metadata, token) {
   const req = (metadata && metadata.require) || '';
   return req.indexOf(token) !== -1;
+}
+
+// ─── Validation ─────────────────────────────────────────────────────────────
+
+/**
+ * Build a validator for the postal-code field from the country's metadata.
+ * libaddressinput's `zip` field is a regex string when format validation is
+ * supported, or absent when the country has no postal code at all (HK, AE,
+ * IE for most purposes). We anchor the regex and make it case-insensitive
+ * so "sw1a 1aa" validates the same as "SW1A 1AA".
+ *
+ * Returns a function (value) → string | null. Null means valid; a string is
+ * the error message to show.
+ */
+function makePostalValidator(metadata, required) {
+  const zipRegex = metadata && typeof metadata.zip === 'string' && metadata.zip.length > 0
+    ? new RegExp(`^${metadata.zip}$`, 'i')
+    : null;
+
+  return (rawValue) => {
+    const value = (rawValue || '').trim();
+    if (!value) {
+      return required ? 'Required' : null;
+    }
+    if (zipRegex && !zipRegex.test(value)) {
+      return 'Invalid format for this country';
+    }
+    return null;
+  };
+}
+
+/**
+ * Generic required-field validator — returns "Required" if empty, null
+ * otherwise. Used for non-postal fields (region, city, district).
+ */
+function makeRequiredValidator(required) {
+  return (rawValue) => {
+    const value = (rawValue || '').trim();
+    if (!value && required) return 'Required';
+    return null;
+  };
+}
+
+/**
+ * Attach validation to a control: run the validator on blur, surface the
+ * result via the paired error span, toggle the invalid class on the input,
+ * and clear the error as soon as the user starts correcting it.
+ */
+function attachValidator(control, validator) {
+  const errEl = document.getElementById(`${control.id}-error`);
+
+  const run = () => {
+    const msg = validator(control.value);
+    if (msg) {
+      control.classList.add('address-validator__field-input--invalid');
+      if (errEl) errEl.textContent = msg;
+    } else {
+      control.classList.remove('address-validator__field-input--invalid');
+      if (errEl) errEl.textContent = '';
+    }
+  };
+
+  control.addEventListener('blur', run);
+  control.addEventListener('input', () => {
+    // Clear invalid styling the moment the user starts typing. Re-runs on
+    // the next blur.
+    control.classList.remove('address-validator__field-input--invalid');
+    if (errEl) errEl.textContent = '';
+  });
+  // On <select> change, validate immediately — selects don't fire blur
+  // reliably after a keyboard pick.
+  if (control.tagName === 'SELECT') {
+    control.addEventListener('change', run);
+  }
 }
 
 /**
@@ -299,10 +377,16 @@ function makeRow({ id, label, required, control }) {
   control.id = id;
   control.name = id;
   control.classList.add('address-validator__field-input');
-  control.disabled = true; // greyed-out for Phase 1 (placeholder visual state)
+
+  // Error message span — hidden until the field blurs in an invalid state.
+  const errEl = document.createElement('span');
+  errEl.className = 'address-validator__error';
+  errEl.id = `${id}-error`;
+  errEl.setAttribute('aria-live', 'polite');
 
   cell.appendChild(lbl);
   cell.appendChild(control);
+  cell.appendChild(errEl);
 
   const row = document.createElement('div');
   row.className = 'address-validator__row';
@@ -375,12 +459,14 @@ function renderFields(container, code, metadata) {
   // 2. Region — dropdown if values exist, text otherwise.
   if (show.region) {
     const control = makeRegionControl(metadata, override);
+    const regionRequired = isRequired(metadata, 'S');
     form.appendChild(makeRow({
       id:       'addr-field-region',
       label:    labels.region,
-      required: isRequired(metadata, 'S'),
+      required: regionRequired,
       control
     }));
+    attachValidator(control, makeRequiredValidator(regionRequired));
   }
 
   // 3. District / county / council — only when the override defines it.
@@ -394,6 +480,7 @@ function renderFields(container, code, metadata) {
       required: false,
       control:  input
     }));
+    // District is always optional — no validator attached.
   }
 
   // 4. City / town / suburb.
@@ -401,12 +488,14 @@ function renderFields(container, code, metadata) {
     const input = document.createElement('input');
     input.type = 'text';
     input.setAttribute('autocomplete', 'off');
+    const cityRequired = isRequired(metadata, 'C');
     form.appendChild(makeRow({
       id:       'addr-field-city',
       label:    labels.city,
-      required: isRequired(metadata, 'C'),
+      required: cityRequired,
       control:  input
     }));
+    attachValidator(input, makeRequiredValidator(cityRequired));
   }
 
   // 5. Postal code / ZIP / postcode.
@@ -414,12 +503,14 @@ function renderFields(container, code, metadata) {
     const input = document.createElement('input');
     input.type = 'text';
     input.setAttribute('autocomplete', 'off');
+    const postalRequired = isRequired(metadata, 'Z');
     form.appendChild(makeRow({
       id:       'addr-field-postal',
       label:    labels.postal,
-      required: isRequired(metadata, 'Z'),
+      required: postalRequired,
       control:  input
     }));
+    attachValidator(input, makePostalValidator(metadata, postalRequired));
   }
 
   container.appendChild(form);
