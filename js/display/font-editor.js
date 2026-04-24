@@ -46,6 +46,13 @@ const UNITS = { min: 'rem', pref: 'vw', max: 'rem' };
 // Live state — current values as the user edits them
 const liveValues = {};
 
+// Snapshot of the values that were actually deployed when the editor first
+// loaded. Used by Reset. We can't re-read CSS variables on demand because
+// every edit writes an inline override onto document.documentElement.style —
+// getComputedStyle() returns the override, not the stylesheet value, so a
+// re-read would just give back the user's latest edits.
+const deployedValues = {};
+
 // Current environment — set during initialisation
 let currentEnv = 'development';
 
@@ -99,11 +106,11 @@ function setMode(mode) {
 function resetFontValues() {
   console.log('[FontEditor] Reset — restoring to deployed values');
 
-  // Re-read what's actually deployed so Reset always reflects reality
-  const deployed = readDeployedValues();
-
+  // Restore from the snapshot taken at init time. Re-reading CSS would give
+  // us the inline overrides applied by edits, not the original deployed
+  // values — see deployedValues comment above.
   for (const t of TIERS) {
-    liveValues[t.tag] = { ...deployed[t.tag] };
+    liveValues[t.tag] = { ...deployedValues[t.tag] };
 
     for (const param of ['min', 'pref', 'max']) {
       const val = liveValues[t.tag][param];
@@ -162,9 +169,11 @@ export function initializeFontEditor(env) {
   currentEnv = env || 'development';
 
   // Seed live state from the actually deployed CSS variables (not hardcoded defaults)
+  // and snapshot them so Reset can restore later (see deployedValues comment).
   const deployed = readDeployedValues();
   for (const t of TIERS) {
     liveValues[t.tag] = { ...deployed[t.tag] };
+    deployedValues[t.tag] = { ...deployed[t.tag] };
   }
 
   // Create text inputs for each tier × param, using deployed values
