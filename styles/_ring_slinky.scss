@@ -56,28 +56,36 @@
   translate: 0 0;
   box-shadow: 0 0 15px var(--ring-slinky-glow),
               inset 0 0 15px var(--ring-slinky-glow);
-  animation: ring-slinky-pulse var(--ring-slinky-duration) ease-in-out
+  animation: ring-slinky-pulse var(--ring-slinky-duration) linear
              calc(var(--i) * var(--ring-slinky-stagger)) infinite;
 }
 
 // Symmetric oscillation: rise to -lift, return to center, fall to +lift, return.
-// Hue rotates continuously across the full cycle.
+// Per-keyframe timing: segments heading to an extreme use ease-out (decelerate
+// to rest), segments leaving an extreme use ease-in (accelerate away). This
+// matches velocities at every keyframe — no pauses at center or anywhere else,
+// giving a smooth sinusoidal motion. The base `linear` in the animation shorthand
+// is just a fallback; the per-keyframe functions override it for each segment.
 @keyframes ring-slinky-pulse {
   0% {
     translate: 0 0;
     filter: hue-rotate(0deg);
+    animation-timing-function: ease-out;
   }
   25% {
     translate: 0 calc(-1 * var(--ring-slinky-lift));
     filter: hue-rotate(calc(var(--ring-slinky-hue-sweep) / 4));
+    animation-timing-function: ease-in;
   }
   50% {
     translate: 0 0;
     filter: hue-rotate(calc(var(--ring-slinky-hue-sweep) / 2));
+    animation-timing-function: ease-out;
   }
   75% {
     translate: 0 var(--ring-slinky-lift);
     filter: hue-rotate(calc(var(--ring-slinky-hue-sweep) * 3 / 4));
+    animation-timing-function: ease-in;
   }
   100% {
     translate: 0 0;
