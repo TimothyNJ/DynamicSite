@@ -2034,7 +2034,9 @@ class text_input_floating_label_component_engine {
       minHeight: options.minHeight || 'auto', // Start at natural single-line height
       maxHeight: options.maxHeight || null, // No height restriction
       storageKey: options.storageKey || null,
-      charCap: options.charCap || 66,
+      // null = no character cap (field flexes to wherever the container
+      // ends). Pass an explicit number to opt back into a width ceiling.
+      charCap: options.charCap || null,
       ...options
     };
 
@@ -2175,11 +2177,16 @@ class text_input_floating_label_component_engine {
     const neededWidth = maxLineWidth + totalPadding + cursorBuffer;
 
     // Calculate character-cap width using first N chars of longest line
-    const charCap = this.options.charCap || 66;
-    const capSample = longestLine.length >= charCap ? longestLine.substring(0, charCap) : longestLine;
-    this.widthState.measureElement.textContent = capSample;
-    const charCapContentWidth = this.widthState.measureElement.offsetWidth;
-    const charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
+    const charCap = this.options.charCap;
+    let charCapWidth;
+    if (charCap) {
+      const capSample = longestLine.length >= charCap ? longestLine.substring(0, charCap) : longestLine;
+      this.widthState.measureElement.textContent = capSample;
+      const charCapContentWidth = this.widthState.measureElement.offsetWidth;
+      charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
+    } else {
+      charCapWidth = Infinity;  // No cap — effectiveCap will just be the container width.
+    }
 
     // Calculate minimum width — floating-label variant: always anchor to
     // placeholder width when one is set so the field doesn't snap narrower
@@ -2227,11 +2234,16 @@ class text_input_floating_label_component_engine {
 
     // Calculate character-cap width: measure first N chars of actual text
     // If text is shorter than cap, cap width equals text width (no cap triggered)
-    const charCap = this.options.charCap || 66;
-    const capSample = text && text.length >= charCap ? text.substring(0, charCap) : (text || '');
-    this.widthState.measureElement.textContent = capSample;
-    const charCapContentWidth = this.widthState.measureElement.offsetWidth;
-    const charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
+    const charCap = this.options.charCap;
+    let charCapWidth;
+    if (charCap) {
+      const capSample = text && text.length >= charCap ? text.substring(0, charCap) : (text || '');
+      this.widthState.measureElement.textContent = capSample;
+      const charCapContentWidth = this.widthState.measureElement.offsetWidth;
+      charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
+    } else {
+      charCapWidth = Infinity;  // No cap — effectiveCap will just be the container width.
+    }
 
     // DEBUG: Log measurement details
     const measuredFontSize = window.getComputedStyle(this.widthState.measureElement).fontSize;
@@ -2534,11 +2546,16 @@ class text_input_floating_label_component_engine {
     const containerWidth = this.wrapper.parentElement ? this.wrapper.parentElement.offsetWidth : window.innerWidth;
 
     // Calculate character-cap width based on first N chars of singleLineText
-    const charCap = this.options.charCap || 66;
-    const capSample = singleLineText.length >= charCap ? singleLineText.substring(0, charCap) : singleLineText;
-    this.widthState.measureElement.textContent = capSample;
-    const charCapContentWidth = this.widthState.measureElement.offsetWidth;
-    const charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
+    const charCap = this.options.charCap;
+    let charCapWidth;
+    if (charCap) {
+      const capSample = singleLineText.length >= charCap ? singleLineText.substring(0, charCap) : singleLineText;
+      this.widthState.measureElement.textContent = capSample;
+      const charCapContentWidth = this.widthState.measureElement.offsetWidth;
+      charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
+    } else {
+      charCapWidth = Infinity;  // No cap — effectiveCap will just be the container width.
+    }
 
     // Calculate minimum width — floating-label variant: always anchor to
     // placeholder width when one is set so the field doesn't snap narrower
