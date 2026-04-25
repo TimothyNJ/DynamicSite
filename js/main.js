@@ -150,6 +150,16 @@ function initializeComponentEnginesDemos() {
     onChange: (value) => console.log('[Demo] Text input:', value)
   });
 
+  // 2a. Text Input Floating Label demo (sibling engine, identical behaviour for now;
+  //     subsequent passes will layer on the notched-outline floating-label treatment)
+  componentFactory.createTextInputFloatingLabel('demo-text-input-floating-label-container', {
+    id: 'demo-text-input-floating-label',
+    label: 'Text Input',
+    placeholder: 'Text Input',
+    expandable: true,
+    onChange: (value) => console.log('[Demo] Text input floating label:', value)
+  });
+
   // 2b. Text Input Length Capped demo (sibling engine, identical behaviour for now)
   componentFactory.createTextInputLengthCapped('demo-text-input-length-capped-container', {
     id: 'demo-text-input-length-capped',

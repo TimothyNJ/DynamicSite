@@ -9,7 +9,7 @@
  */
 
 import { slider_component_engine } from '../engines/slider_component_engine.js';
-import { text_input_component_engine, text_input_component_engine_length_capped } from '../engines/text_input_component_engine.js';
+import { text_input_component_engine, text_input_component_engine_length_capped, text_input_floating_label_component_engine } from '../engines/text_input_component_engine.js';
 import { button_component_engine } from '../engines/button_component_engine.js';
 import { multi_select_component_engine } from '../engines/multi_select_component_engine.js';
 import { file_upload_input_component_engine } from '../engines/file_upload_input_component_engine.js';
@@ -339,6 +339,55 @@ class ComponentFactory {
       }
     } catch (error) {
       console.error('[ComponentFactory] Error creating text input:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create a floating-label text input using text_input_floating_label_component_engine
+   *
+   * Sibling of createTextInput. First step: behaviour is identical — the
+   * underlying engine is a verbatim copy of text_input_component_engine.
+   * Later iterations will diverge to apply the floating-label (Material-style
+   * notched outline) treatment so the field name floats from inside the box
+   * up onto the border line on focus / when the input has a value.
+   *
+   * @param {string} containerId - Container element ID
+   * @param {Object} options - Input configuration options
+   * @param {Function} changeHandler - Change callback function
+   * @returns {Object} Text input engine instance
+   */
+  createTextInputFloatingLabel(containerId, options = {}, changeHandler = null) {
+    console.log(`[ComponentFactory] Creating floating-label text input in container: ${containerId}`);
+
+    if (!text_input_floating_label_component_engine) {
+      console.error('[ComponentFactory] ERROR: text_input_floating_label_component_engine not available');
+      return null;
+    }
+
+    try {
+      // Extract onChange from options for backward compatibility
+      const handler = changeHandler || options.onChange || null;
+
+      // Create clean options without onChange to maintain separation of concerns
+      const cleanOptions = { ...options };
+      delete cleanOptions.onChange;
+
+      // Pass handler as second parameter as expected by the engine
+      const textInputEngine = new text_input_floating_label_component_engine(cleanOptions, handler);
+      const element = textInputEngine.render(containerId);
+
+      if (element) {
+        const key = options.id || containerId;
+        this.textInputInstances.set(key, textInputEngine);
+        console.log(`[ComponentFactory] Floating-label text input created successfully: ${key}`);
+        return textInputEngine;
+      } else {
+        console.error(`[ComponentFactory] Failed to render floating-label text input in: ${containerId}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('[ComponentFactory] Error creating floating-label text input:', error);
       return null;
     }
   }
