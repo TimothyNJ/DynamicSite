@@ -2102,7 +2102,7 @@ class text_input_floating_label_component_engine {
     if (!containerWidth) return false;
 
     // Handle empty text case - use placeholder for sizing
-    const textToSize = text || this.element.placeholder || '';
+    const textToSize = text || this.options.placeholder || '';
 
     // Check if text is empty
     const isEmpty = !textToSize.trim();
@@ -2185,10 +2185,10 @@ class text_input_floating_label_component_engine {
     // placeholder width when one is set so the field doesn't snap narrower
     // the moment the user types their first character. Still allows growth
     // beyond the placeholder width as content gets longer.
-    this.widthState.measureElement.textContent = this.element.placeholder || '';
+    this.widthState.measureElement.textContent = this.options.placeholder || '';
     const placeholderWidth = this.widthState.measureElement.offsetWidth;
     let minWidth;
-    if (this.element.placeholder) {
+    if (this.options.placeholder) {
       minWidth = placeholderWidth + totalPadding + cursorBuffer;
     } else {
       minWidth = 4;  // No placeholder set — fall back to minimal width
@@ -2242,10 +2242,10 @@ class text_input_floating_label_component_engine {
     // placeholder width when one is set so the field doesn't snap narrower
     // the moment the user types their first character. Still allows growth
     // beyond the placeholder width as content gets longer.
-    this.widthState.measureElement.textContent = this.element.placeholder || '';
+    this.widthState.measureElement.textContent = this.options.placeholder || '';
     const placeholderWidth = this.widthState.measureElement.offsetWidth;
     let minWidth;
-    if (this.element.placeholder) {
+    if (this.options.placeholder) {
       minWidth = placeholderWidth + totalPadding + cursorBuffer;
     } else {
       minWidth = 4;  // No placeholder set — fall back to minimal width
@@ -2386,7 +2386,12 @@ class text_input_floating_label_component_engine {
     this.element.id = this.options.id;
     this.element.name = this.options.name;
     this.element.className = 'dynamic-text-input dynamic-text-input--floating-label';
-    this.element.placeholder = this.options.placeholder;
+    // Floating-label engine: never set the HTML placeholder attribute.
+    // The label DOM element fully replaces the placeholder's visual
+    // role, so leaving the attribute empty avoids the duplicate-text
+    // collision (label centered + placeholder left-aligned at once).
+    // Width measurement code reads `this.options.placeholder` directly.
+    this.options.placeholder = '';
     this.element.value = this.options.value;
 
     if (this.options.required) {
@@ -2493,7 +2498,7 @@ class text_input_floating_label_component_engine {
 
     // Determine what to measure
     const hasValue = this.element.value && this.element.value.trim().length > 0;
-    const textToMeasure = hasValue ? this.element.value : this.element.placeholder;
+    const textToMeasure = hasValue ? this.element.value : this.options.placeholder;
 
     // For single line inputs, prevent wrapping by measuring as one line
     // This ensures we expand BEFORE text wraps to line 2
@@ -2504,7 +2509,7 @@ class text_input_floating_label_component_engine {
     const textWidth = this.widthState.measureElement.offsetWidth;
 
     // Always measure placeholder for minimum width
-    this.widthState.measureElement.textContent = this.element.placeholder;
+    this.widthState.measureElement.textContent = this.options.placeholder;
     const placeholderWidth = this.widthState.measureElement.offsetWidth;
 
     // Get actual padding from computed styles
@@ -2538,7 +2543,7 @@ class text_input_floating_label_component_engine {
     // the moment the user types their first character. Still allows growth
     // beyond the placeholder width as content gets longer.
     let minWidth;
-    if (this.element.placeholder) {
+    if (this.options.placeholder) {
       minWidth = placeholderWidth + totalPadding + cursorBuffer;
     } else {
       minWidth = 4;  // No placeholder set — fall back to minimal width
