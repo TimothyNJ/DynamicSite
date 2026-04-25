@@ -2181,16 +2181,17 @@ class text_input_floating_label_component_engine {
     const charCapContentWidth = this.widthState.measureElement.offsetWidth;
     const charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
 
-    // Calculate minimum width - only use placeholder width when empty
+    // Calculate minimum width — floating-label variant: always anchor to
+    // placeholder width when one is set so the field doesn't snap narrower
+    // the moment the user types their first character. Still allows growth
+    // beyond the placeholder width as content gets longer.
+    this.widthState.measureElement.textContent = this.element.placeholder || '';
+    const placeholderWidth = this.widthState.measureElement.offsetWidth;
     let minWidth;
-    if (!text || text.trim().length === 0) {
-      // Empty input - use placeholder width as minimum
-      this.widthState.measureElement.textContent = this.element.placeholder || '';
-      const placeholderWidth = this.widthState.measureElement.offsetWidth;
+    if (this.element.placeholder) {
       minWidth = placeholderWidth + totalPadding + cursorBuffer;
     } else {
-      // Has content - allow it to shrink to content size
-      minWidth = 4;  // Minimal width
+      minWidth = 4;  // No placeholder set — fall back to minimal width
     }
 
     // Get container constraints - cap at both container width and char cap
@@ -2237,16 +2238,17 @@ class text_input_floating_label_component_engine {
     const actualFontSize = window.getComputedStyle(this.element).fontSize;
     console.log(`[DEBUG handleUnwrappedMode] Text: "${text.substring(0, 20)}...", Measured font: ${measuredFontSize}, Actual font: ${actualFontSize}, Text width: ${straightLineWidth}px, CharCap(${charCap}) width: ${charCapWidth}px`);
 
-    // Calculate minimum width - only use placeholder width when empty
+    // Calculate minimum width — floating-label variant: always anchor to
+    // placeholder width when one is set so the field doesn't snap narrower
+    // the moment the user types their first character. Still allows growth
+    // beyond the placeholder width as content gets longer.
+    this.widthState.measureElement.textContent = this.element.placeholder || '';
+    const placeholderWidth = this.widthState.measureElement.offsetWidth;
     let minWidth;
-    if (!text || text.trim().length === 0) {
-      // Empty input - use placeholder width as minimum
-      this.widthState.measureElement.textContent = this.element.placeholder || '';
-      const placeholderWidth = this.widthState.measureElement.offsetWidth;
+    if (this.element.placeholder) {
       minWidth = placeholderWidth + totalPadding + cursorBuffer;
     } else {
-      // Has content - allow it to shrink to content size
-      minWidth = 4;  // Minimal width
+      minWidth = 4;  // No placeholder set — fall back to minimal width
     }
 
     // Effective cap is the smaller of container width and char-cap width
@@ -2505,13 +2507,15 @@ class text_input_floating_label_component_engine {
     const charCapContentWidth = this.widthState.measureElement.offsetWidth;
     const charCapWidth = charCapContentWidth + totalPadding + cursorBuffer;
 
-    // Calculate minimum width based on content
-    // Only use placeholder width as minimum when input is empty (placeholder visible)
+    // Calculate minimum width — floating-label variant: always anchor to
+    // placeholder width when one is set so the field doesn't snap narrower
+    // the moment the user types their first character. Still allows growth
+    // beyond the placeholder width as content gets longer.
     let minWidth;
-    if (!hasValue && this.element.placeholder) {
+    if (this.element.placeholder) {
       minWidth = placeholderWidth + totalPadding + cursorBuffer;
     } else {
-      minWidth = 4;  // Minimal width for empty input without placeholder
+      minWidth = 4;  // No placeholder set — fall back to minimal width
     }
 
     // Effective cap is the smaller of container width and char-cap width
