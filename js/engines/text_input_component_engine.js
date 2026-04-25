@@ -2083,13 +2083,25 @@ class text_input_floating_label_component_engine {
   }
 
   /**
-   * Refresh measurement element styles from input element
-   * With CSS approach, this is no longer needed as CSS variables handle it
+   * Defensive font-rendering sync: read the input element's COMPUTED
+   * font properties and apply them to the measurement element with
+   * !important so the engine's width math stays accurate regardless
+   * of any CSS surprise (source order, specificity battles, future
+   * rule additions). The JS becomes the source of truth — the ruler
+   * measures characters at whatever the input is actually rendering
+   * at, computed-style level. Called before every width calculation.
    */
   refreshMeasurementStyles() {
-    // CSS variables now handle all style synchronization
-    // No JavaScript copying needed
-    console.log('[refreshMeasurementStyles] CSS variables handle style sync');
+    if (!this.element || !this.widthState.measureElement) return;
+    const cs = window.getComputedStyle(this.element);
+    const ms = this.widthState.measureElement.style;
+    ms.setProperty('font-size',      cs.fontSize,       'important');
+    ms.setProperty('font-family',    cs.fontFamily,     'important');
+    ms.setProperty('font-weight',    cs.fontWeight,     'important');
+    ms.setProperty('font-style',     cs.fontStyle,      'important');
+    ms.setProperty('letter-spacing', cs.letterSpacing,  'important');
+    ms.setProperty('text-transform', cs.textTransform,  'important');
+    ms.setProperty('line-height',    cs.lineHeight,     'important');
   }
 
   /**
