@@ -69,15 +69,6 @@
 // (departure from the centered default for plain inputs) so the floating
 // label can settle at top-center while the user's input flows from the
 // left edge — the deliberate asymmetric design signature.
-// Wrapper-level override for the floating-label variant: bump
-// --component-spacing from the global 5px to 10px. The wrapper's own
-// margin-bottom uses var(--component-spacing), so this gives each
-// floating-label input twice the breathing room beneath it. Variable
-// override scoped to the modifier so it doesn't leak elsewhere.
-.dynamic-input-wrapper--floating-label {
-  --component-spacing: 10px;
-}
-
 .dynamic-text-input--floating-label {
   font-size: var(--h4-font-size);
   text-align: left;

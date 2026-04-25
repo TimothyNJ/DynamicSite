@@ -2313,7 +2313,7 @@ class text_input_floating_label_component_engine {
 
     // Create wrapper div with data-lines attribute
     this.wrapper = document.createElement('div');
-    this.wrapper.className = 'dynamic-input-wrapper dynamic-input-wrapper--floating-label';
+    this.wrapper.className = 'dynamic-input-wrapper';
     this.wrapper.setAttribute('data-lines', '1');
 
     // Create border container
