@@ -69,6 +69,15 @@
 // (departure from the centered default for plain inputs) so the floating
 // label can settle at top-center while the user's input flows from the
 // left edge — the deliberate asymmetric design signature.
+// Wrapper modifier for the floating-label engine: apply the global
+// --component-spacing on BOTH top and bottom (left/right unchanged at 0).
+// The plain inputs only get spacing below; the floating-label variant
+// gets matching breathing room above so the floated label has clear
+// space to sit without crowding whatever is above it on the page.
+.dynamic-input-wrapper--floating-label {
+  margin: var(--component-spacing) 0;
+}
+
 .dynamic-text-input--floating-label {
   font-size: var(--h4-font-size);
   text-align: left;
