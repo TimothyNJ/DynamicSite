@@ -87,10 +87,6 @@
   padding: 4px;
 }
 
-.text-measurement-helper--floating-label {
-  font-size: var(--h4-font-size) !important;
-}
-
 // Floating label DOM element (a sibling of .text-input-inner inside the
 // wrapper). Absolutely positioned. At rest, sits centered both horizontally
 // and vertically inside the field. When the input is focused or has a value,
@@ -197,6 +193,16 @@
   outline: 0 !important;
   background: none !important;
   color: var(--text-color-dark) !important;
+}
+
+// Floating-label variant of the measurement helper. Must be defined AFTER
+// the base .text-measurement-helper because both use !important with equal
+// (single-class) specificity — source order decides which wins. With this
+// rule below the base, the engine's measurement element renders at the
+// same h4 font size as the input itself, so width math stays accurate
+// and the textarea no longer wraps before the wrapper hits its container.
+.text-measurement-helper--floating-label {
+  font-size: var(--h4-font-size) !important;
 }
 
 
