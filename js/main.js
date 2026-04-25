@@ -160,6 +160,17 @@ function initializeComponentEnginesDemos() {
     onChange: (value) => console.log('[Demo] Text input floating label:', value)
   });
 
+  // 2c. List Floating Label demo (verbatim sibling of the floating-label engine for now;
+  //     subsequent passes will convert from text typing to list selection with
+  //     the field width sized to the longest list item)
+  componentFactory.createListFloatingLabel('demo-list-floating-label-container', {
+    id: 'demo-list-floating-label',
+    label: 'List',
+    placeholder: 'List',
+    expandable: true,
+    onChange: (value) => console.log('[Demo] List floating label:', value)
+  });
+
   // 2b. Text Input Length Capped demo (sibling engine, identical behaviour for now)
   componentFactory.createTextInputLengthCapped('demo-text-input-length-capped-container', {
     id: 'demo-text-input-length-capped',

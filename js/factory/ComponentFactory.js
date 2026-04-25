@@ -9,7 +9,7 @@
  */
 
 import { slider_component_engine } from '../engines/slider_component_engine.js';
-import { text_input_component_engine, text_input_component_engine_length_capped, text_input_floating_label_component_engine } from '../engines/text_input_component_engine.js';
+import { text_input_component_engine, text_input_component_engine_length_capped, text_input_floating_label_component_engine, list_floating_label_component_engine } from '../engines/text_input_component_engine.js';
 import { button_component_engine } from '../engines/button_component_engine.js';
 import { multi_select_component_engine } from '../engines/multi_select_component_engine.js';
 import { file_upload_input_component_engine } from '../engines/file_upload_input_component_engine.js';
@@ -388,6 +388,54 @@ class ComponentFactory {
       }
     } catch (error) {
       console.error('[ComponentFactory] Error creating floating-label text input:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create a list-floating-label component using list_floating_label_component_engine
+   *
+   * Sibling of createTextInputFloatingLabel. First step: behaviour is identical —
+   * the underlying engine is a verbatim copy of text_input_floating_label_component_engine.
+   * Later iterations will diverge to render a list selection UI instead of
+   * a text input, with the field width sized to the longest list item.
+   *
+   * @param {string} containerId - Container element ID
+   * @param {Object} options - Input configuration options
+   * @param {Function} changeHandler - Change callback function
+   * @returns {Object} List engine instance
+   */
+  createListFloatingLabel(containerId, options = {}, changeHandler = null) {
+    console.log(`[ComponentFactory] Creating list-floating-label component in container: ${containerId}`);
+
+    if (!list_floating_label_component_engine) {
+      console.error('[ComponentFactory] ERROR: list_floating_label_component_engine not available');
+      return null;
+    }
+
+    try {
+      // Extract onChange from options for backward compatibility
+      const handler = changeHandler || options.onChange || null;
+
+      // Create clean options without onChange to maintain separation of concerns
+      const cleanOptions = { ...options };
+      delete cleanOptions.onChange;
+
+      // Pass handler as second parameter as expected by the engine
+      const listEngine = new list_floating_label_component_engine(cleanOptions, handler);
+      const element = listEngine.render(containerId);
+
+      if (element) {
+        const key = options.id || containerId;
+        this.textInputInstances.set(key, listEngine);
+        console.log(`[ComponentFactory] List-floating-label component created successfully: ${key}`);
+        return listEngine;
+      } else {
+        console.error(`[ComponentFactory] Failed to render list-floating-label component in: ${containerId}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('[ComponentFactory] Error creating list-floating-label component:', error);
       return null;
     }
   }
