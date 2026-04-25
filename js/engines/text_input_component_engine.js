@@ -2386,12 +2386,14 @@ class text_input_floating_label_component_engine {
     this.element.id = this.options.id;
     this.element.name = this.options.name;
     this.element.className = 'dynamic-text-input dynamic-text-input--floating-label';
-    // Floating-label engine: never set the HTML placeholder attribute.
-    // The label DOM element fully replaces the placeholder's visual
-    // role, so leaving the attribute empty avoids the duplicate-text
-    // collision (label centered + placeholder left-aligned at once).
-    // Width measurement code reads `this.options.placeholder` directly.
-    this.options.placeholder = '';
+    // Floating-label engine: never set the HTML placeholder attribute on
+    // the input element. The label DOM element fully replaces the
+    // placeholder's visual role, so leaving the attribute empty avoids
+    // the duplicate-text collision (label centered + native placeholder
+    // left-aligned at once). Width measurement code reads
+    // `this.options.placeholder` directly so the placeholder-pinned
+    // minimum width feature still anchors against the original string.
+    this.element.placeholder = '';
     this.element.value = this.options.value;
 
     if (this.options.required) {
