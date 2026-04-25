@@ -115,7 +115,7 @@
   left: 50%;
   top: 50%;
   margin: 0;
-  padding: 0 0.4rem;
+  padding: 0;
   transform: translate(-50%, -50%);
   transform-origin: center center;
   pointer-events: none;
@@ -126,12 +126,15 @@
   line-height: 1.2;
   color: var(--text-color-dark-secondary);
   background: transparent;
-  z-index: 1;
+  // z-index: 2 places the label above the animated colored borders that
+  // live on .input-border-segment elements (z-index: auto). The label is
+  // pure text on a transparent background, so the colored borders sweep
+  // through whatever pixels the letters don't cover.
+  z-index: 2;
   transition:
     top 0.2s ease-out,
     transform 0.2s ease-out,
-    color 0.2s ease-out,
-    background-color 0.2s ease-out;
+    color 0.2s ease-out;
   body[data-theme="dark"] & {
     color: var(--text-color-dark-secondary);
   }
@@ -141,10 +144,8 @@
   top: 0;
   transform: translate(-50%, -50%) scale(0.78);
   color: var(--text-color-dark);
-  background: linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%) fixed;
   body[data-theme="dark"] & {
     color: var(--text-color-light);
-    background: linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%) fixed;
   }
 }
 
