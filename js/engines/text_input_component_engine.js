@@ -2383,7 +2383,7 @@ class text_input_floating_label_component_engine {
     // Common properties
     this.element.id = this.options.id;
     this.element.name = this.options.name;
-    this.element.className = 'dynamic-text-input';
+    this.element.className = 'dynamic-text-input dynamic-text-input--floating-label';
     this.element.placeholder = this.options.placeholder;
     this.element.value = this.options.value;
 
@@ -2445,7 +2445,7 @@ class text_input_floating_label_component_engine {
    */
   createMeasurementElement() {
     this.widthState.measureElement = document.createElement('div');
-    this.widthState.measureElement.className = 'text-measurement-helper';
+    this.widthState.measureElement.className = 'text-measurement-helper text-measurement-helper--floating-label';
     // All styles now handled by CSS class - no inline styles needed
     document.body.appendChild(this.widthState.measureElement);
   }
