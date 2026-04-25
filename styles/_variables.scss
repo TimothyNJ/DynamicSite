@@ -142,6 +142,14 @@ $z-index-tooltip: 1070;
   --text-color-light: #ffffff;
   --text-color-dark-secondary: rgba(255, 255, 255, 0.9);
   --text-color-light-secondary: rgba(0, 0, 0, 0.9);
+
+  // Single source of truth for placeholder / dimmed label text.
+  // Standard text color (white) baked at 0.7 alpha — applied with
+  // `color: var(--text-color-placeholder)` and no separate opacity rule.
+  // Used by .dynamic-text-input::placeholder (consumed by all three text
+  // engines) and the floating label (rest AND floated state — never
+  // brightens to full white).
+  --text-color-placeholder: rgba(255, 255, 255, 0.7);
   
   // Theme Colors - Page Gradients
   --light-page-start: #{$light-page-start};

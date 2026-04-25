@@ -52,10 +52,9 @@
     outline: none;
   }
 
-  // Placeholder styling with CSS variables
+  // Placeholder styling — single source of truth via --text-color-placeholder.
   &::placeholder {
-    color: var(--text-color-dark-secondary);
-    opacity: 0.7;
+    color: var(--text-color-placeholder);
   }
 }
 
@@ -125,7 +124,9 @@
   font-size: var(--h4-font-size);
   font-weight: var(--component-font-weight);
   line-height: 1.2;
-  color: var(--text-color-dark-secondary);
+  // Single source of truth — same dim color as native placeholders.
+  // Stays dim in BOTH rest and floated states (no brighten on focus).
+  color: var(--text-color-placeholder);
   background: transparent;
   // z-index: 2 places the label above the animated colored borders that
   // live on .input-border-segment elements (z-index: auto). The label is
@@ -134,20 +135,15 @@
   z-index: 2;
   transition:
     top 0.2s ease-out,
-    transform 0.2s ease-out,
-    color 0.2s ease-out;
-  body[data-theme="dark"] & {
-    color: var(--text-color-dark-secondary);
-  }
+    transform 0.2s ease-out;
 }
 
 .dynamic-input-label--floating-label--floated {
   top: 0;
   transform: translate(-50%, -50%) scale(0.78);
-  color: var(--text-color-dark);
-  body[data-theme="dark"] & {
-    color: var(--text-color-light);
-  }
+  // Color intentionally not overridden here — label stays at the same
+  // --text-color-placeholder shade in the floated state, matching the
+  // dim look of native placeholders even when the field is active.
 }
 
 // ==============================================
