@@ -84,7 +84,10 @@
 }
 
 .text-input-inner--floating-label {
-  padding: 4px;
+  // Asymmetric: top 6px gives the floating label a touch more breathing
+  // room above the cursor at rest; horizontal and bottom stay at 4px so
+  // the field's overall footprint barely changes.
+  padding: 6px 4px 4px;
 }
 
 // Floating label DOM element (a sibling of .text-input-inner inside the
