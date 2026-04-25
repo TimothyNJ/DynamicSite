@@ -75,7 +75,10 @@
 // gets matching breathing room above so the floated label has clear
 // space to sit without crowding whatever is above it on the page.
 .dynamic-input-wrapper--floating-label {
-  margin: var(--component-spacing) 0;
+  // 8px top gives the floating label clear breathing room from whatever
+  // sits above the field. Bottom stays at the global --component-spacing
+  // (5px) for visual rhythm with adjacent components. Left/right zero.
+  margin: 8px 0 var(--component-spacing);
 }
 
 .dynamic-text-input--floating-label {
