@@ -86,7 +86,10 @@
 }
 
 .text-input-inner--floating-label {
-  padding: 4px;
+  // 4px vertical (up from the global 2px) gives the floating label more
+  // breathing room. Horizontal stays on the global --input-safe-padding
+  // (2.5px) so the field's overall footprint matches plain inputs.
+  padding: 4px var(--input-safe-padding);
 }
 
 // Floating label DOM element (a sibling of .text-input-inner inside the
