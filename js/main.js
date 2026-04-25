@@ -160,14 +160,40 @@ function initializeComponentEnginesDemos() {
     onChange: (value) => console.log('[Demo] Text input floating label:', value)
   });
 
-  // 2c. List Floating Label demo (verbatim sibling of the floating-label engine for now;
-  //     subsequent passes will convert from text typing to list selection with
-  //     the field width sized to the longest list item)
+  // 2c. List Floating Label demo — phase 2: list selection with field width
+  //     sized to the longest item (capped at the parent container width).
+  //     Country names span Chad (4 chars) → Saint Vincent and the Grenadines
+  //     (32 chars), so the longest-item sizing is visibly meaningful.
+  const listDemoCountries = [
+    'Argentina',
+    'Australia',
+    'Brazil',
+    'Canada',
+    'Chad',
+    'China',
+    'Czech Republic',
+    'Democratic Republic of the Congo',
+    'France',
+    'Germany',
+    'India',
+    'Italy',
+    'Japan',
+    'Kazakhstan',
+    'Mexico',
+    'Netherlands',
+    'New Zealand',
+    'Saint Vincent and the Grenadines',
+    'South Africa',
+    'Switzerland',
+    'United Arab Emirates',
+    'United Kingdom',
+    'United States'
+  ];
   componentFactory.createListFloatingLabel('demo-list-floating-label-container', {
     id: 'demo-list-floating-label',
-    label: 'List',
-    placeholder: 'List',
-    expandable: true,
+    label: 'Country',
+    placeholder: 'Country',
+    items: listDemoCountries,
     onChange: (value) => console.log('[Demo] List floating label:', value)
   });
 

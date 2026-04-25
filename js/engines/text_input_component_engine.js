@@ -3417,9 +3417,10 @@ class list_floating_label_component_engine {
   }
 
   /**
-   * Render the text input into the specified container
-   * @param {string|HTMLElement} container - Container ID or element
-   * @returns {HTMLElement} The created input element
+   * Render the list selector into the specified container.
+   * Creates a focusable display <div> (no <input>), a floating label, and
+   * a dropdown panel populated from this.options.items. Field width is
+   * sized to the widest item via the hidden measurement helper.
    */
   render(container) {
     // Get container element
@@ -3432,12 +3433,12 @@ class list_floating_label_component_engine {
       return null;
     }
 
-    // Create wrapper div with data-lines attribute
+    // Wrapper — same chrome as text_input_floating_label_component_engine.
     this.wrapper = document.createElement('div');
     this.wrapper.className = 'dynamic-input-wrapper dynamic-input-wrapper--floating-label';
     this.wrapper.setAttribute('data-lines', '1');
 
-    // Create border container
+    // Animated border container — slides on hover/focus, unchanged.
     const borderContainer = document.createElement('div');
     borderContainer.className = 'input-border-container';
     borderContainer.style.cssText = `
@@ -3451,7 +3452,6 @@ class list_floating_label_component_engine {
       border-radius: inherit;
     `;
 
-    // Create top and bottom borders
     this.borderTop = document.createElement('div');
     this.borderTop.className = 'input-border-segment input-border-top';
     this.borderTop.style.cssText = `
@@ -3490,108 +3490,75 @@ class list_floating_label_component_engine {
     borderContainer.appendChild(this.borderBottom);
     this.wrapper.appendChild(borderContainer);
 
-    // Create inner container for text
+    // Inner container — same as parent class.
     this.innerContainer = document.createElement('div');
     this.innerContainer.className = 'text-input-inner text-input-inner--floating-label';
 
-    // Create the appropriate element based on options
-    if (this.options.multiline || this.options.expandable) {
-      this.element = document.createElement('textarea');
-      this.element.rows = 1; // Single line to start
-    } else {
-      this.element = document.createElement('input');
-      this.element.type = this.options.type;
-    }
-
-    // Common properties
+    // The "display" element. NOT an <input> — a focusable <div> showing
+    // the currently-selected item's text. tabindex=0 lets it receive
+    // keyboard focus so the existing focus/blur border animations still
+    // apply unchanged. role=combobox + aria-expanded keep it accessible.
+    // A custom `value` property is set on the div so the parent class's
+    // updateLabelFloatedState() (which checks this.element.value) keeps
+    // working without modification.
+    this.element = document.createElement('div');
     this.element.id = this.options.id;
-    this.element.name = this.options.name;
-    this.element.className = 'dynamic-text-input dynamic-text-input--floating-label';
-    // Floating-label engine: never set the HTML placeholder attribute on
-    // the input element. The label DOM element fully replaces the
-    // placeholder's visual role, so leaving the attribute empty avoids
-    // the duplicate-text collision (label centered + native placeholder
-    // left-aligned at once). Width measurement code reads
-    // `this.options.placeholder` directly so the placeholder-pinned
-    // minimum width feature still anchors against the original string.
-    this.element.placeholder = '';
-    this.element.value = this.options.value;
+    this.element.className = 'dynamic-text-input dynamic-text-input--floating-label dynamic-list-display';
+    this.element.setAttribute('role', 'combobox');
+    this.element.setAttribute('aria-expanded', 'false');
+    this.element.setAttribute('tabindex', '0');
+    this.element.textContent = this.options.value || '';
+    this.element.value = this.options.value || '';
 
-    if (this.options.required) {
-      this.element.required = true;
-    }
-
-    if (this.options.maxLength && !this.options.expandable) {
-      this.element.maxLength = this.options.maxLength;
-    }
-
-    // Apply stored value if storage key provided
-    if (this.options.storageKey) {
-      this.applyStoredValue();
-    }
-
-    // Add event listeners
-    this.attachEventListeners();
-
-    // Build DOM structure
     this.innerContainer.appendChild(this.element);
     this.wrapper.appendChild(this.innerContainer);
 
-    // Floating label: positioned absolutely within the wrapper. At rest
-    // the label sits horizontally and vertically centered inside the
-    // field; when the engine adds the --floated modifier (on focus or
-    // when the input has a value) the label eases up to sit centered on
-    // the top border line, scaled down via transform.
+    // Floating label — identical to parent class.
     this.labelElement = document.createElement('label');
     this.labelElement.className = 'dynamic-input-label dynamic-input-label--floating-label';
     this.labelElement.htmlFor = this.options.id;
     this.labelElement.textContent = this.options.label || this.options.placeholder || '';
     this.wrapper.appendChild(this.labelElement);
 
-    // Initial floated state if the input was created with a value.
     if (this.options.value) {
       this.labelElement.classList.add('dynamic-input-label--floating-label--floated');
     }
 
-    // Wire focus / blur / input listeners that toggle the floated state.
-    // Separate from attachEventListeners() — that method already binds
-    // input/focus/blur for size and animation handling, and adding the
-    // floated-state toggle as its own pass keeps the two concerns clean.
-    const updateFloated = () => this.updateLabelFloatedState();
-    this.element.addEventListener('focus', updateFloated);
-    this.element.addEventListener('blur', updateFloated);
-    this.element.addEventListener('input', updateFloated);
+    // Dropdown panel: hidden by default, opens on click. One row per item.
+    this.dropdownElement = document.createElement('div');
+    this.dropdownElement.className = 'dynamic-list-dropdown';
+    this.dropdownElement.setAttribute('role', 'listbox');
+    this.populateDropdown(this.options.items || []);
+    this.wrapper.appendChild(this.dropdownElement);
 
     containerEl.appendChild(this.wrapper);
 
-    // Create width measurement element
+    // Reuse the parent class's measurement helper — its CSS modifier
+    // (.text-measurement-helper--floating-label) already sets h4 font, so
+    // it measures items at the same size the display renders them.
     this.createMeasurementElement();
 
-    // Setup ResizeObserver
-    this.setupResizeObserver();
+    // List-specific event wiring (click toggles dropdown, item click selects,
+    // outside-click closes, focus/blur drives the floating label state).
+    this.setupListEventListeners();
 
-    // Initial adjustments
-    if (this.options.expandable) {
-      setTimeout(() => {
-        // Use approximation if there's initial value, otherwise just set initial size
-        if (this.element.value) {
-          this.handleSizeApproximation(this.element.value);
-        } else {
-          this.adjustHeight();
-          this.updateWidth();
-        }
-      }, 0);
-    }
+    // Initial width: size to widest item, capped at container width.
+    this.measureLongestItemWidth();
 
-    // Setup animation systems
+    // Animation systems — unchanged from parent class. The element is a
+    // focusable div with tabindex=0, so focus/blur fire correctly and the
+    // border slide animations continue to work.
     this.setupMouseTracking();
     this.setupHoverAnimation();
     this.startContinuousMonitoring();
 
-    // Setup viewport resize handling
+    // Viewport resize → re-measure (h4 font scales with viewport via
+    // clamp, so the longest item's pixel width changes when the window
+    // resizes). handleViewportResize is overridden below to call
+    // measureLongestItemWidth instead of the parent's text-width math.
     this.setupViewportResizeHandling();
 
-    console.log(`[list_floating_label_component_engine] Rendered input with horizontal expansion:`, this.options.id);
+    console.log(`[list_floating_label_component_engine] Rendered list with ${(this.options.items || []).length} items:`, this.options.id);
 
     return this.element;
   }
@@ -3727,18 +3694,10 @@ class list_floating_label_component_engine {
     if (this.viewportResizeFrame) {
       cancelAnimationFrame(this.viewportResizeFrame);
     }
-
-    // Schedule update for next frame
+    // Re-measure the longest item — clamp font scales with viewport.
     this.viewportResizeFrame = requestAnimationFrame(() => {
-      console.log('[handleViewportResize] Viewport resized, updating measurements');
-
-      // Refresh measurement styles and recalculate
-      if (this.options.expandable) {
-        this.handleSizeApproximation(this.element.value || '', true);
-      } else {
-        this.updateWidth();
-      }
-
+      console.log('[handleViewportResize] Viewport resized, re-measuring longest item');
+      this.measureLongestItemWidth();
       this.viewportResizeFrame = null;
     });
   }
@@ -3971,9 +3930,168 @@ class list_floating_label_component_engine {
   }
 
   /**
+   * Populate the dropdown panel with one row per item. Each row is
+   * clickable and selects its item on click.
+   */
+  populateDropdown(items) {
+    if (!this.dropdownElement) return;
+    this.dropdownElement.innerHTML = '';
+    items.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = 'dynamic-list-item';
+      row.setAttribute('role', 'option');
+      row.setAttribute('data-value', item);
+      row.setAttribute('data-index', String(idx));
+      row.textContent = item;
+      this.dropdownElement.appendChild(row);
+    });
+  }
+
+  /**
+   * Measure each item's rendered width using the hidden helper element
+   * (which inherits the same h4 font as the display via the CSS
+   * --floating-label modifier), find the max, set the wrapper width.
+   * Capped at the parent container's width so the field shrinks
+   * gracefully when there isn't space for the longest item.
+   */
+  measureLongestItemWidth() {
+    if (!this.element || !this.widthState.measureElement || !this.wrapper) return;
+    this.refreshMeasurementStyles();
+
+    const cs = window.getComputedStyle(this.element);
+    const ics = window.getComputedStyle(this.innerContainer);
+    const padL = parseFloat(cs.paddingLeft) || 0;
+    const padR = parseFloat(cs.paddingRight) || 0;
+    const innerL = parseFloat(ics.paddingLeft) || 0;
+    const innerR = parseFloat(ics.paddingRight) || 0;
+    const totalPadding = padL + padR + innerL + innerR;
+    const breath = 8;  // small breathing room beyond the longest item
+
+    const items = this.options.items || [];
+    let maxItemWidth = 0;
+    items.forEach(item => {
+      this.widthState.measureElement.textContent = item;
+      const w = this.widthState.measureElement.offsetWidth;
+      if (w > maxItemWidth) maxItemWidth = w;
+    });
+
+    // Floating label at rest sits centered inside the field at full h4
+    // size; field must be at least as wide as the label or it crops.
+    if (this.labelElement && this.labelElement.textContent) {
+      this.widthState.measureElement.textContent = this.labelElement.textContent;
+      const labelW = this.widthState.measureElement.offsetWidth;
+      if (labelW > maxItemWidth) maxItemWidth = labelW;
+    }
+
+    const desiredWidth = maxItemWidth + totalPadding + breath;
+    const containerWidth = this.wrapper.parentElement
+      ? this.wrapper.parentElement.offsetWidth
+      : Infinity;
+    const finalWidth = Math.min(desiredWidth, containerWidth);
+
+    this.wrapper.style.width = `${finalWidth}px`;
+    this.wrapper.style.flex = '0 1 auto';
+    this.wrapper.style.maxWidth = '100%';
+
+    console.log(`[measureLongestItemWidth] longest: ${maxItemWidth}px, padding: ${totalPadding}px, container: ${containerWidth}px, final: ${finalWidth}px`);
+  }
+
+  /**
+   * Set the selected item: update display text + value, float the
+   * label, close the dropdown, fire the change handler.
+   */
+  selectItem(value) {
+    this.options.value = value;
+    if (this.element) {
+      this.element.textContent = value;
+      this.element.value = value;
+    }
+    this.updateLabelFloatedState();
+    this.closeDropdown();
+    if (this.changeHandler) {
+      this.changeHandler(value, this.options.id);
+    }
+    if (this.options.storageKey) {
+      try { localStorage.setItem(this.options.storageKey, value); } catch (_) {}
+    }
+  }
+
+  openDropdown() {
+    if (!this.dropdownElement || !this.element) return;
+    this.dropdownElement.classList.add('dynamic-list-dropdown--open');
+    this.element.setAttribute('aria-expanded', 'true');
+  }
+
+  closeDropdown() {
+    if (!this.dropdownElement || !this.element) return;
+    this.dropdownElement.classList.remove('dynamic-list-dropdown--open');
+    this.element.setAttribute('aria-expanded', 'false');
+  }
+
+  toggleDropdown() {
+    if (!this.dropdownElement) return;
+    if (this.dropdownElement.classList.contains('dynamic-list-dropdown--open')) {
+      this.closeDropdown();
+    } else {
+      this.openDropdown();
+    }
+  }
+
+  /**
+   * Wire click-to-toggle / click-item-to-select / click-outside-to-close
+   * + keyboard support (Enter/Space/ArrowDown opens, Escape closes) +
+   * focus/blur for the floating label state.
+   */
+  setupListEventListeners() {
+    if (!this.element || !this.dropdownElement || !this.wrapper) return;
+
+    this.element.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleDropdown();
+    });
+
+    this.element.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        this.openDropdown();
+      } else if (e.key === 'Escape') {
+        this.closeDropdown();
+      }
+    });
+
+    this.dropdownElement.addEventListener('click', (e) => {
+      const row = e.target.closest('.dynamic-list-item');
+      if (!row) return;
+      e.stopPropagation();
+      const value = row.getAttribute('data-value');
+      this.selectItem(value);
+    });
+
+    // Outside click closes the dropdown. Stored on `this` so destroy()
+    // can remove the document-level listener.
+    this._outsideClickHandler = (e) => {
+      if (!this.wrapper.contains(e.target)) {
+        this.closeDropdown();
+      }
+    };
+    document.addEventListener('click', this._outsideClickHandler);
+
+    // Floating label state — same idiom as the parent floating-label engine.
+    const updateFloated = () => this.updateLabelFloatedState();
+    this.element.addEventListener('focus', updateFloated);
+    this.element.addEventListener('blur', updateFloated);
+  }
+
+  /**
    * Destroy the component and clean up
    */
   destroy() {
+    // List-specific: remove the document-level outside-click listener.
+    if (this._outsideClickHandler) {
+      document.removeEventListener('click', this._outsideClickHandler);
+      this._outsideClickHandler = null;
+    }
+
     // Remove from global instances set
     if (list_floating_label_component_engine.instances) {
       list_floating_label_component_engine.instances.delete(this);

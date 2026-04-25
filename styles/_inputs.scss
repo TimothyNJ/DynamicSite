@@ -146,6 +146,59 @@
   // dim look of native placeholders even when the field is active.
 }
 
+// ──────────────────────────────────────────────────────────────────────
+// List engine variant — additions for list_floating_label_component_engine.
+// The display element is a focusable <div> styled to look identical to a
+// .dynamic-text-input but it never accepts typing. Click toggles a
+// dropdown panel below the wrapper, click an item to select.
+// ──────────────────────────────────────────────────────────────────────
+
+// The display div: cursor signals it's clickable, no text caret.
+.dynamic-list-display {
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+// Dropdown panel: hidden by default, opens on click, sits below the
+// wrapper, uses the same gradient as the input wrapper.
+.dynamic-list-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: none;
+  margin-top: 2px;
+  padding: 4px 0;
+  border-radius: var(--input-border-radius);
+  background: linear-gradient(-25deg, var(--light-slider-start) 0%, var(--light-slider-end) 100%);
+  body[data-theme="dark"] & {
+    background: linear-gradient(-25deg, var(--dark-slider-start) 0%, var(--dark-slider-end) 100%);
+  }
+  z-index: 10;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.dynamic-list-dropdown--open {
+  display: block;
+}
+
+// Individual item rows in the dropdown.
+.dynamic-list-item {
+  padding: 6px 10px;
+  font-family: var(--font-family-primary);
+  font-size: var(--h4-font-size);
+  font-weight: var(--component-font-weight);
+  color: var(--text-color-dark);
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover,
+  &:focus {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
 // ==============================================
 // Form Containers
 // ==============================================
