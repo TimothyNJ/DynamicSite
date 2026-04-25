@@ -2369,7 +2369,7 @@ class text_input_floating_label_component_engine {
 
     // Create inner container for text
     this.innerContainer = document.createElement('div');
-    this.innerContainer.className = 'text-input-inner';
+    this.innerContainer.className = 'text-input-inner text-input-inner--floating-label';
 
     // Create the appropriate element based on options
     if (this.options.multiline || this.options.expandable) {

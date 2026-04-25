@@ -59,12 +59,21 @@
   }
 }
 
-// Floating-label variant of dynamic-text-input — font size only.
+// Floating-label variant of dynamic-text-input — font size + padding.
 // Scoped to text_input_floating_label_component_engine. The engine
 // applies the matching modifier on its measurement helper too so the
 // viewport-flex width math stays accurate at the larger font size.
+//
+// Padding on the inner container is bumped to a symmetric 4px on all
+// four sides (up from 2px vertical / 2.5px horizontal). Modest growth
+// that gives the future floated label some breathing room without
+// noticeably changing the box's footprint.
 .dynamic-text-input--floating-label {
   font-size: var(--h4-font-size);
+}
+
+.text-input-inner--floating-label {
+  padding: 4px;
 }
 
 .text-measurement-helper--floating-label {
