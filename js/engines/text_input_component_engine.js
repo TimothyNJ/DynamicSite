@@ -2313,10 +2313,6 @@ class text_input_floating_label_component_engine {
     this.wrapper = document.createElement('div');
     this.wrapper.className = 'dynamic-input-wrapper';
     this.wrapper.setAttribute('data-lines', '1');
-    // Length-capped engine reads as prose — left-align text. Set on wrapper
-    // for inherited elements; element itself also needs it because
-    // .dynamic-text-input explicitly sets text-align: center.
-    this.wrapper.style.textAlign = 'left';
 
     // Create border container
     const borderContainer = document.createElement('div');
@@ -2390,9 +2386,6 @@ class text_input_floating_label_component_engine {
     this.element.className = 'dynamic-text-input';
     this.element.placeholder = this.options.placeholder;
     this.element.value = this.options.value;
-    // Override .dynamic-text-input { text-align: center } from _inputs.scss.
-    // Length-capped engine reads as prose, so force left alignment.
-    this.element.style.textAlign = 'left';
 
     if (this.options.required) {
       this.element.required = true;
