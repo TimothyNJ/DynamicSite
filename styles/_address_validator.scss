@@ -134,33 +134,47 @@
   // The label itself in the floating variant: positioned over the input,
   // ignores pointer events so clicks pass through to the control,
   // transitions to a smaller scaled form when the input is focused or
-  // has a value.
+  // has a value. When floated, the label sits ON the top border with its
+  // own background mirroring the page gradient — this creates the
+  // "notched outline" look where the border visually breaks around the
+  // label text.
   &__cell--floating &__field-label {
     position: absolute;
-    left: 0.75rem;
+    left: 0.4rem;
     top: 0.7rem;
     margin: 0;
+    padding: 0 0.35rem;
     pointer-events: none;
-    max-width: calc(100% - 1.5rem);
+    max-width: calc(100% - 0.8rem);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     transform-origin: 0 0;
-    transition: transform 0.2s ease-out, color 0.2s ease-out;
+    transition: transform 0.2s ease-out, color 0.2s ease-out, background-color 0.2s ease-out;
     color: var(--text-color-dark-secondary, #888);
+    background: transparent;
+    z-index: 1;
     body[data-theme="dark"] & { color: var(--text-color-dark-secondary, #aaa); }
   }
 
   // Float the label when the input is focused OR has a value.
+  // translateY(-1.4rem) lifts the label so its vertical center sits just
+  // above the input's top border. The page-matching gradient background
+  // appears once floated, masking the slice of border behind the label
+  // text and producing the notched-outline effect.
   &__cell--floating
     &__field-input:focus
     + &__field-label,
   &__cell--floating
     &__field-input:not(:placeholder-shown)
     + &__field-label {
-    transform: translateY(-0.55rem) scale(0.78);
+    transform: translateY(-1.4rem) scale(0.78);
     color: var(--text-color-dark);
-    body[data-theme="dark"] & { color: var(--text-color-light); }
+    background: linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%);
+    body[data-theme="dark"] & {
+      color: var(--text-color-light);
+      background: linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%);
+    }
   }
 
   // Error highlight: when the input is invalid, redden the floated label too.
