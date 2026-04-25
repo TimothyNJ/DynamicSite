@@ -59,17 +59,19 @@
   }
 }
 
-// Floating-label variant of dynamic-text-input — font size + padding.
-// Scoped to text_input_floating_label_component_engine. The engine
-// applies the matching modifier on its measurement helper too so the
-// viewport-flex width math stays accurate at the larger font size.
+// Floating-label variant of dynamic-text-input — font size, padding, alignment.
+// Scoped to text_input_floating_label_component_engine. The engine applies
+// the matching modifier on its measurement helper too so the viewport-flex
+// width math stays accurate at the larger font size.
 //
-// Padding on the inner container is bumped to a symmetric 4px on all
-// four sides (up from 2px vertical / 2.5px horizontal). Modest growth
-// that gives the future floated label some breathing room without
-// noticeably changing the box's footprint.
+// Padding on the inner container is symmetric 4px on all four sides (up from
+// the global 2px vertical / 2.5px horizontal). Typed text is left-aligned
+// (departure from the centered default for plain inputs) so the floating
+// label can settle at top-center while the user's input flows from the
+// left edge — the deliberate asymmetric design signature.
 .dynamic-text-input--floating-label {
   font-size: var(--h4-font-size);
+  text-align: left;
 }
 
 .text-input-inner--floating-label {
@@ -78,6 +80,63 @@
 
 .text-measurement-helper--floating-label {
   font-size: var(--h4-font-size) !important;
+}
+
+// Floating label DOM element (a sibling of .text-input-inner inside the
+// wrapper). Absolutely positioned. At rest, sits centered both horizontally
+// and vertically inside the field. When the input is focused or has a value,
+// the engine adds the --floated modifier and the label eases up to sit on
+// the top border line, scaled down via transform to ~78% of its rest size
+// (Material standard ratio — close to p-size visually).
+//
+// Background uses background-attachment: fixed so the page gradient under
+// the label aligns exactly with the body's fixed gradient at that screen
+// position — produces the notched-outline effect where the input's top
+// border appears to break around the label text.
+//
+// pointer-events: none lets clicks pass through to the input below.
+// z-index: 1 places the label above the static border but BELOW the
+// animated colored borders (which sit on .input-border-segment elements
+// inside .input-border-container, also at z-index baseline) — actually
+// since z-index defaults are at the same level, stacking by DOM order
+// determines paint order. The label is appended after the borders so it
+// paints on top, which is the desired effect.
+.dynamic-input-label--floating-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  padding: 0 0.4rem;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--font-family-primary);
+  font-size: var(--h4-font-size);
+  font-weight: var(--component-font-weight);
+  line-height: 1.2;
+  color: var(--text-color-dark-secondary);
+  background: transparent;
+  z-index: 1;
+  transition:
+    top 0.2s ease-out,
+    transform 0.2s ease-out,
+    color 0.2s ease-out,
+    background-color 0.2s ease-out;
+  body[data-theme="dark"] & {
+    color: var(--text-color-dark-secondary);
+  }
+}
+
+.dynamic-input-label--floating-label--floated {
+  top: 0;
+  transform: translate(-50%, -50%) scale(0.78);
+  color: var(--text-color-dark);
+  background: linear-gradient(-25deg, var(--light-page-start) 0%, var(--light-page-end) 100%) fixed;
+  body[data-theme="dark"] & {
+    color: var(--text-color-light);
+    background: linear-gradient(-25deg, var(--dark-page-start) 0%, var(--dark-page-end) 100%) fixed;
+  }
 }
 
 // ==============================================

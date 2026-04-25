@@ -2408,6 +2408,32 @@ class text_input_floating_label_component_engine {
     // Build DOM structure
     this.innerContainer.appendChild(this.element);
     this.wrapper.appendChild(this.innerContainer);
+
+    // Floating label: positioned absolutely within the wrapper. At rest
+    // the label sits horizontally and vertically centered inside the
+    // field; when the engine adds the --floated modifier (on focus or
+    // when the input has a value) the label eases up to sit centered on
+    // the top border line, scaled down via transform.
+    this.labelElement = document.createElement('label');
+    this.labelElement.className = 'dynamic-input-label dynamic-input-label--floating-label';
+    this.labelElement.htmlFor = this.options.id;
+    this.labelElement.textContent = this.options.label || this.options.placeholder || '';
+    this.wrapper.appendChild(this.labelElement);
+
+    // Initial floated state if the input was created with a value.
+    if (this.options.value) {
+      this.labelElement.classList.add('dynamic-input-label--floating-label--floated');
+    }
+
+    // Wire focus / blur / input listeners that toggle the floated state.
+    // Separate from attachEventListeners() — that method already binds
+    // input/focus/blur for size and animation handling, and adding the
+    // floated-state toggle as its own pass keeps the two concerns clean.
+    const updateFloated = () => this.updateLabelFloatedState();
+    this.element.addEventListener('focus', updateFloated);
+    this.element.addEventListener('blur', updateFloated);
+    this.element.addEventListener('input', updateFloated);
+
     containerEl.appendChild(this.wrapper);
 
     // Create width measurement element
@@ -2793,6 +2819,22 @@ class text_input_floating_label_component_engine {
     if (this.element) {
       this.element.disabled = true;
     }
+  }
+
+  /**
+   * Sync the floating label's --floated class against current input state.
+   * Floated when the input is focused OR has a non-empty value. Called
+   * from focus / blur / input listeners attached in render().
+   */
+  updateLabelFloatedState() {
+    if (!this.labelElement || !this.element) return;
+    const focused = document.activeElement === this.element;
+    const hasValue = !!(this.element.value && this.element.value.length > 0);
+    const shouldFloat = focused || hasValue;
+    this.labelElement.classList.toggle(
+      'dynamic-input-label--floating-label--floated',
+      shouldFloat
+    );
   }
 
   /**
