@@ -186,7 +186,9 @@
   display: block;
 }
 
-// Individual item rows in the dropdown.
+// Individual item rows in the dropdown. Centered text matches the
+// centered input above — the value the user picks slides visually into
+// the field without shifting alignment.
 .dynamic-list-item {
   padding: 6px 10px;
   font-family: var(--font-family-primary);
@@ -195,6 +197,7 @@
   color: var(--text-color-dark);
   cursor: pointer;
   white-space: nowrap;
+  text-align: center;
   &:hover,
   &:focus {
     background: rgba(255, 255, 255, 0.1);

@@ -162,17 +162,18 @@ function buildCountryGroups(allCodes) {
 }
 
 /**
- * Build a flat, deduped list of country names in display order, plus a
- * lookup map from name → ISO code. Used to feed the combobox engine
- * (which works with display strings) while still being able to resolve
- * the selected name back to the ISO code that libaddressinput needs.
+ * Build a flat, deduped list of country names plus a lookup map from
+ * name → ISO code. Used to feed the combobox engine (which works in
+ * display strings) while still being able to resolve the selected name
+ * back to the ISO code that libaddressinput needs.
  *
- * Order: pinned (US) first, then common (alphabetical), then everything
- * else (alphabetical), with later groups skipping anything already added
- * earlier. Combobox typeahead replaces the prior optgroup organisation —
- * the user filters by typing rather than visually scanning groups.
+ * Order: pinned (United States) first, then every country alphabetical
+ * with the pinned skipped on the second pass. The "common" tier is
+ * dropped — combobox typeahead makes group prioritisation unnecessary
+ * (typing two letters narrows the list faster than scanning a "Common"
+ * group ever could).
  */
-function buildCountryComboboxData(pinned, common, all) {
+function buildCountryComboboxData(pinned, _common, all) {
   const items = [];
   const nameToCode = new Map();
   const seen = new Set();
@@ -183,8 +184,7 @@ function buildCountryComboboxData(pinned, common, all) {
     seen.add(name);
   };
   pinned.forEach(add);
-  common.forEach(add);
-  all.forEach(add);
+  all.forEach(add);  // already alphabetical from buildCountryGroups
   return { items, nameToCode };
 }
 
