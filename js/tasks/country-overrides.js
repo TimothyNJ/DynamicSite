@@ -116,7 +116,10 @@ export const COUNTRY_OVERRIDES = {
   AU: {
     regionLabel:  'State / Territory',
     cityLabel:    'Suburb',
-    postalLabel:  'Postcode'
+    postalLabel:  'Postcode',
+    // 'OZ' is informal Australian slang for the country — many Aussies
+    // type it reflexively. Both 'oz' and 'au' filter to Australia.
+    aliasCodes: ['OZ']
   },
   GB: {
     // libaddressinput returns no subdivisions for the UK at all. Seed the
