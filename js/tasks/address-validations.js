@@ -478,11 +478,13 @@ function renderFields(container, code, metadata) {
     const categories = override && override.subdivisionCategories;
 
     if (categories && allValues.length > 0) {
-      // (a) Type + Region two-step picker.
+      // (a) Type slider + Region combobox two-step picker.
       const typePlaceholderId = 'addr-region-type-container';
       const regionPlaceholderId = 'addr-region-combobox-container';
 
-      // Type row.
+      // Type row — slider_component_engine. Horizontal pill selector
+      // showing all 4 group names; user clicks one to switch the
+      // Region picker's item set.
       const typeRow = document.createElement('div');
       typeRow.className = 'address-validator__row address-validator__row--combobox';
       const typeCell = document.createElement('div');
@@ -493,7 +495,7 @@ function renderFields(container, code, metadata) {
       typeRow.appendChild(typeCell);
       form.appendChild(typeRow);
 
-      // Region row.
+      // Region row — combobox.
       const regionRow = document.createElement('div');
       regionRow.className = 'address-validator__row address-validator__row--combobox';
       const regionCell = document.createElement('div');
@@ -504,12 +506,11 @@ function renderFields(container, code, metadata) {
       regionRow.appendChild(regionCell);
       form.appendChild(regionRow);
 
-      // Build per-category items + a global name→code map (region names
-      // are unique across categories within a country).
+      // Build per-category items list. Region names are unique across
+      // categories within a country, so a single name→code map covers
+      // all groups; the per-group lists just slice it by code.
       const codeToName = new Map();
       allValues.forEach(({ code: rcode, name }) => codeToName.set(rcode, name));
-      const nameToCode = new Map();
-      allValues.forEach(({ code: rcode, name }) => nameToCode.set(name, rcode));
       const itemsByGroup = {};
       categories.groups.forEach((g) => {
         itemsByGroup[g.name] = g.codes
@@ -517,18 +518,30 @@ function renderFields(container, code, metadata) {
           .filter(Boolean)
           .sort((a, b) => a.localeCompare(b));
       });
-      const typeItems = categories.groups.map((g) => g.name);
 
-      // Defer the engine inits — we need a handle to the region engine
-      // so the type onChange can call setItems() on it.
+      // Default-active group: the first one declared in the override
+      // (typically "States" for US — covers ~99% of the user base, so
+      // the region picker is immediately useful without forcing a click).
+      const defaultGroupName = categories.groups[0] && categories.groups[0].name;
+      const defaultGroupItems = itemsByGroup[defaultGroupName] || [];
+
+      // Slider options: one per category group, with the first marked
+      // active so the region combobox can initialise non-empty.
+      const typeOptions = categories.groups.map((g, idx) => ({
+        text: g.name,
+        value: g.name,
+        position: idx + 1,
+        ...(idx === 0 ? { active: true } : {}),
+      }));
+
+      // Defer the engine inits — region engine handle is captured in
+      // closure so the type slider's onChange can call setItems on it.
       deferredInits.push(() => {
-        let regionEngine = null;
-        // Region combobox: starts empty until a Type is selected.
-        regionEngine = componentFactory.createListFloatingLabel(regionPlaceholderId, {
+        const regionEngine = componentFactory.createListFloatingLabel(regionPlaceholderId, {
           id: 'addr-field-region',
           label: labels.region,
           placeholder: labels.region,
-          items: [],
+          items: defaultGroupItems,
           onChange: (_name) => {
             // Strict-mode commits one of the items in the current Type's
             // subset. Read regionEngine.options.value at submit time if
@@ -536,18 +549,21 @@ function renderFields(container, code, metadata) {
           },
         });
 
-        // Type combobox: on selection, swap region engine's items.
-        componentFactory.createListFloatingLabel(typePlaceholderId, {
-          id: 'addr-region-type',
-          label: categories.label || 'Type',
-          placeholder: categories.label || 'Type',
-          items: typeItems,
-          onChange: (groupName) => {
-            const next = itemsByGroup[groupName] || [];
-            if (regionEngine && typeof regionEngine.setItems === 'function') {
-              regionEngine.setItems(next);
-            }
-          },
+        // Slider onChange callback receives the selected option element;
+        // its inner <h3> holds the option text (the group name).
+        componentFactory.createSlider({
+          containerId: typePlaceholderId,
+          sliderClass: 'addr-region-type-slider',
+          options: typeOptions,
+        }, (selectedOption) => {
+          const h3 = selectedOption && selectedOption.querySelector
+            ? selectedOption.querySelector('h3')
+            : null;
+          const groupName = h3 ? h3.textContent : null;
+          const next = itemsByGroup[groupName] || [];
+          if (regionEngine && typeof regionEngine.setItems === 'function') {
+            regionEngine.setItems(next);
+          }
         });
       });
     } else if (allValues.length > 0) {
