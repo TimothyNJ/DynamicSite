@@ -154,14 +154,10 @@
 // ──────────────────────────────────────────────────────────────────────
 
 // The display div: cursor signals it's clickable, no text caret.
-// min-height holds the box open at one line of h4 text so an empty
-// selection still presents a clickable button-shaped surface (an empty
-// <div> would otherwise collapse to 0 height and have no hit target).
 .dynamic-list-display {
   cursor: pointer;
   user-select: none;
   outline: none;
-  min-height: 1.2em;
 }
 
 // Dropdown panel: hidden by default, opens on click, sits below the
