@@ -8,17 +8,14 @@
   flex-direction: column;
   gap: var(--component-spacing, 1rem);
   padding: 1rem;
-  // .sidenav-content (the page's flex column parent) uses align-items:
-  // center, which shrinks every child to its content's width on the
-  // cross-axis. Without an explicit width here, the validator would
-  // collapse to whatever the widest field is, and the title would appear
-  // off-center because it's centered within that narrow box. width: 100%
-  // (capped by max-width) makes the validator span the full available
-  // width up to 720px so the title centers against the page, not against
-  // the country picker's footprint.
-  width: 100%;
+  // No explicit width — the validator shrinks to fit its widest child
+  // (typically the country picker, sized to fit the longest country
+  // name). .sidenav-content's align-items: center centers the whole
+  // compact box horizontally on the page, so every element inside —
+  // title, country picker, per-country fields — visually lines up with
+  // the natural content width without needing per-element centering.
+  // max-width caps the box if any child ever grows past 720px.
   max-width: 720px;
-  margin: 0 auto;
 
   &__title {
     text-align: center;
@@ -28,11 +25,6 @@
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    // The list_floating_label_component_engine renders an inline-flex
-    // wrapper. Without text-align: center it sits at its natural left
-    // position inside this row; with it the wrapper centers horizontally
-    // (inline-flex responds to text-align like inline content).
-    text-align: center;
   }
 
   &__label,
