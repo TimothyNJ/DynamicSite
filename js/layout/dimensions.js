@@ -1,4 +1,6 @@
 // js/layout/dimensions.js
+import { measureRenderedWidths } from '../core/measure-rendered-width.js';
+
 export function updateDimensions() {
   updateNavbarDimensions();
   updateContentDimensions();
@@ -132,50 +134,41 @@ function handleCollapsedNavbar() {
   }
 
   if (isCollapsedButtonVisible) {
-    // Create temporary container
-    const tempContainer = document.createElement("div");
-    tempContainer.style.position = "absolute";
-    tempContainer.style.left = "-9999px";
-    tempContainer.style.visibility = "hidden";
-    document.body.appendChild(tempContainer);
+    // Off-screen clone-and-measure delegated to the shared utility in
+    // js/core/measure-rendered-width.js. Same pattern as before — clone
+    // each button, give it display:block + .active class so it renders
+    // at its full visible width, measure offsetWidth — but the temp-
+    // container plumbing is now centralized so this function and the
+    // list_floating_label_component_engine call the same code path.
+    const cloneForMeasure = (button) => {
+      const clone = button.cloneNode(true);
+      clone.style.display = "block";
+      clone.classList.add("active");
+      return clone;
+    };
 
-    // Get ALL buttons including collapsed navbar
-    const allButtons = navbar4.querySelectorAll("button");
-    let maxButtonWidth = 0;
-    let minButtonWidth = Infinity;
-    let widestButton = null;
+    // Measure the collapsed navbar button on its own (it's added to the
+    // total width separately, not folded into the max).
+    const { maxWidth: collapsedButtonWidth } = measureRenderedWidths(
+      [collapsedButton],
+      cloneForMeasure
+    );
 
-    // First clone and measure the collapsed navbar button
-    const collapsedClone = collapsedButton.cloneNode(true);
-    collapsedClone.style.display = "block";
-    collapsedClone.classList.add("active");
-    tempContainer.appendChild(collapsedClone);
-    const collapsedButtonWidth = collapsedClone.offsetWidth;
+    // Measure every other visible button to find the max (drives the
+    // total min-width for the buttons row) and min (drives the
+    // --collapsed-menu-divider-width).
+    const otherButtons = Array.from(navbar4.querySelectorAll("button")).filter(
+      (b) => b !== collapsedButton && !b.classList.contains("auth-hidden")
+    );
+    const { maxWidth: maxButtonWidth, minWidth: minButtonWidth } =
+      measureRenderedWidths(otherButtons, cloneForMeasure);
 
-    // Then clone and measure all other buttons
-    allButtons.forEach((button) => {
-      if (button !== collapsedButton && !button.classList.contains("auth-hidden")) {
-        const clone = button.cloneNode(true);
-        clone.style.display = "block"; // Ensure button is measurable
-        clone.classList.add("active");
-        tempContainer.appendChild(clone);
-        const buttonWidth = clone.offsetWidth;
-        if (buttonWidth > maxButtonWidth) {
-          maxButtonWidth = buttonWidth;
-          widestButton = button;
-        }
-        if (buttonWidth < minButtonWidth) {
-          minButtonWidth = buttonWidth;
-        }
-      }
-    });
-
-    // Clean up temporary container
-    document.body.removeChild(tempContainer);
-
-    // Set collapsed menu divider width to narrowest button
-    if (minButtonWidth !== Infinity) {
-      document.documentElement.style.setProperty('--collapsed-menu-divider-width', `${minButtonWidth}px`);
+    // Set collapsed menu divider width to narrowest button.
+    if (otherButtons.length > 0) {
+      document.documentElement.style.setProperty(
+        "--collapsed-menu-divider-width",
+        `${minButtonWidth}px`
+      );
     }
 
     // Calculate total width by ADDING widest button and collapsed button widths
