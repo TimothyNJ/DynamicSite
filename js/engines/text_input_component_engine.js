@@ -4116,16 +4116,61 @@ class list_floating_label_component_engine {
   }
 
   /**
-   * Filter the dropdown rows down to items that case-insensitively
-   * contain the query string. Empty query restores the full list.
-   * Resets the highlighted row to the first match.
+   * Filter the dropdown rows using a two-tier match:
+   *
+   *   Tier 1 — Exact code match (case-insensitive). If the typed query
+   *            equals the code in an item's trailing "(CODE)" suffix
+   *            (e.g. typing "ar" → "Arkansas (AR)"), that item ranks at
+   *            the top of the filtered list.
+   *
+   *   Tier 2 — Prefix match on the displayed name (the part of the
+   *            item before the trailing "(CODE)" suffix, or the whole
+   *            item if no suffix). Typing "ar" matches "Arizona",
+   *            "Arkansas", "Armenia", "Aruba" — anything that BEGINS
+   *            with "ar". Substring-anywhere matches (e.g. "ar" inside
+   *            "Madagascar") are intentionally excluded.
+   *
+   * Empty query restores the full list. Items without a "(CODE)" suffix
+   * (e.g. plain country-name lists used by the engines-page demo) only
+   * participate in Tier 2 — codeOf() returns null and they never match
+   * the code tier. Prefix-match still works on their full text.
+   *
+   * Resets the highlighted row to the first match (the top of Tier 1
+   * if anything matched it, otherwise the top of Tier 2).
    */
   filterItems(query) {
     const items = this.options.items || [];
     const q = (query || '').trim().toLowerCase();
-    this._filteredItems = q
-      ? items.filter(item => String(item).toLowerCase().includes(q))
-      : items.slice();
+
+    if (!q) {
+      this._filteredItems = items.slice();
+    } else {
+      const codeMatches = [];
+      const prefixMatches = [];
+
+      for (const item of items) {
+        const text = String(item);
+        // Extract the code from a trailing "(CODE)" suffix, if present.
+        const m = text.match(/\(([^)]+)\)\s*$/);
+        const code = m ? m[1].toLowerCase() : null;
+        // Name = text with the trailing "(CODE)" stripped, lowercased.
+        // If no trailing code, the whole item is the name.
+        const name = (m
+          ? text.slice(0, m.index).trim()
+          : text
+        ).toLowerCase();
+
+        if (code === q) {
+          codeMatches.push(item);
+        } else if (name.startsWith(q)) {
+          prefixMatches.push(item);
+        }
+        // Items matching neither tier are dropped from the filtered list.
+      }
+
+      this._filteredItems = [...codeMatches, ...prefixMatches];
+    }
+
     this.populateDropdown(this._filteredItems);
     this._highlightedIndex = this._filteredItems.length > 0 ? 0 : -1;
     this.applyHighlight();
