@@ -70,6 +70,16 @@
     gap: 0.4rem;
   }
 
+  // Combobox-row modifier: when a row holds a list_floating_label engine
+  // (currently the region picker when subdivisions exist), the engine's
+  // wrapper is inline-flex sized to its longest item — narrower than the
+  // row. text-align: center centers the inline-flex wrapper horizontally
+  // within the row, matching how the country picker centers within its
+  // own row at the top of the validator.
+  &__row--combobox {
+    text-align: center;
+  }
+
   &__cell {
     display: flex;
     flex-direction: column;

@@ -472,7 +472,10 @@ function renderFields(container, code, metadata) {
       // form is mounted.
       const placeholderId = 'addr-region-combobox-container';
       const row = document.createElement('div');
-      row.className = 'address-validator__row';
+      // --combobox modifier centers the engine wrapper within the row
+      // (the engine renders an inline-flex element, so text-align: center
+      // is the right hook).
+      row.className = 'address-validator__row address-validator__row--combobox';
       const cell = document.createElement('div');
       cell.className = 'address-validator__cell';
       const placeholder = document.createElement('div');
@@ -497,11 +500,10 @@ function renderFields(container, code, metadata) {
           seen.add(name);
         });
 
-      const labelText = regionRequired ? `${labels.region} *` : labels.region;
       regionComboboxInit = () => {
         componentFactory.createListFloatingLabel(placeholderId, {
           id: 'addr-field-region',
-          label: labelText,
+          label: labels.region,
           placeholder: labels.region,
           items,
           onChange: (_name) => {
