@@ -535,9 +535,14 @@ function renderFields(container, code, metadata) {
           label: labels.region,
           placeholder: labels.region,
           items,
-          onChange: (_name) => {
-            // Strict-mode commits one item from the grouped list.
-            // Read engine.options.value at submit time for required check.
+          onChange: (selectedDisplay) => {
+            // Extract the region code from the trailing '(CODE)' suffix
+            // and re-render the city field. The override (e.g. for AA →
+            // Post Office Type picker, DC → 'Washington' fixed) is
+            // applied inside renderCityField.
+            const m = String(selectedDisplay || '').match(/\(([^)]+)\)\s*$/);
+            const regionCode = m ? m[1].split('/')[0].trim() : null;
+            if (form._renderCityField) form._renderCityField(regionCode);
           },
         });
       });
@@ -612,18 +617,15 @@ function renderFields(container, code, metadata) {
   }
 
   // 3. City / town / suburb.
+  // Render into a placeholder row so we can re-render it whenever the
+  // selected region's override changes the city's shape (e.g. AA/AE/AP
+  // turn the City field into a Post Office Type picker; DC pre-fills it
+  // with 'Washington').
+  let cityRow = null;
   if (show.city) {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.setAttribute('autocomplete', 'off');
-    const cityRequired = isRequired(metadata, 'C');
-    form.appendChild(makeRow({
-      id:       'addr-field-city',
-      label:    labels.city,
-      required: cityRequired,
-      control:  input
-    }));
-    attachValidator(input, makeRequiredValidator(cityRequired));
+    cityRow = document.createElement('div');
+    cityRow.className = 'address-validator__row';
+    form.appendChild(cityRow);
   }
 
   // 4. Postal code / ZIP / postcode.
@@ -643,11 +645,92 @@ function renderFields(container, code, metadata) {
 
   container.appendChild(form);
 
+  // ── City field renderer (called initially with no region, then again
+  // ── from the categorized region picker's onChange whenever the user's
+  // ── selection changes). Reads override.regionFieldOverrides[code]?.city
+  // ── to decide whether the field is a combobox of fixed options
+  // ── (AA/AE/AP), an auto-filled read-only text input (DC), or the
+  // ── default free-text input (everything else).
+  const renderCityField = (regionCode) => {
+    if (!cityRow) return;
+    cityRow.innerHTML = '';
+    cityRow.classList.remove('address-validator__row--combobox');
+
+    const regionOverride =
+      override && override.regionFieldOverrides && regionCode
+        ? override.regionFieldOverrides[regionCode]
+        : null;
+    const cityOverride = regionOverride && regionOverride.city;
+
+    if (cityOverride && Array.isArray(cityOverride.items)) {
+      // Combobox of fixed options (e.g. APO/FPO/DPO).
+      const placeholderId = 'addr-city-combobox-container';
+      const cell = document.createElement('div');
+      cell.className = 'address-validator__cell';
+      const ph = document.createElement('div');
+      ph.id = placeholderId;
+      cell.appendChild(ph);
+      cityRow.appendChild(cell);
+      cityRow.classList.add('address-validator__row--combobox');
+
+      componentFactory.createListFloatingLabel(placeholderId, {
+        id: 'addr-field-city',
+        label: cityOverride.label || labels.city,
+        placeholder: cityOverride.label || labels.city,
+        items: cityOverride.items,
+        onChange: (_v) => {
+          // Strict-mode commit. No downstream re-render wired from
+          // city yet — postal stays as the country default.
+        },
+      });
+    } else if (cityOverride && cityOverride.fixed) {
+      // Auto-filled, read-only text input (e.g. DC → 'Washington').
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = cityOverride.fixed;
+      input.readOnly = true;
+      input.setAttribute('autocomplete', 'off');
+      const built = makeRow({
+        id: 'addr-field-city',
+        label: labels.city,
+        required: false,
+        control: input,
+      });
+      // Move children from the makeRow-built row into our placeholder
+      // so the city's row identity stays the same DOM node throughout.
+      while (built.firstChild) cityRow.appendChild(built.firstChild);
+    } else {
+      // Default — free-text city input via the existing makeRow flow.
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.setAttribute('autocomplete', 'off');
+      const cityRequired = isRequired(metadata, 'C');
+      const built = makeRow({
+        id: 'addr-field-city',
+        label: labels.city,
+        required: cityRequired,
+        control: input,
+      });
+      while (built.firstChild) cityRow.appendChild(built.firstChild);
+      attachValidator(input, makeRequiredValidator(cityRequired));
+    }
+  };
+
   // Engine-backed fields render after mount so getComputedStyle on their
   // wrappers reads real values (the engine measures the longest-item width
   // at construction). Type and Region pickers register their inits in
   // deferredInits during the build phase above.
   deferredInits.forEach((init) => init());
+
+  // Initial city: no region selected yet → default field.
+  renderCityField(null);
+
+  // The categorized region branch wires its onChange to call back here
+  // via this hook. Other region paths (free-text input for countries
+  // without subdivisions, single-combobox for non-US countries) don't
+  // emit codes that map to overrides — they keep the default city.
+  // Stash on the form element so the region init closure can find it.
+  form._renderCityField = renderCityField;
 }
 
 /**

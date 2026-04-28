@@ -68,6 +68,65 @@ export const COUNTRY_OVERRIDES = {
       { code: 'PW', name: 'Palau' },
     ],
 
+    // Per-region overrides for downstream address fields. When a region
+    // with a code matching a key here is selected, the corresponding
+    // field definitions REPLACE the country defaults for the rest of
+    // the form. So picking 'AA' as the region swaps the City field for
+    // a Post Office Type picker; picking 'DC' auto-fills the City as
+    // 'Washington' (read-only).
+    //
+    // Schema (per region code):
+    //   city: {
+    //     label?:  string                — overrides the default City label
+    //     items?:  string[]              — combobox options (renders as
+    //                                      list_floating_label_component_engine)
+    //     fixed?:  string                — auto-filled, read-only text
+    //   }
+    //   (postal: { ... } can extend the same way later — military ZIP
+    //    ranges, DC ZIP range, etc. — but isn't wired yet.)
+    //
+    // When no key matches the selected region, no override applies and
+    // the country defaults render unchanged.
+    regionFieldOverrides: {
+      AA: {
+        city: {
+          label: 'Post Office Type',
+          items: [
+            'Army Post Office (APO) — Army, Air Force, Space Force',
+            'Fleet Post Office (FPO) — Navy, Marine Corps, Coast Guard',
+            'Diplomatic Post Office (DPO) — State Department',
+          ],
+        },
+      },
+      AE: {
+        city: {
+          label: 'Post Office Type',
+          items: [
+            'Army Post Office (APO) — Army, Air Force, Space Force',
+            'Fleet Post Office (FPO) — Navy, Marine Corps, Coast Guard',
+            'Diplomatic Post Office (DPO) — State Department',
+          ],
+        },
+      },
+      AP: {
+        city: {
+          label: 'Post Office Type',
+          items: [
+            'Army Post Office (APO) — Army, Air Force, Space Force',
+            'Fleet Post Office (FPO) — Navy, Marine Corps, Coast Guard',
+            'Diplomatic Post Office (DPO) — State Department',
+          ],
+        },
+      },
+      DC: {
+        city: {
+          // Single valid city — auto-fill, read-only. The user doesn't
+          // have to type 'Washington' or guess what to put here.
+          fixed: 'Washington',
+        },
+      },
+    },
+
     // Type / Region two-step picker for US. The address validator renders
     // a Type combobox (one of the four group names below), and on selection
     // populates the Region combobox with that group's subdivisions. Codes
