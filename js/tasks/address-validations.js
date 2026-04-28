@@ -179,17 +179,17 @@ function buildCountryComboboxData(pinned, _common, all) {
   const seen = new Set();
   const add = ({ code, name }) => {
     if (seen.has(code)) return;  // dedupe by code (canonical) not by name
-    // Compose 'Name (CODE)' or 'Name (ALIAS/CODE)'. aliasCodes from the
-    // override come BEFORE the ISO code so common informal abbreviations
-    // (e.g. 'UK' for GB) display first. The combobox filter splits on
-    // '/' inside the parens and matches any token — typing 'uk' or 'gb'
-    // both find 'United Kingdom (UK/GB)'.
+    // Compose 'Name (CODE)' or 'Name (CODE/ALIAS)'. The official ISO
+    // code comes first; aliasCodes follow. The combobox filter splits
+    // on '/' inside the parens and matches any token — typing 'gb' or
+    // 'uk' both find 'United Kingdom (GB/UK)', and 'au' or 'oz' both
+    // find 'Australia (AU/OZ)'.
     const override = getOverride(code);
     const aliasList = (override && Array.isArray(override.aliasCodes))
       ? override.aliasCodes
       : [];
     const codeStr = aliasList.length > 0
-      ? `${aliasList.join('/')}/${code}`
+      ? `${code}/${aliasList.join('/')}`
       : code;
     const display = `${name} (${codeStr})`;
     items.push(display);
