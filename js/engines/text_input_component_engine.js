@@ -4150,9 +4150,14 @@ class list_floating_label_component_engine {
 
       for (const item of items) {
         const text = String(item);
-        // Extract the code from a trailing "(CODE)" suffix, if present.
+        // Extract the code(s) from a trailing "(CODE)" or "(ALIAS/CODE)"
+        // suffix, if present. Multiple codes are separated by '/' so an
+        // item can declare informal aliases (e.g. 'United Kingdom (UK/GB)'
+        // — typing either 'uk' or 'gb' should match).
         const m = text.match(/\(([^)]+)\)\s*$/);
-        const code = m ? m[1].toLowerCase() : null;
+        const codes = m
+          ? m[1].split('/').map((c) => c.trim().toLowerCase()).filter(Boolean)
+          : [];
         // Name = text with the trailing "(CODE)" stripped, lowercased.
         // If no trailing code, the whole item is the name.
         const name = (m
@@ -4160,7 +4165,7 @@ class list_floating_label_component_engine {
           : text
         ).toLowerCase();
 
-        if (code === q) {
+        if (codes.includes(q)) {
           codeMatches.push(item);
         } else if (name.startsWith(q)) {
           prefixMatches.push(item);

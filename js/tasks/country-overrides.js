@@ -132,7 +132,12 @@ export const COUNTRY_OVERRIDES = {
       { code: 'SCT', name: 'Scotland' },
       { code: 'WLS', name: 'Wales' },
       { code: 'NIR', name: 'Northern Ireland' }
-    ]
+    ],
+    // Common informal abbreviations users may type. Listed BEFORE the
+    // ISO code in the display so 'UK' comes first ('United Kingdom (UK/GB)').
+    // The combobox filter matches any code in the parens, so typing 'uk'
+    // or 'gb' both surface United Kingdom.
+    aliasCodes: ['UK']
   },
   IE: {
     regionLabel:  'County',

@@ -179,10 +179,19 @@ function buildCountryComboboxData(pinned, _common, all) {
   const seen = new Set();
   const add = ({ code, name }) => {
     if (seen.has(code)) return;  // dedupe by code (canonical) not by name
-    // Append the ISO code in parens so it's visible AND filterable —
-    // typing 'nz' or 'uk' matches because the substring is in the
-    // displayed text. Format: 'New Zealand (NZ)'.
-    const display = `${name} (${code})`;
+    // Compose 'Name (CODE)' or 'Name (ALIAS/CODE)'. aliasCodes from the
+    // override come BEFORE the ISO code so common informal abbreviations
+    // (e.g. 'UK' for GB) display first. The combobox filter splits on
+    // '/' inside the parens and matches any token — typing 'uk' or 'gb'
+    // both find 'United Kingdom (UK/GB)'.
+    const override = getOverride(code);
+    const aliasList = (override && Array.isArray(override.aliasCodes))
+      ? override.aliasCodes
+      : [];
+    const codeStr = aliasList.length > 0
+      ? `${aliasList.join('/')}/${code}`
+      : code;
+    const display = `${name} (${codeStr})`;
     items.push(display);
     nameToCode.set(display, code);
     seen.add(code);
