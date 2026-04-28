@@ -8,6 +8,15 @@
   flex-direction: column;
   gap: var(--component-spacing, 1rem);
   padding: 1rem;
+  // .sidenav-content (the page's flex column parent) uses align-items:
+  // center, which shrinks every child to its content's width on the
+  // cross-axis. Without an explicit width here, the validator would
+  // collapse to whatever the widest field is, and the title would appear
+  // off-center because it's centered within that narrow box. width: 100%
+  // (capped by max-width) makes the validator span the full available
+  // width up to 720px so the title centers against the page, not against
+  // the country picker's footprint.
+  width: 100%;
   max-width: 720px;
   margin: 0 auto;
 

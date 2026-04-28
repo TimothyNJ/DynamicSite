@@ -607,8 +607,8 @@ export async function initializeAddressValidations() {
     onChange: async (name) => {
       const code = nameToCode.get(name);
       if (!code) {
-        fieldsEl.innerHTML =
-          '<p class="address-validator__hint">Select a country above to see the correct address fields for that country.</p>';
+        // No selection (or selection cleared) — empty the fields area.
+        fieldsEl.innerHTML = '';
         return;
       }
       fieldsEl.innerHTML = '<p class="address-validator__hint">Loading fields…</p>';
