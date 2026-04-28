@@ -510,15 +510,19 @@ function renderFields(container, code, metadata) {
       regionRow.appendChild(regionCell);
       form.appendChild(regionRow);
 
-      // Build per-category items list. Region names are unique across
-      // categories within a country, so a single name→code map covers
-      // all groups; the per-group lists just slice it by code.
+      // Build per-category items list. Region rows display as
+      // 'Name (CODE)' — same idiom as the country picker, so typing
+      // 'tx' matches Texas, 'ca' matches California, etc. The CODE is
+      // the canonical identifier; the displayed string composes both.
       const codeToName = new Map();
       allValues.forEach(({ code: rcode, name }) => codeToName.set(rcode, name));
       const itemsByGroup = {};
       categories.groups.forEach((g) => {
         itemsByGroup[g.name] = g.codes
-          .map((c) => codeToName.get(c))
+          .map((c) => {
+            const name = codeToName.get(c);
+            return name ? `${name} (${c})` : null;
+          })
           .filter(Boolean)
           .sort((a, b) => a.localeCompare(b));
       });
@@ -590,10 +594,14 @@ function renderFields(container, code, metadata) {
         .slice()
         .sort((a, b) => a.name.localeCompare(b.name))
         .forEach(({ code: rcode, name }) => {
-          if (seen.has(name)) return;
-          items.push(name);
-          nameToCode.set(name, rcode);
-          seen.add(name);
+          if (seen.has(rcode)) return;  // dedupe by canonical code
+          // Display 'Name (CODE)' so the code is visible and filterable
+          // (typing 'tx' matches 'Texas (TX)', etc.) — same pattern as
+          // the country picker.
+          const display = `${name} (${rcode})`;
+          items.push(display);
+          nameToCode.set(display, rcode);
+          seen.add(rcode);
         });
 
       deferredInits.push(() => {
