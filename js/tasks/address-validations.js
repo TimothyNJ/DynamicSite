@@ -514,7 +514,7 @@ function renderFields(container, code, metadata) {
         g.codes
           .map((c) => {
             const name = codeToName.get(c);
-            return name ? `${name} (${c})` : null;
+            return name ? formatRegionItem(name, c) : null;
           })
           .filter(Boolean)
           .sort((a, b) => a.localeCompare(b))
@@ -564,8 +564,10 @@ function renderFields(container, code, metadata) {
           if (seen.has(rcode)) return;  // dedupe by canonical code
           // Display 'Name (CODE)' so the code is visible and filterable
           // (typing 'tx' matches 'Texas (TX)', etc.) — same pattern as
-          // the country picker.
-          const display = `${name} (${rcode})`;
+          // the country picker. formatRegionItem strips any trailing
+          // '(<code>)' that libaddressinput included in the name, so
+          // names like 'Armed Forces (AA)' don't double up.
+          const display = formatRegionItem(name, rcode);
           items.push(display);
           nameToCode.set(display, rcode);
           seen.add(rcode);
@@ -646,6 +648,19 @@ function renderFields(container, code, metadata) {
   // at construction). Type and Region pickers register their inits in
   // deferredInits during the build phase above.
   deferredInits.forEach((init) => init());
+}
+
+/**
+ * Compose 'Name (CODE)' for a region item. If the libaddressinput-supplied
+ * name already ends with '(<CODE>)' (case-insensitive — e.g. the US military
+ * entries arrive as 'Armed Forces (AA)'), strip the trailing parens before
+ * appending so we don't double up: 'Armed Forces (AA) (AA)'.
+ */
+function formatRegionItem(name, code) {
+  const escaped = String(code).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const trailing = new RegExp('\\s*\\(' + escaped + '\\)\\s*$', 'i');
+  const cleanName = String(name).replace(trailing, '').trim();
+  return `${cleanName} (${code})`;
 }
 
 /**
