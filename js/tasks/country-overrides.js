@@ -54,7 +54,59 @@ export const COUNTRY_OVERRIDES = {
   US: {
     regionLabel:  'State / District / Territory',
     cityLabel:    'City',
-    postalLabel:  'ZIP code'
+    postalLabel:  'ZIP code',
+
+    // Supplemental subdivision entries — added to whatever libaddressinput
+    // returns. Compact-of-Free-Association states (FM, MH, PW) are
+    // sovereign Pacific nations whose addresses USPS treats as
+    // US-domestic for routing. libaddressinput sometimes omits them from
+    // the US subdivisions list, so we ensure they're always present here.
+    // Entries are deduped by code at runtime.
+    supplementalRegions: [
+      { code: 'FM', name: 'Federated States of Micronesia' },
+      { code: 'MH', name: 'Marshall Islands' },
+      { code: 'PW', name: 'Palau' },
+    ],
+
+    // Type / Region two-step picker for US. The address validator renders
+    // a Type combobox (one of the four group names below), and on selection
+    // populates the Region combobox with that group's subdivisions. Codes
+    // not listed in any group fall through to "States" as a default.
+    subdivisionCategories: {
+      label: 'Type',
+      groups: [
+        {
+          name: 'States',
+          codes: [
+            'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
+            'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
+            'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+            'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
+            'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY',
+          ],
+        },
+        {
+          name: 'Districts',
+          codes: ['DC'],
+        },
+        {
+          name: 'Territories',
+          // Five US territories + three Compact-of-Free-Association
+          // sovereign nations whose addresses USPS treats as US-domestic.
+          // FM/MH/PW also appear as countries in their own right in the
+          // country picker — both routes are intentional.
+          codes: ['AS', 'GU', 'MP', 'PR', 'VI', 'FM', 'MH', 'PW'],
+        },
+        {
+          name: 'Military',
+          // APO / FPO routing pseudo-states for service members posted
+          // outside the continental US. Not geographic places — mail
+          // routes through a military hub which forwards to the actual
+          // physical destination (a base in Germany, a ship at sea, etc.).
+          codes: ['AA', 'AE', 'AP'],
+        },
+      ],
+    },
   },
   CA: {
     regionLabel:  'Province / Territory',

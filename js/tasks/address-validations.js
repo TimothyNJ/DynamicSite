@@ -453,28 +453,107 @@ function renderFields(container, code, metadata) {
   const form = document.createElement('div');
   form.className = 'address-validator__form';
 
-  // Region combobox setup is captured here so the engine can be initialized
-  // AFTER the form is appended to the container (engine needs its mount
-  // point to be in the DOM for getComputedStyle / width measurement to work).
-  let regionComboboxInit = null;
+  // Engine-backed inits are captured here and run AFTER the form is
+  // appended to the container — the engine needs its mount point to be
+  // in the DOM for getComputedStyle / width measurement to work.
+  const deferredInits = [];
 
-  // 1. Region — combobox if subdivisions exist (libaddressinput or seeded),
-  //    free-form text input otherwise.
+  // 1. Region — three rendering paths:
+  //    (a) Country has subdivisionCategories override (currently US only):
+  //        render a Type combobox + a Region combobox; Type filters Region.
+  //    (b) Country has subdivisions (libaddressinput or seeded) but no
+  //        categories: render a single Region combobox.
+  //    (c) Country has no subdivisions at all: free-form text input.
   if (show.region) {
     const subdivisions = (metadata && metadata.subdivisions) || [];
     const seeded = (override && Array.isArray(override.regions)) ? override.regions : [];
-    const values = subdivisions.length > 0 ? subdivisions : seeded;
+    const supplemental = (override && Array.isArray(override.supplementalRegions))
+      ? override.supplementalRegions
+      : [];
+    // Union libaddressinput + supplemental + (only-if-no-libaddress) seeded,
+    // deduped by code.
+    const baseValues = subdivisions.length > 0 ? subdivisions : seeded;
+    const allValues = mergeRegionsByCode(baseValues, supplemental);
     const regionRequired = isRequired(metadata, 'S');
+    const categories = override && override.subdivisionCategories;
 
-    if (values.length > 0) {
-      // Subdivisions available → use the combobox engine. Build a placeholder
-      // row in the form; the engine renders into the placeholder once the
-      // form is mounted.
+    if (categories && allValues.length > 0) {
+      // (a) Type + Region two-step picker.
+      const typePlaceholderId = 'addr-region-type-container';
+      const regionPlaceholderId = 'addr-region-combobox-container';
+
+      // Type row.
+      const typeRow = document.createElement('div');
+      typeRow.className = 'address-validator__row address-validator__row--combobox';
+      const typeCell = document.createElement('div');
+      typeCell.className = 'address-validator__cell';
+      const typePh = document.createElement('div');
+      typePh.id = typePlaceholderId;
+      typeCell.appendChild(typePh);
+      typeRow.appendChild(typeCell);
+      form.appendChild(typeRow);
+
+      // Region row.
+      const regionRow = document.createElement('div');
+      regionRow.className = 'address-validator__row address-validator__row--combobox';
+      const regionCell = document.createElement('div');
+      regionCell.className = 'address-validator__cell';
+      const regionPh = document.createElement('div');
+      regionPh.id = regionPlaceholderId;
+      regionCell.appendChild(regionPh);
+      regionRow.appendChild(regionCell);
+      form.appendChild(regionRow);
+
+      // Build per-category items + a global name→code map (region names
+      // are unique across categories within a country).
+      const codeToName = new Map();
+      allValues.forEach(({ code: rcode, name }) => codeToName.set(rcode, name));
+      const nameToCode = new Map();
+      allValues.forEach(({ code: rcode, name }) => nameToCode.set(name, rcode));
+      const itemsByGroup = {};
+      categories.groups.forEach((g) => {
+        itemsByGroup[g.name] = g.codes
+          .map((c) => codeToName.get(c))
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b));
+      });
+      const typeItems = categories.groups.map((g) => g.name);
+
+      // Defer the engine inits — we need a handle to the region engine
+      // so the type onChange can call setItems() on it.
+      deferredInits.push(() => {
+        let regionEngine = null;
+        // Region combobox: starts empty until a Type is selected.
+        regionEngine = componentFactory.createListFloatingLabel(regionPlaceholderId, {
+          id: 'addr-field-region',
+          label: labels.region,
+          placeholder: labels.region,
+          items: [],
+          onChange: (_name) => {
+            // Strict-mode commits one of the items in the current Type's
+            // subset. Read regionEngine.options.value at submit time if
+            // required-validation matters.
+          },
+        });
+
+        // Type combobox: on selection, swap region engine's items.
+        componentFactory.createListFloatingLabel(typePlaceholderId, {
+          id: 'addr-region-type',
+          label: categories.label || 'Type',
+          placeholder: categories.label || 'Type',
+          items: typeItems,
+          onChange: (groupName) => {
+            const next = itemsByGroup[groupName] || [];
+            if (regionEngine && typeof regionEngine.setItems === 'function') {
+              regionEngine.setItems(next);
+            }
+          },
+        });
+      });
+    } else if (allValues.length > 0) {
+      // (b) Single Region combobox — no categories.
       const placeholderId = 'addr-region-combobox-container';
       const row = document.createElement('div');
-      // --combobox modifier centers the engine wrapper within the row
-      // (the engine renders an inline-flex element, so text-align: center
-      // is the right hook).
       row.className = 'address-validator__row address-validator__row--combobox';
       const cell = document.createElement('div');
       cell.className = 'address-validator__cell';
@@ -484,13 +563,10 @@ function renderFields(container, code, metadata) {
       row.appendChild(cell);
       form.appendChild(row);
 
-      // Flat deduped list of region names + name→code map (same pattern as
-      // the country picker — engine works in display strings, we keep the
-      // ISO code separately for any downstream consumer that needs it).
       const items = [];
       const nameToCode = new Map();
       const seen = new Set();
-      values
+      allValues
         .slice()
         .sort((a, b) => a.name.localeCompare(b.name))
         .forEach(({ code: rcode, name }) => {
@@ -500,21 +576,19 @@ function renderFields(container, code, metadata) {
           seen.add(name);
         });
 
-      regionComboboxInit = () => {
+      deferredInits.push(() => {
         componentFactory.createListFloatingLabel(placeholderId, {
           id: 'addr-field-region',
           label: labels.region,
           placeholder: labels.region,
           items,
           onChange: (_name) => {
-            // Strict-mode combobox guarantees value is always a valid region
-            // (or empty). Required validation by selection: if we ever need
-            // an "is empty" check on submit, read the engine's value then.
+            // Strict-mode commit. See note above for required-validation.
           },
         });
-      };
+      });
     } else {
-      // No subdivisions → free-form text input via the existing makeRow flow.
+      // (c) Free-form text input.
       const control = makeRegionControl(metadata, override);
       form.appendChild(makeRow({
         id:       'addr-field-region',
@@ -574,8 +648,31 @@ function renderFields(container, code, metadata) {
 
   // Engine-backed fields render after mount so getComputedStyle on their
   // wrappers reads real values (the engine measures the longest-item width
-  // at construction). Currently only region uses this pattern.
-  if (regionComboboxInit) regionComboboxInit();
+  // at construction). Type and Region pickers register their inits in
+  // deferredInits during the build phase above.
+  deferredInits.forEach((init) => init());
+}
+
+/**
+ * Merge two arrays of {code, name} region records, deduped by code (the
+ * first occurrence wins). Used to add the override's supplementalRegions
+ * to whatever libaddressinput returned without dropping libaddressinput's
+ * canonical names if a code appears in both.
+ */
+function mergeRegionsByCode(primary, supplemental) {
+  const seen = new Set();
+  const out = [];
+  (primary || []).forEach((r) => {
+    if (!r || !r.code || seen.has(r.code)) return;
+    seen.add(r.code);
+    out.push(r);
+  });
+  (supplemental || []).forEach((r) => {
+    if (!r || !r.code || seen.has(r.code)) return;
+    seen.add(r.code);
+    out.push(r);
+  });
+  return out;
 }
 
 /**

@@ -3961,6 +3961,31 @@ class list_floating_label_component_engine {
   }
 
   /**
+   * Replace the engine's items list with a new array. Updates options.items,
+   * the filtered subset, the dropdown rows, the highlighted row, and
+   * re-runs measureLongestItemWidth so the wrapper resizes to fit the new
+   * longest item. Use this when an upstream control filters the list (e.g.
+   * a Type picker that switches the Region picker between States and
+   * Territories).
+   *
+   * Optionally clears the current input value so the user starts fresh
+   * from the new list.
+   */
+  setItems(newItems, { clearValue = true } = {}) {
+    this.options.items = Array.isArray(newItems) ? newItems.slice() : [];
+    this._filteredItems = this.options.items.slice();
+    this._highlightedIndex = -1;
+    this.populateDropdown(this._filteredItems);
+    if (clearValue && this.element) {
+      this.element.value = '';
+      this._committedValue = '';
+      this.options.value = '';
+      this.updateLabelFloatedState();
+    }
+    this.measureLongestItemWidth();
+  }
+
+  /**
    * Size the wrapper to fit the widest item in the list. Mirrors the
    * collapsed-navbar pattern (handleCollapsedNavbar in dimensions.js):
    * for each item, build a clone of the inner container shape with that
