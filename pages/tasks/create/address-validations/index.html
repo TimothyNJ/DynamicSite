@@ -9,10 +9,11 @@
   </div>
 
   <div class="address-validator__country-row">
-    <label for="address-country-select" class="address-validator__label">Country</label>
-    <select id="address-country-select" class="address-validator__select">
-      <option value="">-- Select a country --</option>
-    </select>
+    <!-- Country picker — list_floating_label_component_engine renders here.
+         Combobox: type to filter, click or Enter to select. The engine
+         provides its own floating label, so the visible-label and
+         <select> markup the prior phase used are no longer needed. -->
+    <div id="address-country-container"></div>
   </div>
 
   <div class="address-validator__fields" id="address-fields-container" aria-live="polite">

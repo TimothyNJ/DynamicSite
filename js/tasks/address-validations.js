@@ -32,6 +32,7 @@
  */
 
 import { COMMON_COUNTRIES, getOverride } from './country-overrides.js';
+import { componentFactory } from '../factory/ComponentFactory.js';
 
 // libaddressinput metadata endpoints (Google's public service, CORS-enabled).
 //
@@ -161,44 +162,30 @@ function buildCountryGroups(allCodes) {
 }
 
 /**
- * Populate the country <select> with the three groups. The pinned US sits
- * directly under the placeholder; the two optgroups follow.
+ * Build a flat, deduped list of country names in display order, plus a
+ * lookup map from name → ISO code. Used to feed the combobox engine
+ * (which works with display strings) while still being able to resolve
+ * the selected name back to the ISO code that libaddressinput needs.
+ *
+ * Order: pinned (US) first, then common (alphabetical), then everything
+ * else (alphabetical), with later groups skipping anything already added
+ * earlier. Combobox typeahead replaces the prior optgroup organisation —
+ * the user filters by typing rather than visually scanning groups.
  */
-function populateCountryDropdown(selectEl, pinned, common, all) {
-  const placeholder = selectEl.querySelector('option[value=""]');
-  selectEl.innerHTML = '';
-  if (placeholder) selectEl.appendChild(placeholder);
-
-  pinned.forEach(({ code, name }) => {
-    const opt = document.createElement('option');
-    opt.value = code;
-    opt.textContent = name;
-    selectEl.appendChild(opt);
-  });
-
-  if (common.length > 0) {
-    const cGroup = document.createElement('optgroup');
-    cGroup.label = 'Common';
-    common.forEach(({ code, name }) => {
-      const opt = document.createElement('option');
-      opt.value = code;
-      opt.textContent = name;
-      cGroup.appendChild(opt);
-    });
-    selectEl.appendChild(cGroup);
-  }
-
-  if (all.length > 0) {
-    const aGroup = document.createElement('optgroup');
-    aGroup.label = 'All Countries';
-    all.forEach(({ code, name }) => {
-      const opt = document.createElement('option');
-      opt.value = code;
-      opt.textContent = name;
-      aGroup.appendChild(opt);
-    });
-    selectEl.appendChild(aGroup);
-  }
+function buildCountryComboboxData(pinned, common, all) {
+  const items = [];
+  const nameToCode = new Map();
+  const seen = new Set();
+  const add = ({ code, name }) => {
+    if (seen.has(name)) return;
+    items.push(name);
+    nameToCode.set(name, code);
+    seen.add(name);
+  };
+  pinned.forEach(add);
+  common.forEach(add);
+  all.forEach(add);
+  return { items, nameToCode };
 }
 
 /**
@@ -533,31 +520,39 @@ function renderFields(container, code, metadata) {
 export async function initializeAddressValidations() {
   console.log('[address-validations] init');
 
-  const selectEl = document.getElementById('address-country-select');
+  const containerEl = document.getElementById('address-country-container');
   const fieldsEl = document.getElementById('address-fields-container');
-  if (!selectEl || !fieldsEl) {
+  if (!containerEl || !fieldsEl) {
     console.error('[address-validations] Required DOM nodes missing.');
     return;
   }
 
-  // 1. Populate the country dropdown.
+  // 1. Fetch the master country list and build the combobox feed.
   const codes = await fetchCountryCodes();
   const { pinned, common, all } = buildCountryGroups(codes);
-  populateCountryDropdown(selectEl, pinned, common, all);
+  const { items, nameToCode } = buildCountryComboboxData(pinned, common, all);
 
-  // 2. Wire the change handler.
-  selectEl.addEventListener('change', async (ev) => {
-    const code = ev.target.value;
-    if (!code) {
-      fieldsEl.innerHTML =
-        '<p class="address-validator__hint">Select a country above to see the correct address fields for that country.</p>';
-      return;
-    }
-
-    fieldsEl.innerHTML = '<p class="address-validator__hint">Loading fields…</p>';
-    const metadata = await fetchCountryMetadata(code);
-    renderFields(fieldsEl, code, metadata);
+  // 2. Render the country picker as a list_floating_label_component_engine
+  //    combobox. The engine handles typeahead filter, keyboard nav, and the
+  //    floating label. Selection callback fires with the country NAME — we
+  //    look up the ISO code for libaddressinput's per-country metadata fetch.
+  componentFactory.createListFloatingLabel('address-country-container', {
+    id: 'address-country-list',
+    label: 'Country',
+    placeholder: 'Country',
+    items,
+    onChange: async (name) => {
+      const code = nameToCode.get(name);
+      if (!code) {
+        fieldsEl.innerHTML =
+          '<p class="address-validator__hint">Select a country above to see the correct address fields for that country.</p>';
+        return;
+      }
+      fieldsEl.innerHTML = '<p class="address-validator__hint">Loading fields…</p>';
+      const metadata = await fetchCountryMetadata(code);
+      renderFields(fieldsEl, code, metadata);
+    },
   });
 
-  console.log(`[address-validations] ready — pinned=${pinned.length} common=${common.length} all=${all.length}`);
+  console.log(`[address-validations] ready — ${items.length} countries available via combobox`);
 }
