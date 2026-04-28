@@ -3494,21 +3494,33 @@ class list_floating_label_component_engine {
     this.innerContainer = document.createElement('div');
     this.innerContainer.className = 'text-input-inner text-input-inner--floating-label';
 
-    // The "display" element. NOT an <input> — a focusable <div> showing
-    // the currently-selected item's text. tabindex=0 lets it receive
-    // keyboard focus so the existing focus/blur border animations still
-    // apply unchanged. role=combobox + aria-expanded keep it accessible.
-    // A custom `value` property is set on the div so the parent class's
-    // updateLabelFloatedState() (which checks this.element.value) keeps
-    // working without modification.
-    this.element = document.createElement('div');
+    // The field is a real <input type="text"> — combobox pattern. The user
+    // can type to filter the dropdown OR click to browse the full list.
+    // Using an <input> rather than a <div> means we get natural element
+    // height baked in by the browser (no empty-div collapse problem) and
+    // free typing-with-caret behavior. role=combobox + aria-* keep it
+    // accessible. autocomplete=off disables browser autofill so it doesn't
+    // fight our own list. Strict mode (default) validates on blur — if the
+    // typed text doesn't match an item, the field reverts to last selection.
+    this.element = document.createElement('input');
+    this.element.type = 'text';
     this.element.id = this.options.id;
+    this.element.name = this.options.name;
     this.element.className = 'dynamic-text-input dynamic-text-input--floating-label dynamic-list-display';
     this.element.setAttribute('role', 'combobox');
     this.element.setAttribute('aria-expanded', 'false');
-    this.element.setAttribute('tabindex', '0');
-    this.element.textContent = this.options.value || '';
+    this.element.setAttribute('aria-autocomplete', 'list');
+    this.element.setAttribute('autocomplete', 'off');
+    this.element.placeholder = '';  // floating label handles the placeholder role
     this.element.value = this.options.value || '';
+    // Track the canonical "committed" value separately from the input's
+    // current text — the input may show partial typing, but _committedValue
+    // is the last item the user actually selected.
+    this._committedValue = this.options.value || '';
+    // Highlighted index for keyboard navigation through dropdown rows.
+    this._highlightedIndex = -1;
+    // Current filtered subset of items (full list when no filter active).
+    this._filteredItems = (this.options.items || []).slice();
 
     this.innerContainer.appendChild(this.element);
     this.wrapper.appendChild(this.innerContainer);
@@ -3997,13 +4009,14 @@ class list_floating_label_component_engine {
   }
 
   /**
-   * Set the selected item: update display text + value, float the
-   * label, close the dropdown, fire the change handler.
+   * Commit a selection: update the input's value, the canonical
+   * _committedValue, float the label, close the dropdown, fire the
+   * change handler, persist to localStorage if configured.
    */
   selectItem(value) {
     this.options.value = value;
+    this._committedValue = value;
     if (this.element) {
-      this.element.textContent = value;
       this.element.value = value;
     }
     this.updateLabelFloatedState();
@@ -4030,41 +4043,178 @@ class list_floating_label_component_engine {
 
   toggleDropdown() {
     if (!this.dropdownElement) return;
-    if (this.dropdownElement.classList.contains('dynamic-list-dropdown--open')) {
+    if (this.isDropdownOpen()) {
       this.closeDropdown();
     } else {
       this.openDropdown();
     }
   }
 
+  isDropdownOpen() {
+    return !!(this.dropdownElement
+      && this.dropdownElement.classList.contains('dynamic-list-dropdown--open'));
+  }
+
   /**
-   * Wire click-to-toggle / click-item-to-select / click-outside-to-close
-   * + keyboard support (Enter/Space/ArrowDown opens, Escape closes) +
-   * focus/blur for the floating label state.
+   * Filter the dropdown rows down to items that case-insensitively
+   * contain the query string. Empty query restores the full list.
+   * Resets the highlighted row to the first match.
+   */
+  filterItems(query) {
+    const items = this.options.items || [];
+    const q = (query || '').trim().toLowerCase();
+    this._filteredItems = q
+      ? items.filter(item => String(item).toLowerCase().includes(q))
+      : items.slice();
+    this.populateDropdown(this._filteredItems);
+    this._highlightedIndex = this._filteredItems.length > 0 ? 0 : -1;
+    this.applyHighlight();
+  }
+
+  /**
+   * Move the keyboard-navigation highlight by `delta` rows (1 = down,
+   * -1 = up). Wraps at top/bottom.
+   */
+  moveHighlight(delta) {
+    const items = this._filteredItems || [];
+    if (items.length === 0) {
+      this._highlightedIndex = -1;
+      return;
+    }
+    let next = this._highlightedIndex + delta;
+    if (next < 0) next = items.length - 1;
+    if (next >= items.length) next = 0;
+    this._highlightedIndex = next;
+    this.applyHighlight();
+  }
+
+  /**
+   * Apply the --highlighted class to the row at _highlightedIndex,
+   * remove it from all others, and scroll the highlighted row into view.
+   */
+  applyHighlight() {
+    if (!this.dropdownElement) return;
+    const rows = this.dropdownElement.querySelectorAll('.dynamic-list-item');
+    rows.forEach((row, idx) => {
+      if (idx === this._highlightedIndex) {
+        row.classList.add('dynamic-list-item--highlighted');
+        row.scrollIntoView({ block: 'nearest' });
+      } else {
+        row.classList.remove('dynamic-list-item--highlighted');
+      }
+    });
+  }
+
+  /**
+   * On blur, decide what to do with the typed value. Strict mode
+   * (default) requires an exact case-insensitive match against an item;
+   * if no match, revert to the last committed value. Non-strict mode
+   * accepts any typed text as the new committed value.
+   */
+  validateOnBlur() {
+    if (!this.element) return;
+    const strict = this.options.strict !== false;
+    const typed = (this.element.value || '').trim();
+
+    if (!strict) {
+      this._committedValue = typed;
+      this.options.value = typed;
+      return;
+    }
+
+    if (typed === '') {
+      this._committedValue = '';
+      this.options.value = '';
+      return;
+    }
+
+    const items = this.options.items || [];
+    const exactMatch = items.find(item =>
+      String(item).toLowerCase() === typed.toLowerCase()
+    );
+    if (exactMatch) {
+      this.selectItem(exactMatch);
+    } else {
+      // No match — revert to the last committed value and restore full list
+      this.element.value = this._committedValue || '';
+      this.populateDropdown(this.options.items || []);
+      this._filteredItems = (this.options.items || []).slice();
+    }
+  }
+
+  /**
+   * Combobox-style event wiring:
+   *   - focus / click → open the dropdown (filtered by current input)
+   *   - input         → filter dropdown rows as the user types
+   *   - keydown       → arrow keys move highlight, Enter commits highlighted,
+   *                     Escape closes
+   *   - mousedown on item → commit (mousedown not click so it fires before blur)
+   *   - blur          → validateOnBlur reverts or accepts based on strict mode
+   *   - outside click → close the dropdown
    */
   setupListEventListeners() {
     if (!this.element || !this.dropdownElement || !this.wrapper) return;
 
-    this.element.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.toggleDropdown();
+    this.element.addEventListener('focus', () => {
+      this.openDropdown();
+      this.filterItems(this.element.value);
+      this.updateLabelFloatedState();
     });
 
-    this.element.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-        e.preventDefault();
+    this.element.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!this.isDropdownOpen()) {
         this.openDropdown();
-      } else if (e.key === 'Escape') {
-        this.closeDropdown();
+        this.filterItems(this.element.value);
       }
     });
 
-    this.dropdownElement.addEventListener('click', (e) => {
+    this.element.addEventListener('input', () => {
+      if (!this.isDropdownOpen()) this.openDropdown();
+      this.filterItems(this.element.value);
+      this.updateLabelFloatedState();
+    });
+
+    this.element.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!this.isDropdownOpen()) this.openDropdown();
+        this.moveHighlight(1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        this.moveHighlight(-1);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const items = this._filteredItems || [];
+        if (this._highlightedIndex >= 0 && items[this._highlightedIndex] != null) {
+          this.selectItem(items[this._highlightedIndex]);
+        } else if (items.length === 1) {
+          this.selectItem(items[0]);
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        this.closeDropdown();
+        this.element.blur();
+      }
+    });
+
+    // mousedown not click — fires before the input's blur, so the row
+    // selection commits before validateOnBlur could revert it.
+    this.dropdownElement.addEventListener('mousedown', (e) => {
       const row = e.target.closest('.dynamic-list-item');
       if (!row) return;
-      e.stopPropagation();
+      e.preventDefault();  // keep focus on the input
       const value = row.getAttribute('data-value');
       this.selectItem(value);
+    });
+
+    // Blur: validate (strict mode) or accept (free-form). Tiny delay so
+    // any in-flight click handlers have a chance to commit first.
+    this.element.addEventListener('blur', () => {
+      setTimeout(() => {
+        this.validateOnBlur();
+        this.updateLabelFloatedState();
+      }, 0);
     });
 
     // Outside click closes the dropdown. Stored on `this` so destroy()
@@ -4075,11 +4225,6 @@ class list_floating_label_component_engine {
       }
     };
     document.addEventListener('click', this._outsideClickHandler);
-
-    // Floating label state — same idiom as the parent floating-label engine.
-    const updateFloated = () => this.updateLabelFloatedState();
-    this.element.addEventListener('focus', updateFloated);
-    this.element.addEventListener('blur', updateFloated);
   }
 
   /**

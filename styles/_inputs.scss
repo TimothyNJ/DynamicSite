@@ -153,10 +153,12 @@
 // dropdown panel below the wrapper, click an item to select.
 // ──────────────────────────────────────────────────────────────────────
 
-// The display div: cursor signals it's clickable, no text caret.
+// The display field is now a real <input type="text"> — combobox pattern.
+// User can type to filter the dropdown OR click to browse the full list.
+// Inputs have natural element height baked in by the browser, so no
+// empty-element collapse problem. Only thing we need here is the
+// outline reset (the animated colored borders are the focus indicator).
 .dynamic-list-display {
-  cursor: pointer;
-  user-select: none;
   outline: none;
 }
 
@@ -197,6 +199,13 @@
   &:focus {
     background: rgba(255, 255, 255, 0.1);
   }
+}
+
+// Keyboard-navigation highlight on the dropdown row at _highlightedIndex.
+// Slightly stronger than :hover so keyboard users see clearly which row
+// will be committed by Enter.
+.dynamic-list-item--highlighted {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 // ==============================================
