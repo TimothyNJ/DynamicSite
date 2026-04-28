@@ -178,10 +178,14 @@ function buildCountryComboboxData(pinned, _common, all) {
   const nameToCode = new Map();
   const seen = new Set();
   const add = ({ code, name }) => {
-    if (seen.has(name)) return;
-    items.push(name);
-    nameToCode.set(name, code);
-    seen.add(name);
+    if (seen.has(code)) return;  // dedupe by code (canonical) not by name
+    // Append the ISO code in parens so it's visible AND filterable —
+    // typing 'nz' or 'uk' matches because the substring is in the
+    // displayed text. Format: 'New Zealand (NZ)'.
+    const display = `${name} (${code})`;
+    items.push(display);
+    nameToCode.set(display, code);
+    seen.add(code);
   };
   pinned.forEach(add);
   all.forEach(add);  // already alphabetical from buildCountryGroups
