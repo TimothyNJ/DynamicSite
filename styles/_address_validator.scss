@@ -28,6 +28,11 @@
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+    // The list_floating_label_component_engine renders an inline-flex
+    // wrapper. Without text-align: center it sits at its natural left
+    // position inside this row; with it the wrapper centers horizontally
+    // (inline-flex responds to text-align like inline content).
+    text-align: center;
   }
 
   &__label,
