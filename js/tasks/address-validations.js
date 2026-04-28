@@ -453,17 +453,75 @@ function renderFields(container, code, metadata) {
   const form = document.createElement('div');
   form.className = 'address-validator__form';
 
-  // 1. Region — dropdown if values exist, text otherwise.
+  // Region combobox setup is captured here so the engine can be initialized
+  // AFTER the form is appended to the container (engine needs its mount
+  // point to be in the DOM for getComputedStyle / width measurement to work).
+  let regionComboboxInit = null;
+
+  // 1. Region — combobox if subdivisions exist (libaddressinput or seeded),
+  //    free-form text input otherwise.
   if (show.region) {
-    const control = makeRegionControl(metadata, override);
+    const subdivisions = (metadata && metadata.subdivisions) || [];
+    const seeded = (override && Array.isArray(override.regions)) ? override.regions : [];
+    const values = subdivisions.length > 0 ? subdivisions : seeded;
     const regionRequired = isRequired(metadata, 'S');
-    form.appendChild(makeRow({
-      id:       'addr-field-region',
-      label:    labels.region,
-      required: regionRequired,
-      control
-    }));
-    attachValidator(control, makeRequiredValidator(regionRequired));
+
+    if (values.length > 0) {
+      // Subdivisions available → use the combobox engine. Build a placeholder
+      // row in the form; the engine renders into the placeholder once the
+      // form is mounted.
+      const placeholderId = 'addr-region-combobox-container';
+      const row = document.createElement('div');
+      row.className = 'address-validator__row';
+      const cell = document.createElement('div');
+      cell.className = 'address-validator__cell';
+      const placeholder = document.createElement('div');
+      placeholder.id = placeholderId;
+      cell.appendChild(placeholder);
+      row.appendChild(cell);
+      form.appendChild(row);
+
+      // Flat deduped list of region names + name→code map (same pattern as
+      // the country picker — engine works in display strings, we keep the
+      // ISO code separately for any downstream consumer that needs it).
+      const items = [];
+      const nameToCode = new Map();
+      const seen = new Set();
+      values
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .forEach(({ code: rcode, name }) => {
+          if (seen.has(name)) return;
+          items.push(name);
+          nameToCode.set(name, rcode);
+          seen.add(name);
+        });
+
+      const labelText = regionRequired ? `${labels.region} *` : labels.region;
+      regionComboboxInit = () => {
+        componentFactory.createListFloatingLabel(placeholderId, {
+          id: 'addr-field-region',
+          label: labelText,
+          placeholder: labels.region,
+          items,
+          onChange: (_name) => {
+            // Strict-mode combobox guarantees value is always a valid region
+            // (or empty). Required validation by selection: if we ever need
+            // an "is empty" check on submit, read the engine's value then.
+          },
+        });
+      };
+    } else {
+      // No subdivisions → free-form text input via the existing makeRow flow.
+      const control = makeRegionControl(metadata, override);
+      form.appendChild(makeRow({
+        id:       'addr-field-region',
+        label:    labels.region,
+        required: regionRequired,
+        control,
+      }));
+      attachValidator(control, makeRequiredValidator(regionRequired));
+    }
   }
 
   // 2. District / county / council — only when the override defines it.
@@ -511,6 +569,11 @@ function renderFields(container, code, metadata) {
   }
 
   container.appendChild(form);
+
+  // Engine-backed fields render after mount so getComputedStyle on their
+  // wrappers reads real values (the engine measures the longest-item width
+  // at construction). Currently only region uses this pattern.
+  if (regionComboboxInit) regionComboboxInit();
 }
 
 /**
