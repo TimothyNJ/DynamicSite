@@ -4025,18 +4025,22 @@ class list_floating_label_component_engine {
     // Cursor buffer matches the floating-label engine so the caret has
     // visual breathing room when the user types in the combobox input.
     const cursorBuffer = 20;
-    const desiredWidth = maxWidth + cursorBuffer;
+    const finalWidth = maxWidth + cursorBuffer;
 
-    const containerWidth = this.wrapper.parentElement
-      ? this.wrapper.parentElement.offsetWidth
-      : Infinity;
-    const finalWidth = Math.min(desiredWidth, containerWidth);
-
+    // No JS-side cap on parent.offsetWidth here. The wrapper's parent in
+    // .sidenav-content (and other flex-column containers with align-items:
+    // center) shrinks to fit its content, so reading parent.offsetWidth
+    // would just give us back our own previously-set width — a circular
+    // dependency that locked the field to whatever it happened to be on
+    // the first frame. The wrapper's CSS max-width: 100% caps it against
+    // the actual flex container's available width when needed — and "100%"
+    // in flex context resolves against the flex container, not the
+    // shrunk-to-content immediate parent.
     this.wrapper.style.width = `${finalWidth}px`;
     this.wrapper.style.flex = '0 1 auto';
     this.wrapper.style.maxWidth = '100%';
 
-    console.log(`[measureLongestItemWidth] candidates=${candidates.length}, maxWidth=${maxWidth}px, desired=${desiredWidth}px, container=${containerWidth}px, final=${finalWidth}px`);
+    console.log(`[measureLongestItemWidth] candidates=${candidates.length}, maxWidth=${maxWidth}px, final=${finalWidth}px`);
   }
 
   /**
