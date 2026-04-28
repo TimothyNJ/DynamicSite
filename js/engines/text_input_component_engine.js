@@ -15,6 +15,7 @@
  */
 
 import { globalMouseTracker } from '../core/mouse-tracker.js';
+import { measureRenderedWidths } from '../core/measure-rendered-width.js';
 
 class text_input_component_engine {
   constructor(options = {}, changeHandler = null) {
@@ -3960,42 +3961,72 @@ class list_floating_label_component_engine {
   }
 
   /**
-   * Measure each item's rendered width using the hidden helper element
-   * (which inherits the same h4 font as the display via the CSS
-   * --floating-label modifier), find the max, set the wrapper width.
-   * Capped at the parent container's width so the field shrinks
-   * gracefully when there isn't space for the longest item.
+   * Size the wrapper to fit the widest item in the list. Mirrors the
+   * collapsed-navbar pattern (handleCollapsedNavbar in dimensions.js):
+   * for each item, build a clone of the inner container shape with that
+   * item's text inside, measure the clone's natural rendered offsetWidth
+   * via the shared measureRenderedWidths utility, take the max.
+   *
+   * Why a clone of the inner container? It carries the exact same padding,
+   * border, and box-sizing as the real one, so the offsetWidth reading
+   * already includes all the chrome — no manual padding-summation math
+   * that can drift out of sync with the CSS.
+   *
+   * The measured "candidates" include the floating label text in addition
+   * to all items, because at rest the label sits centered inside the field
+   * and the wrapper must be wide enough to fit it.
+   *
+   * Capped at the parent container's width so the field shrinks gracefully
+   * when the parent doesn't have room for the longest item.
    */
   measureLongestItemWidth() {
-    if (!this.element || !this.widthState.measureElement || !this.wrapper) return;
-    this.refreshMeasurementStyles();
+    if (!this.element || !this.innerContainer || !this.wrapper) return;
 
-    const cs = window.getComputedStyle(this.element);
-    const ics = window.getComputedStyle(this.innerContainer);
-    const padL = parseFloat(cs.paddingLeft) || 0;
-    const padR = parseFloat(cs.paddingRight) || 0;
-    const innerL = parseFloat(ics.paddingLeft) || 0;
-    const innerR = parseFloat(ics.paddingRight) || 0;
-    const totalPadding = padL + padR + innerL + innerR;
-    const breath = 8;  // small breathing room beyond the longest item
+    // Snapshot the actual input's computed font properties so the span
+    // we put inside each clone renders text at exactly the same metrics.
+    const inputCS = window.getComputedStyle(this.element);
+    const fontProps = {
+      fontFamily: inputCS.fontFamily,
+      fontSize: inputCS.fontSize,
+      fontWeight: inputCS.fontWeight,
+      fontStyle: inputCS.fontStyle,
+      letterSpacing: inputCS.letterSpacing,
+      textTransform: inputCS.textTransform,
+      lineHeight: inputCS.lineHeight,
+    };
 
-    const items = this.options.items || [];
-    let maxItemWidth = 0;
-    items.forEach(item => {
-      this.widthState.measureElement.textContent = item;
-      const w = this.widthState.measureElement.offsetWidth;
-      if (w > maxItemWidth) maxItemWidth = w;
-    });
+    // Candidates to measure: the label text (so the field fits its label
+    // at rest) plus every selectable item.
+    const candidates = [
+      this.labelElement && this.labelElement.textContent,
+      ...(this.options.items || []),
+    ].filter(Boolean);
 
-    // Floating label at rest sits centered inside the field at full h4
-    // size; field must be at least as wide as the label or it crops.
-    if (this.labelElement && this.labelElement.textContent) {
-      this.widthState.measureElement.textContent = this.labelElement.textContent;
-      const labelW = this.widthState.measureElement.offsetWidth;
-      if (labelW > maxItemWidth) maxItemWidth = labelW;
-    }
+    // Factory: clone the inner container shallow (we don't want the
+    // real input — it has width: 100% and won't size to content), give
+    // the clone an explicit `width: auto` so it sizes to its child, then
+    // drop in a span carrying the item text styled with the input's font.
+    const innerClone = this.innerContainer.cloneNode(false);
+    innerClone.style.width = 'auto';
 
-    const desiredWidth = maxItemWidth + totalPadding + breath;
+    const factoryFn = (text) => {
+      const wrapper = innerClone.cloneNode(false);
+      wrapper.style.width = 'auto';
+      const span = document.createElement('span');
+      Object.assign(span.style, fontProps);
+      span.style.whiteSpace = 'pre';
+      span.textContent = text;
+      wrapper.appendChild(span);
+      return wrapper;
+    };
+
+    const { maxWidth } = measureRenderedWidths(candidates, factoryFn);
+
+    // Cursor buffer matches the floating-label engine so the caret has
+    // visual breathing room when the user types in the combobox input.
+    const cursorBuffer = 20;
+    const desiredWidth = maxWidth + cursorBuffer;
+
     const containerWidth = this.wrapper.parentElement
       ? this.wrapper.parentElement.offsetWidth
       : Infinity;
@@ -4005,7 +4036,7 @@ class list_floating_label_component_engine {
     this.wrapper.style.flex = '0 1 auto';
     this.wrapper.style.maxWidth = '100%';
 
-    console.log(`[measureLongestItemWidth] longest: ${maxItemWidth}px, padding: ${totalPadding}px, container: ${containerWidth}px, final: ${finalWidth}px`);
+    console.log(`[measureLongestItemWidth] candidates=${candidates.length}, maxWidth=${maxWidth}px, desired=${desiredWidth}px, container=${containerWidth}px, final=${finalWidth}px`);
   }
 
   /**
