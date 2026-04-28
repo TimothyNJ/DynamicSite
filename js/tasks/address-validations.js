@@ -491,96 +491,54 @@ function renderFields(container, code, metadata) {
     const categories = override && override.subdivisionCategories;
 
     if (categories && allValues.length > 0) {
-      // (a) Type slider + Region combobox two-step picker.
-      const typePlaceholderId = 'addr-region-type-container';
-      const regionPlaceholderId = 'addr-region-combobox-container';
+      // (a) Single Region combobox with visual section separators
+      // between the categories. The empty-string '' between groups is
+      // the engine's separator sentinel — renders as a blank row,
+      // skipped by filter / keyboard nav / selection.
+      const placeholderId = 'addr-region-combobox-container';
+      const row = document.createElement('div');
+      row.className = 'address-validator__row address-validator__row--combobox';
+      const cell = document.createElement('div');
+      cell.className = 'address-validator__cell';
+      const placeholder = document.createElement('div');
+      placeholder.id = placeholderId;
+      cell.appendChild(placeholder);
+      row.appendChild(cell);
+      form.appendChild(row);
 
-      // Type row — slider_component_engine. Horizontal pill selector
-      // showing all 4 group names; user clicks one to switch the
-      // Region picker's item set.
-      const typeRow = document.createElement('div');
-      typeRow.className = 'address-validator__row address-validator__row--combobox';
-      const typeCell = document.createElement('div');
-      typeCell.className = 'address-validator__cell';
-      const typePh = document.createElement('div');
-      typePh.id = typePlaceholderId;
-      typeCell.appendChild(typePh);
-      typeRow.appendChild(typeCell);
-      form.appendChild(typeRow);
-
-      // Region row — combobox.
-      const regionRow = document.createElement('div');
-      regionRow.className = 'address-validator__row address-validator__row--combobox';
-      const regionCell = document.createElement('div');
-      regionCell.className = 'address-validator__cell';
-      const regionPh = document.createElement('div');
-      regionPh.id = regionPlaceholderId;
-      regionCell.appendChild(regionPh);
-      regionRow.appendChild(regionCell);
-      form.appendChild(regionRow);
-
-      // Build per-category items list. Region rows display as
-      // 'Name (CODE)' — same idiom as the country picker, so typing
-      // 'tx' matches Texas, 'ca' matches California, etc. The CODE is
-      // the canonical identifier; the displayed string composes both.
+      // Build per-group display lists in the order declared by the
+      // override. Each item is 'Name (CODE)'.
       const codeToName = new Map();
       allValues.forEach(({ code: rcode, name }) => codeToName.set(rcode, name));
-      const itemsByGroup = {};
-      categories.groups.forEach((g) => {
-        itemsByGroup[g.name] = g.codes
+      const groupedItems = categories.groups.map((g) =>
+        g.codes
           .map((c) => {
             const name = codeToName.get(c);
             return name ? `${name} (${c})` : null;
           })
           .filter(Boolean)
-          .sort((a, b) => a.localeCompare(b));
+          .sort((a, b) => a.localeCompare(b))
+      );
+
+      // Flatten with empty-string separators between non-empty groups.
+      // No separators at start/end and no double-separators in a row.
+      const items = [];
+      groupedItems.forEach((groupList, idx) => {
+        if (groupList.length === 0) return;
+        if (items.length > 0) items.push('');  // separator
+        items.push(...groupList);
       });
 
-      // Default-active group: the first one declared in the override
-      // (typically "States" for US — covers ~99% of the user base, so
-      // the region picker is immediately useful without forcing a click).
-      const defaultGroupName = categories.groups[0] && categories.groups[0].name;
-      const defaultGroupItems = itemsByGroup[defaultGroupName] || [];
-
-      // Slider options: one per category group, with the first marked
-      // active so the region combobox can initialise non-empty.
-      const typeOptions = categories.groups.map((g, idx) => ({
-        text: g.name,
-        value: g.name,
-        position: idx + 1,
-        ...(idx === 0 ? { active: true } : {}),
-      }));
-
-      // Defer the engine inits — region engine handle is captured in
-      // closure so the type slider's onChange can call setItems on it.
       deferredInits.push(() => {
-        const regionEngine = componentFactory.createListFloatingLabel(regionPlaceholderId, {
+        componentFactory.createListFloatingLabel(placeholderId, {
           id: 'addr-field-region',
           label: labels.region,
           placeholder: labels.region,
-          items: defaultGroupItems,
+          items,
           onChange: (_name) => {
-            // Strict-mode commits one of the items in the current Type's
-            // subset. Read regionEngine.options.value at submit time if
-            // required-validation matters.
+            // Strict-mode commits one item from the grouped list.
+            // Read engine.options.value at submit time for required check.
           },
-        });
-
-        // Slider onChange callback receives the selected option element;
-        // its inner <h3> holds the option text (the group name).
-        componentFactory.createSlider({
-          containerId: typePlaceholderId,
-          sliderClass: 'addr-region-type-slider',
-          options: typeOptions,
-        }, (selectedOption) => {
-          const h3 = selectedOption && selectedOption.querySelector
-            ? selectedOption.querySelector('h3')
-            : null;
-          const groupName = h3 ? h3.textContent : null;
-          const next = itemsByGroup[groupName] || [];
-          if (regionEngine && typeof regionEngine.setItems === 'function') {
-            regionEngine.setItems(next);
-          }
         });
       });
     } else if (allValues.length > 0) {

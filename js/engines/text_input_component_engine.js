@@ -3951,11 +3951,22 @@ class list_floating_label_component_engine {
     this.dropdownElement.innerHTML = '';
     items.forEach((item, idx) => {
       const row = document.createElement('div');
-      row.className = 'dynamic-list-item';
-      row.setAttribute('role', 'option');
-      row.setAttribute('data-value', item);
-      row.setAttribute('data-index', String(idx));
-      row.textContent = item;
+      if (item === '') {
+        // Empty-string items render as non-selectable visual separators
+        // — used by consumers (e.g. the address validator's region list)
+        // to introduce blank-row group breaks between sections of items.
+        // Click selection, keyboard highlight, filter, width measurement,
+        // and strict-mode commit all skip these.
+        row.className = 'dynamic-list-item dynamic-list-item--separator';
+        row.setAttribute('aria-hidden', 'true');
+        row.setAttribute('data-index', String(idx));
+      } else {
+        row.className = 'dynamic-list-item';
+        row.setAttribute('role', 'option');
+        row.setAttribute('data-value', item);
+        row.setAttribute('data-index', String(idx));
+        row.textContent = item;
+      }
       this.dropdownElement.appendChild(row);
     });
   }
@@ -4143,17 +4154,20 @@ class list_floating_label_component_engine {
     const q = (query || '').trim().toLowerCase();
 
     if (!q) {
+      // Empty query: keep separators visible (they punctuate the
+      // unfiltered list into sections).
       this._filteredItems = items.slice();
     } else {
       const codeMatches = [];
       const prefixMatches = [];
 
       for (const item of items) {
+        if (item === '') continue;  // separators never match a query
         const text = String(item);
         // Extract the code(s) from a trailing "(CODE)" or "(ALIAS/CODE)"
         // suffix, if present. Multiple codes are separated by '/' so an
-        // item can declare informal aliases (e.g. 'United Kingdom (UK/GB)'
-        // — typing either 'uk' or 'gb' should match).
+        // item can declare informal aliases (e.g. 'United Kingdom (GB/UK)'
+        // — typing either 'gb' or 'uk' should match).
         const m = text.match(/\(([^)]+)\)\s*$/);
         const codes = m
           ? m[1].split('/').map((c) => c.trim().toLowerCase()).filter(Boolean)
@@ -4177,7 +4191,14 @@ class list_floating_label_component_engine {
     }
 
     this.populateDropdown(this._filteredItems);
-    this._highlightedIndex = this._filteredItems.length > 0 ? 0 : -1;
+    // Initial highlight: first non-separator item in the filtered list.
+    this._highlightedIndex = -1;
+    for (let i = 0; i < this._filteredItems.length; i++) {
+      if (this._filteredItems[i] !== '') {
+        this._highlightedIndex = i;
+        break;
+      }
+    }
     this.applyHighlight();
   }
 
@@ -4191,10 +4212,17 @@ class list_floating_label_component_engine {
       this._highlightedIndex = -1;
       return;
     }
-    let next = this._highlightedIndex + delta;
-    if (next < 0) next = items.length - 1;
-    if (next >= items.length) next = 0;
-    this._highlightedIndex = next;
+    // Step until we land on a non-separator item. Bound the loop by
+    // items.length so an all-separator list (shouldn't happen) doesn't
+    // spin forever.
+    let next = this._highlightedIndex;
+    for (let i = 0; i < items.length; i++) {
+      next += delta;
+      if (next < 0) next = items.length - 1;
+      if (next >= items.length) next = 0;
+      if (items[next] !== '') break;
+    }
+    this._highlightedIndex = items[next] === '' ? -1 : next;
     this.applyHighlight();
   }
 
@@ -4310,9 +4338,11 @@ class list_floating_label_component_engine {
 
     // mousedown not click — fires before the input's blur, so the row
     // selection commits before validateOnBlur could revert it.
+    // Separator rows (.dynamic-list-item--separator) are excluded —
+    // they have no data-value and shouldn't trigger selection.
     this.dropdownElement.addEventListener('mousedown', (e) => {
       const row = e.target.closest('.dynamic-list-item');
-      if (!row) return;
+      if (!row || row.classList.contains('dynamic-list-item--separator')) return;
       e.preventDefault();  // keep focus on the input
       const value = row.getAttribute('data-value');
       this.selectItem(value);
