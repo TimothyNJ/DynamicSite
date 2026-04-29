@@ -28,19 +28,20 @@
  *              (`/push-font-variables`, `/revert-font-variables`),
  *              security settings (`/push-security-config`).
  *
- *              prod     -> api.dynamicsite.io
+ *              prod     -> auth.dynamicsite.io
  *              dev      -> auth-dev.dynamicsite.io
  *              sandbox  -> auth-sandbox.dynamicsite.io
  *
  *   PLACES_API OCI VM tier — address-data autocomplete (`/v1/places/*`).
  *
+ *              prod     -> api.dynamicsite.io
  *              dev      -> api-dev.dynamicsite.io
  *              sandbox  -> api-sandbox.dynamicsite.io
- *              prod     -> api.dynamicsite.io   (migration pending —
- *                          this hostname is currently the AWS API
- *                          Gateway. Until the prod CNAME is migrated
- *                          off AWS to the OCI VM, prod's address
- *                          validator falls back to the AWS host.)
+ *
+ * Naming pattern (all envs symmetric):
+ *   auth-*    = AWS auth tier
+ *   api-*     = Oracle data tier
+ *   no suffix = the prod variant of either tier
  *
  * The two families are intentionally separate. AWS handles the
  * lightweight admin/auth surface where serverless makes sense. OCI
@@ -76,20 +77,27 @@ export const ENV = _env;
  * AWS API Gateway base URL for this environment.
  * Each environment has its own API Gateway + Lambda function so a code
  * push to dev's Lambda cannot affect prod's auth flow.
+ *
+ * Naming: prod uses the bare `auth.dynamicsite.io` (one label deep so
+ * Cloudflare's free Universal SSL covers it without a wildcard). dev
+ * and sandbox use `auth-{env}.dynamicsite.io`.
  */
 export const AUTH_API =
   ENV === 'prod'
-    ? 'https://api.dynamicsite.io'
+    ? 'https://auth.dynamicsite.io'
     : `https://auth-${ENV}.dynamicsite.io`;
 
 /**
  * OCI VM base URL for this environment (address-data autocomplete).
- * NOTE: prod still resolves to api.dynamicsite.io which currently
- * points at AWS API Gateway, not the OCI VM. The prod CNAME migration
- * is tracked separately. Until then, calling PLACES_API in prod will
- * hit AWS and likely 404 — the address validator should detect ENV
- * and gracefully fall back to libaddressinput when ENV === 'prod'
- * until the migration completes.
+ *
+ * Naming: prod uses bare `api.dynamicsite.io` (one label deep). dev
+ * and sandbox use `api-{env}.dynamicsite.io`.
+ *
+ * NOTE: prod's `api.dynamicsite.io` is in transition. Until the OCI
+ * prod VM has Let's Encrypt issued for this hostname and Cloudflare
+ * DNS is repointed at it, calls to PLACES_API from prod will fail.
+ * The address validator should detect ENV and fall back to
+ * libaddressinput when prod's PLACES_API is unreachable.
  */
 export const PLACES_API =
   ENV === 'prod'
