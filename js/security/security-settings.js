@@ -14,8 +14,12 @@
  */
 
 import { getAccessToken, isAuthenticated, refreshToken, isTokenExpired } from '../auth/zitadel-auth.js';
+import { AUTH_API } from '../core/env.js';
 
-const API_BASE = 'https://api.dynamicsite.io';
+// Per-environment API Gateway, resolved by core/env.js based on the
+// current hostname. dev → auth-dev.dynamicsite.io, sandbox →
+// auth-sandbox.dynamicsite.io, prod → api.dynamicsite.io.
+const API_BASE = AUTH_API;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

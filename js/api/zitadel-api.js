@@ -7,13 +7,19 @@
  * user's access token for authentication — the service account
  * key never leaves the server.
  *
- * Proxy endpoint: https://api.dynamicsite.io (API Gateway)
- * Fallback:       https://f66js2zjm8.execute-api.us-west-2.amazonaws.com/prod
+ * Proxy endpoint, per environment (resolved via core/env.js):
+ *   prod     -> https://api.dynamicsite.io           (API Gateway prod)
+ *   dev      -> https://auth-dev.dynamicsite.io      (API Gateway dev)
+ *   sandbox  -> https://auth-sandbox.dynamicsite.io  (API Gateway sandbox)
+ *
+ * Each environment has its own API Gateway + Lambda function so a code
+ * push to dev's Lambda cannot affect prod's auth flow.
  */
 
 import { getAccessToken, isAuthenticated, refreshToken, isTokenExpired } from '../auth/zitadel-auth.js';
+import { AUTH_API } from '../core/env.js';
 
-const API_BASE = 'https://api.dynamicsite.io';
+const API_BASE = AUTH_API;
 
 // ─── Authenticated Fetch ─────────────────────────────────────────────────────
 
