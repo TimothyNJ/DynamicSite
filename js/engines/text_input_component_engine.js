@@ -4244,6 +4244,33 @@ class list_floating_label_component_engine {
   }
 
   /**
+   * When the dropdown reopens on a field that already has a committed
+   * value (e.g. user picked Germany earlier and clicked back into the
+   * field), set the keyboard highlight to that committed item and scroll
+   * it to the CENTER of the viewport — like a native <select> does. The
+   * surrounding rows (neighboring countries) become visible too, so the
+   * user can scan around the current selection.
+   *
+   * Called from the focus / click handlers after filterItems(''). No-op
+   * if there is no committed value, or if the committed value isn't in
+   * the current filtered list (which can only happen if items changed
+   * between commit and reopen — should be rare).
+   */
+  highlightCommittedValue() {
+    if (!this.dropdownElement || !this._committedValue) return;
+    const idx = (this._filteredItems || []).indexOf(this._committedValue);
+    if (idx < 0) return;
+    this._highlightedIndex = idx;
+    this.applyHighlight();
+    // applyHighlight scrolls with { block: 'nearest' } — that's right for
+    // arrow-key navigation (don't move the viewport unnecessarily) but
+    // wrong for the open-on-populated-field case, where we want the row
+    // centered. Override with a second scroll on the same element.
+    const row = this.dropdownElement.querySelector('.dynamic-list-item--highlighted');
+    if (row) row.scrollIntoView({ block: 'center' });
+  }
+
+  /**
    * On blur, decide what to do with the typed value. Strict mode
    * (default) requires an exact case-insensitive match against an item;
    * if no match, revert to the last committed value. Non-strict mode
@@ -4302,9 +4329,14 @@ class list_floating_label_component_engine {
     // empty — the dropdown would open but appear empty. The user expects
     // to see the full list again on re-open. Filtering only happens on
     // the `input` event below, when the user is actually typing.
+    //
+    // After re-opening with the full list, highlightCommittedValue() jumps
+    // the keyboard highlight (and viewport scroll) to the previously-
+    // selected item — same behavior as a native <select>.
     this.element.addEventListener('focus', () => {
       this.openDropdown();
       this.filterItems('');
+      this.highlightCommittedValue();
       this.updateLabelFloatedState();
     });
 
@@ -4313,6 +4345,7 @@ class list_floating_label_component_engine {
       if (!this.isDropdownOpen()) {
         this.openDropdown();
         this.filterItems('');
+        this.highlightCommittedValue();
       }
     });
 
