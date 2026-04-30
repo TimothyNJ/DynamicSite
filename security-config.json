@@ -1,4 +1,5 @@
 {
+  "_comment_defaultTimeoutMinutes": "0.5 (30 seconds) is INTENTIONAL — kept short for dev testing. Do not raise without explicit instruction from Timothy. The user can pick 10 or 20 min via the slider in settings; this is just the cold-start value.",
   "sessionTimeoutOptions": [
     { "text": "30 sec", "value": 0.5 },
     { "text": "10 min", "value": 10 },

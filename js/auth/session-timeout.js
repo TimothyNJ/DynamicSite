@@ -24,6 +24,12 @@
 import { isAuthenticated, isTokenExpired, refreshToken, startTokenRefreshTimer } from './zitadel-auth.js';
 
 function getInactivityLimit() {
+  // Default of 0.5 minutes (30 seconds) is INTENTIONAL — kept short so the
+  // session-timeout modal is fast to reach during dev testing. Do not raise
+  // this default to a "real" production value without explicit instruction
+  // from Timothy. The user can still pick a longer interval (10 min, 20 min)
+  // via the slider in settings; the default is purely the cold-start value
+  // when localStorage is empty.
   const minutes = parseFloat(localStorage.getItem('sessionTimeoutMinutes') || '0.5');
   return minutes * 60 * 1000;
 }
@@ -241,6 +247,15 @@ async function dismissSessionTimeOut() {
   modalEl = null;
   headingEl = null;
 
+  // Register the Continue click itself as fresh activity BEFORE handing off
+  // to resetInactivityTimer. Without this, lastActivityTimestamp is still
+  // pointing at the user's last mouse/keystroke from before the modal fired
+  // (which is by definition >= the inactivity limit ago). resetInactivityTimer's
+  // wake-from-sleep guard then sees "session already expired" and logs the
+  // user out — even though they just demonstrated presence by clicking Continue.
+  // The wake-from-sleep guard is correct for activity events; the Continue
+  // click needs an explicit stamp to bypass it cleanly.
+  stampActivity();
   resetInactivityTimer();
 }
 
