@@ -543,6 +543,9 @@ function renderFields(container, code, metadata) {
             const m = String(selectedDisplay || '').match(/\(([^)]+)\)\s*$/);
             const regionCode = m ? m[1].split('/')[0].trim() : null;
             if (form._renderCityField) form._renderCityField(regionCode);
+            // Progressive disclosure: region committed → reveal next row
+            // (district if it exists, otherwise the city row).
+            if (form._revealNext) form._revealNext();
           },
         });
       });
@@ -586,6 +589,8 @@ function renderFields(container, code, metadata) {
           items,
           onChange: (_name) => {
             // Strict-mode commit. See note above for required-validation.
+            // Progressive disclosure: region committed → reveal next row.
+            if (form._revealNext) form._revealNext();
           },
         });
       });
@@ -599,6 +604,13 @@ function renderFields(container, code, metadata) {
         control,
       }));
       attachValidator(control, makeRequiredValidator(regionRequired));
+      // Progressive disclosure: free-text region reveals next on blur
+      // when it has a value (or change for <select>).
+      const trigger = () => {
+        if ((control.value || '').trim() && form._revealNext) form._revealNext();
+      };
+      control.addEventListener('blur', trigger);
+      if (control.tagName === 'SELECT') control.addEventListener('change', trigger);
     }
   }
 
@@ -614,6 +626,10 @@ function renderFields(container, code, metadata) {
       control:  input
     }));
     // District is always optional — no validator attached.
+    // Progressive disclosure: blur with a non-empty value reveals city.
+    input.addEventListener('blur', () => {
+      if ((input.value || '').trim() && form._revealNext) form._revealNext();
+    });
   }
 
   // 3. City / town / suburb.
@@ -679,8 +695,8 @@ function renderFields(container, code, metadata) {
         placeholder: cityOverride.label || labels.city,
         items: cityOverride.items,
         onChange: (_v) => {
-          // Strict-mode commit. No downstream re-render wired from
-          // city yet — postal stays as the country default.
+          // Strict-mode commit. Progressive disclosure: reveal postal.
+          if (form._revealNext) form._revealNext();
         },
       });
     } else if (cityOverride && cityOverride.fixed) {
@@ -699,6 +715,12 @@ function renderFields(container, code, metadata) {
       // Move children from the makeRow-built row into our placeholder
       // so the city's row identity stays the same DOM node throughout.
       while (built.firstChild) cityRow.appendChild(built.firstChild);
+      // Progressive disclosure: a fixed-value city is effectively "done"
+      // the moment it's rendered (no user interaction possible — readonly).
+      // If we're rendering in response to a region pick (regionCode is
+      // truthy), reveal the next row (postal) immediately so the user
+      // doesn't get stuck staring at a pre-filled, untouchable field.
+      if (regionCode && form._revealNext) form._revealNext();
     } else {
       // Default — free-text city input via the existing makeRow flow.
       const input = document.createElement('input');
@@ -713,6 +735,10 @@ function renderFields(container, code, metadata) {
       });
       while (built.firstChild) cityRow.appendChild(built.firstChild);
       attachValidator(input, makeRequiredValidator(cityRequired));
+      // Progressive disclosure: blur with a non-empty value reveals postal.
+      input.addEventListener('blur', () => {
+        if ((input.value || '').trim() && form._revealNext) form._revealNext();
+      });
     }
   };
 
@@ -731,6 +757,30 @@ function renderFields(container, code, metadata) {
   // emit codes that map to overrides — they keep the default city.
   // Stash on the form element so the region init closure can find it.
   form._renderCityField = renderCityField;
+
+  // ── Progressive disclosure ─────────────────────────────────────────
+  // Hide every row except the first at render time. As the user fills
+  // each field and triggers its commit/blur handler, _revealNext()
+  // unhides the next row in document order. This way the user sees a
+  // single "what do I do next" prompt at any moment instead of a wall
+  // of four blank fields after picking a country.
+  //
+  // Calling _revealNext after the LAST row is already visible is a no-op
+  // (querySelector returns null), so handlers can call it freely without
+  // tracking position.
+  //
+  // Note: this hides ROWS, not the country picker (which lives in a
+  // separate container). The country pick is what triggers renderFields
+  // in the first place, so by the time we get here the country is
+  // already committed.
+  const allRows = Array.from(form.querySelectorAll('.address-validator__row'));
+  allRows.forEach((row, idx) => {
+    if (idx > 0) row.classList.add('address-validator__row--hidden');
+  });
+  form._revealNext = () => {
+    const next = form.querySelector('.address-validator__row--hidden');
+    if (next) next.classList.remove('address-validator__row--hidden');
+  };
 }
 
 /**
