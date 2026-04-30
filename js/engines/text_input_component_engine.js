@@ -3546,6 +3546,35 @@ class list_floating_label_component_engine {
 
     containerEl.appendChild(this.wrapper);
 
+    // Capture the container so the click-to-focus handler below can cover
+    // the entire mount-point area — not just the inline-flex wrapper. The
+    // wrapper sizes to its longest item (an explicit pixel width is set
+    // by measureLongestItemWidth), so when the engine is dropped into a
+    // wider container — notably the address validator's region row, which
+    // uses text-align:center to center the wrapper inside a row that
+    // spans the full form — there is empty container area to the left
+    // and right of the visible field. Without this listener those clicks
+    // hit the container element (no listener), the browser's focus event
+    // never fires on the input, and the engine's own focus handler that
+    // opens the dropdown never runs. Forwarding focus from a container
+    // mousedown ensures the input gets focus regardless of which
+    // sub-element the user actually clicked.
+    this._containerEl = containerEl;
+    this._containerMousedownHandler = (e) => {
+      if (!this.element || typeof this.element.focus !== 'function') return;
+      // Don't interfere with clicks on the dropdown rows (their own
+      // mousedown handler commits the selection) or with the input itself
+      // (its native focus behavior is correct).
+      if (this.element === e.target) return;
+      if (this.element.contains(e.target)) return;
+      if (this.dropdownElement && this.dropdownElement.contains(e.target)) return;
+      // Don't preventDefault — we want any text-selection / scroll
+      // behavior the browser would normally do on the target. Just
+      // route focus to the input.
+      this.element.focus();
+    };
+    containerEl.addEventListener('mousedown', this._containerMousedownHandler);
+
     // Reuse the parent class's measurement helper — its CSS modifier
     // (.text-measurement-helper--floating-label) already sets h4 font, so
     // it measures items at the same size the display renders them.
@@ -4419,6 +4448,15 @@ class list_floating_label_component_engine {
       this._outsideClickHandler = null;
     }
 
+    // Remove the container-level mousedown handler that forwards focus
+    // to the input. Stored in render() so destroy can find the same
+    // container element and remove the same handler reference.
+    if (this._containerMousedownHandler && this._containerEl) {
+      this._containerEl.removeEventListener('mousedown', this._containerMousedownHandler);
+      this._containerMousedownHandler = null;
+      this._containerEl = null;
+    }
+
     // Remove from global instances set
     if (list_floating_label_component_engine.instances) {
       list_floating_label_component_engine.instances.delete(this);
@@ -4469,23 +4507,11 @@ class list_floating_label_component_engine {
   setupHoverAnimation() {
     if (!this.wrapper) return;
 
-    // Wrapper-level mousedown forwards focus to the input. Without this,
-    // clicks that land on the wrapper or the small padding strip around
-    // the input (notably the address-validator region row, which uses
-    // text-align:center to center an inline-flex wrapper inside a wider
-    // row) hit a non-focusable element. The browser's focus event never
-    // fires, the engine's focus handler that opens the dropdown never
-    // runs, and the user has to click again — this time hitting the
-    // input directly. Forwarding focus from mousedown ensures the input
-    // gets focus BEFORE the click event, so focus → openDropdown runs
-    // exactly as it does when the input itself is the click target.
-    this.wrapper.addEventListener('mousedown', (e) => {
-      if (e.target !== this.element && !this.element.contains(e.target)) {
-        if (this.element && typeof this.element.focus === 'function') {
-          this.element.focus();
-        }
-      }
-    });
+    // Click-to-focus is handled at the container level in render() — see
+    // _containerMousedownHandler. That is a strict superset of any
+    // wrapper-only handler (the wrapper is inside the container) and
+    // covers the empty container area to the sides of an inline-flex
+    // wrapper centered inside a wider row.
 
     // Mouse enter
     this.wrapper.addEventListener('mouseenter', () => {
