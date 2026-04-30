@@ -4469,6 +4469,24 @@ class list_floating_label_component_engine {
   setupHoverAnimation() {
     if (!this.wrapper) return;
 
+    // Wrapper-level mousedown forwards focus to the input. Without this,
+    // clicks that land on the wrapper or the small padding strip around
+    // the input (notably the address-validator region row, which uses
+    // text-align:center to center an inline-flex wrapper inside a wider
+    // row) hit a non-focusable element. The browser's focus event never
+    // fires, the engine's focus handler that opens the dropdown never
+    // runs, and the user has to click again — this time hitting the
+    // input directly. Forwarding focus from mousedown ensures the input
+    // gets focus BEFORE the click event, so focus → openDropdown runs
+    // exactly as it does when the input itself is the click target.
+    this.wrapper.addEventListener('mousedown', (e) => {
+      if (e.target !== this.element && !this.element.contains(e.target)) {
+        if (this.element && typeof this.element.focus === 'function') {
+          this.element.focus();
+        }
+      }
+    });
+
     // Mouse enter
     this.wrapper.addEventListener('mouseenter', () => {
       this.updateInputState(true);
