@@ -33,6 +33,7 @@
 
 import { COMMON_COUNTRIES, getOverride } from './country-overrides.js';
 import { componentFactory } from '../factory/ComponentFactory.js';
+import { listCountries as placesListCountries, explainPostal as placesExplainPostal } from '../core/places-api.js';
 
 // libaddressinput metadata endpoints (Google's public service, CORS-enabled).
 //
@@ -96,11 +97,32 @@ const NAME_TYPE_LABELS = {
 };
 
 /**
- * Fetch the master list of supported countries from libaddressinput.
- * The root metadata endpoint returns { id, countries: "AC~AD~AE~..." }.
- * Returns an array of ISO 3166-1 alpha-2 codes.
+ * Fetch the master list of supported countries.
+ *
+ * Source preference:
+ *   1. dynamicsite places API (`/v1/places/countries`) — the canonical
+ *      source going forward. Includes per-language display names which
+ *      we don't surface here yet but which set up the i18n pipeline.
+ *   2. libaddressinput root endpoint — used while the places API is
+ *      still being rolled out and as a fallback when the OCI VM is
+ *      unreachable.
+ *   3. Hardcoded FALLBACK_COUNTRY_CODES — last-resort offline list.
+ *
+ * Returns an array of ISO 3166-1 alpha-2 codes. The downstream code
+ * uses these as ISO codes regardless of source.
  */
 async function fetchCountryCodes() {
+  // Source 1: places API
+  try {
+    const data = await placesListCountries();
+    if (Array.isArray(data?.countries) && data.countries.length > 0) {
+      return data.countries.map((c) => c.iso2).filter(Boolean);
+    }
+  } catch (err) {
+    console.warn('[address-validations] places API country fetch failed; trying libaddressinput.', err);
+  }
+
+  // Source 2: libaddressinput
   try {
     const response = await fetch(LIBADDRESS_LIST_BASE);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -111,6 +133,7 @@ async function fetchCountryCodes() {
     throw new Error('Empty countries field');
   } catch (err) {
     console.warn('[address-validations] Country list fetch failed; using fallback list.', err);
+    // Source 3: hardcoded
     return [...FALLBACK_COUNTRY_CODES];
   }
 }
