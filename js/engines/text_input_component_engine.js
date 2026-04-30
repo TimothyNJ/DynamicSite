@@ -4293,9 +4293,18 @@ class list_floating_label_component_engine {
   setupListEventListeners() {
     if (!this.element || !this.dropdownElement || !this.wrapper) return;
 
+    // Focus and click both open the dropdown for BROWSING — they pass
+    // an empty filter string so the full list shows. If we instead
+    // filtered by the field's current value, a previously-selected entry
+    // like "United States (US)" would be passed in as the query, no item
+    // would have a name starting with that exact string ("(US)" is the
+    // code suffix, not part of the name), and the filtered list would be
+    // empty — the dropdown would open but appear empty. The user expects
+    // to see the full list again on re-open. Filtering only happens on
+    // the `input` event below, when the user is actually typing.
     this.element.addEventListener('focus', () => {
       this.openDropdown();
-      this.filterItems(this.element.value);
+      this.filterItems('');
       this.updateLabelFloatedState();
     });
 
@@ -4303,7 +4312,7 @@ class list_floating_label_component_engine {
       e.stopPropagation();
       if (!this.isDropdownOpen()) {
         this.openDropdown();
-        this.filterItems(this.element.value);
+        this.filterItems('');
       }
     });
 
