@@ -1,20 +1,31 @@
 <!--
-  Address Validations — Phase 1
-  Minimal country selector + libaddressinput-driven field rendering.
-  Later phases will add Google Places Autocomplete, Google AV, and manual review.
+  Address Validations subpage.
+
+  Markup wraps the validator in a <form> with a single <fieldset> so
+  screen readers announce the controls as a related group rather than
+  a pile of independent inputs. The visible <h2> doubles as the
+  fieldset's <legend> via aria-labelledby.
+
+  novalidate on the <form> disables the browser's native pop-up
+  validation — the per-field validators in address-validations.js
+  paint inline error messages in their own slots, and the postal
+  clarifier paints amber notes for historical / auxiliary patterns.
+  We don't want native UA validation popping over those.
 -->
-<div class="address-validator">
-  <div class="address-validator__title">
-    <h2>Address</h2>
-  </div>
+<form class="address-validator" novalidate>
+  <fieldset class="address-validator__fieldset" aria-labelledby="address-validator-title">
+    <legend class="address-validator__legend">Address</legend>
+    <div class="address-validator__title">
+      <h2 id="address-validator-title">Address</h2>
+    </div>
 
-  <div class="address-validator__country-row">
-    <!-- Country picker — list_floating_label_component_engine renders here.
-         Combobox: type to filter, click or Enter to select. The engine
-         provides its own floating label, so the visible-label and
-         <select> markup the prior phase used are no longer needed. -->
-    <div id="address-country-container"></div>
-  </div>
+    <div class="address-validator__country-row">
+      <!-- Country picker — list_floating_label_component_engine renders here.
+           Combobox: type to filter, click or Enter to select. The engine
+           provides its own floating label. -->
+      <div id="address-country-container"></div>
+    </div>
 
-  <div class="address-validator__fields" id="address-fields-container" aria-live="polite"></div>
-</div>
+    <div class="address-validator__fields" id="address-fields-container" aria-live="polite"></div>
+  </fieldset>
+</form>

@@ -11,10 +11,16 @@
 // legacy attachValidator path (currently postal + free-form region).
 
 .address-validator {
+  // The <form> is what carries this class now. flex column inherited
+  // by the fieldset below so visually nothing changes — fieldset reset
+  // strips the default browser border/padding.
   display: flex;
   flex-direction: column;
   gap: var(--component-spacing, 1rem);
   padding: 1rem;
+  // No native form pop-up validation; the per-field validators handle it.
+  margin: 0;
+  border: 0;
   // No explicit width — the validator shrinks to fit its widest child
   // (typically the country picker, sized to fit the longest country
   // name). .sidenav-content's align-items: center centers the whole
@@ -23,6 +29,36 @@
   // the natural content width without needing per-element centering.
   // max-width caps the box if any child ever grows past 720px.
   max-width: 720px;
+
+  // Reset native <fieldset> chrome (border, padding, margin) so the
+  // grouping is announced to screen readers via the legend below
+  // without affecting the existing visual. The fieldset takes over the
+  // flex-column layout from the form.
+  &__fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: inherit;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;  // Firefox: undo fieldset's default min-width:min-content
+  }
+
+  // The visible <h2> already provides the title affordance; the
+  // <legend> exists purely for screen-reader semantics (every
+  // fieldset should have one). Visually hide it without removing it
+  // from the accessibility tree.
+  &__legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
 
   &__title {
     text-align: center;

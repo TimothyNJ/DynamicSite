@@ -577,6 +577,7 @@ function renderFields(container, code, metadata) {
       const placeholderId = 'addr-region-combobox-container';
       const row = document.createElement('div');
       row.className = 'address-validator__row address-validator__row--combobox';
+      row.setAttribute('data-disclosure-entry', 'true');
       const cell = document.createElement('div');
       cell.className = 'address-validator__cell';
       const placeholder = document.createElement('div');
@@ -636,6 +637,7 @@ function renderFields(container, code, metadata) {
       const placeholderId = 'addr-region-combobox-container';
       const row = document.createElement('div');
       row.className = 'address-validator__row address-validator__row--combobox';
+      row.setAttribute('data-disclosure-entry', 'true');
       const cell = document.createElement('div');
       cell.className = 'address-validator__cell';
       const placeholder = document.createElement('div');
@@ -683,12 +685,14 @@ function renderFields(container, code, metadata) {
     } else {
       // (c) Free-form text input.
       const control = makeRegionControl();
-      form.appendChild(makeRow({
+      const regionRow = makeRow({
         id:       'addr-field-region',
         label:    labels.region,
         required: regionRequired,
         control,
-      }));
+      });
+      regionRow.setAttribute('data-disclosure-entry', 'true');
+      form.appendChild(regionRow);
       attachValidator(control, makeRequiredValidator(regionRequired));
       // Progressive disclosure: free-text region reveals next on blur
       // when it has a value. Also stash the typed value as the current
@@ -1071,23 +1075,40 @@ function renderFields(container, code, metadata) {
   form._renderCityField = renderCityField;
 
   // ── Progressive disclosure ─────────────────────────────────────────
-  // Hide every row except the first at render time. As the user fills
-  // each field and triggers its commit/blur handler, _revealNext()
-  // unhides the next row in document order. This way the user sees a
-  // single "what do I do next" prompt at any moment instead of a wall
+  // Hide every row that isn't explicitly tagged as the disclosure entry.
+  // As the user fills each field and triggers its commit/blur handler,
+  // _revealNext() unhides the next row in document order. The user sees
+  // a single "what do I do next" prompt at any moment instead of a wall
   // of four blank fields after picking a country.
   //
-  // Calling _revealNext after the LAST row is already visible is a no-op
-  // (querySelector returns null), so handlers can call it freely without
-  // tracking position.
+  // The entry row is identified by data-disclosure-entry="true" on the
+  // row element. Any row WITHOUT that attribute is hidden at render
+  // time. This is a deliberate change from the previous "first row in
+  // DOM order" rule, which silently broke if anyone inserted a new row
+  // before region in renderFields. Each path (a / b / c) for region
+  // marks its row as the entry; every other row stays unmarked.
   //
-  // Note: this hides ROWS, not the country picker (which lives in a
-  // separate container). The country pick is what triggers renderFields
-  // in the first place, so by the time we get here the country is
-  // already committed.
+  // Calling _revealNext after the LAST row is already visible is a
+  // no-op (querySelector returns null), so handlers can call it freely
+  // without tracking position.
+  //
+  // Note: this hides ROWS inside the per-country form, not the country
+  // picker (which lives in a separate container). The country pick is
+  // what triggers renderFields in the first place, so by the time we
+  // get here the country is already committed.
   const allRows = Array.from(form.querySelectorAll('.address-validator__row'));
-  allRows.forEach((row, idx) => {
-    if (idx > 0) row.classList.add('address-validator__row--hidden');
+  // If no path explicitly tagged a row as the disclosure entry — for
+  // example a country with no region picker, where city becomes the
+  // first user-facing field — fall back to the first row in DOM order
+  // and tag it so the hide-all-untagged rule below leaves SOMETHING
+  // visible. Explicit tags from the region paths still win.
+  if (!form.querySelector('[data-disclosure-entry="true"]') && allRows.length > 0) {
+    allRows[0].setAttribute('data-disclosure-entry', 'true');
+  }
+  allRows.forEach((row) => {
+    if (row.getAttribute('data-disclosure-entry') !== 'true') {
+      row.classList.add('address-validator__row--hidden');
+    }
   });
   form._revealNext = () => {
     const next = form.querySelector('.address-validator__row--hidden');
