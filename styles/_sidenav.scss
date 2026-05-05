@@ -93,14 +93,29 @@
     transition: opacity var(--sidenav-fade-speed) ease;
   }
 
-  // Arrow visible when collapsed — appears instantly (no fade-in delay).
-  // Vertical position set dynamically by JS via --sidenav-arrow-top.
-  // Horizontal position is always right: 0.4em from the container edge.
-  // When collapsed the container is 2em; when expanded it's fit-content
-  // (= widest button), so the arrow naturally sits at the right of the
-  // longest label without any JS measurement.
-  &::after {
-    content: '▶';
+  // Arrow is a real <span class="sidenav-arrow"> child (inserted by
+  // mountSidenavArrow in router.js, idempotently re-mounted by
+  // renderSecondaryNav after every secondary.innerHTML wipe), NOT a
+  // ::after pseudo-element. Required so :has(.sidenav-arrow:hover) can
+  // drive the hover-mirror CSS — pseudo-elements aren't reliably
+  // accepted as :has() arguments.
+  //
+  // The visible glyph lives on a ::before of the span; per-state
+  // content rules set the glyph based on pin state.
+  //
+  //   IDLE  shows where you JUST CAME FROM (rear-view of last click)
+  //   HOVER shows where you're GOING (preview of next click — in the
+  //         hover-mirror :has() block at file's outer scope below)
+  //
+  // Three glyphs: ▶ ◀ ◀▶. The two-triangle ◀▶ uses negative
+  // letter-spacing so the triangles render tight together as a
+  // unified "two pyramids" shape; without it, each glyph's intrinsic
+  // side bearing creates visible whitespace between them.
+  //
+  // Vertical position: --sidenav-arrow-top (set by JS).
+  // Horizontal: right 0.4em from container edge when collapsed.
+  // .expanded.has-secondary moves it into the gap (override below).
+  .sidenav-arrow {
     position: absolute;
     right: 0.4em;
     top: var(--sidenav-arrow-top, var(--sidenav-arrow-default-top));
@@ -109,9 +124,35 @@
     line-height: 1;
     color: white;
     opacity: var(--sidenav-arrow-opacity);
-    pointer-events: none;
+    pointer-events: auto;
+    cursor: pointer;
     transition: opacity 0s ease 0s, top 300ms ease;
+
+    // Default glyph: AUTO state idle = two-triangle ◀▶. Negative
+    // letter-spacing pulls the bases of the two triangles tight so
+    // they read as one unified shape, not two separate arrows.
+    &::before {
+      content: '◀▶';
+      letter-spacing: -0.25em;
+    }
   }
+
+  // PINNED OPEN — idle right (came from pinned-closed via click).
+  // Single-glyph: explicit letter-spacing reset so a transition from
+  // ◀▶ doesn't carry stale negative spacing into a one-glyph render.
+  &.sidenav-pinned-open .sidenav-arrow::before {
+    content: '▶';
+    letter-spacing: 0;
+  }
+
+  // PINNED CLOSED — idle left (came from auto via click)
+  &.sidenav-pinned-closed .sidenav-arrow::before {
+    content: '◀';
+    letter-spacing: 0;
+  }
+  // Hover-preview content lives in the .page-with-sidenav:has(...) block
+  // at outer scope below so hovering EITHER arrow applies the hover
+  // visual to BOTH arrows.
 
   // Expanded state set by JS
   &.expanded {
@@ -126,7 +167,7 @@
     }
 
     // Arrow hidden by default when expanded
-    &::after {
+    .sidenav-arrow {
       opacity: 0;
       transition: opacity 0s ease 0s, top 300ms ease;
     }
@@ -137,7 +178,7 @@
       --sidenav-arrow-gap: 1.5vw;
       margin-right: var(--sidenav-arrow-gap);
 
-      &::after {
+      .sidenav-arrow {
         opacity: var(--sidenav-arrow-opacity);
         right: auto;
         // 100% = padding-box right (box-sizing: border-box).
@@ -149,6 +190,15 @@
       }
     }
   }
+
+  // PINNED OPEN: arrow always visible. The arrow IS the toggle, so it
+  // must stay clickable even when expanded without secondary (which
+  // would otherwise hide it via the .expanded .sidenav-arrow rule
+  // above). Same specificity as that rule (4 classes), so source order
+  // wins — this MUST stay below the .expanded block.
+  &.sidenav-pinned-open .sidenav-arrow {
+    opacity: var(--sidenav-arrow-opacity);
+  }
 }
 
 // Secondary sidenav arrow — always visible when expanded, positioned
@@ -157,11 +207,55 @@
   --sidenav-arrow-gap: 1.5vw;
   margin-right: var(--sidenav-arrow-gap);
 
-  &::after {
+  .sidenav-arrow {
     opacity: var(--sidenav-arrow-opacity);
     right: auto;
     left: calc(100% + 2px + var(--sidenav-arrow-gap) / 2);
     transform: translate(-50%, -50%);
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Hover-mirror for the pin-state arrow icons.
+//
+// Each pin state has an idle visual (above) and a hover-preview visual.
+// The two sidenavs are a pair — clicking either arrow cycles both — so
+// hovering EITHER arrow must show the hover-preview on BOTH arrows.
+// :has() on .page-with-sidenav matches when a .sidenav-arrow descendant
+// is hovered in either nav, then the rules below override ::before
+// content on both arrows.
+//
+// Hover detection is scoped to .sidenav-arrow specifically — hovering
+// nav buttons or empty rail surface must NOT trigger the preview, so
+// pin-state visuals don't interfere with normal navigation.
+//
+// Specificity: parent + :has() + descendant adds enough that these
+// rules win over the bare pin-state idle rules above.
+//
+// Each rule explicitly sets letter-spacing so a glyph swap from ◀▶ to
+// a single triangle (or vice versa) doesn't carry stale spacing.
+// ──────────────────────────────────────────────────────────────────────
+.page-with-sidenav:has(.sidenav-arrow:hover) {
+  // AUTO hover preview — left arrow (going to pinned-closed)
+  .sidenav.collapsible .sidenav-arrow::before,
+  .sidenav-secondary.collapsible .sidenav-arrow::before {
+    content: '◀';
+    letter-spacing: 0;
+  }
+
+  // PINNED OPEN hover preview — two-triangle (going to auto)
+  .sidenav.collapsible.sidenav-pinned-open .sidenav-arrow::before,
+  .sidenav-secondary.collapsible.sidenav-pinned-open .sidenav-arrow::before {
+    content: '◀▶';
+    letter-spacing: -0.25em;
+  }
+
+  // PINNED CLOSED hover preview — right arrow (going to pinned-open).
+  // Intuitive "click to open the sidenav" affordance.
+  .sidenav.collapsible.sidenav-pinned-closed .sidenav-arrow::before,
+  .sidenav-secondary.collapsible.sidenav-pinned-closed .sidenav-arrow::before {
+    content: '▶';
+    letter-spacing: 0;
   }
 }
 

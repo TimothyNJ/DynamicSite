@@ -251,8 +251,112 @@ export async function navigateToPage(pageName, pushState = true, subpage = null,
 // Sidenav Initialization
 // ==============================================
 
+// ─── Sidenav pin state (Auto / Open / Closed) ──────────────────────────────
+// Three-state cycle on each arrow click (per 05-May-2026 design):
+//
+//   open    → auto       restore default hover-driven behavior
+//   auto    → closed     lock both sidenavs collapsed
+//   closed  → open       lock both sidenavs expanded
+//
+// The cycle direction makes pinned-closed's hover preview a clear right
+// arrow (▶), intuitively "click to open the sidenav." Persists across
+// reloads via localStorage. Both sidenavs are pinned together.
+const SIDENAV_PIN_KEY = 'sidenav.pinState';
+
+function getSidenavPinState() {
+  return localStorage.getItem(SIDENAV_PIN_KEY) || 'auto';
+}
+
+function setSidenavPinStateStored(state) {
+  if (state === 'auto') localStorage.removeItem(SIDENAV_PIN_KEY);
+  else localStorage.setItem(SIDENAV_PIN_KEY, state);
+}
+
+// Idempotently insert a <span class="sidenav-arrow"> as a direct child
+// of the given sidenav container, attach the click handler if provided
+// (using a data-arrow-bound sentinel so the same handler can't be
+// attached twice across re-mounts).
+//
+// Why a real DOM element and not a ::after pseudo-element: the hover-
+// mirror CSS uses :has(.sidenav-arrow:hover), and pseudo-elements
+// aren't reliably accepted as :has() arguments across browsers.
+//
+// Why mount-with-handler instead of just-mount: renderSecondaryNav
+// wipes secondary.innerHTML in three places, destroying the arrow
+// span every time. Each wipe needs a re-mount, AND the new span needs
+// the click handler — otherwise the user can see the arrow but
+// clicking does nothing.
+function mountSidenavArrow(container, onClick) {
+  if (!container) return null;
+  let arrow = container.querySelector(':scope > .sidenav-arrow');
+  if (!arrow) {
+    arrow = document.createElement('span');
+    arrow.className = 'sidenav-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    container.appendChild(arrow);
+  }
+  if (onClick && arrow.dataset.arrowBound !== 'true') {
+    arrow.addEventListener('click', onClick);
+    arrow.dataset.arrowBound = 'true';
+  }
+  return arrow;
+}
+
+function applySidenavPinState(sidenav, secondary, state) {
+  // Reset pin classes on both navs first so applying any state is clean.
+  [sidenav, secondary].filter(Boolean).forEach(el => {
+    el.classList.remove('sidenav-pinned-open', 'sidenav-pinned-closed');
+  });
+
+  if (state === 'open') {
+    sidenav.classList.add('sidenav-pinned-open', 'expanded');
+    if (secondary?.classList.contains('visible')) {
+      secondary.classList.add('sidenav-pinned-open', 'expanded');
+    }
+    // Position arrow at the active button (mirrors restoreActiveAndExpand).
+    const activeBtn = sidenav.querySelector('.sidenav-button.active');
+    if (activeBtn) {
+      const top = activeBtn.offsetTop + activeBtn.offsetHeight / 2;
+      sidenav.style.setProperty('--sidenav-arrow-top', top + 'px');
+      if (secondary) {
+        secondary.style.setProperty('--sidenav-arrow-top', top + 'px');
+      }
+    }
+  } else if (state === 'closed') {
+    // Mirror scheduleCollapse: ease arrows to firstBtn BEFORE stripping
+    // 'expanded' so the CSS top transition runs in lockstep with the
+    // width transition.
+    const firstBtn = sidenav.querySelector('.sidenav-button');
+    if (firstBtn) {
+      const restingTop = firstBtn.offsetTop + firstBtn.offsetHeight / 2;
+      sidenav.style.setProperty('--sidenav-arrow-top', restingTop + 'px');
+      if (secondary) {
+        secondary.style.setProperty('--sidenav-arrow-top', restingTop + 'px');
+      }
+    }
+    sidenav.classList.add('sidenav-pinned-closed');
+    sidenav.classList.remove('expanded');
+    if (secondary) {
+      secondary.classList.add('sidenav-pinned-closed');
+      secondary.classList.remove('expanded');
+    }
+  }
+  // 'auto' state: just removed the pin classes. Hover handlers and the
+  // existing scheduleCollapse timer take over.
+}
+
+function cycleSidenavPin(sidenav, secondary) {
+  const cur = getSidenavPinState();
+  const next = cur === 'open'   ? 'auto'
+             : cur === 'auto'   ? 'closed'
+             : /* closed */       'open';
+  setSidenavPinStateStored(next);
+  applySidenavPinState(sidenav, secondary, next);
+}
+
 // ─── Arrow & secondary-nav positioning helpers ─────────────────────────────
-// Position the sidenav arrow (::after) at the vertical centre of a button.
+// Position the sidenav arrow (.sidenav-arrow span) at the vertical centre
+// of a button by setting --sidenav-arrow-top on the container.
 function positionArrowAt(container, button) {
   if (!container || !button) return;
   const top = button.offsetTop + button.offsetHeight / 2;
@@ -275,6 +379,15 @@ function initSidenav(pageName) {
   const secondary = document.querySelector('.sidenav-secondary');
   const config = sidenavConfig[pageName];
   if (!sidenav) return;
+
+  // Mount the arrow span + click handler on both navs. The secondary
+  // arrow will be re-mounted by renderSecondaryNav after every wipe of
+  // secondary.innerHTML; this initial mount covers the case where the
+  // page has no subSubpages so renderSecondaryNav never runs the
+  // rebuild path.
+  const onArrowClick = () => cycleSidenavPin(sidenav, secondary);
+  mountSidenavArrow(sidenav, onArrowClick);
+  mountSidenavArrow(secondary, onArrowClick);
 
   // Page load: both sidenavs start collapsible + expanded.
   // If the default subpage has sub-subpages, sidenav2 is visible + expanded.
@@ -337,6 +450,10 @@ function renderSecondaryNav(pageName, forSubpage, opts = {}) {
       if (!secondary.classList.contains('expanded')) {
         secondary.innerHTML = '';
         secondary.classList.remove('visible');
+        // Re-mount the arrow span after the wipe — innerHTML='' destroyed
+        // it. Even though secondary is going display:none here, leaving
+        // the arrow gone would break the next show.
+        mountSidenavArrow(secondary, () => cycleSidenavPin(sidenav, secondary));
       }
     }, duration);
     return;
@@ -359,6 +476,11 @@ function renderSecondaryNav(pageName, forSubpage, opts = {}) {
     button.addEventListener('click', () => loadSubpage(pageName, forSubpage, true, item));
     secondary.appendChild(button);
   });
+
+  // Re-mount the arrow after the innerHTML wipe + button rebuild above.
+  // Without this, the arrow span inserted by initSidenav is gone for the
+  // life of the page (every renderSecondaryNav call destroys it).
+  mountSidenavArrow(secondary, () => cycleSidenavPin(sidenav, secondary));
 
   secondary.classList.add('visible');
   if (sidenav) sidenav.classList.add('has-secondary');
@@ -420,6 +542,9 @@ function initSidenavHover(pageName) {
   }
 
   function scheduleCollapse() {
+    // Pinned (any non-auto state) → no auto-collapse. The user has
+    // explicitly chosen the state; the timer would fight that choice.
+    if (getSidenavPinState() !== 'auto') return;
     cancelCollapse();
     collapseTimerId = setTimeout(() => {
       collapseTimerId = null;
@@ -443,6 +568,8 @@ function initSidenavHover(pageName) {
           secondary.innerHTML = '';
           secondary.classList.remove('visible');
           sidenav.classList.remove('has-secondary');
+          // Re-mount the arrow after the wipe.
+          mountSidenavArrow(secondary, () => cycleSidenavPin(sidenav, secondary));
         }
       }
     }, collapseDelay);
@@ -451,6 +578,9 @@ function initSidenavHover(pageName) {
   // --- Expand helpers ---
 
   function expandAll() {
+    // Pinned-closed → never expand on hover. Pinned-open is already
+    // expanded; calls here are idempotent and safe to allow.
+    if (getSidenavPinState() === 'closed') return;
     sidenav.classList.add('expanded');
     if (secondary?.classList.contains('visible')) {
       secondary.classList.add('expanded');
@@ -458,6 +588,7 @@ function initSidenavHover(pageName) {
   }
 
   function restoreActiveAndExpand() {
+    if (getSidenavPinState() === 'closed') return;
     hoveredSubpage = null;
     if (secondary && config?.subSubpages?.[activeSubpage]) {
       renderSecondaryNav(pageName, activeSubpage);
@@ -491,6 +622,11 @@ function initSidenavHover(pageName) {
   if (secondary) {
     secondary.addEventListener('mouseenter', () => {
       cancelCollapse();
+      // Pinned-closed → don't force-expand sidenav1. The direct add
+      // below sits outside the gated expandAll helper; without this
+      // gate, hovering nav2 while pinned-closed asymmetrically expands
+      // nav1.
+      if (getSidenavPinState() === 'closed') return;
       sidenav.classList.add('expanded');
       if (!hoveredSubpage) restoreActiveAndExpand();
       else expandAll();
@@ -509,6 +645,11 @@ function initSidenavHover(pageName) {
   if (secondary && config) {
     sidenav.querySelectorAll('.sidenav-button[data-subpage]').forEach(button => {
       button.addEventListener('mouseenter', () => {
+        // Pinned-closed → no live preview, no arrow repositioning, no
+        // secondary expand. The whole body is gated because each call
+        // (positionArrowAt, renderSecondaryNav, the direct expanded
+        // add) would mutate state that pinned-closed should freeze.
+        if (getSidenavPinState() === 'closed') return;
         const sub = button.getAttribute('data-subpage');
         hoveredSubpage = config.subSubpages?.[sub] ? sub : null;
         positionArrowAt(sidenav, button);
@@ -518,7 +659,15 @@ function initSidenavHover(pageName) {
     });
   }
 
-  // Page load: schedule first collapse
+  // Apply persisted pin state. Runs AFTER all hover handlers and AFTER
+  // initSidenav's initial classList.add('collapsible', 'expanded') and
+  // the first renderSecondaryNav call — so pinned-closed correctly
+  // strips the freshly-added 'expanded' class, and the arrow span has
+  // already been (re-)mounted by renderSecondaryNav.
+  applySidenavPinState(sidenav, secondary, getSidenavPinState());
+
+  // Page load: schedule first collapse. scheduleCollapse() early-returns
+  // when pinned, so this is a no-op for non-auto state.
   scheduleCollapse();
 }
 
