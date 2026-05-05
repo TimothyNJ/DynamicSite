@@ -128,27 +128,24 @@
     cursor: pointer;
     transition: opacity 0s ease 0s, top 300ms ease;
 
-    // Default glyph: AUTO state idle = two-triangle ◀▶. Negative
-    // letter-spacing pulls the bases of the two triangles tight so
-    // they read as one unified shape, not two separate arrows.
+    // Default glyph: AUTO state idle = bidirectional arrow ↔. Single
+    // Unicode glyph with two arrowheads connected by a stem (heads do
+    // not touch each other — the stem keeps them apart). Visually
+    // matches → and ← used for the pinned states; same Unicode block
+    // (U+2190 range), same stroke weight.
     &::before {
-      content: '◀▶';
-      letter-spacing: -0.25em;
+      content: '↔';
     }
   }
 
-  // PINNED OPEN — idle right (came from pinned-closed via click).
-  // Single-glyph: explicit letter-spacing reset so a transition from
-  // ◀▶ doesn't carry stale negative spacing into a one-glyph render.
+  // PINNED OPEN — idle right (came from pinned-closed via click)
   &.sidenav-pinned-open .sidenav-arrow::before {
-    content: '▶';
-    letter-spacing: 0;
+    content: '→';
   }
 
   // PINNED CLOSED — idle left (came from auto via click)
   &.sidenav-pinned-closed .sidenav-arrow::before {
-    content: '◀';
-    letter-spacing: 0;
+    content: '←';
   }
   // Hover-preview content lives in the .page-with-sidenav:has(...) block
   // at outer scope below so hovering EITHER arrow applies the hover
@@ -239,23 +236,20 @@
   // AUTO hover preview — left arrow (going to pinned-closed)
   .sidenav.collapsible .sidenav-arrow::before,
   .sidenav-secondary.collapsible .sidenav-arrow::before {
-    content: '◀';
-    letter-spacing: 0;
+    content: '←';
   }
 
-  // PINNED OPEN hover preview — two-triangle (going to auto)
+  // PINNED OPEN hover preview — bidirectional (going to auto)
   .sidenav.collapsible.sidenav-pinned-open .sidenav-arrow::before,
   .sidenav-secondary.collapsible.sidenav-pinned-open .sidenav-arrow::before {
-    content: '◀▶';
-    letter-spacing: -0.25em;
+    content: '↔';
   }
 
   // PINNED CLOSED hover preview — right arrow (going to pinned-open).
   // Intuitive "click to open the sidenav" affordance.
   .sidenav.collapsible.sidenav-pinned-closed .sidenav-arrow::before,
   .sidenav-secondary.collapsible.sidenav-pinned-closed .sidenav-arrow::before {
-    content: '▶';
-    letter-spacing: 0;
+    content: '→';
   }
 }
 
