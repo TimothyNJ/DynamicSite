@@ -4514,6 +4514,18 @@ class list_floating_label_component_engine {
       this._containerEl = null;
     }
 
+    // Cancel any in-flight live-mode debounce timer. Without this the
+    // setTimeout fires after destroy() and calls setItems() on a
+    // half-destroyed instance — currently a no-op because setItems
+    // checks shape, but cleaner to clear up front.
+    if (this._liveDebounceTimer) {
+      clearTimeout(this._liveDebounceTimer);
+      this._liveDebounceTimer = null;
+    }
+    // Bump the sequence counter so any in-flight itemsProvider promise
+    // that resolves AFTER destroy compares to a newer seq and bails out.
+    this._liveSeq = (this._liveSeq || 0) + 1;
+
     // Remove from global instances set
     if (list_floating_label_component_engine.instances) {
       list_floating_label_component_engine.instances.delete(this);

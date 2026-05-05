@@ -497,37 +497,20 @@ function makeRow({ id, label, required, control }) {
 }
 
 /**
- * Build a region <select> populated from libaddressinput subdivisions if
- * present, otherwise from the override's seeded `regions` array. Returns
- * a plain text input if neither source has values.
+ * Build a free-form region text input. Used only by the (c) free-form
+ * fallback path in renderFields, which is reached when a country has
+ * no subdivisions in either libaddressinput or the override seed list.
+ *
+ * (Earlier this helper also had a `<select>` branch for the case where
+ * subdivisions WERE present — that branch is unreachable now because
+ * paths (a) and (b) handle subdivisions via the combobox engine before
+ * we ever reach this helper. Deleted in the post-#52 cleanup.)
  */
-function makeRegionControl(metadata, override) {
-  const subdivisions = (metadata && metadata.subdivisions) || [];
-  const seeded = (override && Array.isArray(override.regions)) ? override.regions : [];
-  const values = subdivisions.length > 0 ? subdivisions : seeded;
-
-  if (values.length === 0) {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.setAttribute('autocomplete', 'off');
-    return input;
-  }
-
-  const sel = document.createElement('select');
-  const placeholder = document.createElement('option');
-  placeholder.value = '';
-  placeholder.textContent = '-- Select --';
-  sel.appendChild(placeholder);
-  values
-    .slice()
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .forEach(({ code, name }) => {
-      const opt = document.createElement('option');
-      opt.value = code;
-      opt.textContent = name;
-      sel.appendChild(opt);
-    });
-  return sel;
+function makeRegionControl() {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.setAttribute('autocomplete', 'off');
+  return input;
 }
 
 /**
@@ -673,7 +656,7 @@ function renderFields(container, code, metadata) {
       });
     } else {
       // (c) Free-form text input.
-      const control = makeRegionControl(metadata, override);
+      const control = makeRegionControl();
       form.appendChild(makeRow({
         id:       'addr-field-region',
         label:    labels.region,
@@ -682,12 +665,10 @@ function renderFields(container, code, metadata) {
       }));
       attachValidator(control, makeRequiredValidator(regionRequired));
       // Progressive disclosure: free-text region reveals next on blur
-      // when it has a value (or change for <select>).
-      const trigger = () => {
+      // when it has a value.
+      control.addEventListener('blur', () => {
         if ((control.value || '').trim() && form._revealNext) form._revealNext();
-      };
-      control.addEventListener('blur', trigger);
-      if (control.tagName === 'SELECT') control.addEventListener('change', trigger);
+      });
     }
   }
 

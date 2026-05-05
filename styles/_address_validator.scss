@@ -1,7 +1,14 @@
 // _address_validator.scss
-// Phase 2 styles for the Address Validations subpage.
-// Uses existing CSS variables for theme awareness. Phase 2 adds
-// live invalid-field styling and the error-message slot.
+// Styles for the Address Validations subpage. Uses existing CSS
+// variables for theme awareness. Provides the outer container, the
+// country row, the per-country form layout (vertical stack,
+// biggest → smallest), the floating-label cell rhythm shared across
+// fields, the row--combobox modifier (text-align: center) used to
+// centre the inline-flex list_floating_label engine wrapper inside a
+// wider row, the row--hidden modifier driving progressive disclosure
+// (only the first row visible at render; revealed one at a time),
+// and the invalid-field outline + error-message slot used by the
+// legacy attachValidator path (currently postal + free-form region).
 
 .address-validator {
   display: flex;
