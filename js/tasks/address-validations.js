@@ -233,8 +233,10 @@ function buildCountryComboboxData(pinned, _common, all) {
  * Fetch admin1 (state/province) data for a country from our places API
  * and return it shaped as the SPA expects: [{code, name}].
  *
- * Throws on any failure so the caller can decide whether to fall back to
- * libaddressinput's subdivisions or treat the country as having none.
+ * Throws on any failure so the caller (Promise.allSettled in
+ * fetchCountryMetadata) sees a rejection rather than a silent empty
+ * array — the rejection lets the caller distinguish "API down" from
+ * "this country has no admin1".
  */
 async function fetchAdmin1FromApi(code) {
   const data = await placesListAdmin1({ country: code });
@@ -243,8 +245,7 @@ async function fetchAdmin1FromApi(code) {
   }
   // Map our shape {code, canonical_name, display_name} to the SPA's
   // {code, name}. Prefer per-language display_name; fall back to the
-  // canonical English name. The places API resolves display_name via
-  // ?lang= which the client passes from <html lang>.
+  // canonical English name.
   return data.admin1.map((a) => ({
     code: a.code,
     name: a.display_name || a.canonical_name,
@@ -252,59 +253,77 @@ async function fetchAdmin1FromApi(code) {
 }
 
 /**
+ * Fetch libaddressinput's per-country metadata aggregate. Returns the
+ * normalised shape: { fmt, require, zip, *_name_type, ..., subdivisions }.
+ * Throws on any failure so Promise.allSettled in fetchCountryMetadata
+ * can see the rejection and fall through to defaults.
+ */
+async function fetchLibaddressMetadata(code) {
+  const response = await fetch(`${LIBADDRESS_AGGREGATE_BASE}/${encodeURIComponent(code)}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const raw = await response.json();
+  const wrappedKey = `data/${code}`;
+  const country = raw && raw[wrappedKey] ? raw[wrappedKey] : raw;
+  if (!country || typeof country.fmt !== 'string') {
+    throw new Error(`Unexpected metadata shape for ${code} (no fmt)`);
+  }
+  // Pull subdivisions into a normalised array. Each entry: { code, name }.
+  const subdivisions = Object.keys(raw || {})
+    .filter((k) => k.startsWith(`${wrappedKey}/`))
+    .map((k) => raw[k])
+    .filter((s) => s && s.key && s.name)
+    .map((s) => ({ code: s.key, name: s.name }));
+  return Object.assign({}, country, { subdivisions });
+}
+
+/**
  * Fetch per-country metadata.
  *
- * libaddressinput remains the source of truth for the FORMAT metadata
- * (fmt, require, postal regex, label hints) — our places API doesn't
- * carry those. Subdivisions, however, come from our places API when
- * reachable; libaddressinput's are used only as a fallback.
+ * The two backends are queried in PARALLEL (Promise.allSettled) and
+ * the results merged once both have settled. This matters most for
+ * users in regions where libaddressinput's host (chromium-i18n.appspot.com,
+ * on Google App Engine) is geo-blocked: the user gets fields the moment
+ * our API responds, without waiting through the libaddressinput timeout.
  *
- * Why overlay rather than replace: libaddressinput is geo-blocked in
- * mainland China (it's served from chromium-i18n.appspot.com on Google
- * App Engine). Our places API is on dynamicsite-owned infrastructure
- * with Cloudflare in front, reachable everywhere. Preferring our admin1
- * list means a user in a blocked region sees state/province options
- * even though the format metadata fetch failed.
+ * Merge rules:
+ *   - libaddressinput is the source of truth for the FORMAT metadata
+ *     (fmt, require, zip regex, *_name_type label hints) — our API
+ *     does not (yet) carry those. If libaddressinput fails, the
+ *     function returns sensible defaults for fmt/require so the form
+ *     still renders.
+ *   - For subdivisions: our API wins when it returned a non-empty list.
+ *     Otherwise we keep whatever libaddressinput returned (which may be
+ *     the empty array if libaddressinput also failed).
  *
- * Cached in-memory for the session keyed by ISO code.
+ * Cached in-memory for the session keyed by ISO code so a re-select of
+ * the same country does not re-fetch.
  */
 async function fetchCountryMetadata(code) {
   if (metadataCache.has(code)) return metadataCache.get(code);
 
-  // Step 1: libaddressinput for format metadata + fallback subdivisions.
+  // Fire both requests at once. allSettled lets us proceed as soon as
+  // both have either resolved or rejected — neither blocks the other.
+  const [libaddressResult, apiResult] = await Promise.allSettled([
+    fetchLibaddressMetadata(code),
+    fetchAdmin1FromApi(code),
+  ]);
+
+  // Start with libaddressinput's result (or sensible defaults on failure).
   let metadata;
-  try {
-    const response = await fetch(`${LIBADDRESS_AGGREGATE_BASE}/${encodeURIComponent(code)}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const raw = await response.json();
-    const wrappedKey = `data/${code}`;
-    const country = raw && raw[wrappedKey] ? raw[wrappedKey] : raw;
-    if (!country || typeof country.fmt !== 'string') {
-      throw new Error(`Unexpected metadata shape for ${code} (no fmt)`);
-    }
-    // Pull subdivisions into a normalised array. Each entry: { code, name }.
-    const subdivisions = Object.keys(raw || {})
-      .filter((k) => k.startsWith(`${wrappedKey}/`))
-      .map((k) => raw[k])
-      .filter((s) => s && s.key && s.name)
-      .map((s) => ({ code: s.key, name: s.name }));
-    metadata = Object.assign({}, country, { subdivisions });
-  } catch (err) {
-    console.warn(`[address-validations] libaddressinput metadata fetch failed for ${code}; using defaults.`, err);
+  if (libaddressResult.status === 'fulfilled') {
+    metadata = libaddressResult.value;
+  } else {
+    console.warn(`[address-validations] libaddressinput metadata fetch failed for ${code}; using defaults.`, libaddressResult.reason);
     metadata = { fmt: DEFAULT_FMT, require: 'ACZ', subdivisions: [] };
   }
 
-  // Step 2: overlay subdivisions from our places API. If our API is
-  // reachable AND has admin1 rows for this country, prefer them.
-  // Otherwise keep whatever subdivisions libaddressinput provided
-  // (which may be the empty array if step 1 failed).
-  try {
-    const apiSubdivisions = await fetchAdmin1FromApi(code);
-    if (apiSubdivisions.length > 0) {
-      metadata = Object.assign({}, metadata, { subdivisions: apiSubdivisions });
-    }
-  } catch (err) {
-    console.warn(`[address-validations] places API admin1 fetch failed for ${code}; keeping libaddressinput subdivisions.`, err);
+  // Overlay subdivisions from our places API when it returned a
+  // non-empty list. Otherwise keep libaddressinput's (or the empty
+  // array from defaults).
+  if (apiResult.status === 'fulfilled' && apiResult.value.length > 0) {
+    metadata = Object.assign({}, metadata, { subdivisions: apiResult.value });
+  } else if (apiResult.status === 'rejected') {
+    console.warn(`[address-validations] places API admin1 fetch failed for ${code}; keeping libaddressinput subdivisions.`, apiResult.reason);
   }
 
   metadataCache.set(code, metadata);
