@@ -4337,6 +4337,28 @@ class list_floating_label_component_engine {
       return;
     }
 
+    // Short-circuit: if the typed value already matches what's committed,
+    // the user didn't change anything — nothing to validate, nothing to
+    // commit, and (critically) no need to re-fire the changeHandler.
+    //
+    // Without this guard, every blur on an already-valid combobox finds
+    // an exactMatch === _committedValue and calls selectItem(), which
+    // re-fires options.onChange. Most callers don't care, but destructive
+    // onChange handlers — e.g., address-validations.js's country.onChange,
+    // which sets fieldsEl.innerHTML = '<p>Loading…</p>' before fetching
+    // metadata — wipe out whatever was just rendered downstream. The
+    // observable symptom there is the state combobox needing two clicks
+    // to open: the first click steals focus from country, country's blur
+    // fires this validator, the no-op selectItem cascade rebuilds the
+    // entire fields container, and the just-opened state dropdown gets
+    // destroyed before the next paint.
+    //
+    // onChange should fire on actual changes, not on every blur. This
+    // matches the semantics of native <select> change events.
+    if (typed === (this._committedValue || '')) {
+      return;
+    }
+
     const items = this.options.items || [];
     const exactMatch = items.find(item =>
       String(item).toLowerCase() === typed.toLowerCase()
