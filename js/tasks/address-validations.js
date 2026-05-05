@@ -935,6 +935,16 @@ function renderFields(container, code, metadata) {
       const ph = document.createElement('div');
       ph.id = placeholderId;
       cell.appendChild(ph);
+      // Clarifier slot, painted when the picked city was matched via a
+      // historical / alternate name (e.g. user typed "Bombay" → got Mumbai).
+      // Same visual treatment as the postal clarifier — amber, hidden until
+      // populated. Display unchanged whatever the user actually picks; this
+      // is informational only.
+      const cityInfoEl = document.createElement('span');
+      cityInfoEl.className = 'address-validator__info';
+      cityInfoEl.id = 'addr-field-city-info';
+      cityInfoEl.setAttribute('aria-live', 'polite');
+      cell.appendChild(cityInfoEl);
       cityRow.appendChild(cell);
       cityRow.classList.add('address-validator__row--combobox');
 
@@ -942,6 +952,16 @@ function renderFields(container, code, metadata) {
       // regionCode is the function argument and may be null (countries
       // with free-text region or no region picker yet).
       const countryCode = code;
+
+      // Closure-tracked latest API rows so onChange can look up the
+      // matched_status/matched_name of the picked display string. The
+      // engine commits a bare string (the display); we lose access to
+      // the rich object the API returned without this. Holding the
+      // latest results in scope here is a smaller change than extending
+      // the engine to support rich item shapes — flagged in the
+      // address-validator review for a later cycle if other fields
+      // need the same plumbing.
+      let lastCityResults = [];
 
       componentFactory.createListFloatingLabel(placeholderId, {
         id: 'addr-field-city',
@@ -959,6 +979,7 @@ function renderFields(container, code, metadata) {
               limit: 10,
             });
             const cities = (data && Array.isArray(data.cities)) ? data.cities : [];
+            lastCityResults = cities;
             // Prefer per-language display_name; fall back to canonical_name.
             // Dedupe by display string so multiple matches collapsing to
             // the same city name don't double up in the dropdown.
@@ -976,8 +997,57 @@ function renderFields(container, code, metadata) {
             return [];
           }
         },
-        onChange: (_v) => {
-          // Strict-mode-off commit (or any selection): reveal next row.
+        onChange: (selectedDisplay) => {
+          // Look up the picked display in the most-recent API results to
+          // recover the matched_status / matched_name we hid from the engine.
+          // If the user's pick has a non-current matched_status, surface
+          // a clarifier line under the field. Examples:
+          //   typed "bombay", picked "Mumbai"
+          //     → "You typed 'Bombay', an older name for Mumbai."
+          //   typed "peking", picked "Beijing"
+          //     → "You typed 'Peking', an alternate spelling of Beijing."
+          // If the picked string isn't in lastCityResults (rare —
+          // happens when strict:false lets the user submit free-form text),
+          // we silently skip the clarifier.
+          const picked = lastCityResults.find((c) => {
+            const display = c.display_name || c.canonical_name;
+            return display === selectedDisplay;
+          });
+          if (
+            picked
+            && picked.matched_status
+            && picked.matched_status !== 'current'
+            && picked.matched_name
+            && picked.matched_name !== (picked.display_name || picked.canonical_name)
+          ) {
+            const canonical = picked.display_name || picked.canonical_name;
+            let line;
+            switch (picked.matched_status) {
+              case 'historical':
+                line = `You typed "${picked.matched_name}", an older name for ${canonical}.`;
+                break;
+              case 'alternate':
+                line = `You typed "${picked.matched_name}", an alternate name for ${canonical}.`;
+                break;
+              case 'colloquial':
+                line = `You typed "${picked.matched_name}", a colloquial name for ${canonical}.`;
+                break;
+              case 'transliteration':
+                line = `You typed "${picked.matched_name}", a transliteration of ${canonical}.`;
+                break;
+              case 'exonym':
+                line = `You typed "${picked.matched_name}", an exonym for ${canonical}.`;
+                break;
+              default:
+                line = `You typed "${picked.matched_name}" (status: ${picked.matched_status}), recorded as ${canonical}.`;
+            }
+            cityInfoEl.textContent = line;
+            cityInfoEl.classList.add('address-validator__info--shown');
+          } else {
+            cityInfoEl.textContent = '';
+            cityInfoEl.classList.remove('address-validator__info--shown');
+          }
+          // Progressive disclosure: any commit reveals the next row.
           if (form._revealNext) form._revealNext();
         },
       });
