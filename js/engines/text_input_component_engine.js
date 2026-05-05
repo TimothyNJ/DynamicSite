@@ -4305,6 +4305,21 @@ class list_floating_label_component_engine {
    * if no match, revert to the last committed value. Non-strict mode
    * accepts any typed text as the new committed value.
    */
+  /**
+   * Replace the current items in place. Used by live-autocomplete callers
+   * that fetch fresh items from a server on every input. Updates the
+   * canonical options.items, the filtered subset (so the next blur/focus
+   * sees the new items), resets the keyboard highlight, and re-renders
+   * the dropdown rows.
+   */
+  setItems(newItems) {
+    if (!Array.isArray(newItems)) return;
+    this.options.items = newItems;
+    this._filteredItems = newItems.slice();
+    this._highlightedIndex = -1;
+    this.populateDropdown(this._filteredItems);
+  }
+
   validateOnBlur() {
     if (!this.element) return;
     const strict = this.options.strict !== false;
@@ -4362,10 +4377,46 @@ class list_floating_label_component_engine {
     // After re-opening with the full list, highlightCommittedValue() jumps
     // the keyboard highlight (and viewport scroll) to the previously-
     // selected item — same behavior as a native <select>.
+    // Live-mode plumbing. When options.itemsProvider is a function, the
+    // dropdown items are fetched from that callback (typically an HTTP
+    // request) instead of filtered from a static options.items array.
+    // Used for the address validator's city autocomplete which queries
+    // /v1/places/cities as the user types.
+    //
+    // _liveSeq is incremented on every refresh request so a slow earlier
+    // response can be ignored when a faster later one has already
+    // updated the dropdown.
+    this._liveSeq = 0;
+    this._liveDebounceTimer = null;
+    const refreshLive = (query) => {
+      if (typeof this.options.itemsProvider !== 'function') return false;
+      if (this._liveDebounceTimer) clearTimeout(this._liveDebounceTimer);
+      const debounceMs = typeof this.options.debounceMs === 'number'
+        ? this.options.debounceMs
+        : 150;
+      this._liveDebounceTimer = setTimeout(() => {
+        const seq = ++this._liveSeq;
+        Promise.resolve(this.options.itemsProvider(query))
+          .then((newItems) => {
+            if (seq !== this._liveSeq) return;  // a later request superseded us
+            if (!Array.isArray(newItems)) return;
+            this.setItems(newItems);
+          })
+          .catch((err) => {
+            console.warn('[list_floating_label_component_engine] itemsProvider failed:', err);
+          });
+      }, debounceMs);
+      return true;
+    };
+
     this.element.addEventListener('focus', () => {
       this.openDropdown();
-      this.filterItems('');
-      this.highlightCommittedValue();
+      // Live mode: fetch top-N (empty query). Static mode: filter the
+      // existing options.items array against an empty query (shows full list).
+      if (!refreshLive('')) {
+        this.filterItems('');
+        this.highlightCommittedValue();
+      }
       this.updateLabelFloatedState();
     });
 
@@ -4373,14 +4424,20 @@ class list_floating_label_component_engine {
       e.stopPropagation();
       if (!this.isDropdownOpen()) {
         this.openDropdown();
-        this.filterItems('');
-        this.highlightCommittedValue();
+        if (!refreshLive('')) {
+          this.filterItems('');
+          this.highlightCommittedValue();
+        }
       }
     });
 
     this.element.addEventListener('input', () => {
       if (!this.isDropdownOpen()) this.openDropdown();
-      this.filterItems(this.element.value);
+      // Live mode: fetch fresh results for the typed query.
+      // Static mode: filter the existing options.items array.
+      if (!refreshLive(this.element.value)) {
+        this.filterItems(this.element.value);
+      }
       this.updateLabelFloatedState();
     });
 

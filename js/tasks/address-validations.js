@@ -36,6 +36,7 @@ import { componentFactory } from '../factory/ComponentFactory.js';
 import {
   listCountries as placesListCountries,
   listAdmin1 as placesListAdmin1,
+  autocompleteCities as placesAutocompleteCities,
   explainPostal as placesExplainPostal,
 } from '../core/places-api.js';
 
@@ -798,22 +799,69 @@ function renderFields(container, code, metadata) {
       // doesn't get stuck staring at a pre-filled, untouchable field.
       if (regionCode && form._revealNext) form._revealNext();
     } else {
-      // Default — free-text city input via the existing makeRow flow.
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.setAttribute('autocomplete', 'off');
-      const cityRequired = isRequired(metadata, 'C');
-      const built = makeRow({
+      // Default — live city autocomplete via /v1/places/cities, with the
+      // existing free-text input as a fallback when the engine can't be
+      // attached. The list_floating_label engine has been extended with
+      // an itemsProvider option that fetches dropdown items on every
+      // (debounced) input event, so as the user types the suggestions
+      // refresh from our database.
+      //
+      // strict: false because the city field is one of the few places
+      // where we genuinely don't want to reject a typed value the user
+      // is sure of: GeoNames doesn't carry every hamlet, and a user
+      // typing their actual home should not be blocked just because
+      // our database hasn't heard of it.
+      const placeholderId = 'addr-city-combobox-container';
+      const cell = document.createElement('div');
+      cell.className = 'address-validator__cell';
+      const ph = document.createElement('div');
+      ph.id = placeholderId;
+      cell.appendChild(ph);
+      cityRow.appendChild(cell);
+      cityRow.classList.add('address-validator__row--combobox');
+
+      // Snapshot the country code from the outer renderFields closure.
+      // regionCode is the function argument and may be null (countries
+      // with free-text region or no region picker yet).
+      const countryCode = code;
+
+      componentFactory.createListFloatingLabel(placeholderId, {
         id: 'addr-field-city',
         label: labels.city,
-        required: cityRequired,
-        control: input,
-      });
-      while (built.firstChild) cityRow.appendChild(built.firstChild);
-      attachValidator(input, makeRequiredValidator(cityRequired));
-      // Progressive disclosure: blur with a non-empty value reveals postal.
-      input.addEventListener('blur', () => {
-        if ((input.value || '').trim() && form._revealNext) form._revealNext();
+        placeholder: labels.city,
+        items: [],   // initial; populated live by itemsProvider on focus/input
+        strict: false,
+        debounceMs: 150,
+        itemsProvider: async (query) => {
+          try {
+            const data = await placesAutocompleteCities({
+              country: countryCode,
+              admin1: regionCode || undefined,
+              q: query || '',
+              limit: 10,
+            });
+            const cities = (data && Array.isArray(data.cities)) ? data.cities : [];
+            // Prefer per-language display_name; fall back to canonical_name.
+            // Dedupe by display string so multiple matches collapsing to
+            // the same city name don't double up in the dropdown.
+            const seen = new Set();
+            const out = [];
+            for (const c of cities) {
+              const display = c.display_name || c.canonical_name;
+              if (!display || seen.has(display)) continue;
+              seen.add(display);
+              out.push(display);
+            }
+            return out;
+          } catch (err) {
+            console.warn('[address-validations] city autocomplete failed:', err);
+            return [];
+          }
+        },
+        onChange: (_v) => {
+          // Strict-mode-off commit (or any selection): reveal next row.
+          if (form._revealNext) form._revealNext();
+        },
       });
     }
   };
