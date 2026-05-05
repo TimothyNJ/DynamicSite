@@ -234,4 +234,33 @@
     color: #c0392b;
     line-height: 1.2;
   }
+
+  // Clarifier message slot (currently only the postal field). Different
+  // semantics from __error: this is informational, not blocking. Painted
+  // by the /v1/places/postal/explain handler when the typed code matches
+  // a historical / auxiliary / unofficial / alternate pattern (e.g. a
+  // pre-2024 Vietnamese 6-digit code, or the auxiliary pattern recognised
+  // for Hong Kong addresses). The text is amber rather than red so the
+  // user reads it as a note, not a rejection.
+  //
+  // Two states:
+  //   * default       — empty, occupies no extra height (display: none).
+  //   * --shown       — has text content; reserves a row of breathing
+  //                     room so the postal field's layout doesn't jump.
+  &__info {
+    display: none;
+    font-family: var(--font-family-primary);
+    font-size: 0.85em;
+    line-height: 1.3;
+    color: #b87a00;        // amber — note, not error
+    margin-top: 0.15rem;
+
+    body[data-theme="dark"] & {
+      color: #e8b85b;      // brighter amber on dark backgrounds
+    }
+  }
+
+  &__info--shown {
+    display: block;
+  }
 }

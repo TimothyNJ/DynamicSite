@@ -621,6 +621,9 @@ function renderFields(container, code, metadata) {
             // applied inside renderCityField.
             const m = String(selectedDisplay || '').match(/\(([^)]+)\)\s*$/);
             const regionCode = m ? m[1].split('/')[0].trim() : null;
+            // Stash for the postal-explain call (which needs admin1 to
+            // pick up per-state overrides like US AA/AE/AP).
+            form._currentRegionCode = regionCode;
             if (form._renderCityField) form._renderCityField(regionCode);
             // Progressive disclosure: region committed → reveal next row
             // (district if it exists, otherwise the city row).
@@ -666,8 +669,12 @@ function renderFields(container, code, metadata) {
           label: labels.region,
           placeholder: labels.region,
           items,
-          onChange: (_name) => {
+          onChange: (selectedDisplay) => {
             // Strict-mode commit. See note above for required-validation.
+            // Stash the region code (last paren group of 'Name (CODE)')
+            // for the postal-explain call so per-state overrides apply.
+            const m = String(selectedDisplay || '').match(/\(([^)]+)\)\s*$/);
+            form._currentRegionCode = m ? m[1].split('/')[0].trim() : null;
             // Progressive disclosure: region committed → reveal next row.
             if (form._revealNext) form._revealNext();
           },
@@ -684,9 +691,15 @@ function renderFields(container, code, metadata) {
       }));
       attachValidator(control, makeRequiredValidator(regionRequired));
       // Progressive disclosure: free-text region reveals next on blur
-      // when it has a value.
+      // when it has a value. Also stash the typed value as the current
+      // region — admin1 fallback for the postal-explain call. Free-text
+      // regions don't have ISO codes, so we pass the literal text and
+      // let the explain endpoint match (or not match) admin1-scoped
+      // patterns; an unmatched admin1 just falls back to country-level.
       control.addEventListener('blur', () => {
-        if ((control.value || '').trim() && form._revealNext) form._revealNext();
+        const value = (control.value || '').trim();
+        form._currentRegionCode = value || null;
+        if (value && form._revealNext) form._revealNext();
       });
     }
   }
@@ -727,13 +740,118 @@ function renderFields(container, code, metadata) {
     input.type = 'text';
     input.setAttribute('autocomplete', 'off');
     const postalRequired = isRequired(metadata, 'Z');
-    form.appendChild(makeRow({
+    const postalRow = makeRow({
       id:       'addr-field-postal',
       label:    labels.postal,
       required: postalRequired,
       control:  input
-    }));
+    });
+    form.appendChild(postalRow);
     attachValidator(input, makePostalValidator(metadata, postalRequired));
+
+    // Clarifier slot — sits below the existing error slot. Different
+    // semantics: error = red border + "Invalid format" / "Required";
+    // info = blue/yellow text noting that the typed code matched a
+    // historical, auxiliary, or otherwise non-current pattern from
+    // /v1/places/postal/explain. The two slots can both be populated
+    // (a code might be regex-valid AND historical).
+    const infoEl = document.createElement('span');
+    infoEl.className = 'address-validator__info';
+    infoEl.id = 'addr-field-postal-info';
+    infoEl.setAttribute('aria-live', 'polite');
+    // Insert into the cell that makeRow built (it's the row's only child).
+    const postalCell = postalRow.querySelector('.address-validator__cell');
+    if (postalCell) postalCell.appendChild(infoEl);
+
+    // Wire the clarifier on blur. We only call explainPostal when the
+    // user has actually typed something — empty field is the regex
+    // validator's job. The call is fire-and-forget; if the API is
+    // down, the error slot still works as before.
+    input.addEventListener('blur', async () => {
+      const value = (input.value || '').trim();
+      if (!value) {
+        infoEl.textContent = '';
+        infoEl.classList.remove('address-validator__info--shown');
+        return;
+      }
+      try {
+        const result = await placesExplainPostal({
+          country: code,
+          code: value,
+          admin1: form._currentRegionCode || undefined,
+        });
+        const matches = (result && Array.isArray(result.matches)) ? result.matches : [];
+        const remappings = (result && Array.isArray(result.remappings)) ? result.remappings : [];
+
+        // Find the FIRST non-'current' match — that's the one worth
+        // surfacing to the user. The endpoint sorts current first,
+        // so the first non-current is the most-relevant clarifier.
+        const clarifier = matches.find((m) => m && m.status && m.status !== 'current');
+
+        if (!clarifier) {
+          // Either no matches at all (typed something out of every
+          // pattern — the regex validator already flagged it) or
+          // only current matches (good — nothing to clarify).
+          infoEl.textContent = '';
+          infoEl.classList.remove('address-validator__info--shown');
+          return;
+        }
+
+        // Compose the clarifier line. Prefer the curated `description`
+        // and `notes`; fall back to bare status if those are empty.
+        let line;
+        switch (clarifier.status) {
+          case 'historical':
+            line = clarifier.description
+              ? `Heads up — this looks like ${clarifier.description.toLowerCase()}.`
+              : 'Heads up — this looks like an older postal-code format.';
+            if (clarifier.valid_until) {
+              line += ` (No longer current as of ${clarifier.valid_until}.)`;
+            }
+            break;
+          case 'auxiliary':
+            line = clarifier.description
+              ? `Note — this is ${clarifier.description.toLowerCase()}.`
+              : 'Note — this is a secondary pattern recognized for the area.';
+            break;
+          case 'unofficial':
+            line = clarifier.description
+              ? `Note — this matches an unofficial pattern: ${clarifier.description.toLowerCase()}.`
+              : 'Note — this matches an unofficial pattern.';
+            break;
+          case 'alternate':
+            line = clarifier.description
+              ? `Note — this matches an alternate pattern: ${clarifier.description.toLowerCase()}.`
+              : 'Note — this matches an alternate pattern.';
+            break;
+          default:
+            line = `Note — pattern status: ${clarifier.status}.`;
+        }
+
+        // If we have a documented old → new remapping, append it.
+        if (remappings.length > 0) {
+          const r = remappings[0];
+          if (r && r.new_code) {
+            line += ` Updated code: ${r.new_code}.`;
+          }
+        }
+
+        infoEl.textContent = line;
+        infoEl.classList.add('address-validator__info--shown');
+      } catch (err) {
+        // Network/API error — just don't show the clarifier. The
+        // existing regex validator still runs.
+        console.warn('[address-validations] explainPostal failed:', err);
+        infoEl.textContent = '';
+        infoEl.classList.remove('address-validator__info--shown');
+      }
+    });
+
+    // Clear the clarifier the moment the user starts editing again.
+    input.addEventListener('input', () => {
+      infoEl.textContent = '';
+      infoEl.classList.remove('address-validator__info--shown');
+    });
   }
 
   container.appendChild(form);
