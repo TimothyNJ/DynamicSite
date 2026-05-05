@@ -33,7 +33,11 @@
 
 import { COMMON_COUNTRIES, getOverride } from './country-overrides.js';
 import { componentFactory } from '../factory/ComponentFactory.js';
-import { listCountries as placesListCountries, explainPostal as placesExplainPostal } from '../core/places-api.js';
+import {
+  listCountries as placesListCountries,
+  listAdmin1 as placesListAdmin1,
+  explainPostal as placesExplainPostal,
+} from '../core/places-api.js';
 
 // libaddressinput metadata endpoints (Google's public service, CORS-enabled).
 //
@@ -225,12 +229,49 @@ function buildCountryComboboxData(pinned, _common, all) {
 }
 
 /**
- * Fetch per-country libaddressinput metadata. Cached in-memory for the
- * session. Aggregate responses wrap the country record under a "data/<CC>"
- * key, with subdivisions under "data/<CC>/<SUB>".
+ * Fetch admin1 (state/province) data for a country from our places API
+ * and return it shaped as the SPA expects: [{code, name}].
+ *
+ * Throws on any failure so the caller can decide whether to fall back to
+ * libaddressinput's subdivisions or treat the country as having none.
+ */
+async function fetchAdmin1FromApi(code) {
+  const data = await placesListAdmin1({ country: code });
+  if (!data || !Array.isArray(data.admin1)) {
+    throw new Error(`places API admin1 for ${code}: bad shape`);
+  }
+  // Map our shape {code, canonical_name, display_name} to the SPA's
+  // {code, name}. Prefer per-language display_name; fall back to the
+  // canonical English name. The places API resolves display_name via
+  // ?lang= which the client passes from <html lang>.
+  return data.admin1.map((a) => ({
+    code: a.code,
+    name: a.display_name || a.canonical_name,
+  }));
+}
+
+/**
+ * Fetch per-country metadata.
+ *
+ * libaddressinput remains the source of truth for the FORMAT metadata
+ * (fmt, require, postal regex, label hints) — our places API doesn't
+ * carry those. Subdivisions, however, come from our places API when
+ * reachable; libaddressinput's are used only as a fallback.
+ *
+ * Why overlay rather than replace: libaddressinput is geo-blocked in
+ * mainland China (it's served from chromium-i18n.appspot.com on Google
+ * App Engine). Our places API is on dynamicsite-owned infrastructure
+ * with Cloudflare in front, reachable everywhere. Preferring our admin1
+ * list means a user in a blocked region sees state/province options
+ * even though the format metadata fetch failed.
+ *
+ * Cached in-memory for the session keyed by ISO code.
  */
 async function fetchCountryMetadata(code) {
   if (metadataCache.has(code)) return metadataCache.get(code);
+
+  // Step 1: libaddressinput for format metadata + fallback subdivisions.
+  let metadata;
   try {
     const response = await fetch(`${LIBADDRESS_AGGREGATE_BASE}/${encodeURIComponent(code)}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -246,15 +287,27 @@ async function fetchCountryMetadata(code) {
       .map((k) => raw[k])
       .filter((s) => s && s.key && s.name)
       .map((s) => ({ code: s.key, name: s.name }));
-    const result = Object.assign({}, country, { subdivisions });
-    metadataCache.set(code, result);
-    return result;
+    metadata = Object.assign({}, country, { subdivisions });
   } catch (err) {
-    console.warn(`[address-validations] Metadata fetch failed for ${code}; using defaults.`, err);
-    const fallback = { fmt: DEFAULT_FMT, require: 'ACZ', subdivisions: [] };
-    metadataCache.set(code, fallback);
-    return fallback;
+    console.warn(`[address-validations] libaddressinput metadata fetch failed for ${code}; using defaults.`, err);
+    metadata = { fmt: DEFAULT_FMT, require: 'ACZ', subdivisions: [] };
   }
+
+  // Step 2: overlay subdivisions from our places API. If our API is
+  // reachable AND has admin1 rows for this country, prefer them.
+  // Otherwise keep whatever subdivisions libaddressinput provided
+  // (which may be the empty array if step 1 failed).
+  try {
+    const apiSubdivisions = await fetchAdmin1FromApi(code);
+    if (apiSubdivisions.length > 0) {
+      metadata = Object.assign({}, metadata, { subdivisions: apiSubdivisions });
+    }
+  } catch (err) {
+    console.warn(`[address-validations] places API admin1 fetch failed for ${code}; keeping libaddressinput subdivisions.`, err);
+  }
+
+  metadataCache.set(code, metadata);
+  return metadata;
 }
 
 /**
