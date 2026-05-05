@@ -4485,10 +4485,29 @@ class list_floating_label_component_engine {
       }, 0);
     });
 
-    // Outside click closes the dropdown. Stored on `this` so destroy()
+    // Outside-click closes the dropdown. Stored on `this` so destroy()
     // can remove the document-level listener.
+    //
+    // The "inside" boundary is the engine's MOUNT-POINT CONTAINER, not
+    // the visual wrapper. The wrapper is inline-flex sized to its
+    // longest item; the container (the element the engine was rendered
+    // into) can be wider — e.g., when the wrapper is centered inside a
+    // text-align:center row, there's empty container area to either
+    // side of the visible field. The container-mousedown handler in
+    // render() routes focus from those empty zones, which means clicks
+    // there must NOT count as "outside" — otherwise the dropdown opens
+    // on mousedown→focus and immediately closes when the click event
+    // bubbles to document.
+    //
+    // Both event handlers (mousedown forwarding focus, click closing
+    // outside) now agree on the same boundary. The wrapper is fallback
+    // for the unusual case where _containerEl wasn't captured.
+    //
+    // Caller assumption: the mount-point passed to render() is sized
+    // sensibly (a placeholder div, not document.body).
     this._outsideClickHandler = (e) => {
-      if (!this.wrapper.contains(e.target)) {
+      const boundary = this._containerEl || this.wrapper;
+      if (!boundary || !boundary.contains(e.target)) {
         this.closeDropdown();
       }
     };
